@@ -9,7 +9,7 @@ import (
 type JobType string
 type JobStatus string
 
-const (
+var (
 	EthereumTransaction       JobType = "eth://ethereum/transaction"       // Classic public Ethereum transaction
 	EthereumRawTransaction    JobType = "eth://ethereum/rawTransaction"    // Classic raw transaction
 	EEAMarkingTransaction     JobType = "eth://eea/markingTransaction"     // Besu marking transaction
@@ -18,7 +18,11 @@ const (
 	TesseraPrivateTransaction JobType = "eth://tessera/privateTransaction" // Tessera private transaction
 )
 
-const (
+func (jt *JobType) String() string {
+	return string(*jt)
+}
+
+var (
 	StatusCreated    JobStatus = "CREATED"
 	StatusStarted    JobStatus = "STARTED"
 	StatusPending    JobStatus = "PENDING"
@@ -30,6 +34,10 @@ const (
 	StatusMined      JobStatus = "MINED"
 	StatusNeverMined JobStatus = "NEVER_MINED"
 )
+
+func (js *JobStatus) String() string {
+	return string(*js)
+}
 
 type Job struct {
 	UUID         string

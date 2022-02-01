@@ -2,8 +2,10 @@ package dataagents
 
 import (
 	"context"
+	"time"
 
 	"github.com/consensys/orchestrate/src/api/store"
+	"github.com/consensys/orchestrate/src/api/store/parsers"
 	"github.com/consensys/orchestrate/src/entities"
 
 	"github.com/consensys/orchestrate/pkg/errors"
@@ -27,12 +29,17 @@ func NewPGTransactionRequest(db pg.DB) store.TransactionRequestAgent {
 }
 
 // Insert Inserts a new transaction request in DB
-func (agent *PGTransactionRequest) Insert(ctx context.Context, txRequest *models.TransactionRequest) error {
-	if txRequest.Schedule != nil && txRequest.ScheduleID == nil {
-		txRequest.ScheduleID = &txRequest.Schedule.ID
-	}
+func (agent *PGTransactionRequest) Insert(ctx context.Context, txRequest *entities.TxRequest, requestHash, scheduleUUID string) error {
+	model := parsers.NewTxRequestModel(txRequest, requestHash)
+	model.CreatedAt = time.Now().UTC()
 
-	err := pg.Insert(ctx, agent.db, txRequest)
+	scheduleID, err := getScheduleIDByUUID(ctx, agent.db, agent.logger, scheduleUUID)
+	if err != nil {
+		return errors.FromError(err).ExtendComponent(jobDAComponent)
+	}
+	model.ScheduleID = &scheduleID
+
+	err = pg.Insert(ctx, agent.db, model)
 	if err != nil {
 		errMessage := "error executing selectOrInsert"
 		agent.logger.WithContext(ctx).WithError(err).Error(errMessage)
@@ -42,7 +49,7 @@ func (agent *PGTransactionRequest) Insert(ctx context.Context, txRequest *models
 	return nil
 }
 
-func (agent *PGTransactionRequest) FindOneByIdempotencyKey(ctx context.Context, idempotencyKey, tenantID, ownerID string) (*models.TransactionRequest, error) {
+func (agent *PGTransactionRequest) FindOneByIdempotencyKey(ctx context.Context, idempotencyKey, tenantID, ownerID string) (*entities.TxRequest, error) {
 	txRequest := &models.TransactionRequest{}
 	query := agent.db.ModelContext(ctx, txRequest).
 		Where("idempotency_key = ?", idempotencyKey).
@@ -59,10 +66,10 @@ func (agent *PGTransactionRequest) FindOneByIdempotencyKey(ctx context.Context, 
 		return nil, errors.FromError(err).ExtendComponent(txRequestDAComponent)
 	}
 
-	return txRequest, nil
+	return parsers.NewTxRequestEntity(txRequest), nil
 }
 
-func (agent *PGTransactionRequest) FindOneByUUID(ctx context.Context, scheduleUUID string, tenants []string, ownerID string) (*models.TransactionRequest, error) {
+func (agent *PGTransactionRequest) FindOneByUUID(ctx context.Context, scheduleUUID string, tenants []string, ownerID string) (*entities.TxRequest, error) {
 	txRequest := &models.TransactionRequest{}
 	query := agent.db.ModelContext(ctx, txRequest).
 		Where("schedule.uuid = ?", scheduleUUID).
@@ -79,10 +86,10 @@ func (agent *PGTransactionRequest) FindOneByUUID(ctx context.Context, scheduleUU
 		return nil, errors.FromError(err).ExtendComponent(txRequestDAComponent)
 	}
 
-	return txRequest, nil
+	return parsers.NewTxRequestEntity(txRequest), nil
 }
 
-func (agent *PGTransactionRequest) Search(ctx context.Context, filters *entities.TransactionRequestFilters, tenants []string, ownerID string) ([]*models.TransactionRequest, error) {
+func (agent *PGTransactionRequest) Search(ctx context.Context, filters *entities.TransactionRequestFilters, tenants []string, ownerID string) ([]*entities.TxRequest, error) {
 	var txRequests []*models.TransactionRequest
 
 	query := agent.db.ModelContext(ctx, &txRequests).Relation("Schedule")
@@ -102,5 +109,5 @@ func (agent *PGTransactionRequest) Search(ctx context.Context, filters *entities
 		return nil, errors.FromError(err).ExtendComponent(txRequestDAComponent)
 	}
 
-	return txRequests, nil
+	return parsers.NewTxRequestEntityArr(txRequests), nil
 }

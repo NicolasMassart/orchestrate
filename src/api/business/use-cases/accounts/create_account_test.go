@@ -5,14 +5,13 @@ package accounts
 import (
 	"context"
 	"fmt"
-	modelstestdata "github.com/consensys/orchestrate/src/api/store/models/testdata"
 	"testing"
 
 	"github.com/consensys/orchestrate/pkg/errors"
+	"github.com/consensys/orchestrate/src/entities/testdata"
 	qkm "github.com/consensys/orchestrate/src/infra/quorum-key-manager"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"github.com/consensys/orchestrate/src/entities"
-	"github.com/consensys/orchestrate/src/entities/testdata"
 	mocks2 "github.com/consensys/orchestrate/src/api/business/use-cases/mocks"
 	"github.com/consensys/orchestrate/src/api/store/mocks"
 	qkmtypes "github.com/consensys/quorum-key-manager/src/stores/api/types"
@@ -182,7 +181,7 @@ func TestCreateAccount_Execute(t *testing.T) {
 		mockSearchUC.EXPECT().Execute(gomock.Any(), &entities.AccountFilters{Aliases: []string{accEntity.Alias}, TenantID: userInfo.TenantID}, userInfo)
 		accountAgent.EXPECT().
 			FindOneByAddress(gomock.Any(), "0x83a0254be47813BBff771F4562744676C4e793F0", userInfo.AllowedTenants, userInfo.Username).
-			Return(modelstestdata.FakeAccountModel(), nil)
+			Return(testdata.FakeAccount(), nil)
 
 		_, err := usecase.Execute(ctx, accEntity, privKey, "", userInfo)
 

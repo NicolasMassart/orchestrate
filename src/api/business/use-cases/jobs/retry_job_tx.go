@@ -14,7 +14,6 @@ import (
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/src/api/store"
-	"github.com/consensys/orchestrate/src/api/store/parsers"
 )
 
 const retryJobTxComponent = "use-cases.retry-job-tx"
@@ -41,12 +40,11 @@ func (uc *retryJobTxUseCase) Execute(ctx context.Context, jobUUID string, gasInc
 	logger := uc.logger.WithContext(ctx)
 	logger.Debug("retrying job transaction")
 
-	jobModel, err := uc.db.Job().FindOneByUUID(ctx, jobUUID, userInfo.AllowedTenants, userInfo.Username, false)
+	job, err := uc.db.Job().FindOneByUUID(ctx, jobUUID, userInfo.AllowedTenants, userInfo.Username, false)
 	if err != nil {
 		return errors.FromError(err).ExtendComponent(retryJobTxComponent)
 	}
 
-	job := parsers.NewJobEntityFromModels(jobModel)
 	if job.Status != entities.StatusPending {
 		errMessage := "cannot retry job transaction at the current status"
 		logger.WithField("status", job.Status).Error(errMessage)
@@ -56,6 +54,7 @@ func (uc *retryJobTxUseCase) Execute(ctx context.Context, jobUUID string, gasInc
 	job.UUID = ""
 	job.InternalData.ParentJobUUID = jobUUID
 	job.Transaction.Data = txData
+	job.Transaction.UUID = ""
 	increment := int64(math.Trunc((gasIncrement + 1.0) * 100))
 	if job.Transaction.TransactionType == entities.LegacyTxType {
 		gasPrice := job.Transaction.GasPrice.ToInt()

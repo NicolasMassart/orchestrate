@@ -10,9 +10,8 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/consensys/orchestrate/pkg/errors"
-	"github.com/consensys/orchestrate/src/api/store/parsers"
 	"github.com/consensys/orchestrate/src/api/store/mocks"
-	"github.com/consensys/orchestrate/src/api/store/models/testdata"
+	"github.com/consensys/orchestrate/src/entities/testdata"
 )
 
 func TestGetJob_Execute(t *testing.T) {
@@ -29,21 +28,22 @@ func TestGetJob_Execute(t *testing.T) {
 	usecase := NewGetJobUseCase(mockDB)
 
 	t.Run("should execute use case successfully", func(t *testing.T) {
-		job := testdata.FakeJobModel(0)
-		expectedResponse := parsers.NewJobEntityFromModels(job)
+		job := testdata.FakeJob()
 
-		mockJobDA.EXPECT().FindOneByUUID(gomock.Any(), job.UUID, userInfo.AllowedTenants, userInfo.Username, true).Return(job, nil)
+		mockJobDA.EXPECT().FindOneByUUID(gomock.Any(), job.UUID, userInfo.AllowedTenants, userInfo.Username, true).
+			Return(job, nil)
 		jobResponse, err := usecase.Execute(ctx, job.UUID, userInfo)
 
 		assert.NoError(t, err)
-		assert.Equal(t, expectedResponse, jobResponse)
+		assert.Equal(t, job, jobResponse)
 	})
 
 	t.Run("should fail with same error if FindOneByUUID fails for job", func(t *testing.T) {
 		uuid := "uuid"
 		expectedErr := errors.NotFoundError("error")
 
-		mockJobDA.EXPECT().FindOneByUUID(gomock.Any(), uuid, userInfo.AllowedTenants, userInfo.Username, true).Return(nil, expectedErr)
+		mockJobDA.EXPECT().FindOneByUUID(gomock.Any(), uuid, userInfo.AllowedTenants, userInfo.Username, true).
+			Return(nil, expectedErr)
 
 		response, err := usecase.Execute(ctx, uuid, userInfo)
 

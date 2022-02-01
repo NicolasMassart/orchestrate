@@ -13,11 +13,7 @@ type PGAgents struct {
 	txRequest        store.TransactionRequestAgent
 	account          store.AccountAgent
 	faucet           store.FaucetAgent
-	artifact         store.ArtifactAgent
-	codeHash         store.CodeHashAgent
-	event            store.EventAgent
-	repository       store.RepositoryAgent
-	tag              store.TagAgent
+	contractEvent    store.ContractEventAgent
 	contract         store.ContractAgent
 	chain            store.ChainAgent
 	privateTxManager store.PrivateTxManagerAgent
@@ -32,11 +28,7 @@ func New(db pg.DB) *PGAgents {
 		txRequest:        NewPGTransactionRequest(db),
 		account:          NewPGAccount(db),
 		faucet:           NewPGFaucet(db),
-		artifact:         NewPGArtifact(db),
-		codeHash:         NewPGCodeHash(db),
-		event:            NewPGEvent(db),
-		repository:       NewPGRepository(db),
-		tag:              NewPGTag(db),
+		contractEvent:    NewPGContractEvent(db),
 		contract:         NewPGContract(db),
 		chain:            NewPGChain(db),
 		privateTxManager: NewPGPrivateTxManager(db),
@@ -71,24 +63,8 @@ func (a *PGAgents) Faucet() store.FaucetAgent {
 	return a.faucet
 }
 
-func (a *PGAgents) Artifact() store.ArtifactAgent {
-	return a.artifact
-}
-
-func (a *PGAgents) CodeHash() store.CodeHashAgent {
-	return a.codeHash
-}
-
-func (a *PGAgents) Event() store.EventAgent {
-	return a.event
-}
-
-func (a *PGAgents) Repository() store.RepositoryAgent {
-	return a.repository
-}
-
-func (a *PGAgents) Tag() store.TagAgent {
-	return a.tag
+func (a *PGAgents) ContractEvent() store.ContractEventAgent {
+	return a.contractEvent
 }
 
 func (a *PGAgents) Contract() store.ContractAgent {

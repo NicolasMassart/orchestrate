@@ -2,8 +2,6 @@ package models
 
 import (
 	"time"
-
-	"github.com/consensys/orchestrate/src/entities"
 )
 
 type Job struct {
@@ -15,14 +13,14 @@ type Job struct {
 	NextJobUUID   string `pg:"alias:next_job_uuid"`
 	ScheduleID    *int   `pg:"alias:schedule_id,notnull"`
 	Schedule      *Schedule
-	Type          entities.JobType
+	Type          string
 	TransactionID *int `pg:"alias:transaction_id,notnull"`
 	Transaction   *Transaction
 	Logs          []*Log
 	Labels        map[string]string
-	InternalData  *entities.InternalData
-	IsParent      bool `pg:"alias:is_parent,default:false,use_zero"`
-	Status        entities.JobStatus
+	InternalData  interface{} `pg:",json"`
+	IsParent      bool        `pg:"alias:is_parent,default:false,use_zero"`
+	Status        string
 	CreatedAt     time.Time `pg:"default:now()"`
 	UpdatedAt     time.Time `pg:"default:now()"`
 }

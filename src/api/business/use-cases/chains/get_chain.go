@@ -8,7 +8,6 @@ import (
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/store"
-	"github.com/consensys/orchestrate/src/api/store/parsers"
 	"github.com/consensys/orchestrate/src/entities"
 )
 
@@ -33,11 +32,11 @@ func (uc *getChainUseCase) Execute(ctx context.Context, uuid string, userInfo *m
 	ctx = log.WithFields(ctx, log.Field("chain", uuid))
 	logger := uc.logger.WithContext(ctx)
 
-	chainModel, err := uc.db.Chain().FindOneByUUID(ctx, uuid, userInfo.AllowedTenants, userInfo.Username)
+	chain, err := uc.db.Chain().FindOneByUUID(ctx, uuid, userInfo.AllowedTenants, userInfo.Username)
 	if err != nil {
 		return nil, errors.FromError(err).ExtendComponent(getChainComponent)
 	}
 
 	logger.Debug("chain found successfully")
-	return parsers.NewChainFromModel(chainModel), nil
+	return chain, nil
 }

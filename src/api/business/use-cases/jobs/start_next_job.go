@@ -3,12 +3,10 @@ package jobs
 import (
 	"context"
 	"fmt"
-	"strconv"
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
+	"github.com/consensys/orchestrate/pkg/utils"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
-	"github.com/consensys/orchestrate/src/api/store/models"
-	"github.com/consensys/orchestrate/src/api/store/parsers"
 	"github.com/consensys/orchestrate/src/entities"
 
 	"github.com/consensys/orchestrate/pkg/errors"
@@ -37,30 +35,30 @@ func (uc *startNextJobUseCase) Execute(ctx context.Context, jobUUID string, user
 	ctx = log.WithFields(ctx, log.Field("job", jobUUID))
 	logger := uc.logger.WithContext(ctx).WithField("job", jobUUID)
 	logger.Debug("starting job")
-	jobModel, err := uc.db.Job().FindOneByUUID(ctx, jobUUID, userInfo.AllowedTenants, userInfo.Username, false)
+	job, err := uc.db.Job().FindOneByUUID(ctx, jobUUID, userInfo.AllowedTenants, userInfo.Username, false)
 	if err != nil {
 		return errors.FromError(err).ExtendComponent(startNextJobComponent)
 	}
 
-	if jobModel.NextJobUUID == "" {
-		errMsg := fmt.Sprintf("job %s does not have a next job to start", jobModel.NextJobUUID)
+	if job.NextJobUUID == "" {
+		errMsg := fmt.Sprintf("job %s does not have a next job to start", job.NextJobUUID)
 		logger.Error(errMsg)
 		return errors.DataError(errMsg)
 	}
 
-	logger = logger.WithField("next_job", jobModel.NextJobUUID)
+	logger = logger.WithField("next_job", job.NextJobUUID)
 	logger.Debug("start next job use-case")
 
-	nextJobModel, err := uc.db.Job().FindOneByUUID(ctx, jobModel.NextJobUUID, userInfo.AllowedTenants, userInfo.Username, false)
+	nextJob, err := uc.db.Job().FindOneByUUID(ctx, job.NextJobUUID, userInfo.AllowedTenants, userInfo.Username, false)
 	if err != nil {
 		return errors.FromError(err).ExtendComponent(startNextJobComponent)
 	}
 
-	switch nextJobModel.Type {
+	switch nextJob.Type {
 	case entities.EEAMarkingTransaction:
-		err = uc.handleEEAMarkingTx(ctx, jobModel, nextJobModel)
+		err = uc.handleEEAMarkingTx(ctx, job, nextJob)
 	case entities.TesseraMarkingTransaction:
-		err = uc.handleTesseraMarkingTx(ctx, jobModel, nextJobModel)
+		err = uc.handleTesseraMarkingTx(ctx, job, nextJob)
 	}
 
 	if err != nil {
@@ -68,40 +66,37 @@ func (uc *startNextJobUseCase) Execute(ctx context.Context, jobUUID string, user
 		return errors.FromError(err).ExtendComponent(startNextJobComponent)
 	}
 
-	return uc.startJobUseCase.Execute(ctx, nextJobModel.UUID, userInfo)
+	return uc.startJobUseCase.Execute(ctx, nextJob.UUID, userInfo)
 }
 
-func (uc *startNextJobUseCase) handleEEAMarkingTx(ctx context.Context, prevJobModel, jobModel *models.Job) error {
-	if prevJobModel.Type != entities.EEAPrivateTransaction {
+func (uc *startNextJobUseCase) handleEEAMarkingTx(ctx context.Context, prevJob, job *entities.Job) error {
+	if prevJob.Type != entities.EEAPrivateTransaction {
 		return errors.DataError("expected previous job as type: %s", entities.EEAPrivateTransaction)
 	}
 
-	prevJobEntity := parsers.NewJobEntityFromModels(prevJobModel)
-	if prevJobEntity.Status != entities.StatusStored {
+	if prevJob.Status != entities.StatusStored {
 		return errors.DataError("expected previous job status as: STORED")
 	}
 
-	jobModel.Transaction.Data = prevJobModel.Transaction.Hash
-	return uc.db.Transaction().Update(ctx, jobModel.Transaction)
+	job.Transaction.Data = prevJob.Transaction.Hash.Bytes()
+	return uc.db.Transaction().Update(ctx, job.Transaction, job.UUID)
 }
 
-func (uc *startNextJobUseCase) handleTesseraMarkingTx(ctx context.Context, prevJobModel, jobModel *models.Job) error {
-	if prevJobModel.Type != entities.TesseraPrivateTransaction {
+func (uc *startNextJobUseCase) handleTesseraMarkingTx(ctx context.Context, prevJob, job *entities.Job) error {
+	if prevJob.Type != entities.TesseraPrivateTransaction {
 		return errors.DataError("expected previous job as type: %s", entities.TesseraPrivateTransaction)
 	}
 
-	prevJobEntity := parsers.NewJobEntityFromModels(prevJobModel)
-	if prevJobEntity.Status != entities.StatusStored {
+	if prevJob.Status != entities.StatusStored {
 		return errors.DataError("expected previous job status as: STORED")
 	}
 
-	jobModel.Transaction.Data = prevJobModel.Transaction.EnclaveKey
-	gas, err := strconv.ParseInt(prevJobModel.Transaction.Gas, 10, 64)
-	if err == nil && gas < entities.TesseraGasLimit {
-		jobModel.Transaction.Gas = strconv.Itoa(entities.TesseraGasLimit)
+	job.Transaction.Data = prevJob.Transaction.EnclaveKey
+	if prevJob.Transaction.Gas != nil && *prevJob.Transaction.Gas < uint64(entities.TesseraGasLimit) {
+		job.Transaction.Gas = utils.ToPtr(uint64(entities.TesseraGasLimit)).(*uint64)
 	} else {
-		jobModel.Transaction.Gas = prevJobModel.Transaction.Gas
+		job.Transaction.Gas = prevJob.Transaction.Gas
 	}
 
-	return uc.db.Transaction().Update(ctx, jobModel.Transaction)
+	return uc.db.Transaction().Update(ctx, job.Transaction, job.UUID)
 }

@@ -5,16 +5,16 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
+	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/consensys/orchestrate/src/api/store"
+	"github.com/consensys/orchestrate/src/api/store/models"
+	"github.com/consensys/orchestrate/src/api/store/parsers"
 	"github.com/consensys/orchestrate/src/entities"
-	"github.com/go-pg/pg/v9/orm"
-
 	pg "github.com/consensys/orchestrate/src/infra/database/postgres"
 	gopg "github.com/go-pg/pg/v9"
-
-	"github.com/consensys/orchestrate/pkg/errors"
-	"github.com/consensys/orchestrate/src/api/store/models"
+	"github.com/go-pg/pg/v9/orm"
 	"github.com/gofrs/uuid"
 )
 
@@ -32,82 +32,58 @@ func NewPGJob(db pg.DB) store.JobAgent {
 }
 
 // Insert Inserts a new job in DB
-func (agent *PGJob) Insert(ctx context.Context, job *models.Job) error {
-	if job.UUID == "" {
-		job.UUID = uuid.Must(uuid.NewV4()).String()
+func (agent *PGJob) Insert(ctx context.Context, job *entities.Job, scheduleUUID, txUUID string) error {
+	model := parsers.NewJobModelFromEntities(job)
+	if model.UUID == "" {
+		model.UUID = uuid.Must(uuid.NewV4()).String()
 	}
+	model.CreatedAt = time.Now().UTC()
+	model.UpdatedAt = time.Now().UTC()
 
-	if job.Transaction != nil && job.TransactionID == nil {
-		job.TransactionID = &job.Transaction.ID
+	scheduleID, err := getScheduleIDByUUID(ctx, agent.db, agent.logger, scheduleUUID)
+	if err != nil {
+		return errors.FromError(err).ExtendComponent(jobDAComponent)
 	}
-	if job.Schedule != nil && job.ScheduleID == nil {
-		job.ScheduleID = &job.Transaction.ID
-	}
+	model.ScheduleID = &scheduleID
 
-	agent.db.ModelContext(ctx, job)
-	err := pg.Insert(ctx, agent.db, job)
+	txID, err := getTxIDByUUID(ctx, agent.db, agent.logger, txUUID)
+	if err != nil {
+		return errors.FromError(err).ExtendComponent(jobDAComponent)
+	}
+	model.TransactionID = &txID
+
+	agent.db.ModelContext(ctx, model)
+	err = pg.Insert(ctx, agent.db, model)
 	if err != nil {
 		agent.logger.WithContext(ctx).WithError(err).Error("failed to insert job")
 		return errors.FromError(err).ExtendComponent(jobDAComponent)
 	}
 
+	utils.CopyPtr(parsers.NewJobEntity(model), job)
 	return nil
 }
 
 // Insert Inserts a new job in DB
-func (agent *PGJob) Update(ctx context.Context, job *models.Job) error {
-	if job.ID == 0 {
-		errMsg := "cannot update job with missing ID"
-		log.WithContext(ctx).Error(errMsg)
-		return errors.InvalidArgError(errMsg)
-	}
-
-	if job.Transaction != nil && job.TransactionID == nil {
-		job.TransactionID = &job.Transaction.ID
-	}
-	if job.Schedule != nil && job.ScheduleID == nil {
-		job.ScheduleID = &job.Transaction.ID
-	}
-
-	job.UpdatedAt = time.Now().UTC()
-	agent.db.ModelContext(ctx, job)
-	err := pg.UpdateModel(ctx, agent.db, job)
-
+func (agent *PGJob) Update(ctx context.Context, job *entities.Job) error {
+	model := parsers.NewJobModelFromEntities(job)
+	model.UpdatedAt = time.Now().UTC()
+	query := agent.db.ModelContext(ctx, model).Where("uuid = ?", job.UUID)
+	err := pg.Update(ctx, query)
 	if err != nil {
 		agent.logger.WithContext(ctx).WithError(err).Error("failed to update job")
 		return errors.FromError(err).ExtendComponent(jobDAComponent)
 	}
 
+	utils.CopyPtr(parsers.NewJobEntity(model), job)
 	return nil
 }
 
-// FindOneByUUID gets a job by UUID
-func (agent *PGJob) FindOneByUUID(ctx context.Context, jobUUID string, tenants []string, ownerID string, withLogs bool) (*models.Job, error) {
-	job := &models.Job{}
-
-	query := agent.db.ModelContext(ctx, job).
-		Where("job.uuid = ?", jobUUID).
-		Relation("Transaction").
-		Relation("Schedule")
-
-	if withLogs {
-		query = query.Relation("Logs", func(q *orm.Query) (*orm.Query, error) {
-			return q.Order("id ASC"), nil
-		})
-	}
-
-	query = pg.WhereAllowedTenants(query, "schedule.tenant_id", tenants).Order("id ASC")
-	query = pg.WhereAllowedOwner(query, "schedule.owner_id", ownerID)
-
-	err := pg.Select(ctx, query)
+func (agent *PGJob) FindOneByUUID(ctx context.Context, jobUUID string, tenants []string, ownerID string, withLogs bool) (*entities.Job, error) {
+	model, err := agent.findOneByUUID(ctx, jobUUID, tenants, ownerID, withLogs)
 	if err != nil {
-		if !errors.IsNotFoundError(err) {
-			agent.logger.WithContext(ctx).WithError(err).Error("failed to find job by uuid")
-		}
-		return nil, errors.FromError(err).ExtendComponent(jobDAComponent)
+		return nil, err
 	}
-
-	return job, nil
+	return parsers.NewJobEntity(model), nil
 }
 
 // LockOneByUUID gets a job by UUID
@@ -124,7 +100,7 @@ func (agent *PGJob) LockOneByUUID(ctx context.Context, jobUUID string) error {
 	return nil
 }
 
-func (agent *PGJob) Search(ctx context.Context, filters *entities.JobFilters, tenants []string, ownerID string) ([]*models.Job, error) {
+func (agent *PGJob) Search(ctx context.Context, filters *entities.JobFilters, tenants []string, ownerID string) ([]*entities.Job, error) {
 	var jobs []*models.Job
 
 	query := agent.db.ModelContext(ctx, &jobs).
@@ -175,5 +151,45 @@ func (agent *PGJob) Search(ctx context.Context, filters *entities.JobFilters, te
 		return nil, errors.FromError(err).ExtendComponent(jobDAComponent)
 	}
 
-	return jobs, nil
+	return parsers.NewJobEntityArr(jobs), nil
+}
+
+func (agent *PGJob) findOneByUUID(ctx context.Context, jobUUID string, tenants []string, ownerID string, withLogs bool) (*models.Job, error) {
+	job := &models.Job{}
+
+	query := agent.db.ModelContext(ctx, job).
+		Where("job.uuid = ?", jobUUID).
+		Relation("Transaction").
+		Relation("Schedule")
+
+	if withLogs {
+		query = query.Relation("Logs", func(q *orm.Query) (*orm.Query, error) {
+			return q.Order("id ASC"), nil
+		})
+	}
+
+	query = pg.WhereAllowedTenants(query, "schedule.tenant_id", tenants).Order("id ASC")
+	query = pg.WhereAllowedOwner(query, "schedule.owner_id", ownerID)
+
+	err := pg.Select(ctx, query)
+	if err != nil {
+		if !errors.IsNotFoundError(err) {
+			agent.logger.WithContext(ctx).WithError(err).Error("failed to find job by uuid")
+		}
+		return nil, errors.FromError(err).ExtendComponent(jobDAComponent)
+	}
+
+	return job, nil
+}
+
+func getJobIDByUUID(ctx context.Context, db pg.DB, logger *log.Logger, jobUUID string) (int, error) {
+	model := &models.Job{}
+	err := db.ModelContext(ctx, model).Column("id").Where("uuid = ?", jobUUID).Select()
+	if err != nil {
+		errMsg := "failed to find job by uuid"
+		logger.WithContext(ctx).WithError(err).Error(errMsg)
+		return 0, errors.FromError(err).SetMessage(errMsg)
+	}
+
+	return model.ID, nil
 }

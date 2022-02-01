@@ -6,14 +6,11 @@ import (
 	"context"
 	"testing"
 
-	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
-
 	"github.com/consensys/orchestrate/pkg/errors"
-	"github.com/consensys/orchestrate/src/entities"
-	"github.com/consensys/orchestrate/src/api/store/parsers"
+	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"github.com/consensys/orchestrate/src/api/store/mocks"
-	"github.com/consensys/orchestrate/src/api/store/models"
-	"github.com/consensys/orchestrate/src/api/store/models/testdata"
+	"github.com/consensys/orchestrate/src/entities"
+	"github.com/consensys/orchestrate/src/entities/testdata"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -36,14 +33,14 @@ func TestSearchChains_Execute(t *testing.T) {
 		filters := &entities.ChainFilters{
 			Names: []string{"name1", "name2"},
 		}
-		chainModel := testdata.FakeChainModel()
+		chain := testdata.FakeChain()
 
-		chainAgent.EXPECT().Search(gomock.Any(), filters, userInfo.AllowedTenants, userInfo.Username).Return([]*models.Chain{chainModel}, nil)
+		chainAgent.EXPECT().Search(gomock.Any(), filters, userInfo.AllowedTenants, userInfo.Username).Return([]*entities.Chain{chain}, nil)
 
 		resp, err := usecase.Execute(ctx, filters, userInfo)
 
 		assert.NoError(t, err)
-		assert.Equal(t, []*entities.Chain{parsers.NewChainFromModel(chainModel)}, resp)
+		assert.Equal(t, []*entities.Chain{chain}, resp)
 	})
 
 	t.Run("should fail with same error if search chains fails", func(t *testing.T) {

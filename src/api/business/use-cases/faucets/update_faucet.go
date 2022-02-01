@@ -8,7 +8,6 @@ import (
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/store"
-	"github.com/consensys/orchestrate/src/api/store/parsers"
 	"github.com/consensys/orchestrate/src/entities"
 )
 
@@ -34,18 +33,16 @@ func (uc *updateFaucetUseCase) Execute(ctx context.Context, faucet *entities.Fau
 	logger := uc.logger.WithContext(ctx)
 	logger.Debug("updating faucet")
 
-	faucetModel := parsers.NewFaucetModelFromEntity(faucet)
-	faucetModel.TenantID = userInfo.TenantID
-	err := uc.db.Faucet().Update(ctx, faucetModel, userInfo.AllowedTenants)
+	err := uc.db.Faucet().Update(ctx, faucet, userInfo.AllowedTenants)
 	if err != nil {
 		return nil, errors.FromError(err).ExtendComponent(updateFaucetComponent)
 	}
 
-	faucetRetrieved, err := uc.db.Faucet().FindOneByUUID(ctx, faucet.UUID, userInfo.AllowedTenants)
+	faucet, err = uc.db.Faucet().FindOneByUUID(ctx, faucet.UUID, userInfo.AllowedTenants)
 	if err != nil {
 		return nil, errors.FromError(err).ExtendComponent(updateFaucetComponent)
 	}
 
 	logger.Info("faucet updated successfully")
-	return parsers.NewFaucetFromModel(faucetRetrieved), nil
+	return faucet, nil
 }

@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 )
@@ -41,4 +42,13 @@ func ExtractField(cfg interface{}) (interface{}, error) {
 	}
 
 	return rv, nil
+}
+
+func CopyInterface(src, dst interface{}) error {
+	data, err := json.Marshal(src)
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(data, dst)
 }

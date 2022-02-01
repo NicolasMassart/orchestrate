@@ -12,8 +12,6 @@ import (
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/src/api/store"
-	"github.com/consensys/orchestrate/src/api/store/models"
-	"github.com/consensys/orchestrate/src/api/store/parsers"
 	"github.com/consensys/orchestrate/src/infra/database"
 )
 
@@ -47,6 +45,7 @@ func (uc *createJobUseCase) Execute(ctx context.Context, job *entities.Job, user
 	ctx = log.WithFields(ctx, log.Field("chain", job.ChainUUID), log.Field("schedule", job.ScheduleUUID))
 	logger := uc.logger.WithContext(ctx)
 	logger.Debug("creating new job")
+
 	chainID, err := uc.getChainID(ctx, job.ChainUUID, userInfo)
 	if err != nil {
 		return nil, errors.FromError(err).ExtendComponent(createJobComponent)
@@ -60,30 +59,30 @@ func (uc *createJobUseCase) Execute(ctx context.Context, job *entities.Job, user
 		}
 	}
 
-	schedule, err := uc.db.Schedule().FindOneByUUID(ctx, job.ScheduleUUID, userInfo.AllowedTenants, userInfo.Username)
+	_, err = uc.db.Schedule().FindOneByUUID(ctx, job.ScheduleUUID, userInfo.AllowedTenants, userInfo.Username)
 	if errors.IsNotFoundError(err) {
 		return nil, errors.InvalidParameterError("schedule does not exist").ExtendComponent(createJobComponent)
 	} else if err != nil {
 		return nil, errors.FromError(err).ExtendComponent(createJobComponent)
 	}
 
-	jobModel := parsers.NewJobModelFromEntities(job, &schedule.ID)
-	jobModel.Status = entities.StatusCreated
-	jobModel.Logs = append(jobModel.Logs, &models.Log{
+	job.TenantID = userInfo.TenantID
+	job.OwnerID = userInfo.Username
+	job.Status = entities.StatusCreated
+	job.Logs = append(job.Logs, &entities.Log{
 		Status: entities.StatusCreated,
 	})
-	jobModel.Schedule = schedule
 
-	if err = uc.db.Transaction().Insert(ctx, jobModel.Transaction); err != nil {
+	if err = uc.db.Transaction().Insert(ctx, job.Transaction); err != nil {
 		return nil, errors.FromError(err).ExtendComponent(createJobComponent)
 	}
 
 	err = database.ExecuteInDBTx(uc.db, func(tx database.Tx) error {
 		// If it's a child job, only create it if parent status is PENDING
-		if jobModel.InternalData.ParentJobUUID != "" {
-			parentJobUUID := jobModel.InternalData.ParentJobUUID
+		if job.InternalData.ParentJobUUID != "" {
+			parentJobUUID := job.InternalData.ParentJobUUID
 			logger.WithField("parent_job", parentJobUUID).Debug("lock parent job row for update")
-			if der := tx.(store.Tx).Job().LockOneByUUID(ctx, jobModel.InternalData.ParentJobUUID); der != nil {
+			if der := tx.(store.Tx).Job().LockOneByUUID(ctx, job.InternalData.ParentJobUUID); der != nil {
 				return der
 			}
 
@@ -100,12 +99,11 @@ func (uc *createJobUseCase) Execute(ctx context.Context, job *entities.Job, user
 			}
 		}
 
-		if der := tx.(store.Tx).Job().Insert(ctx, jobModel); der != nil {
+		if der := tx.(store.Tx).Job().Insert(ctx, job, job.ScheduleUUID, job.Transaction.UUID); der != nil {
 			return der
 		}
 
-		jobModel.Logs[0].JobID = &jobModel.ID
-		if der := tx.(store.Tx).Log().Insert(ctx, jobModel.Logs[0]); der != nil {
+		if der := tx.(store.Tx).Log().Insert(ctx, job.Logs[0], job.UUID); der != nil {
 			return der
 		}
 
@@ -117,8 +115,8 @@ func (uc *createJobUseCase) Execute(ctx context.Context, job *entities.Job, user
 		return nil, errors.FromError(err).ExtendComponent(createJobComponent)
 	}
 
-	logger.WithField("job", jobModel.UUID).Info("job created successfully")
-	return parsers.NewJobEntityFromModels(jobModel), nil
+	logger.WithField("job", job.UUID).Info("job created successfully")
+	return job, nil
 }
 
 // nolint

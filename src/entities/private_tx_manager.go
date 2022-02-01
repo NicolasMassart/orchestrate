@@ -15,6 +15,14 @@ const (
 	TesseraGasLimit = 60000
 )
 
+func (ptx *PrivateTxManagerType) String() string {
+	return string(*ptx)
+}
+
+func (ptt *PrivateTxType) String() string {
+	return string(*ptt)
+}
+
 type PrivateTxManager struct {
 	UUID      string               // UUID of the private transaction manager.
 	ChainUUID string               // UUID of the registered chain.

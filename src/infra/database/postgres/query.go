@@ -37,6 +37,14 @@ func UpdateModel(ctx context.Context, db DB, models ...interface{}) error {
 	return nil
 }
 
+func UpdateWhere(ctx context.Context, db DB, model interface{}, where string, params ...interface{}) error {
+	_, err := db.ModelContext(ctx, model).Where(where, params...).UpdateNotZero()
+	if err != nil {
+		return ParsePGError(err)
+	}
+	return nil
+}
+
 func Update(ctx context.Context, q *orm.Query) error {
 	_, err := q.Context(ctx).UpdateNotZero()
 	if err != nil {

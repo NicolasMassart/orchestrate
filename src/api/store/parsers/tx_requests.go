@@ -10,18 +10,45 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
-func NewTxRequestModelFromEntities(txRequest *entities.TxRequest, requestHash string, scheduleID int) *models.TransactionRequest {
+func NewTxRequestModel(txRequest *entities.TxRequest, requestHash string) *models.TransactionRequest {
 	return &models.TransactionRequest{
 		IdempotencyKey: txRequest.IdempotencyKey,
 		ChainName:      txRequest.ChainName,
 		RequestHash:    requestHash,
 		Params:         txRequest.Params,
-		ScheduleID:     &scheduleID,
 		CreatedAt:      txRequest.CreatedAt,
 	}
 }
 
-func NewJobEntitiesFromTxRequest(txRequest *entities.TxRequest, chainUUID string, txData []byte) ([]*entities.Job, error) {
+func NewTxRequestEntity(txRequest *models.TransactionRequest) *entities.TxRequest {
+	res := &entities.TxRequest{
+		IdempotencyKey: txRequest.IdempotencyKey,
+		ChainName:      txRequest.ChainName,
+		CreatedAt:      txRequest.CreatedAt,
+		Hash:           txRequest.RequestHash,
+	}
+
+	if txRequest.Params != nil {
+		res.Params = &entities.ETHTransactionParams{}
+		_ = utils.CopyInterface(txRequest.Params, res.Params)
+	}
+
+	if txRequest.Schedule != nil {
+		res.Schedule = NewScheduleEntity(txRequest.Schedule)
+	}
+
+	return res
+}
+
+func NewTxRequestEntityArr(txRequests []*models.TransactionRequest) []*entities.TxRequest {
+	res := []*entities.TxRequest{}
+	for _, req := range txRequests {
+		res = append(res, NewTxRequestEntity(req))
+	}
+	return res
+}
+
+func NewJobEntities(txRequest *entities.TxRequest, chainUUID string, txData []byte) ([]*entities.Job, error) {
 	var jobs []*entities.Job
 	switch {
 	case txRequest.Params.Protocol == entities.EEAChainType:

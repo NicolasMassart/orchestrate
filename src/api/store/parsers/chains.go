@@ -8,7 +8,7 @@ import (
 	"github.com/consensys/orchestrate/src/entities"
 )
 
-func NewChainFromModel(chainModel *models.Chain) *entities.Chain {
+func NewChainEntity(chainModel *models.Chain) *entities.Chain {
 	chain := &entities.Chain{
 		UUID:                      chainModel.UUID,
 		Name:                      chainModel.Name,
@@ -27,23 +27,50 @@ func NewChainFromModel(chainModel *models.Chain) *entities.Chain {
 	}
 
 	if len(chainModel.PrivateTxManagers) > 0 {
-		chain.PrivateTxManager = NewPrivateTxManagerFromModel(chainModel.PrivateTxManagers[0])
+		chain.PrivateTxManager = NewPrivateTxManagerEntity(chainModel.PrivateTxManagers[0])
 	}
 
 	return chain
 }
 
-func NewPrivateTxManagerFromModel(privateTxManager *models.PrivateTxManager) *entities.PrivateTxManager {
+func NewChainEntityArr(chainModels []*models.Chain) []*entities.Chain {
+	res := []*entities.Chain{}
+	for _, model := range chainModels {
+		res = append(res, NewChainEntity(model))
+	}
+
+	return res
+}
+
+func NewPrivateTxManagerEntity(privateTxManager *models.PrivateTxManager) *entities.PrivateTxManager {
 	return &entities.PrivateTxManager{
 		UUID:      privateTxManager.UUID,
 		ChainUUID: privateTxManager.ChainUUID,
 		URL:       privateTxManager.URL,
-		Type:      privateTxManager.Type,
+		Type:      entities.PrivateTxManagerType(privateTxManager.Type),
 		CreatedAt: privateTxManager.CreatedAt,
 	}
 }
 
-func NewChainModelFromEntity(chain *entities.Chain) *models.Chain {
+func NewPrivateTxManagerEntityArr(privateTxManager []*models.PrivateTxManager) []*entities.PrivateTxManager {
+	res := []*entities.PrivateTxManager{}
+	for _, ptx := range privateTxManager {
+		res = append(res, NewPrivateTxManagerEntity(ptx))
+	}
+	return res
+}
+
+func NewPrivateTxManagerModel(privateTxManager *entities.PrivateTxManager) *models.PrivateTxManager {
+	return &models.PrivateTxManager{
+		UUID:      privateTxManager.UUID,
+		ChainUUID: privateTxManager.ChainUUID,
+		URL:       privateTxManager.URL,
+		Type:      privateTxManager.Type.String(),
+		CreatedAt: privateTxManager.CreatedAt,
+	}
+}
+
+func NewChainModel(chain *entities.Chain) *models.Chain {
 	chainModel := &models.Chain{
 		UUID:                      chain.UUID,
 		Name:                      chain.Name,
@@ -69,7 +96,7 @@ func NewChainModelFromEntity(chain *entities.Chain) *models.Chain {
 			UUID:      chain.PrivateTxManager.UUID,
 			ChainUUID: chain.PrivateTxManager.ChainUUID,
 			URL:       chain.PrivateTxManager.URL,
-			Type:      chain.PrivateTxManager.Type,
+			Type:      chain.PrivateTxManager.Type.String(),
 			CreatedAt: chain.PrivateTxManager.CreatedAt,
 		}}
 	}

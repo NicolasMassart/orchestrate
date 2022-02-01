@@ -11,6 +11,7 @@ Feature: Account management
       | name        | artifacts        | API-KEY            | Tenant               |
       | SimpleToken | SimpleToken.json | {{global.api-key}} | {{tenant1.tenantID}} |
 
+  @test
   Scenario: Import account and update it and sign with it
     Given I register the following alias
       | alias          | value           |
@@ -38,7 +39,10 @@ Feature: Account management
     And Response should have the following fields
       | alias             | attributes.scenario_id | address               |
       | {{generateAccID}} | {{scenarioID}}         | {{importAcc.address}} |
-    When I send "PATCH" request to "{{global.api}}/accounts/{{importAcc.address}}" with json:
+    Then I register the following response fields
+      | alias        | path    |
+      | importedAddr | address |
+    When I send "PATCH" request to "{{global.api}}/accounts/{{importedAddr}}" with json:
   """
 {
     "alias": "{{generateAccID2}}", 
@@ -48,7 +52,7 @@ Feature: Account management
 }
       """
     Then the response code should be 200
-    Then I send "GET" request to "{{global.api}}/accounts/{{importAcc.address}}"
+    Then I send "GET" request to "{{global.api}}/accounts/{{importedAddr}}"
     Then the response code should be 200
     And Response should have the following fields
       | alias              | attributes.new_attribute |
@@ -62,7 +66,7 @@ Feature: Account management
     "chain": "{{chain.besu0.Name}}",
     "params": {
         "contractName": "SimpleToken",
-        "from": "{{importAcc.address}}"
+        "from": "{{importedAddr}}"
     },
     "labels": {
     	"scenario.id": "{{scenarioID}}",

@@ -4,17 +4,16 @@ package schedules
 
 import (
 	"context"
+	"testing"
+
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/entities/testdata"
-	"testing"
 
+	"github.com/consensys/orchestrate/pkg/errors"
+	"github.com/consensys/orchestrate/src/api/store/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"github.com/consensys/orchestrate/pkg/errors"
-	"github.com/consensys/orchestrate/src/api/store/parsers"
-	"github.com/consensys/orchestrate/src/api/store/mocks"
-	"github.com/consensys/orchestrate/src/api/store/models"
 )
 
 func TestSearchSchedules_Execute(t *testing.T) {
@@ -31,19 +30,18 @@ func TestSearchSchedules_Execute(t *testing.T) {
 
 	t.Run("should execute use case successfully", func(t *testing.T) {
 		scheduleEntity := testdata.FakeSchedule()
-		scheduleModel := parsers.NewScheduleModelFromEntities(scheduleEntity)
-		expectedResponse := []*entities.Schedule{parsers.NewScheduleEntityFromModels(scheduleModel)}
+		expectedResponse := []*entities.Schedule{scheduleEntity}
 
 		mockDB.EXPECT().Schedule().Return(mockScheduleDA).Times(1)
 		mockDB.EXPECT().Job().Return(mockJobDA).Times(1)
 
 		mockScheduleDA.EXPECT().
 			FindAll(gomock.Any(), userInfo.AllowedTenants, userInfo.Username).
-			Return([]*models.Schedule{scheduleModel}, nil)
+			Return([]*entities.Schedule{scheduleEntity}, nil)
 
 		mockJobDA.EXPECT().
-			FindOneByUUID(gomock.Any(), scheduleModel.Jobs[0].UUID, userInfo.AllowedTenants, userInfo.Username, false).
-			Return(scheduleModel.Jobs[0], nil)
+			FindOneByUUID(gomock.Any(), scheduleEntity.Jobs[0].UUID, userInfo.AllowedTenants, userInfo.Username, false).
+			Return(scheduleEntity.Jobs[0], nil)
 
 		schedulesResponse, err := usecase.Execute(ctx, userInfo)
 
@@ -69,18 +67,17 @@ func TestSearchSchedules_Execute(t *testing.T) {
 	t.Run("should fail with same error if FindOne fails for jobs", func(t *testing.T) {
 		expectedErr := errors.NotFoundError("error")
 		scheduleEntity := testdata.FakeSchedule()
-		scheduleModel := parsers.NewScheduleModelFromEntities(scheduleEntity)
 
 		mockDB.EXPECT().Schedule().Return(mockScheduleDA).Times(1)
 		mockDB.EXPECT().Job().Return(mockJobDA).Times(1)
 
 		mockScheduleDA.EXPECT().
 			FindAll(gomock.Any(), userInfo.AllowedTenants, userInfo.Username).
-			Return([]*models.Schedule{scheduleModel}, nil)
+			Return([]*entities.Schedule{scheduleEntity}, nil)
 
 		mockJobDA.EXPECT().
-			FindOneByUUID(gomock.Any(), scheduleModel.Jobs[0].UUID, userInfo.AllowedTenants, userInfo.Username, false).
-			Return(scheduleModel.Jobs[0], expectedErr)
+			FindOneByUUID(gomock.Any(), scheduleEntity.Jobs[0].UUID, userInfo.AllowedTenants, userInfo.Username, false).
+			Return(scheduleEntity.Jobs[0], expectedErr)
 
 		scheduleResponse, err := usecase.Execute(ctx, userInfo)
 

@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
-	"github.com/consensys/orchestrate/src/api/store/parsers"
 	"github.com/consensys/orchestrate/src/infra/database"
 
 	"github.com/consensys/orchestrate/pkg/errors"
@@ -42,18 +41,16 @@ func (uc *deleteChainUseCase) Execute(ctx context.Context, uuid string, userInfo
 		return errors.FromError(err).ExtendComponent(deleteChainComponent)
 	}
 
-	chainModel := parsers.NewChainModelFromEntity(chain)
-	chainModel.TenantID = userInfo.TenantID
-	chainModel.OwnerID = userInfo.Username
 	err = database.ExecuteInDBTx(uc.db, func(tx database.Tx) error {
-		for _, privateTxManagerModel := range chainModel.PrivateTxManagers {
-			der := tx.(store.Tx).PrivateTxManager().Delete(ctx, privateTxManagerModel)
+		var der error
+		if chain.PrivateTxManager != nil {
+			der = tx.(store.Tx).PrivateTxManager().Delete(ctx, chain.PrivateTxManager.UUID)
 			if der != nil {
 				return der
 			}
 		}
 
-		der := tx.(store.Tx).Chain().Delete(ctx, chainModel, userInfo.AllowedTenants)
+		der = tx.(store.Tx).Chain().Delete(ctx, chain, userInfo.AllowedTenants)
 		if der != nil {
 			return der
 		}

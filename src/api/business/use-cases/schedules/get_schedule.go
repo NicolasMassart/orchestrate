@@ -10,8 +10,6 @@ import (
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/src/api/store"
-	"github.com/consensys/orchestrate/src/api/store/models"
-	"github.com/consensys/orchestrate/src/api/store/parsers"
 )
 
 const getScheduleComponent = "use-cases.get-schedule"
@@ -34,16 +32,16 @@ func NewGetScheduleUseCase(db store.DB) usecases.GetScheduleUseCase {
 func (uc *getScheduleUseCase) Execute(ctx context.Context, scheduleUUID string, userInfo *multitenancy.UserInfo) (*entities.Schedule, error) {
 	ctx = log.WithFields(ctx, log.Field("schedule", scheduleUUID))
 
-	scheduleModel, err := fetchScheduleByUUID(ctx, uc.db, scheduleUUID, userInfo)
+	schedule, err := fetchScheduleByUUID(ctx, uc.db, scheduleUUID, userInfo)
 	if err != nil {
 		return nil, errors.FromError(err).ExtendComponent(getScheduleComponent)
 	}
 
 	uc.logger.Debug("schedule found successfully")
-	return parsers.NewScheduleEntityFromModels(scheduleModel), nil
+	return schedule, nil
 }
 
-func fetchScheduleByUUID(ctx context.Context, db store.DB, scheduleUUID string, userInfo *multitenancy.UserInfo) (*models.Schedule, error) {
+func fetchScheduleByUUID(ctx context.Context, db store.DB, scheduleUUID string, userInfo *multitenancy.UserInfo) (*entities.Schedule, error) {
 	schedule, err := db.Schedule().FindOneByUUID(ctx, scheduleUUID, userInfo.AllowedTenants, userInfo.Username)
 	if err != nil {
 		return nil, err

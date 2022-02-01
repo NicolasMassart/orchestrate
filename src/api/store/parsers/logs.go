@@ -5,17 +5,17 @@ import (
 	"github.com/consensys/orchestrate/src/entities"
 )
 
-func NewLogEntityFromModels(logModel *models.Log) *entities.Log {
+func NewLogEntity(logModel *models.Log) *entities.Log {
 	return &entities.Log{
-		Status:    logModel.Status,
+		Status:    entities.JobStatus(logModel.Status),
 		Message:   logModel.Message,
 		CreatedAt: logModel.CreatedAt,
 	}
 }
 
-func NewLogModelFromEntity(log *entities.Log) *models.Log {
+func NewLogModel(log *entities.Log) *models.Log {
 	return &models.Log{
-		Status:    log.Status,
+		Status:    log.Status.String(),
 		Message:   log.Message,
 		CreatedAt: log.CreatedAt,
 	}

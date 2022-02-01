@@ -16,7 +16,8 @@ func TestParsersTxRequest_NewTxRequestModelFromEntities(t *testing.T) {
 	reqHash := "reqHash"
 	expectedScheduleID := 1
 	txReqEntity := testdata.FakeTxRequest()
-	txReqModel := NewTxRequestModelFromEntities(txReqEntity, reqHash, expectedScheduleID)
+	txReqModel := NewTxRequestModel(txReqEntity, reqHash)
+	txReqModel.ScheduleID = &expectedScheduleID
 
 	assert.Equal(t, txReqEntity.IdempotencyKey, txReqModel.IdempotencyKey)
 	assert.Equal(t, txReqEntity.CreatedAt, txReqModel.CreatedAt)
@@ -27,7 +28,7 @@ func TestParsersTxRequest_NewTxRequestModelFromEntities(t *testing.T) {
 func TestParsersTxRequest_NewJobEntityFromSendTx(t *testing.T) {
 	txReqEntity := testdata.FakeTxRequest()
 	chainUUID := "chainUUID"
-	jobs, _ := NewJobEntitiesFromTxRequest(txReqEntity, chainUUID, hexutil.MustDecode("0x0ABC"))
+	jobs, _ := NewJobEntities(txReqEntity, chainUUID, hexutil.MustDecode("0x0ABC"))
 	assert.Len(t, jobs, 1)
 
 	job := jobs[0]
@@ -50,7 +51,7 @@ func TestParsersTxRequest_NewJobEntityFromSendTx(t *testing.T) {
 func TestParsersTxRequest_NewJobEntityFromSendRawTx(t *testing.T) {
 	txReqEntity := testdata.FakeTxRequest()
 	txReqEntity.Params.Raw = hexutil.MustDecode("0xf85380839896808252088083989680808216b4a0d35c752d3498e6f5ca1630d264802a992a141ca4b6a3f439d673c75e944e5fb0a05278aaa5fabbeac362c321b54e298dedae2d31471e432c26ea36a8d49cf08f1e")
-	jobs, err := NewJobEntitiesFromTxRequest(txReqEntity, "", nil)
+	jobs, err := NewJobEntities(txReqEntity, "", nil)
 	require.NoError(t, err)
 	require.Len(t, jobs, 1)
 
@@ -66,7 +67,7 @@ func TestParsersTxRequest_NewEEAJobEntityFromSendTx(t *testing.T) {
 	txReqEntity := testdata.FakeTxRequest()
 	txReqEntity.Params.Protocol = entities.EEAChainType
 	chainUUID := "chainUUID"
-	jobs, _ := NewJobEntitiesFromTxRequest(txReqEntity, chainUUID, hexutil.MustDecode("0x0ABC"))
+	jobs, _ := NewJobEntities(txReqEntity, chainUUID, hexutil.MustDecode("0x0ABC"))
 	assert.Len(t, jobs, 2)
 
 	privJob := jobs[0]
@@ -86,7 +87,7 @@ func TestParsersTxRequest_NewTesseraJobEntityFromSendTx(t *testing.T) {
 	txReqEntity.Params.Protocol = entities.TesseraChainType
 	txReqEntity.Params.PrivateFor = []string{"0xPrivateFor"}
 	chainUUID := "chainUUID"
-	jobs, _ := NewJobEntitiesFromTxRequest(txReqEntity, chainUUID, hexutil.MustDecode("0x0ABC"))
+	jobs, _ := NewJobEntities(txReqEntity, chainUUID, hexutil.MustDecode("0x0ABC"))
 	assert.Len(t, jobs, 2)
 
 	privJob := jobs[0]

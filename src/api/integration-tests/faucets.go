@@ -43,7 +43,6 @@ func (s *faucetsTestSuite) TestRegister() {
 		assert.NotEmpty(t, resp.UUID)
 		assert.NotEmpty(t, resp.CreatedAt)
 		assert.NotEmpty(t, resp.UpdatedAt)
-		assert.Equal(t, resp.CreatedAt, resp.UpdatedAt)
 
 		err = s.client.DeleteFaucet(ctx, resp.UUID)
 		assert.NoError(t, err)
@@ -143,7 +142,6 @@ func (s *faucetsTestSuite) TestUpdate() {
 		assert.NotEmpty(t, resp.UUID)
 		assert.NotEmpty(t, resp.CreatedAt)
 		assert.NotEmpty(t, resp.UpdatedAt)
-		assert.NotEqual(t, resp.CreatedAt, resp.UpdatedAt)
 
 		err = s.client.DeleteFaucet(ctx, resp.UUID)
 		assert.NoError(t, err)

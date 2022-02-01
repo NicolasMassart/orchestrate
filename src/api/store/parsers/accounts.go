@@ -7,7 +7,7 @@ import (
 	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
-func NewAccountModelFromEntities(account *entities.Account) *models.Account {
+func NewAccountModel(account *entities.Account) *models.Account {
 	return &models.Account{
 		Alias:               account.Alias,
 		Address:             account.Address.String(),
@@ -22,7 +22,7 @@ func NewAccountModelFromEntities(account *entities.Account) *models.Account {
 	}
 }
 
-func NewAccountEntityFromModels(account *models.Account) *entities.Account {
+func NewAccountEntity(account *models.Account) *entities.Account {
 	return &entities.Account{
 		Alias:               account.Alias,
 		Address:             ethcommon.HexToAddress(account.Address),
@@ -35,4 +35,13 @@ func NewAccountEntityFromModels(account *models.Account) *entities.Account {
 		CreatedAt:           account.CreatedAt,
 		UpdatedAt:           account.UpdatedAt,
 	}
+}
+
+func NewAccountEntityArr(accounts []*models.Account) []*entities.Account {
+	res := []*entities.Account{}
+	for _, acc := range accounts {
+		mAcc := NewAccountEntity(acc)
+		res = append(res, mAcc)
+	}
+	return res
 }

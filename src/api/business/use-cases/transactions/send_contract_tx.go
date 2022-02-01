@@ -30,13 +30,10 @@ func NewSendContractTxUseCase(sendTxUseCase usecases.SendTxUseCase, getContractU
 
 // Execute validates, creates and starts a new contract transaction
 func (uc *sendContractTxUseCase) Execute(ctx context.Context, txRequest *entities.TxRequest, userInfo *multitenancy.UserInfo) (*entities.TxRequest, error) {
-	ctx = log.WithFields(
-		ctx,
-		log.Field("idempotency-key", txRequest.IdempotencyKey),
-		log.Field("method", txRequest.Params.MethodSignature),
-		log.Field("args", txRequest.Params.Args),
-	)
-	logger := uc.logger.WithContext(ctx)
+	logger := uc.logger.WithContext(ctx).
+		WithField("idempotency-key", txRequest.IdempotencyKey).
+		WithField("method", txRequest.Params.MethodSignature).
+		WithField("args", txRequest.Params.Args)
 	logger.Debug("creating new contract transaction")
 
 	contract, err := uc.getContractUseCase.Execute(ctx, txRequest.Params.ContractName, txRequest.Params.ContractTag)

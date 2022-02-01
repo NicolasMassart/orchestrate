@@ -32,22 +32,18 @@ func NewSearchTransactionsUseCase(db store.DB, getTxUseCase usecases.GetTxUseCas
 
 // Execute gets a transaction requests by filter (or all)
 func (uc *searchTransactionsUseCase) Execute(ctx context.Context, filters *entities.TransactionRequestFilters, userInfo *multitenancy.UserInfo) ([]*entities.TxRequest, error) {
-	txRequestModels, err := uc.db.TransactionRequest().Search(ctx, filters, userInfo.AllowedTenants, userInfo.Username)
+	txRequests, err := uc.db.TransactionRequest().Search(ctx, filters, userInfo.AllowedTenants, userInfo.Username)
 	if err != nil {
 		return nil, errors.FromError(err).ExtendComponent(searchTxsComponent)
 	}
 
-	var txRequests []*entities.TxRequest
-	for _, txRequestModel := range txRequestModels {
-		txRequest, err := uc.getTxUseCase.Execute(ctx, txRequestModel.Schedule.UUID, userInfo)
+	for idx, txRequest := range txRequests {
+		txRequests[idx], err = uc.getTxUseCase.Execute(ctx, txRequest.Schedule.UUID, userInfo)
 		if err != nil {
 			return nil, errors.FromError(err).ExtendComponent(searchTxsComponent)
 		}
-
-		txRequests = append(txRequests, txRequest)
 	}
 
 	uc.logger.Info("transaction requests found successfully")
-
 	return txRequests, nil
 }

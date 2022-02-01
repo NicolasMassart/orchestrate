@@ -5,6 +5,7 @@ package schedules
 import (
 	"context"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
+	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/entities/testdata"
 	"testing"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/src/api/store/mocks"
-	"github.com/consensys/orchestrate/src/api/store/models"
 )
 
 func TestCreateSchedule_Execute(t *testing.T) {
@@ -33,9 +33,8 @@ func TestCreateSchedule_Execute(t *testing.T) {
 
 		mockScheduleDA.EXPECT().
 			Insert(ctx, gomock.Any()).
-			DoAndReturn(func(ctx context.Context, schedule *models.Schedule) error {
+			DoAndReturn(func(ctx context.Context, schedule *entities.Schedule) error {
 				schedule.UUID = scheduleEntity.UUID
-				schedule.ID = 1
 				return nil
 			})
 

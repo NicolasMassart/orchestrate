@@ -6,7 +6,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/consensys/orchestrate/src/api/store/models/testdata"
+	"github.com/consensys/orchestrate/src/entities/testdata"
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 
@@ -30,7 +30,7 @@ func TestDeleteFaucet_Execute(t *testing.T) {
 	usecase := NewDeleteFaucetUseCase(mockDB)
 
 	t.Run("should execute use case successfully", func(t *testing.T) {
-		faucetModel := testdata.FakeFaucetModel()
+		faucetModel := testdata.FakeFaucet()
 
 		faucetAgent.EXPECT().FindOneByUUID(gomock.Any(), "uuid", userInfo.AllowedTenants).Return(faucetModel, nil)
 		faucetAgent.EXPECT().Delete(gomock.Any(), faucetModel, userInfo.AllowedTenants).Return(nil)
@@ -54,7 +54,7 @@ func TestDeleteFaucet_Execute(t *testing.T) {
 	t.Run("should fail with same error if delete faucet fails", func(t *testing.T) {
 		expectedErr := errors.NotFoundError("error")
 
-		faucetAgent.EXPECT().FindOneByUUID(gomock.Any(), "uuid", userInfo.AllowedTenants).Return(testdata.FakeFaucetModel(), nil)
+		faucetAgent.EXPECT().FindOneByUUID(gomock.Any(), "uuid", userInfo.AllowedTenants).Return(testdata.FakeFaucet(), nil)
 		faucetAgent.EXPECT().Delete(gomock.Any(), gomock.Any(), userInfo.AllowedTenants).Return(expectedErr)
 
 		err := usecase.Execute(ctx, "uuid", userInfo)

@@ -8,7 +8,6 @@ import (
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/store"
-	"github.com/consensys/orchestrate/src/api/store/parsers"
 	"github.com/consensys/orchestrate/src/entities"
 )
 
@@ -50,13 +49,12 @@ func (uc *registerFaucetUseCase) Execute(ctx context.Context, faucet *entities.F
 		return nil, errors.AlreadyExistsError(errMessage).ExtendComponent(registerFaucetComponent)
 	}
 
-	faucetModel := parsers.NewFaucetModelFromEntity(faucet)
-	faucetModel.TenantID = userInfo.TenantID
-	err = uc.db.Faucet().Insert(ctx, faucetModel)
+	faucet.TenantID = userInfo.TenantID
+	err = uc.db.Faucet().Insert(ctx, faucet)
 	if err != nil {
 		return nil, errors.FromError(err).ExtendComponent(registerFaucetComponent)
 	}
 
-	logger.WithField("faucet_uuid", faucetModel.UUID).Info("faucet registered successfully")
-	return parsers.NewFaucetFromModel(faucetModel), nil
+	logger.WithField("faucet_uuid", faucet.UUID).Info("faucet registered successfully")
+	return faucet, nil
 }

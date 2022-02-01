@@ -11,8 +11,8 @@ import (
 
 func TestAccountsParser(t *testing.T) {
 	account := testdata.FakeAccount()
-	accountModel := NewAccountModelFromEntities(account)
-	finalAccount := NewAccountEntityFromModels(accountModel)
+	accountModel := NewAccountModel(account)
+	finalAccount := NewAccountEntity(accountModel)
 
 	assert.Equal(t, account, finalAccount)
 }

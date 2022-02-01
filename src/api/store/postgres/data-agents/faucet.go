@@ -4,8 +4,10 @@ import (
 	"context"
 	"time"
 
+	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/consensys/orchestrate/src/api/store"
 	"github.com/consensys/orchestrate/src/api/store/models"
+	"github.com/consensys/orchestrate/src/api/store/parsers"
 	"github.com/consensys/orchestrate/src/entities"
 	gopg "github.com/go-pg/pg/v9"
 
@@ -29,25 +31,28 @@ func NewPGFaucet(db pg.DB) store.FaucetAgent {
 }
 
 // Insert Inserts a new faucet in DB
-func (agent *PGFaucet) Insert(ctx context.Context, faucet *models.Faucet) error {
-	if faucet.UUID == "" {
-		faucet.UUID = uuid.Must(uuid.NewV4()).String()
+func (agent *PGFaucet) Insert(ctx context.Context, faucet *entities.Faucet) error {
+	model := parsers.NewFaucetModel(faucet)
+	model.CreatedAt = time.Now().UTC()
+	model.UpdatedAt = time.Now().UTC()
+	if model.UUID == "" {
+		model.UUID = uuid.Must(uuid.NewV4()).String()
 	}
 
-	err := pg.Insert(ctx, agent.db, faucet)
+	err := pg.Insert(ctx, agent.db, model)
 	if err != nil {
 		agent.logger.WithContext(ctx).WithError(err).Error("failed to insert faucet")
 		return errors.FromError(err).ExtendComponent(faucetDAComponent)
 	}
 
+	utils.CopyPtr(parsers.NewFaucetEntity(model), faucet)
 	return nil
 }
 
 // FindOneByUUID Finds a faucet in DB
-func (agent *PGFaucet) FindOneByUUID(ctx context.Context, faucetUUID string, tenants []string) (*models.Faucet, error) {
-	faucet := &models.Faucet{}
-
-	query := agent.db.ModelContext(ctx, faucet).Where("uuid = ?", faucetUUID)
+func (agent *PGFaucet) FindOneByUUID(ctx context.Context, faucetUUID string, tenants []string) (*entities.Faucet, error) {
+	model := &models.Faucet{}
+	query := agent.db.ModelContext(ctx, model).Where("uuid = ?", faucetUUID)
 	query = pg.WhereAllowedTenants(query, "tenant_id", tenants)
 
 	err := pg.SelectOne(ctx, query)
@@ -58,10 +63,10 @@ func (agent *PGFaucet) FindOneByUUID(ctx context.Context, faucetUUID string, ten
 		return nil, errors.FromError(err).ExtendComponent(faucetDAComponent)
 	}
 
-	return faucet, nil
+	return parsers.NewFaucetEntity(model), nil
 }
 
-func (agent *PGFaucet) Search(ctx context.Context, filters *entities.FaucetFilters, tenants []string) ([]*models.Faucet, error) {
+func (agent *PGFaucet) Search(ctx context.Context, filters *entities.FaucetFilters, tenants []string) ([]*entities.Faucet, error) {
 	var faucets []*models.Faucet
 
 	query := agent.db.ModelContext(ctx, &faucets)
@@ -85,12 +90,13 @@ func (agent *PGFaucet) Search(ctx context.Context, filters *entities.FaucetFilte
 		return nil, errors.FromError(err).ExtendComponent(faucetDAComponent)
 	}
 
-	return faucets, nil
+	return parsers.NewFaucetEntityArr(faucets), nil
 }
 
-func (agent *PGFaucet) Update(ctx context.Context, faucet *models.Faucet, tenants []string) error {
-	faucet.UpdatedAt = time.Now().UTC()
-	query := agent.db.ModelContext(ctx, faucet).Where("uuid = ?", faucet.UUID)
+func (agent *PGFaucet) Update(ctx context.Context, faucet *entities.Faucet, tenants []string) error {
+	model := parsers.NewFaucetModel(faucet)
+	model.UpdatedAt = time.Now().UTC()
+	query := agent.db.ModelContext(ctx, model).Where("uuid = ?", faucet.UUID)
 	query = pg.WhereAllowedTenantsDefault(query, tenants)
 
 	err := pg.Update(ctx, query)
@@ -99,11 +105,13 @@ func (agent *PGFaucet) Update(ctx context.Context, faucet *models.Faucet, tenant
 		return errors.FromError(err).ExtendComponent(faucetDAComponent)
 	}
 
+	utils.CopyPtr(parsers.NewFaucetEntity(model), faucet)
 	return nil
 }
 
-func (agent *PGFaucet) Delete(ctx context.Context, faucet *models.Faucet, tenants []string) error {
-	query := agent.db.ModelContext(ctx, faucet).Where("uuid = ?", faucet.UUID)
+func (agent *PGFaucet) Delete(ctx context.Context, faucet *entities.Faucet, tenants []string) error {
+	model := parsers.NewFaucetModel(faucet)
+	query := agent.db.ModelContext(ctx, model).Where("uuid = ?", faucet.UUID)
 	query = pg.WhereAllowedTenantsDefault(query, tenants)
 
 	err := pg.Delete(ctx, query)

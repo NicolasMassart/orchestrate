@@ -8,7 +8,6 @@ import (
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"github.com/consensys/orchestrate/src/entities/testdata"
 	mocks2 "github.com/consensys/orchestrate/src/api/business/use-cases/mocks"
-	modelstestdata "github.com/consensys/orchestrate/src/api/store/models/testdata"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -33,10 +32,11 @@ func TestGetTx_Execute(t *testing.T) {
 	usecase := NewGetTxUseCase(mockDB, mockGetScheduleUC)
 
 	t.Run("should execute use case successfully", func(t *testing.T) {
-		txRequest := modelstestdata.FakeTxRequest(0)
+		txRequest := testdata.FakeTxRequest()
 		schedule := testdata.FakeSchedule()
 
-		mockTransactionRequestDA.EXPECT().FindOneByUUID(gomock.Any(), txRequest.Schedule.UUID, userInfo.AllowedTenants, userInfo.Username).Return(txRequest, nil)
+		mockTransactionRequestDA.EXPECT().FindOneByUUID(gomock.Any(), txRequest.Schedule.UUID, userInfo.AllowedTenants, 
+			userInfo.Username).Return(txRequest, nil)
 		mockGetScheduleUC.EXPECT().Execute(gomock.Any(), txRequest.Schedule.UUID, userInfo).Return(schedule, nil)
 
 		result, err := usecase.Execute(ctx, txRequest.Schedule.UUID, userInfo)
@@ -53,7 +53,8 @@ func TestGetTx_Execute(t *testing.T) {
 		uuid := "uuid"
 		expectedErr := errors.NotFoundError("error")
 
-		mockTransactionRequestDA.EXPECT().FindOneByUUID(gomock.Any(), uuid, userInfo.AllowedTenants, userInfo.Username).Return(nil, expectedErr)
+		mockTransactionRequestDA.EXPECT().FindOneByUUID(gomock.Any(), uuid, userInfo.AllowedTenants, 
+			userInfo.Username).Return(nil, expectedErr)
 
 		response, err := usecase.Execute(ctx, uuid, userInfo)
 
@@ -62,7 +63,7 @@ func TestGetTx_Execute(t *testing.T) {
 	})
 
 	t.Run("should fail with same error if GetScheduleUseCase fails", func(t *testing.T) {
-		txRequest := modelstestdata.FakeTxRequest(0)
+		txRequest := testdata.FakeTxRequest()
 		expectedErr := fmt.Errorf("error")
 
 		mockTransactionRequestDA.EXPECT().FindOneByUUID(gomock.Any(), txRequest.Schedule.UUID, userInfo.AllowedTenants, userInfo.Username).Return(txRequest, nil)

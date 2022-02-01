@@ -1,20 +1,20 @@
 package parsers
 
 import (
+	pkgjson "github.com/consensys/orchestrate/pkg/encoding/json"
 	"github.com/consensys/orchestrate/src/api/store/models"
 	"github.com/consensys/orchestrate/src/entities"
 )
 
-func NewJobModelFromEntities(job *entities.Job, scheduleID *int) *models.Job {
+func NewJobModelFromEntities(job *entities.Job) *models.Job {
 	jobModel := &models.Job{
 		UUID:         job.UUID,
 		ChainUUID:    job.ChainUUID,
-		Type:         job.Type,
+		Type:         job.Type.String(),
 		NextJobUUID:  job.NextJobUUID,
 		Labels:       job.Labels,
 		InternalData: job.InternalData,
-		ScheduleID:   scheduleID,
-		Status:       job.Status,
+		Status:       job.Status.String(),
 		Schedule: &models.Schedule{
 			UUID:     job.ScheduleUUID,
 			TenantID: job.TenantID,
@@ -32,33 +32,33 @@ func NewJobModelFromEntities(job *entities.Job, scheduleID *int) *models.Job {
 		job.Status = entities.StatusCreated
 	}
 
-	if scheduleID != nil {
-		jobModel.Schedule.ID = *scheduleID
-	}
-
 	if job.Transaction != nil {
-		jobModel.Transaction = NewTransactionModelFromEntities(job.Transaction)
+		jobModel.Transaction = NewTransactionModel(job.Transaction)
 	}
 
 	for _, log := range job.Logs {
-		jobModel.Logs = append(jobModel.Logs, NewLogModelFromEntity(log))
+		jobModel.Logs = append(jobModel.Logs, NewLogModel(log))
 	}
 
 	return jobModel
 }
 
-func NewJobEntityFromModels(jobModel *models.Job) *entities.Job {
+func NewJobEntity(jobModel *models.Job) *entities.Job {
 	job := &entities.Job{
-		UUID:         jobModel.UUID,
-		ChainUUID:    jobModel.ChainUUID,
-		NextJobUUID:  jobModel.NextJobUUID,
-		Type:         jobModel.Type,
-		Labels:       jobModel.Labels,
-		InternalData: jobModel.InternalData,
-		Logs:         []*entities.Log{},
-		CreatedAt:    jobModel.CreatedAt,
-		UpdatedAt:    jobModel.UpdatedAt,
-		Status:       jobModel.Status,
+		UUID:        jobModel.UUID,
+		ChainUUID:   jobModel.ChainUUID,
+		NextJobUUID: jobModel.NextJobUUID,
+		Type:        entities.JobType(jobModel.Type),
+		Labels:      jobModel.Labels,
+		Logs:        []*entities.Log{},
+		CreatedAt:   jobModel.CreatedAt,
+		UpdatedAt:   jobModel.UpdatedAt,
+		Status:      entities.JobStatus(jobModel.Status),
+	}
+
+	if jobModel.InternalData != nil {
+		job.InternalData = &entities.InternalData{}
+		_ = pkgjson.UnmarshalInterface(jobModel.InternalData, job.InternalData)
 	}
 
 	if jobModel.Schedule != nil {
@@ -68,12 +68,20 @@ func NewJobEntityFromModels(jobModel *models.Job) *entities.Job {
 	}
 
 	if jobModel.Transaction != nil {
-		job.Transaction = NewTransactionEntityFromModels(jobModel.Transaction)
+		job.Transaction = NewTransactionEntity(jobModel.Transaction)
 	}
 
 	for _, logModel := range jobModel.Logs {
-		job.Logs = append(job.Logs, NewLogEntityFromModels(logModel))
+		job.Logs = append(job.Logs, NewLogEntity(logModel))
 	}
 
 	return job
+}
+
+func NewJobEntityArr(jobs []*models.Job) []*entities.Job {
+	res := []*entities.Job{}
+	for _, j := range jobs {
+		res = append(res, NewJobEntity(j))
+	}
+	return res
 }

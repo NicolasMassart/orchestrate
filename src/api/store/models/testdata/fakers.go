@@ -28,9 +28,9 @@ func FakeSchedule(tenantID, username string) *models.Schedule {
 		Jobs: []*models.Job{{
 			UUID:        uuid.Must(uuid.NewV4()).String(),
 			ChainUUID:   uuid.Must(uuid.NewV4()).String(),
-			Type:        entities.EthereumTransaction,
+			Type:        entities.EthereumTransaction.String(),
 			Transaction: FakeTransaction(),
-			Logs:        []*models.Log{{Status: entities.StatusCreated, Message: "created message"}},
+			Logs:        []*models.Log{{Status: entities.StatusCreated.String(), Message: "created message"}},
 		}},
 	}
 }
@@ -65,8 +65,8 @@ func FakeJobModel(scheduleID int) *models.Job {
 	job := &models.Job{
 		UUID:      uuid.Must(uuid.NewV4()).String(),
 		ChainUUID: uuid.Must(uuid.NewV4()).String(),
-		Type:      entities.EthereumTransaction,
-		Status:    entities.StatusCreated,
+		Type:      entities.EthereumTransaction.String(),
+		Status:    entities.StatusCreated.String(),
 		Schedule: &models.Schedule{
 			ID:       scheduleID,
 			TenantID: multitenancy.DefaultTenant,
@@ -74,7 +74,7 @@ func FakeJobModel(scheduleID int) *models.Job {
 		},
 		Transaction: FakeTransaction(),
 		Logs: []*models.Log{
-			{UUID: uuid.Must(uuid.NewV4()).String(), Status: entities.StatusCreated, Message: "created message", CreatedAt: time.Now()},
+			{UUID: uuid.Must(uuid.NewV4()).String(), Status: entities.StatusCreated.String(), Message: "created message", CreatedAt: time.Now()},
 		},
 		InternalData: &entities.InternalData{
 			ChainID: big.NewInt(888),
@@ -93,7 +93,7 @@ func FakeJobModel(scheduleID int) *models.Job {
 func FakeLog() *models.Log {
 	return &models.Log{
 		UUID:      uuid.Must(uuid.NewV4()).String(),
-		Status:    entities.StatusCreated,
+		Status:    entities.StatusCreated.String(),
 		Job:       FakeJobModel(0),
 		CreatedAt: time.Now(),
 	}

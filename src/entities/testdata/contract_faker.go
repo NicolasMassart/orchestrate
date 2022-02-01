@@ -371,6 +371,15 @@ func FakeContract() *entities.Contract {
 	}
 }
 
+func FakeContractEvent() *entities.ContractEvent {
+	return &entities.ContractEvent{
+		ABI: "eventABI",
+		CodeHash: utils.StringToHexBytes(utils.RandHexString(10)),
+		SigHash: utils.StringToHexBytes(utils.RandHexString(12)),
+		IndexedInputCount: 0,
+	}
+}
+
 func FakeEventABI() *abi.Event {
 	return &abi.Event{
 		Name:      "event" + utils.RandString(5),

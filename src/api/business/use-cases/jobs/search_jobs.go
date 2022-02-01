@@ -10,7 +10,6 @@ import (
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/src/api/store"
-	"github.com/consensys/orchestrate/src/api/store/parsers"
 )
 
 const searchJobsComponent = "use-cases.search-jobs"
@@ -31,17 +30,11 @@ func NewSearchJobsUseCase(db store.DB) usecases.SearchJobsUseCase {
 
 // Execute search jobs
 func (uc *searchJobsUseCase) Execute(ctx context.Context, filters *entities.JobFilters, userInfo *multitenancy.UserInfo) ([]*entities.Job, error) {
-	jobModels, err := uc.db.Job().Search(ctx, filters, userInfo.AllowedTenants, userInfo.Username)
+	jobs, err := uc.db.Job().Search(ctx, filters, userInfo.AllowedTenants, userInfo.Username)
 	if err != nil {
 		return nil, errors.FromError(err).ExtendComponent(searchJobsComponent)
 	}
 
-	var resp []*entities.Job
-	for _, jobModel := range jobModels {
-		job := parsers.NewJobEntityFromModels(jobModel)
-		resp = append(resp, job)
-	}
-
 	uc.logger.Debug("jobs found successfully")
-	return resp, nil
+	return jobs, nil
 }

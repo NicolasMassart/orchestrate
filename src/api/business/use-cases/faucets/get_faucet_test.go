@@ -9,9 +9,8 @@ import (
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 
 	"github.com/consensys/orchestrate/pkg/errors"
-	"github.com/consensys/orchestrate/src/api/store/parsers"
 	"github.com/consensys/orchestrate/src/api/store/mocks"
-	"github.com/consensys/orchestrate/src/api/store/models/testdata"
+	"github.com/consensys/orchestrate/src/entities/testdata"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
@@ -29,13 +28,13 @@ func TestGetFaucet_Execute(t *testing.T) {
 	usecase := NewGetFaucetUseCase(mockDB)
 
 	t.Run("should execute use case successfully", func(t *testing.T) {
-		faucet := testdata.FakeFaucetModel()
+		faucet := testdata.FakeFaucet()
 		faucetAgent.EXPECT().FindOneByUUID(gomock.Any(), faucet.UUID, userInfo.AllowedTenants).Return(faucet, nil)
 
 		resp, err := usecase.Execute(ctx, faucet.UUID, userInfo)
 
 		assert.NoError(t, err)
-		assert.Equal(t, parsers.NewFaucetFromModel(faucet), resp)
+		assert.Equal(t, faucet, resp)
 	})
 
 	t.Run("should fail with same error if get faucet fails", func(t *testing.T) {

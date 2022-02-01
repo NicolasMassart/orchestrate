@@ -8,7 +8,6 @@ import (
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/store"
-	"github.com/consensys/orchestrate/src/api/store/parsers"
 	"github.com/consensys/orchestrate/src/entities"
 )
 
@@ -33,11 +32,11 @@ func (uc *getFaucetUseCase) Execute(ctx context.Context, uuid string, userInfo *
 	ctx = log.WithFields(ctx, log.Field("faucet", uuid))
 	logger := uc.logger.WithContext(ctx)
 
-	faucetModel, err := uc.db.Faucet().FindOneByUUID(ctx, uuid, userInfo.AllowedTenants)
+	faucet, err := uc.db.Faucet().FindOneByUUID(ctx, uuid, userInfo.AllowedTenants)
 	if err != nil {
 		return nil, errors.FromError(err).ExtendComponent(getFaucetComponent)
 	}
 
 	logger.Debug("faucet found successfully")
-	return parsers.NewFaucetFromModel(faucetModel), nil
+	return faucet, nil
 }

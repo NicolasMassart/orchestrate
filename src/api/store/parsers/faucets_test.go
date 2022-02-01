@@ -11,8 +11,8 @@ import (
 
 func TestFaucetsParser(t *testing.T) {
 	faucet := testdata.FakeFaucet()
-	faucetModel := NewFaucetModelFromEntity(faucet)
-	finalFaucet := NewFaucetFromModel(faucetModel)
+	faucetModel := NewFaucetModel(faucet)
+	finalFaucet := NewFaucetEntity(faucetModel)
 
 	assert.Equal(t, faucet, finalFaucet)
 }

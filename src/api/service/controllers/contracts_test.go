@@ -27,14 +27,14 @@ import (
 
 type contractsCtrlTestSuite struct {
 	suite.Suite
-	getContractsCatalog *mocks.MockGetContractsCatalogUseCase
-	getContract         *mocks.MockGetContractUseCase
-	getContractEvents   *mocks.MockGetContractEventsUseCase
-	getContractTags     *mocks.MockGetContractTagsUseCase
-	setContractCodeHash *mocks.MockSetContractCodeHashUseCase
-	registerContract    *mocks.MockRegisterContractUseCase
-	searchContract      *mocks.MockSearchContractUseCase
-	router              *mux.Router
+	getContractsCatalog   *mocks.MockGetContractsCatalogUseCase
+	getContract           *mocks.MockGetContractUseCase
+	getContractEvents     *mocks.MockGetContractEventsUseCase
+	getContractTags       *mocks.MockGetContractTagsUseCase
+	registerContractEvent *mocks.MockRegisterContractDeploymentUseCase
+	registerContract      *mocks.MockRegisterContractUseCase
+	searchContract        *mocks.MockSearchContractUseCase
+	router                *mux.Router
 }
 
 var _ usecases.ContractUseCases = &contractsCtrlTestSuite{}
@@ -51,8 +51,8 @@ func (s *contractsCtrlTestSuite) GetContractEvents() usecases.GetContractEventsU
 func (s *contractsCtrlTestSuite) GetContractTags() usecases.GetContractTagsUseCase {
 	return s.getContractTags
 }
-func (s *contractsCtrlTestSuite) SetContractCodeHash() usecases.SetContractCodeHashUseCase {
-	return s.setContractCodeHash
+func (s *contractsCtrlTestSuite) SetContractCodeHash() usecases.RegisterContractDeploymentUseCase {
+	return s.registerContractEvent
 }
 func (s *contractsCtrlTestSuite) RegisterContract() usecases.RegisterContractUseCase {
 	return s.registerContract
@@ -74,7 +74,7 @@ func (s *contractsCtrlTestSuite) SetupTest() {
 	s.getContract = mocks.NewMockGetContractUseCase(ctrl)
 	s.getContractEvents = mocks.NewMockGetContractEventsUseCase(ctrl)
 	s.getContractTags = mocks.NewMockGetContractTagsUseCase(ctrl)
-	s.setContractCodeHash = mocks.NewMockSetContractCodeHashUseCase(ctrl)
+	s.registerContractEvent = mocks.NewMockRegisterContractDeploymentUseCase(ctrl)
 	s.registerContract = mocks.NewMockRegisterContractUseCase(ctrl)
 	s.searchContract = mocks.NewMockSearchContractUseCase(ctrl)
 	s.router = mux.NewRouter()
@@ -163,7 +163,7 @@ func (s *contractsCtrlTestSuite) TestContractsController_CodeHash() {
 			NewRequest(http.MethodPost, fmt.Sprintf("/contracts/accounts/%s/%s", chainID, address.Hex()), bytes.NewReader(requestBytes)).
 			WithContext(ctx)
 
-		s.setContractCodeHash.EXPECT().
+		s.registerContractEvent.EXPECT().
 			Execute(gomock.Any(), chainID, *address, req.CodeHash).
 			Return(nil)
 
@@ -192,7 +192,7 @@ func (s *contractsCtrlTestSuite) TestContractsController_CodeHash() {
 			NewRequest(http.MethodPost, fmt.Sprintf("/contracts/accounts/%s/%s", chainID, address), bytes.NewReader(requestBytes)).
 			WithContext(ctx)
 
-		s.setContractCodeHash.EXPECT().
+		s.registerContractEvent.EXPECT().
 			Execute(gomock.Any(), chainID, *address, req.CodeHash).
 			Return(fmt.Errorf("error"))
 

@@ -10,7 +10,6 @@ import (
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/src/api/store"
-	"github.com/consensys/orchestrate/src/api/store/parsers"
 )
 
 const createScheduleComponent = "use-cases.create-schedule"
@@ -39,14 +38,12 @@ func (uc *createScheduleUseCase) Execute(ctx context.Context, schedule *entities
 	logger := uc.logger.WithContext(ctx)
 	logger.Debug("creating new schedule")
 
-	scheduleModel := parsers.NewScheduleModelFromEntities(schedule)
-	scheduleModel.TenantID = userInfo.TenantID
-	scheduleModel.OwnerID = userInfo.Username
-	if err := uc.db.Schedule().Insert(ctx, scheduleModel); err != nil {
+	schedule.TenantID = userInfo.TenantID
+	schedule.OwnerID = userInfo.Username
+	if err := uc.db.Schedule().Insert(ctx, schedule); err != nil {
 		return nil, errors.FromError(err).ExtendComponent(createScheduleComponent)
 	}
 
-	logger.WithField("schedule", scheduleModel.UUID).Info("schedule created successfully")
-
-	return parsers.NewScheduleEntityFromModels(scheduleModel), nil
+	logger.WithField("schedule", schedule.UUID).Info("schedule created successfully")
+	return schedule, nil
 }

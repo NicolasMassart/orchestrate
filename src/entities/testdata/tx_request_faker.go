@@ -3,17 +3,19 @@ package testdata
 import (
 	"time"
 
+	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/consensys/orchestrate/src/entities"
 )
 
 func FakeTxRequest() *entities.TxRequest {
 	return &entities.TxRequest{
 		Schedule:       FakeSchedule(),
-		IdempotencyKey: "IdempotencyKey",
+		IdempotencyKey: "IdempotencyKey" + utils.RandString(5),
 		ChainName:      "chain",
 		Params:         FakeETHTransactionParams(),
 		CreatedAt:      time.Now(),
 		InternalData:   FakeInternalData(),
+		Hash:           utils.RandString(10),
 	}
 }
 

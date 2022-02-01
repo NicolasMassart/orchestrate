@@ -9,18 +9,17 @@ import (
 	"time"
 
 	mocks2 "github.com/Shopify/sarama/mocks"
+	encoding "github.com/consensys/orchestrate/pkg/encoding/proto"
+	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
+	"github.com/consensys/orchestrate/pkg/types/tx"
+	"github.com/consensys/orchestrate/src/api/store/mocks"
+	"github.com/consensys/orchestrate/src/entities"
+	"github.com/consensys/orchestrate/src/entities/testdata"
+	"github.com/consensys/orchestrate/src/infra/broker/sarama"
 	"github.com/golang/mock/gomock"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
-	"github.com/consensys/orchestrate/src/infra/broker/sarama"
-	encoding "github.com/consensys/orchestrate/pkg/encoding/proto"
-	"github.com/consensys/orchestrate/pkg/errors"
-	"github.com/consensys/orchestrate/src/entities"
-	"github.com/consensys/orchestrate/pkg/types/tx"
-	"github.com/consensys/orchestrate/src/api/store/mocks"
-	"github.com/consensys/orchestrate/src/api/store/models"
-	"github.com/consensys/orchestrate/src/api/store/models/testdata"
 )
 
 func TestResendJobTx_Execute(t *testing.T) {
@@ -37,19 +36,15 @@ func TestResendJobTx_Execute(t *testing.T) {
 	usecase := NewResendJobTxUseCase(mockDB, mockKafkaProducer, sarama.NewKafkaTopicConfig(viper.GetViper()))
 
 	t.Run("should execute use case successfully", func(t *testing.T) {
-		job := testdata.FakeJobModel(1)
-		job.ID = 1
-		job.UUID = "6380e2b6-b828-43ee-abdc-de0f8d57dc5f"
-		job.Transaction.Sender = "0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"
-		job.Schedule = testdata.FakeSchedule("", "")
+		job := testdata.FakeJob()
 		job.Status = entities.StatusPending
-		job.Logs = append(job.Logs, &models.Log{
-			ID:        1,
+		job.Logs = append(job.Logs, &entities.Log{
 			Status:    entities.StatusPending,
 			CreatedAt: time.Now().Add(time.Second),
 		})
 
-		mockJobDA.EXPECT().FindOneByUUID(gomock.Any(), job.UUID, userInfo.AllowedTenants, userInfo.Username, false).Return(job, nil)
+		mockJobDA.EXPECT().FindOneByUUID(gomock.Any(), job.UUID, userInfo.AllowedTenants, userInfo.Username, false).
+			Return(job, nil)
 		mockKafkaProducer.ExpectSendMessageWithCheckerFunctionAndSucceed(func(val []byte) error {
 			txEnvelope := &tx.TxEnvelope{}
 			err := encoding.Unmarshal(val, txEnvelope)
@@ -71,28 +66,24 @@ func TestResendJobTx_Execute(t *testing.T) {
 	})
 
 	t.Run("should fail with same error if FindOne fails", func(t *testing.T) {
-		job := testdata.FakeJobModel(1)
-		job.UUID = "6380e2b6-b828-43ee-abdc-de0f8d57dc5f"
+		job := testdata.FakeJob()
 		expectedErr := errors.NotFoundError("error")
-
-		mockJobDA.EXPECT().FindOneByUUID(gomock.Any(), job.UUID, userInfo.AllowedTenants, userInfo.Username, false).Return(nil, expectedErr)
-
+	
+		mockJobDA.EXPECT().FindOneByUUID(gomock.Any(), job.UUID, userInfo.AllowedTenants, userInfo.Username, false).
+			Return(nil, expectedErr)
+	
 		err := usecase.Execute(ctx, job.UUID, userInfo)
 		assert.Equal(t, errors.FromError(expectedErr).ExtendComponent(resendJobTxComponent), err)
 	})
-
+	
 	t.Run("should fail with KafkaConnectionError if Produce fails", func(t *testing.T) {
-		job := testdata.FakeJobModel(1)
-		job.UUID = "6380e2b6-b828-43ee-abdc-de0f8d57dc5f"
-		job.Transaction.Sender = "0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"
-		job.Schedule = testdata.FakeSchedule("", "")
+		job := testdata.FakeJob()
 		job.Status = entities.StatusPending
-		job.Logs = append(job.Logs, &models.Log{
-			ID:        1,
+		job.Logs = append(job.Logs, &entities.Log{
 			Status:    entities.StatusPending,
 			CreatedAt: time.Now().Add(time.Second),
 		})
-
+	
 		mockJobDA.EXPECT().FindOneByUUID(gomock.Any(), job.UUID, userInfo.AllowedTenants, userInfo.Username, false).Return(job, nil)
 		mockKafkaProducer.ExpectSendMessageAndFail(fmt.Errorf("error"))
 		err := usecase.Execute(ctx, job.UUID, userInfo)

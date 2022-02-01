@@ -2,8 +2,6 @@ package models
 
 import (
 	"time"
-
-	"github.com/consensys/orchestrate/src/entities"
 )
 
 type PrivateTxManager struct {
@@ -12,6 +10,6 @@ type PrivateTxManager struct {
 	UUID      string `pg:",pk"`
 	ChainUUID string
 	URL       string
-	Type      entities.PrivateTxManagerType
+	Type      string
 	CreatedAt time.Time `pg:",default:now()"`
 }

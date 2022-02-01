@@ -8,7 +8,6 @@ import (
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/store"
-	"github.com/consensys/orchestrate/src/api/store/parsers"
 	"github.com/consensys/orchestrate/src/entities"
 )
 
@@ -32,14 +31,9 @@ func NewSearchChainsUseCase(db store.DB) usecases.SearchChainsUseCase {
 func (uc *searchChainsUseCase) Execute(ctx context.Context, filters *entities.ChainFilters, userInfo *multitenancy.UserInfo) ([]*entities.Chain, error) {
 	logger := uc.logger.WithContext(ctx)
 
-	chainModels, err := uc.db.Chain().Search(ctx, filters, userInfo.AllowedTenants, userInfo.Username)
+	chains, err := uc.db.Chain().Search(ctx, filters, userInfo.AllowedTenants, userInfo.Username)
 	if err != nil {
 		return nil, errors.FromError(err).ExtendComponent(searchChainsComponent)
-	}
-
-	var chains []*entities.Chain
-	for _, chainModel := range chainModels {
-		chains = append(chains, parsers.NewChainFromModel(chainModel))
 	}
 
 	logger.Debug("chains found successfully")

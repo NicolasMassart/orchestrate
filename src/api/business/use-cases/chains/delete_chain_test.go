@@ -6,9 +6,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/consensys/orchestrate/src/entities/testdata"
-	"github.com/consensys/orchestrate/src/api/store/parsers"
 	mocks2 "github.com/consensys/orchestrate/src/api/business/use-cases/mocks"
+	"github.com/consensys/orchestrate/src/entities/testdata"
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 
@@ -43,13 +42,12 @@ func TestDeleteChain_Execute(t *testing.T) {
 
 	t.Run("should execute use case successfully", func(t *testing.T) {
 		chain := testdata.FakeChain()
-		chainModel := parsers.NewChainModelFromEntity(chain)
-		chainModel.TenantID = userInfo.TenantID
-		chainModel.OwnerID = userInfo.Username
+		chain.TenantID = userInfo.TenantID
+		chain.OwnerID = userInfo.Username
 
 		getChainUC.EXPECT().Execute(gomock.Any(), "uuid", userInfo).Return(chain, nil)
-		privateTxManagerAgent.EXPECT().Delete(gomock.Any(), chainModel.PrivateTxManagers[0]).Return(nil)
-		chainAgent.EXPECT().Delete(gomock.Any(), chainModel, userInfo.AllowedTenants).Return(nil)
+		privateTxManagerAgent.EXPECT().Delete(gomock.Any(), chain.PrivateTxManager.UUID).Return(nil)
+		chainAgent.EXPECT().Delete(gomock.Any(), chain, userInfo.AllowedTenants).Return(nil)
 
 		err := usecase.Execute(ctx, "uuid", userInfo)
 
@@ -70,10 +68,9 @@ func TestDeleteChain_Execute(t *testing.T) {
 	t.Run("should fail with same error if delete private tx manager fails", func(t *testing.T) {
 		expectedErr := errors.NotFoundError("error")
 		chain := testdata.FakeChain()
-		chainModel := parsers.NewChainModelFromEntity(chain)
 
 		getChainUC.EXPECT().Execute(gomock.Any(), "uuid", userInfo).Return(chain, nil)
-		privateTxManagerAgent.EXPECT().Delete(gomock.Any(), chainModel.PrivateTxManagers[0]).Return(expectedErr)
+		privateTxManagerAgent.EXPECT().Delete(gomock.Any(), chain.PrivateTxManager.UUID).Return(expectedErr)
 
 		err := usecase.Execute(ctx, "uuid", userInfo)
 
@@ -89,7 +86,7 @@ func TestDeleteChain_Execute(t *testing.T) {
 
 		getChainUC.EXPECT().Execute(gomock.Any(), "uuid", userInfo).Return(chain, nil)
 		privateTxManagerAgent.EXPECT().Delete(gomock.Any(), gomock.Any()).Return(nil)
-		chainAgent.EXPECT().Delete(gomock.Any(), parsers.NewChainModelFromEntity(chain), userInfo.AllowedTenants).Return(expectedErr)
+		chainAgent.EXPECT().Delete(gomock.Any(), chain, userInfo.AllowedTenants).Return(expectedErr)
 
 		err := usecase.Execute(ctx, "uuid", userInfo)
 

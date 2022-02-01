@@ -7,7 +7,7 @@ import (
 	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
-func NewFaucetFromModel(faucet *models.Faucet) *entities.Faucet {
+func NewFaucetEntity(faucet *models.Faucet) *entities.Faucet {
 	return &entities.Faucet{
 		UUID:            faucet.UUID,
 		Name:            faucet.Name,
@@ -22,7 +22,16 @@ func NewFaucetFromModel(faucet *models.Faucet) *entities.Faucet {
 	}
 }
 
-func NewFaucetModelFromEntity(faucet *entities.Faucet) *models.Faucet {
+func NewFaucetEntityArr(faucets []*models.Faucet) []*entities.Faucet {
+	res := []*entities.Faucet{}
+	for _, f := range faucets {
+		res = append(res, NewFaucetEntity(f))
+	}
+
+	return res
+}
+
+func NewFaucetModel(faucet *entities.Faucet) *models.Faucet {
 	f := &models.Faucet{
 		UUID:            faucet.UUID,
 		Name:            faucet.Name,

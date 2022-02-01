@@ -20,7 +20,7 @@ import (
 
 func TestParsersJob_NewModelFromEntity(t *testing.T) {
 	jobEntity := testdata.FakeJob()
-	finalJobEntity := NewJobEntityFromModels(NewJobModelFromEntities(jobEntity, nil))
+	finalJobEntity := NewJobEntity(NewJobModelFromEntities(jobEntity))
 
 	expectedJSON, _ := json.Marshal(jobEntity)
 	actualJSON, _ := json.Marshal(finalJobEntity)
@@ -29,8 +29,9 @@ func TestParsersJob_NewModelFromEntity(t *testing.T) {
 
 func TestParsersJob_NewEntityFromModel(t *testing.T) {
 	jobModel := modelstestdata.FakeJobModel(1)
-	jobEntity := NewJobEntityFromModels(jobModel)
-	finalJobModel := NewJobModelFromEntities(jobEntity, jobModel.ScheduleID)
+	jobEntity := NewJobEntity(jobModel)
+	finalJobModel := NewJobModelFromEntities(jobEntity)
+	finalJobModel.ScheduleID = jobModel.ScheduleID
 	finalJobModel.Schedule = jobModel.Schedule
 
 	assert.Equal(t, finalJobModel.ScheduleID, jobModel.ScheduleID)

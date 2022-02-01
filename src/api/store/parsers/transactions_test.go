@@ -14,8 +14,8 @@ import (
 
 func TestParsersTransaction_NewModelFromEntity(t *testing.T) {
 	txEntity := testdata.FakeETHTransaction()
-	txModel := NewTransactionModelFromEntities(txEntity)
-	finalTxEntity := NewTransactionEntityFromModels(txModel)
+	txModel := NewTransactionModel(txEntity)
+	finalTxEntity := NewTransactionEntity(txModel)
 
 	expectedJSON, _ := json.Marshal(txEntity)
 	actualJOSN, _ := json.Marshal(finalTxEntity)
@@ -24,8 +24,8 @@ func TestParsersTransaction_NewModelFromEntity(t *testing.T) {
 
 func TestParsersTransaction_NewEntityFromModel(t *testing.T) {
 	txModel := modelstestdata.FakeTransaction()
-	txEntity := NewTransactionEntityFromModels(txModel)
-	finalTxModel := NewTransactionModelFromEntities(txEntity)
+	txEntity := NewTransactionEntity(txModel)
+	finalTxModel := NewTransactionModel(txEntity)
 	finalTxModel.UUID = txModel.UUID
 
 	expectedJSON, _ := json.Marshal(txModel)
@@ -33,17 +33,3 @@ func TestParsersTransaction_NewEntityFromModel(t *testing.T) {
 	assert.Equal(t, string(expectedJSON), string(actualJOSN))
 }
 
-func TestParsersTransaction_UpdateTransactionModel(t *testing.T) {
-	txModel := modelstestdata.FakeTransaction()
-	txEntity := testdata.FakeETHTransaction()
-	UpdateTransactionModelFromEntities(txModel, txEntity)
-
-	expectedTxModel := NewTransactionModelFromEntities(txEntity)
-	expectedTxModel.UUID = txModel.UUID
-	expectedTxModel.CreatedAt = txModel.CreatedAt
-	expectedTxModel.UpdatedAt = txModel.UpdatedAt
-
-	expectedJSON, _ := json.Marshal(txModel)
-	actualJOSN, _ := json.Marshal(expectedTxModel)
-	assert.Equal(t, string(expectedJSON), string(actualJOSN))
-}

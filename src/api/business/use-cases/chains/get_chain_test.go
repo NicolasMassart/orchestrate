@@ -9,9 +9,8 @@ import (
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 
 	"github.com/consensys/orchestrate/pkg/errors"
-	"github.com/consensys/orchestrate/src/api/store/parsers"
 	"github.com/consensys/orchestrate/src/api/store/mocks"
-	"github.com/consensys/orchestrate/src/api/store/models/testdata"
+	"github.com/consensys/orchestrate/src/entities/testdata"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
@@ -30,14 +29,14 @@ func TestGetChain_Execute(t *testing.T) {
 	userInfo := multitenancy.NewUserInfo("tenantOne", "username")
 
 	t.Run("should execute use case successfully", func(t *testing.T) {
-		chainModel := testdata.FakeChainModel()
+		chain := testdata.FakeChain()
 
-		chainAgent.EXPECT().FindOneByUUID(gomock.Any(), chainModel.UUID, userInfo.AllowedTenants, userInfo.Username).Return(chainModel, nil)
+		chainAgent.EXPECT().FindOneByUUID(gomock.Any(), chain.UUID, userInfo.AllowedTenants, userInfo.Username).Return(chain, nil)
 
-		resp, err := usecase.Execute(ctx, chainModel.UUID, userInfo)
+		resp, err := usecase.Execute(ctx, chain.UUID, userInfo)
 
 		assert.NoError(t, err)
-		assert.Equal(t, parsers.NewChainFromModel(chainModel), resp)
+		assert.Equal(t, chain, resp)
 	})
 
 	t.Run("should fail with same error if get chain fails", func(t *testing.T) {

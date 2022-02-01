@@ -13,7 +13,6 @@ import (
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/src/api/store"
-	"github.com/consensys/orchestrate/src/api/store/models"
 )
 
 const updateChildrenComponent = "use-cases.update-children"
@@ -60,28 +59,27 @@ func (uc *updateChildrenUseCase) Execute(ctx context.Context, jobUUID, parentJob
 		return errors.FromError(err).ExtendComponent(updateChildrenComponent)
 	}
 
-	for _, jobModel := range jobsToUpdate {
+	for _, job := range jobsToUpdate {
 		// Skip mined job which trigger the update of sibling/children
-		if jobModel.UUID == jobUUID {
+		if job.UUID == jobUUID {
 			continue
 		}
 
-		jobLogModel := &models.Log{
-			JobID:   &jobModel.ID,
+		jobLog := &entities.Log{
 			Status:  nextStatus,
 			Message: fmt.Sprintf("sibling (or parent) job %s was mined instead", jobUUID),
 		}
 
-		jobModel.Status = nextStatus
-		if err := uc.db.Job().Update(ctx, jobModel); err != nil {
+		job.Status = nextStatus
+		if err := uc.db.Job().Update(ctx, job); err != nil {
 			return errors.FromError(err).ExtendComponent(updateChildrenComponent)
 		}
 
-		if err := uc.db.Log().Insert(ctx, jobLogModel); err != nil {
+		if err := uc.db.Log().Insert(ctx, jobLog, job.UUID); err != nil {
 			return errors.FromError(err).ExtendComponent(updateChildrenComponent)
 		}
 
-		logger.WithField("job", jobModel.UUID).
+		logger.WithField("job", job.UUID).
 			WithField("status", nextStatus).Debug("updated children/sibling job successfully")
 	}
 

@@ -483,7 +483,7 @@ func (s *transactionsTestSuite) TestSendSpeedUpTransaction() {
 	})
 	require.NoError(s.T(), err)
 
-	s.T().Run("should send a call off transaction successfully", func(t *testing.T) {
+	s.T().Run("should send a speed up transaction successfully", func(t *testing.T) {
 		txResponse, err = s.client.SendSpeedUpTransaction(ctx, txResponse.UUID, utils.ToPtr(0.1).(*float64))
 		require.NoError(t, err)
 		evlp, err := s.env.consumer.WaitForEnvelope(txResponse.UUID, s.env.kafkaTopicConfig.Sender, waitForEnvelopeTimeOut)

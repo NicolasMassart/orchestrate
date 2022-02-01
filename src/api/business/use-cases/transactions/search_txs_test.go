@@ -9,8 +9,6 @@ import (
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/entities/testdata"
 	mocks2 "github.com/consensys/orchestrate/src/api/business/use-cases/mocks"
-	"github.com/consensys/orchestrate/src/api/store/models"
-	modelstestdata "github.com/consensys/orchestrate/src/api/store/models/testdata"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -36,13 +34,13 @@ func TestSearchTxs_Execute(t *testing.T) {
 	usecase := NewSearchTransactionsUseCase(mockDB, mockGetTxUC)
 
 	t.Run("should execute use case successfully", func(t *testing.T) {
-		txRequestModels := []*models.TransactionRequest{modelstestdata.FakeTxRequest(0), modelstestdata.FakeTxRequest(1)}
 		txRequest0 := testdata.FakeTxRequest()
 		txRequest1 := testdata.FakeTxRequest()
+		txRequests := []*entities.TxRequest{txRequest0, txRequest1}
 
-		mockTransactionRequestDA.EXPECT().Search(gomock.Any(), filter, userInfo.AllowedTenants, userInfo.Username).Return(txRequestModels, nil)
-		mockGetTxUC.EXPECT().Execute(gomock.Any(), txRequestModels[0].Schedule.UUID, userInfo).Return(txRequest0, nil)
-		mockGetTxUC.EXPECT().Execute(gomock.Any(), txRequestModels[1].Schedule.UUID, userInfo).Return(txRequest1, nil)
+		mockTransactionRequestDA.EXPECT().Search(gomock.Any(), filter, userInfo.AllowedTenants, userInfo.Username).Return(txRequests, nil)
+		mockGetTxUC.EXPECT().Execute(gomock.Any(), txRequests[0].Schedule.UUID, userInfo).Return(txRequest0, nil)
+		mockGetTxUC.EXPECT().Execute(gomock.Any(), txRequests[1].Schedule.UUID, userInfo).Return(txRequest1, nil)
 
 		result, err := usecase.Execute(ctx, filter, userInfo)
 
@@ -71,11 +69,11 @@ func TestSearchTxs_Execute(t *testing.T) {
 	})
 
 	t.Run("should fail with same error if GetTxUseCase fails", func(t *testing.T) {
-		txRequestModels := []*models.TransactionRequest{modelstestdata.FakeTxRequest(0)}
+		txRequests := []*entities.TxRequest{testdata.FakeTxRequest()}
 		expectedErr := fmt.Errorf("error")
 
-		mockTransactionRequestDA.EXPECT().Search(gomock.Any(), filter, userInfo.AllowedTenants, userInfo.Username).Return(txRequestModels, nil)
-		mockGetTxUC.EXPECT().Execute(gomock.Any(), txRequestModels[0].Schedule.UUID, userInfo).Return(nil, expectedErr)
+		mockTransactionRequestDA.EXPECT().Search(gomock.Any(), filter, userInfo.AllowedTenants, userInfo.Username).Return(txRequests, nil)
+		mockGetTxUC.EXPECT().Execute(gomock.Any(), txRequests[0].Schedule.UUID, userInfo).Return(nil, expectedErr)
 
 		response, err := usecase.Execute(ctx, filter, userInfo)
 

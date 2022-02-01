@@ -8,9 +8,8 @@ import (
 	"testing"
 
 	"github.com/consensys/orchestrate/pkg/errors"
-	"github.com/consensys/orchestrate/src/entities/testdata"
 	"github.com/consensys/orchestrate/src/api/store/mocks"
-	"github.com/consensys/orchestrate/src/api/store/models"
+	"github.com/consensys/orchestrate/src/entities/testdata"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
@@ -21,19 +20,13 @@ func TestGetContract_Execute(t *testing.T) {
 	ctx := context.Background()
 
 	contract := testdata.FakeContract()
-	artifactAgent := mocks.NewMockArtifactAgent(ctrl)
+	artifactAgent := mocks.NewMockContractAgent(ctrl)
 	usecase := NewGetContractUseCase(artifactAgent)
 
 	t.Run("should execute use case successfully", func(t *testing.T) {
 		artifactAgent.EXPECT().
 			FindOneByNameAndTag(gomock.Any(), contract.Name, contract.Tag).
-			Return(&models.ArtifactModel{
-				ID:               1,
-				ABI:              contract.RawABI,
-				Bytecode:         contract.Bytecode.String(),
-				DeployedBytecode: contract.DeployedBytecode.String(),
-				Codehash:         "",
-			}, nil)
+			Return(contract, nil)
 
 		response, err := usecase.Execute(ctx, contract.Name, contract.Tag)
 

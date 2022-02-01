@@ -11,8 +11,8 @@ import (
 
 func TestChainsParser(t *testing.T) {
 	chain := testdata.FakeChain()
-	chainModel := NewChainModelFromEntity(chain)
-	finalChain := NewChainFromModel(chainModel)
+	chainModel := NewChainModel(chain)
+	finalChain := NewChainEntity(chainModel)
 
 	assert.Equal(t, chain, finalChain)
 }

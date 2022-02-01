@@ -12,11 +12,11 @@ import (
 const getCatalogComponent = "use-cases.get-catalog"
 
 type getCatalogUseCase struct {
-	agent  store.RepositoryAgent
+	agent  store.ContractAgent
 	logger *log.Logger
 }
 
-func NewGetCatalogUseCase(agent store.RepositoryAgent) usecases.GetContractsCatalogUseCase {
+func NewGetCatalogUseCase(agent store.ContractAgent) usecases.GetContractsCatalogUseCase {
 	return &getCatalogUseCase{
 		agent:  agent,
 		logger: log.NewLogger().SetComponent(getCatalogComponent),
@@ -26,7 +26,7 @@ func NewGetCatalogUseCase(agent store.RepositoryAgent) usecases.GetContractsCata
 // TODO: Modify to get all contracts and then only return necessary fields instead of getting only names
 // Execute gets all contract names from DB
 func (uc *getCatalogUseCase) Execute(ctx context.Context) ([]string, error) {
-	names, err := uc.agent.FindAll(ctx)
+	names, err := uc.agent.ListNames(ctx)
 	if err != nil {
 		return nil, errors.FromError(err).ExtendComponent(getCatalogComponent)
 	}

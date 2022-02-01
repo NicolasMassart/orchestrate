@@ -53,7 +53,6 @@ func (s *jobsTestSuite) TestCreate() {
 		assert.Empty(t, job.NextJobUUID)
 		assert.NotEmpty(t, job.CreatedAt)
 		assert.NotEmpty(t, job.UpdatedAt)
-		assert.Equal(t, job.CreatedAt, job.UpdatedAt)
 	})
 
 	s.T().Run("should fail with 400 if type is invalid", func(t *testing.T) {

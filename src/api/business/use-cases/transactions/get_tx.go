@@ -45,7 +45,7 @@ func (uc *getTxUseCase) Execute(ctx context.Context, scheduleUUID string, userIn
 		Params:         txRequestModel.Params,
 		CreatedAt:      txRequestModel.CreatedAt,
 	}
-	txRequest.Schedule, err = uc.getScheduleUsecase.Execute(ctx, txRequestModel.Schedule.UUID, userInfo)
+	txRequest.Schedule, err = uc.getScheduleUsecase.Execute(ctx, scheduleUUID, userInfo)
 	if err != nil {
 		return nil, errors.FromError(err).ExtendComponent(getTxComponent)
 	}

@@ -15,7 +15,7 @@ type ContractUseCases interface {
 	GetContract() GetContractUseCase
 	GetContractEvents() GetContractEventsUseCase
 	GetContractTags() GetContractTagsUseCase
-	SetContractCodeHash() SetContractCodeHashUseCase
+	SetContractCodeHash() RegisterContractDeploymentUseCase
 	RegisterContract() RegisterContractUseCase
 	SearchContract() SearchContractUseCase
 }
@@ -44,6 +44,6 @@ type RegisterContractUseCase interface {
 	Execute(ctx context.Context, contract *entities.Contract) error
 }
 
-type SetContractCodeHashUseCase interface {
+type RegisterContractDeploymentUseCase interface {
 	Execute(ctx context.Context, chainID string, address ethcommon.Address, codeHash hexutil.Bytes) error
 }

@@ -18,6 +18,7 @@ type Contract struct {
 	RawABI           string
 	Bytecode         hexutil.Bytes
 	DeployedBytecode hexutil.Bytes
+	CodeHash         hexutil.Bytes
 	Constructor      ABIComponent
 	Methods          []ABIComponent
 	Events           []ABIComponent
@@ -32,6 +33,20 @@ type Arguments struct {
 	Name    string
 	Type    string
 	Indexed bool
+}
+
+type ContractEvent struct {
+	ABI               string
+	CodeHash          hexutil.Bytes
+	SigHash           hexutil.Bytes
+	IndexedInputCount uint
+}
+
+type Artifact struct {
+	ABI              string
+	Bytecode         hexutil.Bytes
+	DeployedBytecode hexutil.Bytes
+	CodeHash         hexutil.Bytes
 }
 
 type RawABI struct {

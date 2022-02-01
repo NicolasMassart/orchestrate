@@ -3,12 +3,10 @@ package accounts
 import (
 	"context"
 
-	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
-	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
-	"github.com/consensys/orchestrate/src/api/store/parsers"
-
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
+	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
+	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/store"
 	"github.com/consensys/orchestrate/src/entities"
 	ethcommon "github.com/ethereum/go-ethereum/common"
@@ -32,11 +30,11 @@ func (uc *getAccountUseCase) Execute(ctx context.Context, address ethcommon.Addr
 	ctx = log.WithFields(ctx, log.Field("address", address))
 	logger := uc.logger.WithContext(ctx)
 
-	model, err := uc.db.Account().FindOneByAddress(ctx, address.Hex(), userInfo.AllowedTenants, userInfo.Username)
+	acc, err := uc.db.Account().FindOneByAddress(ctx, address.Hex(), userInfo.AllowedTenants, userInfo.Username)
 	if err != nil {
 		return nil, errors.FromError(err).ExtendComponent(getAccountComponent)
 	}
 
 	logger.Debug("account found successfully")
-	return parsers.NewAccountEntityFromModels(model), nil
+	return acc, nil
 }

@@ -10,7 +10,6 @@ import (
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/src/api/store"
-	"github.com/consensys/orchestrate/src/api/store/parsers"
 )
 
 const searchSchedulesComponent = "use-cases.search-schedules"
@@ -31,25 +30,20 @@ func NewSearchSchedulesUseCase(db store.DB) usecases.SearchSchedulesUseCase {
 
 // Execute search schedules
 func (uc *searchSchedulesUseCase) Execute(ctx context.Context, userInfo *multitenancy.UserInfo) ([]*entities.Schedule, error) {
-	scheduleModels, err := uc.db.Schedule().FindAll(ctx, userInfo.AllowedTenants, userInfo.Username)
+	schedules, err := uc.db.Schedule().FindAll(ctx, userInfo.AllowedTenants, userInfo.Username)
 	if err != nil {
 		return nil, err
 	}
 
-	for idx, scheduleModel := range scheduleModels {
+	for idx, scheduleModel := range schedules {
 		for jdx, job := range scheduleModel.Jobs {
-			scheduleModels[idx].Jobs[jdx], err = uc.db.Job().FindOneByUUID(ctx, job.UUID, userInfo.AllowedTenants, userInfo.Username, false)
+			schedules[idx].Jobs[jdx], err = uc.db.Job().FindOneByUUID(ctx, job.UUID, userInfo.AllowedTenants, userInfo.Username, false)
 			if err != nil {
 				return nil, errors.FromError(err).ExtendComponent(searchSchedulesComponent)
 			}
 		}
 	}
 
-	var resp []*entities.Schedule
-	for _, s := range scheduleModels {
-		resp = append(resp, parsers.NewScheduleEntityFromModels(s))
-	}
-
 	uc.logger.Info("schedules found successfully")
-	return resp, nil
+	return schedules, nil
 }

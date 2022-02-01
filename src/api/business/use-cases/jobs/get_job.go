@@ -10,7 +10,6 @@ import (
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/src/api/store"
-	"github.com/consensys/orchestrate/src/api/store/parsers"
 )
 
 const getJobComponent = "use-cases.get-job"
@@ -32,11 +31,11 @@ func NewGetJobUseCase(db store.DB) usecases.GetJobUseCase {
 // Execute gets a job
 func (uc *getJobUseCase) Execute(ctx context.Context, jobUUID string, userInfo *multitenancy.UserInfo) (*entities.Job, error) {
 	ctx = log.WithFields(ctx, log.Field("job", jobUUID))
-	jobModel, err := uc.db.Job().FindOneByUUID(ctx, jobUUID, userInfo.AllowedTenants, userInfo.Username, true)
+	job, err := uc.db.Job().FindOneByUUID(ctx, jobUUID, userInfo.AllowedTenants, userInfo.Username, true)
 	if err != nil {
 		return nil, errors.FromError(err).ExtendComponent(getJobComponent)
 	}
 
 	uc.logger.WithContext(ctx).Debug("job found successfully")
-	return parsers.NewJobEntityFromModels(jobModel), nil
+	return job, nil
 }

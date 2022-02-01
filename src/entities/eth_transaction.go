@@ -26,6 +26,7 @@ const (
 )
 
 type ETHTransaction struct {
+	UUID            string             `json:"-"`
 	Hash            *ethcommon.Hash    `json:"hash,omitempty" validate:"omitempty" example:"0xd41551c714c8ec769d2edad9adc250ae955d263da161bf59142b7500eea6715e" swaggertype:"string"`
 	From            *ethcommon.Address `json:"from,omitempty" validate:"omitempty" example:"0x1abae27a0cbfb02945720425d3b80c7e09728534" swaggertype:"string"`
 	To              *ethcommon.Address `json:"to,omitempty" validate:"omitempty" example:"0x1abae27a0cbfb02945720425d3b80c7e09728534" swaggertype:"string"`

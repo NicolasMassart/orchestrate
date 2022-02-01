@@ -8,15 +8,15 @@ import (
 	"time"
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
-	ethcommon "github.com/ethereum/go-ethereum/common"
-	"github.com/consensys/orchestrate/src/entities"
+	"github.com/consensys/orchestrate/pkg/utils"
 	mocks2 "github.com/consensys/orchestrate/src/api/business/use-cases/mocks"
-	"github.com/consensys/orchestrate/src/api/store/models"
+	"github.com/consensys/orchestrate/src/entities"
+	ethcommon "github.com/ethereum/go-ethereum/common"
 
+	"github.com/consensys/orchestrate/src/api/store/mocks"
+	"github.com/consensys/orchestrate/src/entities/testdata"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"github.com/consensys/orchestrate/src/api/store/mocks"
-	modelstestdata "github.com/consensys/orchestrate/src/api/store/models/testdata"
 )
 
 func TestStartNextJob_Execute(t *testing.T) {
@@ -37,61 +37,58 @@ func TestStartNextJob_Execute(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("should execute use case for EEA marking transaction successfully", func(t *testing.T) {
-		jobModel := modelstestdata.FakeJobModel(0)
-		nextJobModel := modelstestdata.FakeJobModel(0)
+		job := testdata.FakeJob()
+		nextJob := testdata.FakeJob()
 		txHash := ethcommon.HexToHash("0x123")
 
-		jobModel.NextJobUUID = nextJobModel.UUID
-		jobModel.Transaction.Hash = txHash.String()
-		jobModel.Status = entities.StatusStored
-		jobModel.Logs = append(jobModel.Logs, &models.Log{
-			ID:        1,
+		job.NextJobUUID = nextJob.UUID
+		job.Transaction.Hash = &txHash
+		job.Status = entities.StatusStored
+		job.Logs = append(job.Logs, &entities.Log{
 			Status:    entities.StatusStored,
 			CreatedAt: time.Now(),
 		})
-		jobModel.Type = entities.EEAPrivateTransaction
-		nextJobModel.Type = entities.EEAMarkingTransaction
+		job.Type = entities.EEAPrivateTransaction
+		nextJob.Type = entities.EEAMarkingTransaction
 
-		mockJobDA.EXPECT().FindOneByUUID(gomock.Any(), jobModel.UUID, userInfo.AllowedTenants, userInfo.Username, false).
-			Return(jobModel, nil)
-		mockJobDA.EXPECT().FindOneByUUID(gomock.Any(), nextJobModel.UUID, userInfo.AllowedTenants, userInfo.Username, false).
-			Return(nextJobModel, nil)
-		nextJobModel.Transaction.Data = txHash.String()
-		mockTxDA.EXPECT().Update(gomock.Any(), nextJobModel.Transaction).Return(nil)
+		mockJobDA.EXPECT().FindOneByUUID(gomock.Any(), job.UUID, userInfo.AllowedTenants, userInfo.Username, false).
+			Return(job, nil)
+		mockJobDA.EXPECT().FindOneByUUID(gomock.Any(), nextJob.UUID, userInfo.AllowedTenants, userInfo.Username, false).
+			Return(nextJob, nil)
+		mockTxDA.EXPECT().Update(gomock.Any(), nextJob.Transaction, nextJob.UUID).Return(nil)
 
-		mockStartJobUC.EXPECT().Execute(gomock.Any(), nextJobModel.UUID, userInfo)
-		err := usecase.Execute(ctx, jobModel.UUID, userInfo)
+		mockStartJobUC.EXPECT().Execute(gomock.Any(), nextJob.UUID, userInfo)
+		err := usecase.Execute(ctx, job.UUID, userInfo)
 
 		assert.NoError(t, err)
 	})
 
 	t.Run("should execute use case for tessera marking transaction successfully", func(t *testing.T) {
-		jobModel := modelstestdata.FakeJobModel(0)
-		nextJobModel := modelstestdata.FakeJobModel(0)
-		enclaveKey := ethcommon.HexToHash("0x123").String()
-
-		jobModel.NextJobUUID = nextJobModel.UUID
-		jobModel.Transaction.EnclaveKey = enclaveKey
-		jobModel.Transaction.Gas = "0x1"
-		jobModel.Status = entities.StatusStored
-		jobModel.Logs = append(jobModel.Logs, &models.Log{
-			ID:        1,
+		job := testdata.FakeJob()
+		nextJob := testdata.FakeJob()
+		enclaveKey := ethcommon.HexToHash("0x123")
+	
+		job.NextJobUUID = nextJob.UUID
+		job.Transaction.EnclaveKey = enclaveKey.Bytes()
+		job.Transaction.Gas = utils.ToPtr(uint64(11)).(*uint64)
+		job.Status = entities.StatusStored
+		job.Logs = append(job.Logs, &entities.Log{
 			Status:    entities.StatusStored,
 			CreatedAt: time.Now(),
 		})
-		jobModel.Type = entities.TesseraPrivateTransaction
-		nextJobModel.Type = entities.TesseraMarkingTransaction
+		job.Type = entities.TesseraPrivateTransaction
+		nextJob.Type = entities.TesseraMarkingTransaction
 
-		mockJobDA.EXPECT().FindOneByUUID(gomock.Any(), jobModel.UUID, userInfo.AllowedTenants, userInfo.Username, false).
-			Return(jobModel, nil)
-		mockJobDA.EXPECT().FindOneByUUID(gomock.Any(), nextJobModel.UUID, userInfo.AllowedTenants, userInfo.Username, false).
-			Return(nextJobModel, nil)
-		nextJobModel.Transaction.Data = enclaveKey
-		nextJobModel.Transaction.Gas = "0x1"
-		mockTxDA.EXPECT().Update(gomock.Any(), nextJobModel.Transaction).Return(nil)
+		mockJobDA.EXPECT().FindOneByUUID(gomock.Any(), job.UUID, userInfo.AllowedTenants, userInfo.Username, false).
+			Return(job, nil)
+		mockJobDA.EXPECT().FindOneByUUID(gomock.Any(), nextJob.UUID, userInfo.AllowedTenants, userInfo.Username, false).
+			Return(nextJob, nil)
+		nextJob.Transaction.Data = enclaveKey.Bytes()
+		nextJob.Transaction.Gas =  utils.ToPtr(uint64(11)).(*uint64)
+		mockTxDA.EXPECT().Update(gomock.Any(), nextJob.Transaction, nextJob.UUID).Return(nil)
 
-		mockStartJobUC.EXPECT().Execute(gomock.Any(), nextJobModel.UUID, userInfo)
-		err := usecase.Execute(ctx, jobModel.UUID, userInfo)
+		mockStartJobUC.EXPECT().Execute(gomock.Any(), nextJob.UUID, userInfo)
+		err := usecase.Execute(ctx, job.UUID, userInfo)
 
 		assert.NoError(t, err)
 	})

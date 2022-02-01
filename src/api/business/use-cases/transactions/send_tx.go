@@ -12,7 +12,6 @@ import (
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/store"
-	"github.com/consensys/orchestrate/src/api/store/models"
 	"github.com/consensys/orchestrate/src/api/store/parsers"
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/infra/database"
@@ -131,18 +130,18 @@ func (uc *sendTxUsecase) selectOrInsertTxRequest(
 		return uc.insertNewTxRequest(ctx, txRequest, txData, requestHash, chainUUID, userInfo.TenantID, userInfo)
 	}
 
-	txRequestModel, err := uc.db.TransactionRequest().FindOneByIdempotencyKey(ctx, txRequest.IdempotencyKey, userInfo.TenantID, userInfo.Username)
+	curTxRequest, err := uc.db.TransactionRequest().FindOneByIdempotencyKey(ctx, txRequest.IdempotencyKey, userInfo.TenantID, userInfo.Username)
 	switch {
 	case errors.IsNotFoundError(err):
 		return uc.insertNewTxRequest(ctx, txRequest, txData, requestHash, chainUUID, userInfo.TenantID, userInfo)
 	case err != nil:
 		return nil, err
-	case txRequestModel != nil && txRequestModel.RequestHash != requestHash:
+	case curTxRequest != nil && curTxRequest.Hash != requestHash:
 		errMessage := "transaction request with the same idempotency key and different params already exists"
 		uc.logger.Error(errMessage)
 		return nil, errors.AlreadyExistsError(errMessage)
 	default:
-		return uc.getTxUC.Execute(ctx, txRequestModel.Schedule.UUID, userInfo)
+		return uc.getTxUC.Execute(ctx, curTxRequest.Schedule.UUID, userInfo)
 	}
 }
 
@@ -153,17 +152,15 @@ func (uc *sendTxUsecase) insertNewTxRequest(
 	userInfo *multitenancy.UserInfo,
 ) (*entities.TxRequest, error) {
 	err := database.ExecuteInDBTx(uc.db, func(dbtx database.Tx) error {
-		schedule := &models.Schedule{TenantID: tenantID, OwnerID: userInfo.Username}
-		if err := dbtx.(store.Tx).Schedule().Insert(ctx, schedule); err != nil {
-			return err
+		txRequest.Schedule = &entities.Schedule{TenantID: tenantID, OwnerID: userInfo.Username}
+		if der := dbtx.(store.Tx).Schedule().Insert(ctx, txRequest.Schedule); der != nil {
+			return der
 		}
 
-		txRequestModel := parsers.NewTxRequestModelFromEntities(txRequest, requestHash, schedule.ID)
-		if err := dbtx.(store.Tx).TransactionRequest().Insert(ctx, txRequestModel); err != nil {
-			return err
+		if der := dbtx.(store.Tx).TransactionRequest().Insert(ctx, txRequest, requestHash, txRequest.Schedule.UUID); der != nil {
+			return der
 		}
 
-		txRequest.Schedule = parsers.NewScheduleEntityFromModels(schedule)
 		return nil
 	})
 
@@ -171,7 +168,7 @@ func (uc *sendTxUsecase) insertNewTxRequest(
 		return nil, errors.FromError(err).ExtendComponent(sendTxComponent)
 	}
 
-	sendTxJobs, err := parsers.NewJobEntitiesFromTxRequest(txRequest, chainUUID, txData)
+	sendTxJobs, err := parsers.NewJobEntities(txRequest, chainUUID, txData)
 	if err != nil {
 		return nil, errors.FromError(err).ExtendComponent(sendTxComponent)
 	}

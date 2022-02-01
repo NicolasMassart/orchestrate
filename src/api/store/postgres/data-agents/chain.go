@@ -6,8 +6,10 @@ import (
 
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
+	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/consensys/orchestrate/src/api/store"
 	"github.com/consensys/orchestrate/src/api/store/models"
+	"github.com/consensys/orchestrate/src/api/store/parsers"
 	"github.com/consensys/orchestrate/src/entities"
 	pg "github.com/consensys/orchestrate/src/infra/database/postgres"
 	gopg "github.com/go-pg/pg/v9"
@@ -28,25 +30,26 @@ func NewPGChain(db pg.DB) store.ChainAgent {
 }
 
 // Insert Inserts a new chain in DB
-func (agent *PGChain) Insert(ctx context.Context, chain *models.Chain) error {
-	if chain.UUID == "" {
-		chain.UUID = uuid.Must(uuid.NewV4()).String()
+func (agent *PGChain) Insert(ctx context.Context, chain *entities.Chain) error {
+	model := parsers.NewChainModel(chain)
+	if model.UUID == "" {
+		model.UUID = uuid.Must(uuid.NewV4()).String()
 	}
 
-	err := pg.Insert(ctx, agent.db, chain)
+	err := pg.Insert(ctx, agent.db, model)
 	if err != nil {
 		agent.logger.WithContext(ctx).WithError(err).Error("failed to insert chain")
 		return errors.FromError(err).ExtendComponent(chainDAComponent)
 	}
 
+	utils.CopyPtr(parsers.NewChainEntity(model), chain)
 	return nil
 }
 
 // FindOneByUUID Finds a chain in DB by UUID
-func (agent *PGChain) FindOneByUUID(ctx context.Context, chainUUID string, tenants []string, ownerID string) (*models.Chain, error) {
-	chain := &models.Chain{}
-
-	query := agent.db.ModelContext(ctx, chain).Where("uuid = ?", chainUUID).Relation("PrivateTxManagers")
+func (agent *PGChain) FindOneByUUID(ctx context.Context, chainUUID string, tenants []string, ownerID string) (*entities.Chain, error) {
+	model := &models.Chain{}
+	query := agent.db.ModelContext(ctx, model).Where("uuid = ?", chainUUID).Relation("PrivateTxManagers")
 	query = pg.WhereAllowedTenants(query, "tenant_id", tenants)
 	query = pg.WhereAllowedOwner(query, "owner_id", ownerID)
 
@@ -58,11 +61,11 @@ func (agent *PGChain) FindOneByUUID(ctx context.Context, chainUUID string, tenan
 		return nil, errors.FromError(err).ExtendComponent(chainDAComponent)
 	}
 
-	return chain, nil
+	return parsers.NewChainEntity(model), nil
 }
 
 // FindOneByName Finds a chain in DB by name
-func (agent *PGChain) FindOneByName(ctx context.Context, name string, tenants []string, ownerID string) (*models.Chain, error) {
+func (agent *PGChain) FindOneByName(ctx context.Context, name string, tenants []string, ownerID string) (*entities.Chain, error) {
 	chain := &models.Chain{}
 
 	query := agent.db.ModelContext(ctx, chain).Where("name = ?", name)
@@ -77,10 +80,10 @@ func (agent *PGChain) FindOneByName(ctx context.Context, name string, tenants []
 		return nil, errors.FromError(err).ExtendComponent(chainDAComponent)
 	}
 
-	return chain, nil
+	return parsers.NewChainEntity(chain), nil
 }
 
-func (agent *PGChain) Search(ctx context.Context, filters *entities.ChainFilters, tenants []string, ownerID string) ([]*models.Chain, error) {
+func (agent *PGChain) Search(ctx context.Context, filters *entities.ChainFilters, tenants []string, ownerID string) ([]*entities.Chain, error) {
 	var chains []*models.Chain
 
 	query := agent.db.ModelContext(ctx, &chains)
@@ -103,7 +106,7 @@ func (agent *PGChain) Search(ctx context.Context, filters *entities.ChainFilters
 	}
 
 	if len(chains) == 0 {
-		return chains, nil
+		return []*entities.Chain{}, nil
 	}
 
 	// We manually link chains to privateTxManager avoiding GO-PG strategy of one query per chain
@@ -127,12 +130,13 @@ func (agent *PGChain) Search(ctx context.Context, filters *entities.ChainFilters
 		chainsMap[pm.ChainUUID].PrivateTxManagers = []*models.PrivateTxManager{pm}
 	}
 
-	return chains, nil
+	return parsers.NewChainEntityArr(chains), nil
 }
 
-func (agent *PGChain) Update(ctx context.Context, chain *models.Chain, tenants []string, ownerID string) error {
-	chain.UpdatedAt = time.Now().UTC()
-	query := agent.db.ModelContext(ctx, chain).Where("uuid = ?", chain.UUID)
+func (agent *PGChain) Update(ctx context.Context, chain *entities.Chain, tenants []string, ownerID string) error {
+	model := parsers.NewChainModel(chain)
+	model.UpdatedAt = time.Now().UTC()
+	query := agent.db.ModelContext(ctx, model).Where("uuid = ?", chain.UUID)
 	query = pg.WhereAllowedTenantsDefault(query, tenants)
 	query = pg.WhereAllowedOwner(query, "owner_id", ownerID)
 
@@ -142,11 +146,13 @@ func (agent *PGChain) Update(ctx context.Context, chain *models.Chain, tenants [
 		return errors.FromError(err).ExtendComponent(chainDAComponent)
 	}
 
+	utils.CopyPtr(parsers.NewChainEntity(model), chain)
 	return nil
 }
 
-func (agent *PGChain) Delete(ctx context.Context, chain *models.Chain, tenants []string) error {
-	query := agent.db.ModelContext(ctx, chain).Where("uuid = ?", chain.UUID)
+func (agent *PGChain) Delete(ctx context.Context, chain *entities.Chain, tenants []string) error {
+	model := parsers.NewChainModel(chain)
+	query := agent.db.ModelContext(ctx, model).Where("uuid = ?", chain.UUID)
 	query = pg.WhereAllowedTenantsDefault(query, tenants)
 
 	err := pg.Delete(ctx, query)

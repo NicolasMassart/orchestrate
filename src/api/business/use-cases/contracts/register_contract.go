@@ -5,16 +5,14 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/ethereum/go-ethereum/accounts/abi"
-
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/store"
-	"github.com/consensys/orchestrate/src/api/store/models"
 	"github.com/consensys/orchestrate/src/api/store/parsers"
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/infra/database"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -44,47 +42,30 @@ func (uc *registerContractUseCase) Execute(ctx context.Context, contract *entiti
 		return errors.FromError(err).ExtendComponent(registerContractComponent)
 	}
 
-	eventJSONs, err := parsers.ParseEvents(abiRaw)
-	if err != nil {
-		logger.WithError(err).Error("failed to parse json ABI")
-		return errors.FromError(err).ExtendComponent(registerContractComponent)
-	}
+	contract.RawABI = abiRaw
+	contract.CodeHash = crypto.Keccak256(contract.DeployedBytecode)
 
-	repository := &models.RepositoryModel{
-		Name: contract.Name,
-	}
-	artifact := &models.ArtifactModel{
-		ABI:              abiRaw,
-		Bytecode:         contract.Bytecode.String(),
-		DeployedBytecode: contract.DeployedBytecode.String(),
-		Codehash:         hexutil.Encode(crypto.Keccak256(contract.DeployedBytecode)),
+	events, err := getEvents(&contract.ABI, contract.DeployedBytecode, crypto.Keccak256Hash(contract.DeployedBytecode), abiRaw)
+	if err != nil {
+		logger.WithError(err).Error("failed to parse contract ABI")
+		return errors.FromError(err).ExtendComponent(registerContractComponent)
 	}
 
 	err = database.ExecuteInDBTx(uc.db, func(tx database.Tx) error {
 		// @TODO Improve duplicate inserts when `DeployedBytecode` and `Name` and `Tag` already exists
 		dbtx := tx.(store.Tx)
-		if der := dbtx.Repository().SelectOrInsert(ctx, repository); der != nil {
-			return der
-		}
-		if der := dbtx.Artifact().SelectOrInsert(ctx, artifact); der != nil {
-			return der
+		if der := dbtx.Contract().Register(ctx, contract); der != nil {
+			logger.WithError(err).Error("failed to register contract")
+			return err
 		}
 
-		tag := &models.TagModel{
-			Name:         contract.Tag,
-			RepositoryID: repository.ID,
-			ArtifactID:   artifact.ID,
+		if len(events) == 0 {
+			return nil
 		}
 
-		if der := dbtx.Tag().Insert(ctx, tag); der != nil {
+		if der := dbtx.ContractEvent().RegisterMultiple(ctx, events); der != nil {
+			logger.WithError(err).Error("failed to register contract events")
 			return der
-		}
-
-		events := getEvents(&contract.ABI, contract.DeployedBytecode, crypto.Keccak256Hash(contract.DeployedBytecode), eventJSONs)
-		if len(events) > 0 {
-			if der := dbtx.Event().InsertMultiple(ctx, events); der != nil {
-				return der
-			}
 		}
 
 		return nil
@@ -98,22 +79,26 @@ func (uc *registerContractUseCase) Execute(ctx context.Context, contract *entiti
 	return nil
 }
 
-func getEvents(contractAbi *abi.ABI, deployedBytecode hexutil.Bytes, codeHash common.Hash, eventJSONs map[string]string) []*models.EventModel {
-	var events []*models.EventModel
+func getEvents(contractAbi *abi.ABI, deployedBytecode hexutil.Bytes, codeHash common.Hash, abiRaw string) ([]*entities.ContractEvent, error) {
+	eventJSONs, err := parsers.ParseEvents(abiRaw)
+	if err != nil {
+		return nil, err
+	}
+	var events []*entities.ContractEvent
 	// nolint
 	for _, e := range contractAbi.Events {
 		indexedCount := getIndexedCount(&e)
 		if deployedBytecode != nil {
-			events = append(events, &models.EventModel{
-				Codehash:          codeHash.Hex(),
-				SigHash:           e.ID.Hex(),
+			events = append(events, &entities.ContractEvent{
+				CodeHash:          codeHash.Bytes(),
+				SigHash:           e.ID.Bytes(),
 				IndexedInputCount: indexedCount,
 				ABI:               eventJSONs[e.Sig],
 			})
 		}
 	}
 
-	return events
+	return events, nil
 }
 
 func getABICompacted(rawABI string) (string, error) {
@@ -122,4 +107,15 @@ func getABICompacted(rawABI string) (string, error) {
 		return "", err
 	}
 	return buffer.String(), nil
+}
+
+// returns the count of indexed inputs in the event
+func getIndexedCount(event *abi.Event) (indexedInputCount uint) {
+	for i := range event.Inputs {
+		if event.Inputs[i].Indexed {
+			indexedInputCount++
+		}
+	}
+
+	return indexedInputCount
 }

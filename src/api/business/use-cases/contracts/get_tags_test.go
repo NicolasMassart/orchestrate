@@ -19,12 +19,12 @@ func TestGetTags_Execute(t *testing.T) {
 	ctx := context.Background()
 
 	contractName := "myContract"
-	tagAgent := mocks.NewMockTagAgent(ctrl)
+	tagAgent := mocks.NewMockContractAgent(ctrl)
 	usecase := NewGetTagsUseCase(tagAgent)
 
 	t.Run("should execute use case successfully", func(t *testing.T) {
 		tags := []string{"latest", "v1.0.0"}
-		tagAgent.EXPECT().FindAllByName(gomock.Any(), contractName).Return(tags, nil)
+		tagAgent.EXPECT().ListTags(gomock.Any(), contractName).Return(tags, nil)
 
 		response, err := usecase.Execute(ctx, contractName)
 
@@ -34,7 +34,7 @@ func TestGetTags_Execute(t *testing.T) {
 
 	t.Run("should fail if data agent fails", func(t *testing.T) {
 		dataAgentError := fmt.Errorf("error")
-		tagAgent.EXPECT().FindAllByName(gomock.Any(), contractName).Return(nil, dataAgentError)
+		tagAgent.EXPECT().ListTags(gomock.Any(), contractName).Return(nil, dataAgentError)
 
 		response, err := usecase.Execute(ctx, contractName)
 

@@ -6,13 +6,11 @@ import (
 	"context"
 	"testing"
 
+	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	mocks2 "github.com/consensys/orchestrate/src/api/business/use-cases/mocks"
 
-	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
-
-	"github.com/consensys/orchestrate/src/entities/testdata"
-	"github.com/consensys/orchestrate/src/api/store/parsers"
 	"github.com/consensys/orchestrate/src/api/store/mocks"
+	"github.com/consensys/orchestrate/src/entities/testdata"
 
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/golang/mock/gomock"
@@ -45,31 +43,33 @@ func TestUpdateChain_Execute(t *testing.T) {
 	t.Run("should execute use case successfully", func(t *testing.T) {
 		chain := testdata.FakeChain()
 		chain.PrivateTxManager = nil
-		chainModel := parsers.NewChainModelFromEntity(chain)
 
 		mockGetChainUC.EXPECT().Execute(gomock.Any(), chain.UUID, userInfo).Return(chain, nil)
-		chainAgent.EXPECT().Update(gomock.Any(), chainModel, userInfo.AllowedTenants, userInfo.Username).Return(nil)
+		chainAgent.EXPECT().Update(gomock.Any(), chain, userInfo.AllowedTenants, userInfo.Username).Return(nil)
 		mockGetChainUC.EXPECT().Execute(gomock.Any(), chain.UUID, userInfo).Return(chain, nil)
 
 		resp, err := usecase.Execute(ctx, chain, userInfo)
 
 		assert.NoError(t, err)
-		assert.Equal(t, parsers.NewChainFromModel(chainModel), resp)
+		assert.Equal(t, chain, resp)
 	})
 
 	t.Run("should execute use case successfully with private tx manager", func(t *testing.T) {
 		chain := testdata.FakeChain()
-		chainModel := parsers.NewChainModelFromEntity(chain)
+		chain.PrivateTxManager = nil
+		newChain := testdata.FakeChain()
+		newChain.UUID = chain.UUID
+		newChain.PrivateTxManager.UUID = chain.UUID
 
-		mockGetChainUC.EXPECT().Execute(gomock.Any(), chain.UUID, userInfo).Return(chain, nil)
+		mockGetChainUC.EXPECT().Execute(gomock.Any(), newChain.UUID, userInfo).Return(chain, nil)
 		chainAgent.EXPECT().Update(gomock.Any(), gomock.Any(), userInfo.AllowedTenants, userInfo.Username).Return(nil)
-		privateTxManagerAgent.EXPECT().Update(gomock.Any(), chainModel.PrivateTxManagers[0]).Return(nil)
+		privateTxManagerAgent.EXPECT().Insert(gomock.Any(), newChain.PrivateTxManager).Return(nil)
 		mockGetChainUC.EXPECT().Execute(gomock.Any(), chain.UUID, userInfo).Return(chain, nil)
 
-		resp, err := usecase.Execute(ctx, chain, userInfo)
+		resp, err := usecase.Execute(ctx, newChain, userInfo)
 
 		assert.NoError(t, err)
-		assert.Equal(t, parsers.NewChainFromModel(chainModel), resp)
+		assert.Equal(t, chain, resp)
 	})
 
 	t.Run("should execute use case successfully with private tx manager to insert", func(t *testing.T) {
@@ -77,13 +77,12 @@ func TestUpdateChain_Execute(t *testing.T) {
 		chainRetrieved := testdata.FakeChain()
 		chainRetrieved.PrivateTxManager = nil
 		chainRetrieved.UUID = chainUpdate.UUID
-		chainModel := parsers.NewChainModelFromEntity(chainUpdate)
-		chainModel.PrivateTxManagers[0].ChainUUID = chainRetrieved.UUID
+		chainUpdate.PrivateTxManager.ChainUUID = chainRetrieved.UUID
 
 		mockGetChainUC.EXPECT().Execute(gomock.Any(), chainUpdate.UUID, userInfo).Return(chainRetrieved, nil)
-		privateTxManagerAgent.EXPECT().Insert(gomock.Any(), chainModel.PrivateTxManagers[0]).Return(nil)
+		privateTxManagerAgent.EXPECT().Insert(gomock.Any(), chainUpdate.PrivateTxManager).Return(nil)
 		chainAgent.EXPECT().Update(gomock.Any(), gomock.Any(), userInfo.AllowedTenants, userInfo.Username).Return(nil)
-		mockGetChainUC.EXPECT().Execute(gomock.Any(), chainUpdate.UUID, userInfo).Return(chainUpdate, nil)
+		mockGetChainUC.EXPECT().Execute(gomock.Any(), chainUpdate.UUID, userInfo).Return(chainRetrieved, nil)
 
 		_, err := usecase.Execute(ctx, chainUpdate, userInfo)
 
@@ -124,22 +123,6 @@ func TestUpdateChain_Execute(t *testing.T) {
 		mockGetChainUC.EXPECT().Execute(gomock.Any(), chain.UUID, userInfo).Return(chain, nil)
 		privateTxManagerAgent.EXPECT().Update(gomock.Any(), gomock.Any()).Return(nil)
 		chainAgent.EXPECT().Update(gomock.Any(), gomock.Any(), userInfo.AllowedTenants, userInfo.Username).Return(expectedErr)
-
-		resp, err := usecase.Execute(ctx, chain, userInfo)
-
-		assert.Nil(t, resp)
-		assert.Error(t, err)
-		assert.Equal(t, errors.FromError(expectedErr).ExtendComponent(updateChainComponent), err)
-	})
-
-	t.Run("should fail with same error if get chain fails", func(t *testing.T) {
-		chain := testdata.FakeChain()
-		expectedErr := errors.NotFoundError("error")
-
-		mockGetChainUC.EXPECT().Execute(gomock.Any(), chain.UUID, userInfo).Return(chain, nil)
-		chainAgent.EXPECT().Update(gomock.Any(), gomock.Any(), userInfo.AllowedTenants, userInfo.Username).Return(nil)
-		privateTxManagerAgent.EXPECT().Update(gomock.Any(), gomock.Any()).Return(nil)
-		mockGetChainUC.EXPECT().Execute(gomock.Any(), chain.UUID, userInfo).Return(nil, expectedErr)
 
 		resp, err := usecase.Execute(ctx, chain, userInfo)
 

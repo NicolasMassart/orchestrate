@@ -17,12 +17,12 @@ func TestGetCatalog_Execute(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	repositoryAgent := mocks.NewMockRepositoryAgent(ctrl)
+	repositoryAgent := mocks.NewMockContractAgent(ctrl)
 	usecase := NewGetCatalogUseCase(repositoryAgent)
 
 	t.Run("should execute use case successfully", func(t *testing.T) {
 		names := []string{"Contract0", "Contract1"}
-		repositoryAgent.EXPECT().FindAll(gomock.Any()).Return(names, nil)
+		repositoryAgent.EXPECT().ListNames(gomock.Any()).Return(names, nil)
 
 		response, err := usecase.Execute(context.Background())
 
@@ -32,7 +32,7 @@ func TestGetCatalog_Execute(t *testing.T) {
 
 	t.Run("should fail if data agent fails", func(t *testing.T) {
 		dataAgentError := fmt.Errorf("error")
-		repositoryAgent.EXPECT().FindAll(gomock.Any()).Return(nil, dataAgentError)
+		repositoryAgent.EXPECT().ListNames(gomock.Any()).Return(nil, dataAgentError)
 
 		response, err := usecase.Execute(context.Background())
 

@@ -7,33 +7,38 @@ import (
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/src/api/store"
 	"github.com/consensys/orchestrate/src/api/store/models"
+	"github.com/consensys/orchestrate/src/api/store/parsers"
+	"github.com/consensys/orchestrate/src/entities"
 	pg "github.com/consensys/orchestrate/src/infra/database/postgres"
 )
 
-const eventDAComponent = "data-agents.event"
+const contractEventDAComponent = "data-agents.contract-event"
 
-// PGAccount is an Account data agent for PostgreSQL
-type PGEvent struct {
+type PGContractEvent struct {
 	db     pg.DB
 	logger *log.Logger
 }
 
-// NewPGAccount creates a new PGAccount
-func NewPGEvent(db pg.DB) store.EventAgent {
-	return &PGEvent{db: db, logger: log.NewLogger().SetComponent(eventDAComponent)}
+func NewPGContractEvent(db pg.DB) store.ContractEventAgent {
+	return &PGContractEvent{
+		db:     db,
+		logger: log.NewLogger().SetComponent(contractDAComponent),
+	}
 }
 
-func (agent *PGEvent) InsertMultiple(ctx context.Context, events []*models.EventModel) error {
-	query := agent.db.ModelContext(ctx, &events).OnConflict("DO NOTHING")
+func (agent *PGContractEvent) RegisterMultiple(ctx context.Context, events []*entities.ContractEvent) error {
+	eventModels := parsers.NewEventModelArr(events)
+	query := agent.db.ModelContext(ctx, &eventModels).OnConflict("DO NOTHING")
 	err := pg.InsertQuery(ctx, query)
 	if err != nil {
-		return errors.FromError(err).ExtendComponent(eventDAComponent)
+		agent.logger.WithContext(ctx).WithError(err).Error("failed to insert multiple contract event")
+		return errors.FromError(err).ExtendComponent(contractEventDAComponent)
 	}
 
 	return nil
 }
 
-func (agent *PGEvent) FindOneByAccountAndSigHash(ctx context.Context, chainID, address, sighash string, indexedInputCount uint32) (*models.EventModel, error) {
+func (agent *PGContractEvent) FindOneByAccountAndSigHash(ctx context.Context, chainID, address, sighash string, indexedInputCount uint32) (*entities.ContractEvent, error) {
 	event := &models.EventModel{}
 	query := agent.db.ModelContext(ctx, event).
 		Column("event_model.abi").
@@ -48,12 +53,13 @@ func (agent *PGEvent) FindOneByAccountAndSigHash(ctx context.Context, chainID, a
 		if !errors.IsNotFoundError(err) {
 			agent.logger.WithContext(ctx).WithError(err).Error("failed to find event")
 		}
-		return nil, errors.FromError(err).ExtendComponent(eventDAComponent)
+		return nil, errors.FromError(err).ExtendComponent(contractEventDAComponent)
 	}
 
-	return event, nil
+	return parsers.NewEventEntity(event), nil
 }
-func (agent *PGEvent) FindDefaultBySigHash(ctx context.Context, sighash string, indexedInputCount uint32) ([]*models.EventModel, error) {
+
+func (agent *PGContractEvent) FindDefaultBySigHash(ctx context.Context, sighash string, indexedInputCount uint32) ([]*entities.ContractEvent, error) {
 	var defaultEvents []*models.EventModel
 	query := agent.db.ModelContext(ctx, &defaultEvents).
 		ColumnExpr("DISTINCT abi").
@@ -66,8 +72,8 @@ func (agent *PGEvent) FindDefaultBySigHash(ctx context.Context, sighash string, 
 		if !errors.IsNotFoundError(err) {
 			agent.logger.WithContext(ctx).WithError(err).Error("failed to find default event")
 		}
-		return nil, errors.FromError(err).ExtendComponent(eventDAComponent)
+		return nil, errors.FromError(err).ExtendComponent(contractEventDAComponent)
 	}
 
-	return defaultEvents, nil
+	return parsers.NewEventEntityArr(defaultEvents), nil
 }

@@ -5,7 +5,9 @@ import (
 	"time"
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
+	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/consensys/orchestrate/src/api/store"
+	"github.com/consensys/orchestrate/src/api/store/parsers"
 	pg "github.com/consensys/orchestrate/src/infra/database/postgres"
 
 	"github.com/consensys/orchestrate/src/api/store/models"
@@ -31,38 +33,44 @@ func NewPGAccount(db pg.DB) store.AccountAgent {
 	}
 }
 
-func (agent *PGAccount) Insert(ctx context.Context, account *models.Account) error {
-	agent.db.ModelContext(ctx, account)
-	err := pg.Insert(ctx, agent.db, account)
+func (agent *PGAccount) Insert(ctx context.Context, account *entities.Account) error {
+	model := parsers.NewAccountModel(account)
+	model.CreatedAt = time.Now().UTC()
+	model.UpdatedAt = time.Now().UTC()
+	agent.db.ModelContext(ctx, model)
+	err := pg.Insert(ctx, agent.db, model)
 	if err != nil {
 		errMsg := "failed to insert account"
 		agent.logger.WithContext(ctx).WithError(err).Error(errMsg)
 		return errors.FromError(err).SetMessage(errMsg).ExtendComponent(accountDAComponent)
 	}
 
+	utils.CopyPtr(parsers.NewAccountEntity(model), account)
 	return nil
 }
 
 // Insert Inserts a new job in DB
-func (agent *PGAccount) Update(ctx context.Context, account *models.Account) error {
-
-	if account.ID == 0 {
-		errMsg := "cannot update account with missing ID"
-		agent.logger.WithContext(ctx).Error(errMsg)
-		return errors.InvalidArgError(errMsg).ExtendComponent(accountDAComponent)
+func (agent *PGAccount) Update(ctx context.Context, account *entities.Account) error {
+	model := parsers.NewAccountModel(account)
+	model.UpdatedAt = time.Now().UTC()
+	query := agent.db.ModelContext(ctx, model).
+		Where("address = ?", account.Address.String()).
+		Where("tenant_id = ?", account.TenantID)
+	if account.OwnerID != "" {
+		query = query.Where("owner_id = ?", account.OwnerID)
 	}
-
-	account.UpdatedAt = time.Now().UTC()
-	agent.db.ModelContext(ctx, account)
-	err := pg.UpdateModel(ctx, agent.db, account)
+	err := pg.Update(ctx, query)
 	if err != nil {
+		errMsg := "failed to update account"
+		agent.logger.WithContext(ctx).WithError(err).Error(errMsg)
 		return errors.FromError(err).ExtendComponent(accountDAComponent)
 	}
 
+	utils.CopyPtr(parsers.NewAccountEntity(model), account)
 	return nil
 }
 
-func (agent *PGAccount) Search(ctx context.Context, filters *entities.AccountFilters, tenants []string, ownerID string) ([]*models.Account, error) {
+func (agent *PGAccount) Search(ctx context.Context, filters *entities.AccountFilters, tenants []string, ownerID string) ([]*entities.Account, error) {
 	var accounts []*models.Account
 
 	query := agent.db.ModelContext(ctx, &accounts)
@@ -85,10 +93,10 @@ func (agent *PGAccount) Search(ctx context.Context, filters *entities.AccountFil
 		return nil, errors.FromError(err).SetMessage(errMsg).ExtendComponent(accountDAComponent)
 	}
 
-	return accounts, nil
+	return parsers.NewAccountEntityArr(accounts), nil
 }
 
-func (agent *PGAccount) FindOneByAddress(ctx context.Context, address string, tenants []string, ownerID string) (*models.Account, error) {
+func (agent *PGAccount) FindOneByAddress(ctx context.Context, address string, tenants []string, ownerID string) (*entities.Account, error) {
 	account := &models.Account{}
 
 	query := agent.db.ModelContext(ctx, account).Where("address = ?", address)
@@ -105,5 +113,5 @@ func (agent *PGAccount) FindOneByAddress(ctx context.Context, address string, te
 		return nil, errors.FromError(err).SetMessage(errMsg).ExtendComponent(accountDAComponent)
 	}
 
-	return account, nil
+	return parsers.NewAccountEntity(account), nil
 }

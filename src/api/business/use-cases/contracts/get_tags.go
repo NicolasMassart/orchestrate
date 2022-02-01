@@ -12,11 +12,11 @@ import (
 const getTagsComponent = "use-cases.get-tags"
 
 type getTagsUseCase struct {
-	agent  store.TagAgent
+	agent  store.ContractAgent
 	logger *log.Logger
 }
 
-func NewGetTagsUseCase(agent store.TagAgent) usecases.GetContractTagsUseCase {
+func NewGetTagsUseCase(agent store.ContractAgent) usecases.GetContractTagsUseCase {
 	return &getTagsUseCase{
 		agent:  agent,
 		logger: log.NewLogger().SetComponent(getTagsComponent),
@@ -25,7 +25,7 @@ func NewGetTagsUseCase(agent store.TagAgent) usecases.GetContractTagsUseCase {
 
 func (uc *getTagsUseCase) Execute(ctx context.Context, name string) ([]string, error) {
 	ctx = log.WithFields(ctx, log.Field("contract_name", name))
-	names, err := uc.agent.FindAllByName(ctx, name)
+	names, err := uc.agent.ListTags(ctx, name)
 	if err != nil {
 		return nil, errors.FromError(err).ExtendComponent(getTagsComponent)
 	}

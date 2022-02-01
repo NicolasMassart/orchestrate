@@ -6,8 +6,8 @@ package mocks
 
 import (
 	context "context"
-	entities "github.com/consensys/orchestrate/src/entities"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
+	entities "github.com/consensys/orchestrate/src/entities"
 	common "github.com/ethereum/go-ethereum/common"
 	hexutil "github.com/ethereum/go-ethereum/common/hexutil"
 	gomock "github.com/golang/mock/gomock"
@@ -94,10 +94,10 @@ func (mr *MockContractUseCasesMockRecorder) GetContractTags() *gomock.Call {
 }
 
 // SetContractCodeHash mocks base method
-func (m *MockContractUseCases) SetContractCodeHash() usecases.SetContractCodeHashUseCase {
+func (m *MockContractUseCases) SetContractCodeHash() usecases.RegisterContractDeploymentUseCase {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetContractCodeHash")
-	ret0, _ := ret[0].(usecases.SetContractCodeHashUseCase)
+	ret0, _ := ret[0].(usecases.RegisterContractDeploymentUseCase)
 	return ret0
 }
 
@@ -363,31 +363,31 @@ func (mr *MockRegisterContractUseCaseMockRecorder) Execute(ctx, contract interfa
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockRegisterContractUseCase)(nil).Execute), ctx, contract)
 }
 
-// MockSetContractCodeHashUseCase is a mock of SetContractCodeHashUseCase interface
-type MockSetContractCodeHashUseCase struct {
+// MockRegisterContractDeploymentUseCase is a mock of RegisterContractDeploymentUseCase interface
+type MockRegisterContractDeploymentUseCase struct {
 	ctrl     *gomock.Controller
-	recorder *MockSetContractCodeHashUseCaseMockRecorder
+	recorder *MockRegisterContractDeploymentUseCaseMockRecorder
 }
 
-// MockSetContractCodeHashUseCaseMockRecorder is the mock recorder for MockSetContractCodeHashUseCase
-type MockSetContractCodeHashUseCaseMockRecorder struct {
-	mock *MockSetContractCodeHashUseCase
+// MockRegisterContractDeploymentUseCaseMockRecorder is the mock recorder for MockRegisterContractDeploymentUseCase
+type MockRegisterContractDeploymentUseCaseMockRecorder struct {
+	mock *MockRegisterContractDeploymentUseCase
 }
 
-// NewMockSetContractCodeHashUseCase creates a new mock instance
-func NewMockSetContractCodeHashUseCase(ctrl *gomock.Controller) *MockSetContractCodeHashUseCase {
-	mock := &MockSetContractCodeHashUseCase{ctrl: ctrl}
-	mock.recorder = &MockSetContractCodeHashUseCaseMockRecorder{mock}
+// NewMockRegisterContractDeploymentUseCase creates a new mock instance
+func NewMockRegisterContractDeploymentUseCase(ctrl *gomock.Controller) *MockRegisterContractDeploymentUseCase {
+	mock := &MockRegisterContractDeploymentUseCase{ctrl: ctrl}
+	mock.recorder = &MockRegisterContractDeploymentUseCaseMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockSetContractCodeHashUseCase) EXPECT() *MockSetContractCodeHashUseCaseMockRecorder {
+func (m *MockRegisterContractDeploymentUseCase) EXPECT() *MockRegisterContractDeploymentUseCaseMockRecorder {
 	return m.recorder
 }
 
 // Execute mocks base method
-func (m *MockSetContractCodeHashUseCase) Execute(ctx context.Context, chainID string, address common.Address, codeHash hexutil.Bytes) error {
+func (m *MockRegisterContractDeploymentUseCase) Execute(ctx context.Context, chainID string, address common.Address, codeHash hexutil.Bytes) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Execute", ctx, chainID, address, codeHash)
 	ret0, _ := ret[0].(error)
@@ -395,7 +395,7 @@ func (m *MockSetContractCodeHashUseCase) Execute(ctx context.Context, chainID st
 }
 
 // Execute indicates an expected call of Execute
-func (mr *MockSetContractCodeHashUseCaseMockRecorder) Execute(ctx, chainID, address, codeHash interface{}) *gomock.Call {
+func (mr *MockRegisterContractDeploymentUseCaseMockRecorder) Execute(ctx, chainID, address, codeHash interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockSetContractCodeHashUseCase)(nil).Execute), ctx, chainID, address, codeHash)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockRegisterContractDeploymentUseCase)(nil).Execute), ctx, chainID, address, codeHash)
 }

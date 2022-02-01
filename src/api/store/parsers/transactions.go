@@ -7,8 +7,9 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
-func NewTransactionModelFromEntities(tx *entities.ETHTransaction) *models.Transaction {
+func NewTransactionModel(tx *entities.ETHTransaction) *models.Transaction {
 	return &models.Transaction{
+		UUID:           tx.UUID,
 		Hash:           utils.StringerToString(tx.Hash),
 		Sender:         utils.StringerToString(tx.From),
 		Recipient:      utils.StringerToString(tx.To),
@@ -33,11 +34,12 @@ func NewTransactionModelFromEntities(tx *entities.ETHTransaction) *models.Transa
 	}
 }
 
-func NewTransactionEntityFromModels(tx *models.Transaction) *entities.ETHTransaction {
+func NewTransactionEntity(tx *models.Transaction) *entities.ETHTransaction {
 	accessList := types.AccessList{}
 	_ = utils.CastInterfaceToObject(tx.AccessList, &accessList)
 
 	return &entities.ETHTransaction{
+		UUID:            tx.UUID,
 		Hash:            utils.StringToEthHash(tx.Hash),
 		From:            utils.ToEthAddr(tx.Sender),
 		To:              utils.ToEthAddr(tx.Recipient),
@@ -60,25 +62,4 @@ func NewTransactionEntityFromModels(tx *models.Transaction) *entities.ETHTransac
 		CreatedAt:       tx.CreatedAt,
 		UpdatedAt:       tx.UpdatedAt,
 	}
-}
-
-func UpdateTransactionModelFromEntities(txModel *models.Transaction, tx *entities.ETHTransaction) {
-	txModel.Hash = utils.StringerToString(tx.Hash)
-	txModel.Sender = utils.StringerToString(tx.From)
-	txModel.Recipient = utils.StringerToString(tx.To)
-	txModel.Nonce = utils.ValueToString(tx.Nonce)
-	txModel.Value = utils.HexToBigIntString(tx.Value)
-	txModel.GasPrice = utils.HexToBigIntString(tx.GasPrice)
-	txModel.GasFeeCap = utils.HexToBigIntString(tx.GasFeeCap)
-	txModel.GasTipCap = utils.HexToBigIntString(tx.GasTipCap)
-	txModel.Gas = utils.ValueToString(tx.Gas)
-	txModel.Data = utils.StringerToString(tx.Data)
-	txModel.Raw = utils.StringerToString(tx.Raw)
-	txModel.TxType = string(tx.TransactionType)
-	txModel.AccessList = tx.AccessList
-	txModel.PrivateFrom = tx.PrivateFrom
-	txModel.PrivateFor = tx.PrivateFor
-	txModel.MandatoryFor = tx.MandatoryFor
-	txModel.PrivacyGroupID = tx.PrivacyGroupID
-	txModel.EnclaveKey = utils.StringerToString(tx.EnclaveKey)
 }

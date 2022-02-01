@@ -9,7 +9,6 @@ import (
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/store"
-	"github.com/consensys/orchestrate/src/api/store/parsers"
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/infra/database"
 	"github.com/consensys/orchestrate/src/infra/ethclient"
@@ -70,19 +69,17 @@ func (uc *registerChainUseCase) Execute(ctx context.Context, chain *entities.Cha
 		chain.ListenerCurrentBlock = chainTip
 	}
 
-	chainModel := parsers.NewChainModelFromEntity(chain)
-	chainModel.TenantID = userInfo.TenantID
-	chainModel.OwnerID = userInfo.Username
+	chain.TenantID = userInfo.TenantID
+	chain.OwnerID = userInfo.Username
 	err = database.ExecuteInDBTx(uc.db, func(tx database.Tx) error {
-		der := tx.(store.Tx).Chain().Insert(ctx, chainModel)
+		der := tx.(store.Tx).Chain().Insert(ctx, chain)
 		if der != nil {
 			return der
 		}
 
-		for _, privateTxManager := range chainModel.PrivateTxManagers {
-			privateTxManager.ChainUUID = chainModel.UUID
-
-			der = tx.(store.Tx).PrivateTxManager().Insert(ctx, privateTxManager)
+		if chain.PrivateTxManager != nil {
+			chain.PrivateTxManager.ChainUUID = chain.UUID
+			der = tx.(store.Tx).PrivateTxManager().Insert(ctx, chain.PrivateTxManager)
 			if der != nil {
 				return der
 			}
@@ -95,8 +92,8 @@ func (uc *registerChainUseCase) Execute(ctx context.Context, chain *entities.Cha
 		return nil, errors.FromError(err).ExtendComponent(registerChainComponent)
 	}
 
-	logger.WithField("chain_uuid", chainModel.UUID).Info("chain registered successfully")
-	return parsers.NewChainFromModel(chainModel), nil
+	logger.WithField("chain_uuid", chain.UUID).Info("chain registered successfully")
+	return chain, nil
 }
 
 func (uc *registerChainUseCase) getChainID(ctx context.Context, uris []string) (*big.Int, error) {

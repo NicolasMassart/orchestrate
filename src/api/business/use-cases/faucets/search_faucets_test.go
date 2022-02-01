@@ -6,14 +6,11 @@ import (
 	"context"
 	"testing"
 
-	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
-
 	"github.com/consensys/orchestrate/pkg/errors"
-	"github.com/consensys/orchestrate/src/entities"
-	"github.com/consensys/orchestrate/src/api/store/parsers"
+	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"github.com/consensys/orchestrate/src/api/store/mocks"
-	"github.com/consensys/orchestrate/src/api/store/models"
-	"github.com/consensys/orchestrate/src/api/store/models/testdata"
+	"github.com/consensys/orchestrate/src/entities"
+	"github.com/consensys/orchestrate/src/entities/testdata"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -36,13 +33,13 @@ func TestSearchFaucets_Execute(t *testing.T) {
 			Names:     []string{"name1", "name2"},
 			ChainRule: "chainRule",
 		}
-		faucet := testdata.FakeFaucetModel()
-		faucetAgent.EXPECT().Search(gomock.Any(), filters, userInfo.AllowedTenants).Return([]*models.Faucet{faucet}, nil)
+		faucet := testdata.FakeFaucet()
+		faucetAgent.EXPECT().Search(gomock.Any(), filters, userInfo.AllowedTenants).Return([]*entities.Faucet{faucet}, nil)
 
 		resp, err := usecase.Execute(ctx, filters, userInfo)
 
 		assert.NoError(t, err)
-		assert.Equal(t, []*entities.Faucet{parsers.NewFaucetFromModel(faucet)}, resp)
+		assert.Equal(t, []*entities.Faucet{faucet}, resp)
 	})
 
 	t.Run("should fail with same error if search faucets fails", func(t *testing.T) {

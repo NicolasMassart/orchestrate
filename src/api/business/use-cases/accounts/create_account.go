@@ -12,7 +12,6 @@ import (
 	"github.com/consensys/orchestrate/pkg/utils"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/store"
-	"github.com/consensys/orchestrate/src/api/store/parsers"
 	"github.com/consensys/orchestrate/src/entities"
 	qkm "github.com/consensys/orchestrate/src/infra/quorum-key-manager"
 	"github.com/consensys/quorum-key-manager/pkg/client"
@@ -116,8 +115,7 @@ func (uc *createAccountUseCase) Execute(ctx context.Context, acc *entities.Accou
 	acc.TenantID = userInfo.TenantID
 	acc.OwnerID = userInfo.Username
 
-	accountModel := parsers.NewAccountModelFromEntities(acc)
-	err = uc.db.Account().Insert(ctx, accountModel)
+	err = uc.db.Account().Insert(ctx, acc)
 	if err != nil {
 		return nil, errors.FromError(err).ExtendComponent(createAccountComponent)
 	}
@@ -130,7 +128,7 @@ func (uc *createAccountUseCase) Execute(ctx context.Context, acc *entities.Accou
 	}
 
 	logger.WithField("address", acc.Address).Info("ethereum account created successfully")
-	return parsers.NewAccountEntityFromModels(accountModel), nil
+	return acc, nil
 }
 
 func generateKeyID(tenantID, alias string) string {

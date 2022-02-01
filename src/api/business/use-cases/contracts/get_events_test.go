@@ -9,7 +9,8 @@ import (
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/consensys/orchestrate/src/api/store/mocks"
-	"github.com/consensys/orchestrate/src/api/store/models"
+	"github.com/consensys/orchestrate/src/entities"
+	"github.com/consensys/orchestrate/src/entities/testdata"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
@@ -21,21 +22,18 @@ func TestGetEvents_Execute(t *testing.T) {
 
 	sigHash := utils.StringToHexBytes("0x0123")
 	indexedInputCount := uint32(1)
-	eventModel := &models.EventModel{
-		ABI: "eventABI",
-	}
-
-	eventAgent := mocks.NewMockEventAgent(ctrl)
+	contractEvent := testdata.FakeContractEvent()
+	eventAgent := mocks.NewMockContractEventAgent(ctrl)
 	usecase := NewGetEventsUseCase(eventAgent)
 
 	t.Run("should execute use case successfully if event is found", func(t *testing.T) {
 		eventAgent.EXPECT().
 			FindOneByAccountAndSigHash(gomock.Any(), chainID, contractAddress.Hex(), sigHash.String(), indexedInputCount).
-			Return(eventModel, nil)
+			Return(contractEvent, nil)
 
 		responseABI, eventsABI, err := usecase.Execute(ctx, chainID, contractAddress, sigHash, indexedInputCount)
 
-		assert.Equal(t, responseABI, eventModel.ABI)
+		assert.Equal(t, responseABI, contractEvent.ABI)
 		assert.Nil(t, eventsABI)
 		assert.NoError(t, err)
 	})
@@ -54,17 +52,18 @@ func TestGetEvents_Execute(t *testing.T) {
 	})
 
 	t.Run("should execute use case successfully if event is not found", func(t *testing.T) {
+		defaultEvent := testdata.FakeContractEvent()
 		eventAgent.EXPECT().
 			FindOneByAccountAndSigHash(gomock.Any(), chainID, contractAddress.Hex(), sigHash.String(), indexedInputCount).
 			Return(nil, nil)
 
 		eventAgent.EXPECT().
 			FindDefaultBySigHash(gomock.Any(), sigHash.String(), indexedInputCount).
-			Return([]*models.EventModel{eventModel, eventModel}, nil)
+			Return([]*entities.ContractEvent{contractEvent, defaultEvent}, nil)
 
 		responseABI, eventsABI, err := usecase.Execute(ctx, chainID, contractAddress, sigHash, indexedInputCount)
 
-		assert.Equal(t, eventsABI, []string{eventModel.ABI, eventModel.ABI})
+		assert.Equal(t, eventsABI, []string{contractEvent.ABI, defaultEvent.ABI})
 		assert.Empty(t, responseABI)
 		assert.NoError(t, err)
 	})

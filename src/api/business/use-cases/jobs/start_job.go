@@ -15,8 +15,6 @@ import (
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/src/api/store"
-	"github.com/consensys/orchestrate/src/api/store/models"
-	"github.com/consensys/orchestrate/src/api/store/parsers"
 	pkgsarama "github.com/consensys/orchestrate/src/infra/broker/sarama"
 )
 
@@ -52,27 +50,26 @@ func (uc *startJobUseCase) Execute(ctx context.Context, jobUUID string, userInfo
 	logger := uc.logger.WithContext(ctx).WithField("job", jobUUID)
 	logger.Debug("starting job")
 
-	jobModel, err := uc.db.Job().FindOneByUUID(ctx, jobUUID, userInfo.AllowedTenants, userInfo.Username, false)
+	job, err := uc.db.Job().FindOneByUUID(ctx, jobUUID, userInfo.AllowedTenants, userInfo.Username, false)
 	if err != nil {
 		return errors.FromError(err).ExtendComponent(startJobComponent)
 	}
 
-	jobEntity := parsers.NewJobEntityFromModels(jobModel)
-	if !canUpdateStatus(entities.StatusStarted, jobEntity.Status) {
+	if !canUpdateStatus(entities.StatusStarted, job.Status) {
 		errMessage := "cannot start job at the current status"
-		logger.WithField("status", jobEntity.Status).WithField("next_status", entities.StatusStarted).Error(errMessage)
+		logger.WithField("status", job.Status).WithField("next_status", entities.StatusStarted).Error(errMessage)
 		return errors.InvalidStateError(errMessage)
 	}
 
-	err = uc.updateStatus(ctx, jobModel, entities.StatusStarted, "")
+	err = uc.updateStatus(ctx, job, entities.StatusStarted, "")
 	if err != nil {
 		return errors.FromError(err).ExtendComponent(startJobComponent)
 	}
 
-	partition, offset, err := envelope.SendJobMessage(jobEntity, uc.kafkaProducer, uc.topicsCfg.Sender)
+	partition, offset, err := envelope.SendJobMessage(job, uc.kafkaProducer, uc.topicsCfg.Sender)
 	if err != nil {
 		errMsg := "failed to send job message"
-		_ = uc.updateStatus(ctx, jobModel, entities.StatusFailed, errMsg)
+		_ = uc.updateStatus(ctx, job, entities.StatusFailed, errMsg)
 		logger.WithError(err).Error(errMsg)
 		return errors.FromError(err).ExtendComponent(startJobComponent)
 	}
@@ -82,24 +79,23 @@ func (uc *startJobUseCase) Execute(ctx context.Context, jobUUID string, userInfo
 	return nil
 }
 
-func (uc *startJobUseCase) updateStatus(ctx context.Context, job *models.Job, status entities.JobStatus, msg string) error {
+func (uc *startJobUseCase) updateStatus(ctx context.Context, job *entities.Job, status entities.JobStatus, msg string) error {
 	prevUpdatedAt := job.UpdatedAt
 	prevStatus := job.Status
 
 	job.Status = status
-	jobLog := &models.Log{
-		JobID:   &job.ID,
+	jobLog := &entities.Log{
 		Status:  status,
 		Message: msg,
 	}
 
 	err := database.ExecuteInDBTx(uc.db, func(tx database.Tx) error {
-		if err := tx.(store.Tx).Job().Update(ctx, job); err != nil {
-			return err
+		if der := tx.(store.Tx).Job().Update(ctx, job); der != nil {
+			return der
 		}
 
-		if err := tx.(store.Tx).Log().Insert(ctx, jobLog); err != nil {
-			return errors.FromError(err).ExtendComponent(startJobComponent)
+		if der := tx.(store.Tx).Log().Insert(ctx, jobLog, job.UUID); der != nil {
+			return errors.FromError(der).ExtendComponent(startJobComponent)
 		}
 
 		return nil

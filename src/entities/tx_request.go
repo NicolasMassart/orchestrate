@@ -7,6 +7,7 @@ import (
 type TxRequest struct {
 	IdempotencyKey string
 	ChainName      string
+	Hash           string
 	Schedule       *Schedule
 	Params         *ETHTransactionParams
 	Labels         map[string]string
