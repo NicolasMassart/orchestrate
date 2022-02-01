@@ -7,23 +7,23 @@ import (
 )
 
 type RegisterContractRequest struct {
-	ABI              interface{}   `json:"abi,omitempty" validate:"required"`
-	Bytecode         hexutil.Bytes `json:"bytecode,omitempty" validate:"omitempty" example:"0x6080604052348015600f57600080f" swaggertype:"string"`
-	DeployedBytecode hexutil.Bytes `json:"deployedBytecode,omitempty" validate:"omitempty" example:"0x6080604052348015600f57600080f" swaggertype:"string"`
-	Name             string        `json:"name" validate:"required" example:"ERC20"`
-	Tag              string        `json:"tag,omitempty" example:"v1.0.0"`
+	ABI              interface{}   `json:"abi,omitempty" validate:"required"`                                                                              // ABI of the contract.
+	Bytecode         hexutil.Bytes `json:"bytecode,omitempty" validate:"omitempty" example:"0x6080604052348015600f57600080f" swaggertype:"string"`         // Bytecode of the contract.
+	DeployedBytecode hexutil.Bytes `json:"deployedBytecode,omitempty" validate:"omitempty" example:"0x6080604052348015600f57600080f" swaggertype:"string"` // Deployed bytecode of the contract.
+	Name             string        `json:"name" validate:"required" example:"ERC20"`                                                                       // Name of the contract.
+	Tag              string        `json:"tag,omitempty" example:"v1.0.0"`                                                                                 // Optional tag attached to the contract.
 }
 
 type ContractResponse struct {
-	Name             string                  `json:"name" example:"ERC20"`
-	Tag              string                  `json:"tag" example:"v1.0.0"`
-	Registry         string                  `json:"registry" example:"registry.consensys.net/orchestrate"`
-	ABI              string                  `json:"abi" example:"[{anonymous: false, inputs: [{indexed: false, name: account, type: address}, name: MinterAdded, type: event}]}]"`
-	Bytecode         hexutil.Bytes           `json:"bytecode,omitempty" example:"0x6080604052348015600f57600080f..." swaggertype:"string"`
-	DeployedBytecode hexutil.Bytes           `json:"deployedBytecode,omitempty" example:"0x6080604052348015600f57600080f..." swaggertype:"string"`
-	Constructor      entities.ABIComponent   `json:"constructor"`
-	Methods          []entities.ABIComponent `json:"methods"`
-	Events           []entities.ABIComponent `json:"events"`
+	Name             string                  `json:"name" example:"ERC20"`                                                                                                          // Name of the contract.
+	Tag              string                  `json:"tag" example:"v1.0.0"`                                                                                                          // Optional tag attached to the contract.
+	Registry         string                  `json:"registry" example:"registry.consensys.net/orchestrate"`                                                                         // URL of the contract's registry.
+	ABI              string                  `json:"abi" example:"[{anonymous: false, inputs: [{indexed: false, name: account, type: address}, name: MinterAdded, type: event}]}]"` // ABI of the contract.
+	Bytecode         hexutil.Bytes           `json:"bytecode,omitempty" example:"0x6080604052348015600f57600080f..." swaggertype:"string"`                                          // Bytecode of the contract.
+	DeployedBytecode hexutil.Bytes           `json:"deployedBytecode,omitempty" example:"0x6080604052348015600f57600080f..." swaggertype:"string"`                                  // Deployed bytecode of the contract.
+	Constructor      entities.ABIComponent   `json:"constructor"`                                                                                                                   // Contract constructor.
+	Methods          []entities.ABIComponent `json:"methods"`                                                                                                                       // List of contract methods.
+	Events           []entities.ABIComponent `json:"events"`                                                                                                                        // List of contract events.
 }
 
 type GetContractEventsRequest struct {
@@ -32,15 +32,15 @@ type GetContractEventsRequest struct {
 }
 
 type GetContractEventsBySignHashResponse struct {
-	Event         string   `json:"event" validate:"omitempty" example:"{anonymous:false,inputs:[{indexed:true,name:from,type:address},{indexed:true,name:to,type:address},{indexed:false,name:value,type:uint256}],name:Transfer,type:event}"`
-	DefaultEvents []string `json:"defaultEvents" validate:"omitempty" example:"[{anonymous:false,inputs:[{indexed:true,name:from,type:address},{indexed:true,name:to,type:address},{indexed:false,name:value,type:uint256}],name:Transfer,type:event},..."`
+	Event         string   `json:"event" validate:"omitempty" example:"{anonymous:false,inputs:[{indexed:true,name:from,type:address},{indexed:true,name:to,type:address},{indexed:false,name:value,type:uint256}],name:Transfer,type:event}"`              // Contract event name.
+	DefaultEvents []string `json:"defaultEvents" validate:"omitempty" example:"[{anonymous:false,inputs:[{indexed:true,name:from,type:address},{indexed:true,name:to,type:address},{indexed:false,name:value,type:uint256}],name:Transfer,type:event},..."` // Default contract event names.
 }
 
 type SetContractCodeHashRequest struct {
-	CodeHash hexutil.Bytes `json:"code_hash" validate:"required" example:"0x6080604052348015600f57600080f" swaggertype:"string"`
+	CodeHash hexutil.Bytes `json:"code_hash" validate:"required" example:"0x6080604052348015600f57600080f" swaggertype:"string"` // Contract code hash to set.
 }
 
 type SearchContractRequest struct {
-	CodeHash hexutil.Bytes      `json:"code_hash" validate:"required" example:"0x6080604052348015600f57600080f" swaggertype:"string"`
-	Address  *ethcommon.Address `json:"address" validate:"required" example:"0x1abae27a0cbfb02945720425d3b80c7e09728534" swaggertype:"string"`
+	CodeHash hexutil.Bytes      `json:"code_hash" validate:"required" example:"0x6080604052348015600f57600080f" swaggertype:"string"`          // Contract code hash.
+	Address  *ethcommon.Address `json:"address" validate:"required" example:"0x1abae27a0cbfb02945720425d3b80c7e09728534" swaggertype:"string"` // Contract address.
 }

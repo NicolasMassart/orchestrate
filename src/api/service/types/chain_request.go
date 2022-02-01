@@ -20,20 +20,20 @@ type RegisterListenerRequest struct {
 }
 
 type UpdateChainRequest struct {
-	Name             string                   `json:"name,omitempty" example:"mainnet"`
+	Name             string                   `json:"name,omitempty" example:"mainnet"` // Name of the chain. Must be unique.
 	Listener         *UpdateListenerRequest   `json:"listener,omitempty"`
 	PrivateTxManager *PrivateTxManagerRequest `json:"privateTxManager,omitempty"`
-	Labels           map[string]string        `json:"labels,omitempty"`
+	Labels           map[string]string        `json:"labels,omitempty"` // List of custom labels. Useful for adding custom information to the chain.
 }
 
 type UpdateListenerRequest struct {
-	Depth             uint64 `json:"depth,omitempty" example:"0"`
-	BackOffDuration   string `json:"backOffDuration,omitempty" validate:"omitempty,isDuration" example:"1s"`
-	ExternalTxEnabled bool   `json:"externalTxEnabled,omitempty" example:"false"`
-	CurrentBlock      uint64 `json:"currentBlock,omitempty" example:"1"`
+	Depth             uint64 `json:"depth,omitempty" example:"0"`                                            // Block depth after which the Transaction Listener considers a block final and processes it (default 0).
+	BackOffDuration   string `json:"backOffDuration,omitempty" validate:"omitempty,isDuration" example:"1s"` // Time to wait before trying to fetch a new mined block (for example `1s` or `1m`, default is `5s`).
+	ExternalTxEnabled bool   `json:"externalTxEnabled,omitempty" example:"false"`                            // Whether to listen to external transactions not crafted by Orchestrate (default `false`).
+	CurrentBlock      uint64 `json:"currentBlock,omitempty" example:"1"`                                     // Latest block number fetched.
 }
 
 type PrivateTxManagerRequest struct {
 	URL  string                        `json:"url" validate:"required,url" example:"http://tessera:3000"`         // Transaction manager endpoint.
-	Type entities.PrivateTxManagerType `json:"type" validate:"required,isPrivateTxManagerType" example:"Tessera"` // Currently supports `Tessera` and `EEA``.
+	Type entities.PrivateTxManagerType `json:"type" validate:"required,isPrivateTxManagerType" example:"Tessera"` // Currently supports `Tessera` and `EEA`.
 }

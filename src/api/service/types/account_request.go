@@ -21,17 +21,17 @@ type ImportAccountRequest struct {
 }
 
 type UpdateAccountRequest struct {
-	Alias      string            `json:"alias" validate:"omitempty"  example:"personal-account"`
-	StoreID    string            `json:"storeID" validate:"omitempty" example:"qkmStoreID"`
-	Attributes map[string]string `json:"attributes,omitempty"`
+	Alias      string            `json:"alias" validate:"omitempty"  example:"personal-account"` // Alias of the account.
+	StoreID    string            `json:"storeID" validate:"omitempty" example:"qkmStoreID"`      // ID of the Quorum Key Manager store containing the account.
+	Attributes map[string]string `json:"attributes,omitempty"`                                   // Additional information attached to the account.
 }
 
 type SignMessageRequest struct {
 	types.SignMessageRequest
-	StoreID string `json:"storeID" validate:"omitempty" example:"qkmStoreID"`
+	StoreID string `json:"storeID" validate:"omitempty" example:"qkmStoreID"` // ID of the Quorum Key Manager store containing the account.
 }
 
 type SignTypedDataRequest struct {
 	types.SignTypedDataRequest
-	StoreID string `json:"storeID" validate:"omitempty" example:"qkmStoreID"`
+	StoreID string `json:"storeID" validate:"omitempty" example:"qkmStoreID"` // ID of the Quorum Key Manager store containing the account.
 }
