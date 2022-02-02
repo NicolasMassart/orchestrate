@@ -1,6 +1,10 @@
 package types
 
-import "time"
+import (
+	"time"
+)
+
+type CreateScheduleRequest struct{}
 
 type ScheduleResponse struct {
 	UUID      string         `json:"uuid" example:"b4374e6f-b28a-4bad-b4fe-bda36eaf849c"` // UUID of the schedule.

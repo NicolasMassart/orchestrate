@@ -8,6 +8,7 @@ import (
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/pkg/utils"
+	"github.com/consensys/orchestrate/src/api/service/formatters"
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/tx-listener/metrics"
 
@@ -377,7 +378,7 @@ func (s *Session) fetchJobs(ctx context.Context, transactions ethtypes.Transacti
 				WithField("job", jobResponse.UUID).Debug("transaction was matched to a job")
 
 			// Filter by the jobs belonging to same session CHAIN_UUID
-			jobMap[jobResponse.Transaction.Hash.String()] = &entities.Job{
+			jobMap[jobResponse.Transaction.Hash] = &entities.Job{
 				UUID:         jobResponse.UUID,
 				ChainUUID:    jobResponse.ChainUUID,
 				ScheduleUUID: jobResponse.ScheduleUUID,
@@ -385,7 +386,7 @@ func (s *Session) fetchJobs(ctx context.Context, transactions ethtypes.Transacti
 				OwnerID:      jobResponse.OwnerID,
 				Type:         jobResponse.Type,
 				Labels:       jobResponse.Labels,
-				Transaction:  &jobResponse.Transaction,
+				Transaction:  formatters.ETHTransactionResponseToEntity(&jobResponse.Transaction),
 				CreatedAt:    jobResponse.CreatedAt,
 			}
 		}

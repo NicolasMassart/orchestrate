@@ -6,11 +6,8 @@ import (
 
 	"github.com/consensys/orchestrate/pkg/encoding/rlp"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
-	"github.com/consensys/orchestrate/src/api/service/formatters"
 	qkmtypes "github.com/consensys/quorum-key-manager/src/stores/api/types"
 	ethcommon "github.com/ethereum/go-ethereum/common"
-
-	pkgcryto "github.com/consensys/orchestrate/pkg/crypto/ethereum"
 
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -42,12 +39,12 @@ func NewSignEEATransactionUseCase(keyManagerClient client.KeyManagerClient) usec
 func (uc *signEEATransactionUseCase) Execute(ctx context.Context, job *entities.Job) (signedRaw hexutil.Bytes, txHash *ethcommon.Hash, err error) {
 	logger := uc.logger.WithContext(ctx).WithField("one_time_key", job.InternalData.OneTimeKey)
 
-	transaction := formatters.ETHTransactionToTransaction(job.Transaction, job.InternalData.ChainID)
-	privateArgs := &entities.PrivateETHTransactionParams{
+	transaction := ethTransactionToTransaction(job.Transaction, job.InternalData.ChainID)
+	privateArgs := &privateETHTransactionParams{
 		PrivateFrom:    job.Transaction.PrivateFrom,
 		PrivateFor:     job.Transaction.PrivateFor,
 		PrivacyGroupID: job.Transaction.PrivacyGroupID,
-		PrivateTxType:  entities.PrivateTxTypeRestricted,
+		PrivateTxType:  entities.PrivateTxTypeRestricted.String(),
 	}
 
 	if job.InternalData.OneTimeKey {
@@ -66,7 +63,7 @@ func (uc *signEEATransactionUseCase) Execute(ctx context.Context, job *entities.
 }
 
 func (uc *signEEATransactionUseCase) signWithOneTimeKey(ctx context.Context, transaction *types.Transaction,
-	privateArgs *entities.PrivateETHTransactionParams, chainID *big.Int) (hexutil.Bytes, error) {
+	privateArgs *privateETHTransactionParams, chainID *big.Int) (hexutil.Bytes, error) {
 	logger := uc.logger.WithContext(ctx)
 	privKey, err := crypto.GenerateKey()
 	if err != nil {
@@ -75,7 +72,7 @@ func (uc *signEEATransactionUseCase) signWithOneTimeKey(ctx context.Context, tra
 		return nil, errors.CryptoOperationError(errMessage)
 	}
 
-	decodedSignature, err := pkgcryto.SignEEATransaction(transaction, privateArgs, chainID, privKey)
+	decodedSignature, err := signEEATransaction(transaction, privateArgs, chainID, privKey)
 	if err != nil {
 		logger.WithError(err).Error("failed to sign EEA transaction")
 		return nil, err
@@ -92,7 +89,7 @@ func (uc *signEEATransactionUseCase) signWithOneTimeKey(ctx context.Context, tra
 }
 
 func (uc *signEEATransactionUseCase) signWithAccount(ctx context.Context, job *entities.Job,
-	privateArgs *entities.PrivateETHTransactionParams, tx *types.Transaction, chainID *big.Int) (hexutil.Bytes, error) {
+	privateArgs *privateETHTransactionParams, tx *types.Transaction, chainID *big.Int) (hexutil.Bytes, error) {
 	logger := uc.logger.WithContext(ctx)
 
 	req := &qkmtypes.SignEEATransactionRequest{
@@ -127,7 +124,7 @@ func (uc *signEEATransactionUseCase) signWithAccount(ctx context.Context, job *e
 }
 
 func (uc *signEEATransactionUseCase) getSignedRawEEATransaction(ctx context.Context, transaction *types.Transaction,
-	privateArgs *entities.PrivateETHTransactionParams, signature []byte, chainID *big.Int) (hexutil.Bytes, error) {
+	privateArgs *privateETHTransactionParams, signature []byte, chainID *big.Int) (hexutil.Bytes, error) {
 	logger := uc.logger.WithContext(ctx)
 
 	signedTx, err := transaction.WithSignature(types.NewEIP155Signer(chainID), signature)
@@ -138,12 +135,12 @@ func (uc *signEEATransactionUseCase) getSignedRawEEATransaction(ctx context.Cont
 	}
 	v, r, s := signedTx.RawSignatureValues()
 
-	privateFromEncoded, err := pkgcryto.GetEncodedPrivateFrom(privateArgs.PrivateFrom)
+	privateFromEncoded, err := getEncodedPrivateFrom(privateArgs.PrivateFrom)
 	if err != nil {
 		return nil, err
 	}
 
-	privateRecipientEncoded, err := pkgcryto.GetEncodedPrivateRecipient(privateArgs.PrivacyGroupID, privateArgs.PrivateFor)
+	privateRecipientEncoded, err := getEncodedPrivateRecipient(privateArgs.PrivacyGroupID, privateArgs.PrivateFor)
 	if err != nil {
 		return nil, err
 	}

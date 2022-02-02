@@ -43,8 +43,8 @@ func (s *contractsTestSuite) TestRegister() {
 
 		assert.Equal(t, txRequest.Name, resp.Name)
 		assert.Equal(t, txRequest.Tag, resp.Tag)
-		assert.Equal(t, txRequest.DeployedBytecode, resp.DeployedBytecode)
-		assert.Equal(t, txRequest.Bytecode, resp.Bytecode)
+		assert.Equal(t, txRequest.DeployedBytecode.String(), resp.DeployedBytecode)
+		assert.Equal(t, txRequest.Bytecode.String(), resp.Bytecode)
 		assert.Equal(t, "", resp.Constructor.Signature)
 		assert.NotEmpty(t, resp.Events)
 		assert.NotEmpty(t, resp.Methods)
@@ -66,8 +66,8 @@ func (s *contractsTestSuite) TestRegister() {
 
 		assert.Equal(t, txRequest.Name, resp.Name)
 		assert.Equal(t, entities.DefaultTagValue, resp.Tag)
-		assert.Equal(t, txRequest.DeployedBytecode, resp.DeployedBytecode)
-		assert.Equal(t, txRequest.Bytecode, resp.Bytecode)
+		assert.Equal(t, txRequest.DeployedBytecode.String(), resp.DeployedBytecode)
+		assert.Equal(t, txRequest.Bytecode.String(), resp.Bytecode)
 	})
 
 	s.T().Run("should fail with invalidFormatError if payload is invalid", func(t *testing.T) {

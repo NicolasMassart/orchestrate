@@ -13,11 +13,8 @@ import (
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/service/formatters"
-	"github.com/consensys/orchestrate/src/entities"
 	"github.com/gorilla/mux"
 )
-
-var _ entities.ETHTransactionParams
 
 const (
 	IdempotencyKeyHeader = "X-Idempotency-Key"

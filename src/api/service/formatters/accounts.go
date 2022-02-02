@@ -50,9 +50,9 @@ func FormatAccountResponse(iden *entities.Account) *api.AccountResponse {
 	return &api.AccountResponse{
 		Alias:               iden.Alias,
 		Attributes:          iden.Attributes,
-		Address:             iden.Address,
-		PublicKey:           iden.PublicKey,
-		CompressedPublicKey: iden.CompressedPublicKey,
+		Address:             iden.Address.String(),
+		PublicKey:           iden.PublicKey.String(),
+		CompressedPublicKey: iden.CompressedPublicKey.String(),
 		TenantID:            iden.TenantID,
 		OwnerID:             iden.OwnerID,
 		StoreID:             iden.StoreID,

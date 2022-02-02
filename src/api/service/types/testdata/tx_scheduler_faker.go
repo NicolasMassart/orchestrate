@@ -2,6 +2,7 @@ package testdata
 
 import (
 	"github.com/consensys/orchestrate/pkg/utils"
+	"github.com/consensys/orchestrate/src/api/service/formatters"
 	"github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/entities/testdata"
@@ -111,7 +112,7 @@ func FakeJobResponse() *types.JobResponse {
 	return &types.JobResponse{
 		UUID:        uuid.Must(uuid.NewV4()).String(),
 		ChainUUID:   uuid.Must(uuid.NewV4()).String(),
-		Transaction: *testdata.FakeETHTransaction(),
+		Transaction: *formatters.FormatETHTransactionResponse(testdata.FakeETHTransaction()),
 		Status:      entities.StatusCreated,
 		Labels:      make(map[string]string),
 		Annotations: types.Annotations{

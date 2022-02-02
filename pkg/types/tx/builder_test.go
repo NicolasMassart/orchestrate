@@ -109,8 +109,8 @@ func TestEnvelope_Validate(t *testing.T) {
 		SetJobType(JobType_ETH_TX).
 		MustSetToString("0x2").
 		SetGas(11).
-		SetGasPrice(utils.BigIntStringToHex("12")).
-		SetValue(utils.BigIntStringToHex("13")).
+		SetGasPrice(utils.StringBigIntToHex("12")).
+		SetValue(utils.StringBigIntToHex("13")).
 		SetNonce(14).
 		SetData([]byte{1}).
 		SetContractName("testContractName").
@@ -232,7 +232,7 @@ func TestEnvelope_Nonce(t *testing.T) {
 }
 
 func TestEnvelope_GasPrice(t *testing.T) {
-	b := NewEnvelope().SetGasPrice(utils.BigIntStringToHex("10"))
+	b := NewEnvelope().SetGasPrice(utils.StringBigIntToHex("10"))
 	assert.Equal(t, big.NewInt(10), b.GetGasPrice().ToInt(), "Should be equal")
 	assert.Equal(t, "0xa", b.GetGasPriceString(), "Should be equal")
 	gasPrice, err := b.GetGasPriceBig()
@@ -254,7 +254,7 @@ func TestEnvelope_GasPrice(t *testing.T) {
 }
 
 func TestEnvelope_Value(t *testing.T) {
-	b := NewEnvelope().SetValue(utils.BigIntStringToHex("10"))
+	b := NewEnvelope().SetValue(utils.StringBigIntToHex("10"))
 	assert.Equal(t, big.NewInt(10), b.GetValue().ToInt(), "Should be equal")
 	assert.Equal(t, "0xa", b.GetValueString(), "Should be equal")
 	value, err := b.GetValueBig()
@@ -415,8 +415,8 @@ func TestEnvelope_TxRequest(t *testing.T) {
 		MustSetFromString("0x1").
 		MustSetToString("0x2").
 		SetGas(11).
-		SetGasPrice(utils.BigIntStringToHex("12")).
-		SetValue(utils.BigIntStringToHex("13")).
+		SetGasPrice(utils.StringBigIntToHex("12")).
+		SetValue(utils.StringBigIntToHex("13")).
 		SetNonce(14).
 		SetData([]byte{1}).
 		SetContractName("testContractName").
@@ -467,8 +467,8 @@ func TestEnvelope_TxEnvelopeAsRequest(t *testing.T) {
 		MustSetFromString("0x1").
 		MustSetToString("0x2").
 		SetGas(11).
-		SetGasPrice(utils.BigIntStringToHex("12")).
-		SetValue(utils.BigIntStringToHex("13")).
+		SetGasPrice(utils.StringBigIntToHex("12")).
+		SetValue(utils.StringBigIntToHex("13")).
 		SetNonce(14).
 		SetData([]byte{1}).
 		SetContractName("testContractName").
@@ -564,8 +564,8 @@ func TestEnvelope_TxResponse(t *testing.T) {
 		MustSetFromString("0x1").
 		MustSetToString("0x2").
 		SetGas(11).
-		SetGasPrice(utils.BigIntStringToHex("12")).
-		SetValue(utils.BigIntStringToHex("13")).
+		SetGasPrice(utils.StringBigIntToHex("12")).
+		SetValue(utils.StringBigIntToHex("13")).
 		SetNonce(14).
 		SetData([]byte{1}).
 		SetContractName("testContractName").

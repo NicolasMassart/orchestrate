@@ -1,13 +1,12 @@
 package formatters
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
-
-	"encoding/json"
 
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/src/api/service/types"
@@ -99,10 +98,17 @@ func FormatContractResponse(contract *entities.Contract) *types.ContractResponse
 		Tag:              contract.Tag,
 		Registry:         contract.Registry,
 		ABI:              contract.RawABI,
-		Bytecode:         contract.Bytecode,
-		DeployedBytecode: contract.DeployedBytecode,
-		Constructor:      contract.Constructor,
+		Bytecode:         contract.Bytecode.String(),
+		DeployedBytecode: contract.DeployedBytecode.String(),
+		Constructor:      FormatABIComponentResponse(contract.Constructor),
 		Methods:          contract.Methods,
 		Events:           contract.Events,
+	}
+}
+
+func FormatABIComponentResponse(component entities.ABIComponent) types.ABIComponentResponse {
+	return types.ABIComponentResponse{
+		Signature: component.Signature,
+		ABI:       component.ABI,
 	}
 }

@@ -2,6 +2,8 @@ package models
 
 import (
 	"time"
+
+	"github.com/consensys/orchestrate/src/entities"
 )
 
 type TransactionRequest struct {
@@ -13,6 +15,6 @@ type TransactionRequest struct {
 	ScheduleID     *int
 	Schedule       *Schedule
 	RequestHash    string
-	Params         interface{} `pg:",json"` // This will be automatically transformed in JSON by go-pg (and vice-versa)
-	CreatedAt      time.Time   `pg:"default:now()"`
+	Params         *entities.TxRequestParams `pg:",json"` // This will be automatically transformed in JSON by go-pg (and vice-versa)
+	CreatedAt      time.Time                 `pg:"default:now()"`
 }

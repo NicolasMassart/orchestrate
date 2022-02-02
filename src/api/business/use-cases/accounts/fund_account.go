@@ -64,10 +64,12 @@ func (uc *fundAccountUseCase) Execute(ctx context.Context, account *entities.Acc
 	txRequest := &entities.TxRequest{
 		IdempotencyKey: utils.RandString(16),
 		ChainName:      chains[0].Name,
-		Params: &entities.ETHTransactionParams{
-			From:  &faucet.CreditorAccount,
-			To:    &account.Address,
-			Value: &faucet.Amount,
+		Params: &entities.TxRequestParams{
+			ETHTransaction: &entities.ETHTransaction{
+				From:  &faucet.CreditorAccount,
+				To:    &account.Address,
+				Value: &faucet.Amount,
+			},
 		},
 		Labels: map[string]string{
 			"faucetUUID": faucet.UUID,

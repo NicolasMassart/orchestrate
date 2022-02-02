@@ -2,6 +2,8 @@ package models
 
 import (
 	"time"
+
+	"github.com/ethereum/go-ethereum/core/types"
 )
 
 type Transaction struct {
@@ -21,7 +23,7 @@ type Transaction struct {
 	Data           string
 	Raw            string
 	TxType         string
-	AccessList     interface{} `pg:",json"`
+	AccessList     types.AccessList `pg:",json"`
 	PrivateFrom    string
 	PrivateFor     []string `pg:",array"`
 	MandatoryFor   []string `pg:",array"`

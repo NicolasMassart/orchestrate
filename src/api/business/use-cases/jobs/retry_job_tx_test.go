@@ -42,7 +42,7 @@ func TestRetryJobTx_Execute(t *testing.T) {
 		job := testdata.FakeJob()
 		jobUUID := job.UUID
 		job.Transaction.TransactionType = entities.DynamicFeeTxType
-		job.Transaction.GasFeeCap = utils.BigIntStringToHex("10000000000")
+		job.Transaction.GasFeeCap = utils.StringBigIntToHex("10000000000")
 		job.Status = entities.StatusPending
 		gasIncrement := 0.1
 		nextJobUUID := "uuid"
@@ -65,7 +65,7 @@ func TestRetryJobTx_Execute(t *testing.T) {
 		job := testdata.FakeJob()
 		jobUUID := job.UUID
 		job.Transaction.TransactionType = entities.LegacyTxType
-		job.Transaction.GasPrice = utils.BigIntStringToHex("10000000000")
+		job.Transaction.GasPrice = utils.StringBigIntToHex("10000000000")
 		job.Status = entities.StatusPending
 		gasIncrement := 0.2
 		nextJobUUID := "uuid"
@@ -87,7 +87,7 @@ func TestRetryJobTx_Execute(t *testing.T) {
 	t.Run("should fail to execute if status is not pending", func(t *testing.T) {
 		job := testdata.FakeJob()
 		job.Transaction.TransactionType = entities.LegacyTxType
-		job.Transaction.GasPrice = utils.BigIntStringToHex("10000000000")
+		job.Transaction.GasPrice = utils.StringBigIntToHex("10000000000")
 		job.Status = entities.StatusCreated
 		mockJobDA.EXPECT().FindOneByUUID(gomock.Any(), job.UUID, userInfo.AllowedTenants, userInfo.Username, false).Return(job, nil)
 		err := usecase.Execute(ctx, job.UUID, 0.1, nil, userInfo)
@@ -107,7 +107,7 @@ func TestRetryJobTx_Execute(t *testing.T) {
 		job := testdata.FakeJob()
 		job.Status = entities.StatusPending
 		job.Transaction.TransactionType = entities.LegacyTxType
-		job.Transaction.GasPrice = utils.BigIntStringToHex("10000000000")
+		job.Transaction.GasPrice = utils.StringBigIntToHex("10000000000")
 		expectedErr := fmt.Errorf("err")
 		mockJobDA.EXPECT().FindOneByUUID(gomock.Any(), job.UUID, userInfo.AllowedTenants, userInfo.Username, false).Return(job, nil)
 		createJobUC.EXPECT().Execute(gomock.Any(), gomock.Any(), userInfo).Return(nil, expectedErr)

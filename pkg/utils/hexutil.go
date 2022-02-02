@@ -38,7 +38,7 @@ func StringToHexBytes(v string) hexutil.Bytes {
 	return nil
 }
 
-func BigIntStringToHex(v string) *hexutil.Big {
+func StringBigIntToHex(v string) *hexutil.Big {
 	if v == "" {
 		return nil
 	}

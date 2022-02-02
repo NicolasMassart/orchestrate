@@ -1,10 +1,10 @@
 package testdata
 
 import (
-	"math/big"
 	"time"
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
+	"github.com/consensys/orchestrate/src/api/service/formatters"
 	api "github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/entities/testdata"
@@ -48,14 +48,18 @@ func FakeChainResponse() *api.ChainResponse {
 		Name:                      "ganache",
 		TenantID:                  multitenancy.DefaultTenant,
 		URLs:                      []string{"http://ethereum-node:8545"},
-		ChainID:                   big.NewInt(888),
+		ChainID:                   "888",
 		ListenerDepth:             0,
 		ListenerCurrentBlock:      0,
 		ListenerStartingBlock:     0,
 		ListenerBackOffDuration:   "5s",
 		ListenerExternalTxEnabled: false,
-		PrivateTxManager:          testdata.FakePrivateTxManager(),
+		PrivateTxManager:          FakePrivateTxManagerResponse(),
 		CreatedAt:                 time.Now(),
 		UpdatedAt:                 time.Now(),
 	}
+}
+
+func FakePrivateTxManagerResponse() *api.PrivateTxManagerResponse {
+	return formatters.FormatPrivateTxManagerResponse(testdata.FakePrivateTxManager())
 }

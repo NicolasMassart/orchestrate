@@ -10,6 +10,7 @@ import (
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	api "github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities"
+	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/h2non/gock.v1"
@@ -34,10 +35,10 @@ func (s *faucetsTestSuite) TestRegister() {
 		resp, err := s.client.RegisterFaucet(ctx, req)
 		require.NoError(t, err)
 
-		assert.Equal(t, req.CreditorAccount, resp.CreditorAccount)
+		assert.Equal(t, req.CreditorAccount.String(), resp.CreditorAccount)
 		assert.Equal(t, req.ChainRule, resp.ChainRule)
-		assert.Equal(t, req.MaxBalance, resp.MaxBalance)
-		assert.Equal(t, req.Amount, resp.Amount)
+		assert.Equal(t, req.MaxBalance.String(), resp.MaxBalance)
+		assert.Equal(t, req.Amount.String(), resp.Amount)
 		assert.Equal(t, req.Name, resp.Name)
 		assert.Equal(t, req.Cooldown, resp.Cooldown)
 		assert.NotEmpty(t, resp.UUID)
@@ -133,10 +134,10 @@ func (s *faucetsTestSuite) TestUpdate() {
 		resp, err := s.client.UpdateFaucet(ctx, faucet.UUID, req)
 		require.NoError(t, err)
 
-		assert.Equal(t, req.CreditorAccount, resp.CreditorAccount)
+		assert.Equal(t, req.CreditorAccount.String(), resp.CreditorAccount)
 		assert.Equal(t, req.ChainRule, resp.ChainRule)
-		assert.Equal(t, req.MaxBalance, resp.MaxBalance)
-		assert.Equal(t, req.Amount, resp.Amount)
+		assert.Equal(t, req.MaxBalance.String(), resp.MaxBalance)
+		assert.Equal(t, req.Amount.String(), resp.Amount)
 		assert.Equal(t, req.Name, resp.Name)
 		assert.Equal(t, req.Cooldown, resp.Cooldown)
 		assert.NotEmpty(t, resp.UUID)
@@ -172,7 +173,7 @@ func (s *faucetsTestSuite) TestSuccess_TxsWithFaucet() {
 	faucetRequest := testdata.FakeRegisterFaucetRequest()
 	faucetRequest.Name = "faucet-integration-tests"
 	faucetRequest.ChainRule = chainWithFaucet.UUID
-	faucetRequest.CreditorAccount = accResp.Address
+	faucetRequest.CreditorAccount = ethcommon.HexToAddress(accResp.Address)
 	faucetRequest.Cooldown = "0s"
 	faucet, err := s.client.RegisterFaucet(s.env.ctx, faucetRequest)
 	require.NoError(s.T(), err)
@@ -203,14 +204,14 @@ func (s *faucetsTestSuite) TestSuccess_TxsWithFaucet() {
 		assert.Equal(t, entities.StatusStarted, faucetJob.Status)
 		assert.Equal(t, entities.EthereumTransaction, faucetJob.Type)
 		assert.Equal(t, faucetJob.Transaction.To, txJob.Transaction.From)
-		assert.Equal(t, faucetJob.Transaction.Value.String(), faucet.Amount.String())
+		assert.Equal(t, faucetJob.Transaction.Value, faucet.Amount)
 	
 		assert.NotEmpty(t, txResponseGET.UUID)
 		assert.NotEmpty(t, txJob.UUID)
 		assert.Equal(t, txJob.ChainUUID, faucet.ChainRule)
 		assert.Equal(t, entities.StatusStarted, txJob.Status)
-		assert.Equal(t, txRequest.Params.From.Hex(), txJob.Transaction.From.Hex())
-		assert.Equal(t, txRequest.Params.To.Hex(), txJob.Transaction.To.Hex())
+		assert.Equal(t, txRequest.Params.From.Hex(), txJob.Transaction.From)
+		assert.Equal(t, txRequest.Params.To.Hex(), txJob.Transaction.To)
 		assert.Equal(t, entities.EthereumTransaction, txJob.Type)
 	
 		fctEvlp, err := s.env.consumer.WaitForEnvelope(faucetJob.ScheduleUUID, s.env.kafkaTopicConfig.Sender, waitForEnvelopeTimeOut)
@@ -243,13 +244,13 @@ func (s *faucetsTestSuite) TestSuccess_TxsWithFaucet() {
 		assert.Equal(t, entities.StatusStarted, faucetJob.Status)
 		assert.Equal(t, entities.EthereumTransaction, faucetJob.Type)
 		assert.Equal(t, faucetJob.Transaction.To, txJob.Transaction.From)
-		assert.Equal(t, faucetJob.Transaction.Value.String(), faucet.Amount.String())
+		assert.Equal(t, faucetJob.Transaction.Value, faucet.Amount)
 
 		assert.NotEmpty(t, txResponseGET.UUID)
 		assert.NotEmpty(t, txJob.UUID)
 		assert.Equal(t, txJob.ChainUUID, faucet.ChainRule)
 		assert.Equal(t, entities.StatusStarted, txJob.Status)
-		assert.Equal(t, "0x4c7aF4B315644848f400b7344A8e73Cf227812b4", txJob.Transaction.From.String())
+		assert.Equal(t, "0x4c7aF4B315644848f400b7344A8e73Cf227812b4", txJob.Transaction.From)
 		assert.Equal(t, entities.EthereumRawTransaction, txJob.Type)
 
 		fctEvlp, err := s.env.consumer.WaitForEnvelope(faucetJob.ScheduleUUID, s.env.kafkaTopicConfig.Sender, waitForEnvelopeTimeOut)

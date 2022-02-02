@@ -74,7 +74,7 @@ func (s *transactionsTestSuite) TestDeployContract() {
 		assert.NotEmpty(t, txResponseGET.UUID)
 		assert.NotEmpty(t, job.UUID)
 		assert.Equal(t, entities.StatusStarted, job.Status)
-		assert.Equal(t, txRequest.Params.From.Hex(), job.Transaction.From.Hex())
+		assert.Equal(t, txRequest.Params.From.Hex(), job.Transaction.From)
 		assert.Equal(t, entities.EthereumTransaction, job.Type)
 
 		evlp, err := s.env.consumer.WaitForEnvelope(job.ScheduleUUID, s.env.kafkaTopicConfig.Sender, waitForEnvelopeTimeOut)
@@ -123,7 +123,7 @@ func (s *transactionsTestSuite) TestSendTransaction() {
 		assert.NotEmpty(t, job.UUID)
 		assert.Equal(t, entities.StatusStarted, job.Status)
 		assert.Empty(t, job.Transaction.From)
-		assert.Equal(t, txRequest.Params.To.Hex(), job.Transaction.To.Hex())
+		assert.Equal(t, txRequest.Params.To.Hex(), job.Transaction.To)
 		assert.Equal(t, entities.EthereumTransaction, job.Type)
 
 		evlp, err := s.env.consumer.WaitForEnvelope(job.ScheduleUUID, s.env.kafkaTopicConfig.Sender, waitForEnvelopeTimeOut)
@@ -258,8 +258,8 @@ func (s *transactionsTestSuite) TestSendEEATransaction() {
 		privTxJob := txResponseGET.Jobs[0]
 		assert.NotEmpty(t, privTxJob.UUID)
 		assert.Equal(t, entities.StatusStarted, privTxJob.Status)
-		assert.Equal(t, txRequest.Params.From.Hex(), privTxJob.Transaction.From.Hex())
-		assert.Equal(t, txRequest.Params.To.Hex(), privTxJob.Transaction.To.Hex())
+		assert.Equal(t, txRequest.Params.From.Hex(), privTxJob.Transaction.From)
+		assert.Equal(t, txRequest.Params.To.Hex(), privTxJob.Transaction.To)
 		assert.Equal(t, entities.EEAPrivateTransaction, privTxJob.Type)
 
 		markingTxJob := txResponseGET.Jobs[1]
@@ -307,7 +307,7 @@ func (s *transactionsTestSuite) TestSendRawTransaction() {
 		assert.NotEmpty(t, txResponseGET.UUID)
 		assert.NotEmpty(t, job.UUID)
 		assert.Equal(t, entities.StatusStarted, job.Status)
-		assert.Equal(t, txRequest.Params.Raw, job.Transaction.Raw)
+		assert.Equal(t, txRequest.Params.Raw.String(), job.Transaction.Raw)
 		assert.Equal(t, entities.EthereumRawTransaction, job.Type)
 
 		evlp, err := s.env.consumer.WaitForEnvelope(job.ScheduleUUID, s.env.kafkaTopicConfig.Sender, waitForEnvelopeTimeOut)
@@ -388,8 +388,8 @@ func (s *transactionsTestSuite) TestSendTesseraTransaction() {
 		privTxJob := txResponseGET.Jobs[0]
 		assert.NotEmpty(t, privTxJob.UUID)
 		assert.Equal(t, entities.StatusStarted, privTxJob.Status)
-		assert.Equal(t, txRequest.Params.From.Hex(), privTxJob.Transaction.From.Hex())
-		assert.Equal(t, txRequest.Params.To.Hex(), privTxJob.Transaction.To.Hex())
+		assert.Equal(t, txRequest.Params.From.Hex(), privTxJob.Transaction.From)
+		assert.Equal(t, txRequest.Params.To.Hex(), privTxJob.Transaction.To)
 		assert.Equal(t, entities.TesseraPrivateTransaction, privTxJob.Type)
 
 		markingTxJob := txResponseGET.Jobs[1]
@@ -421,7 +421,7 @@ func (s *transactionsTestSuite) TestSendCallOffTransaction() {
 	require.NoError(s.T(), err)
 
 	txDeployRequest := testdata.FakeDeployContractRequest()
-	txDeployRequest.Params.From = &ethAccRes.Address
+	txDeployRequest.Params.From = utils.ToPtr(ethcommon.HexToAddress(ethAccRes.Address)).(*ethcommon.Address)
 	txDeployRequest.Params.ContractName = contractReq.Name
 	txResponse, err := s.client.SendDeployTransaction(ctx, txDeployRequest)
 	require.NoError(s.T(), err)
@@ -430,7 +430,7 @@ func (s *transactionsTestSuite) TestSendCallOffTransaction() {
 
 	// Emulate an update done by tx-sender after sending tx to blockchain
 	fakeTx := entitiestestdata.FakeETHTransaction()
-	fakeTx.GasFeeCap = utils.BigIntStringToHex("10000")
+	fakeTx.GasFeeCap = utils.StringBigIntToHex("10000")
 	fakeTx.From = nil
 	_, err = s.client.UpdateJob(ctx, txResponse.Jobs[0].UUID, &api.UpdateJobRequest{
 		Transaction: fakeTx,
@@ -449,7 +449,7 @@ func (s *transactionsTestSuite) TestSendCallOffTransaction() {
 		callOffJob := txResponse.Jobs[len(txResponse.Jobs)-1]
 		assert.Equal(t, callOffJob.ParentJobUUID, parentJob.UUID)
 		assert.Empty(t, callOffJob.Transaction.Data)
-		assert.Equal(t, "0x2af8", callOffJob.Transaction.GasFeeCap.String())
+		assert.Equal(t, "0x2af8", callOffJob.Transaction.GasFeeCap)
 		assert.Equal(t, callOffJob.ScheduleUUID, evlp.GetID())
 		assert.Equal(t, callOffJob.UUID, evlp.GetJobUUID())
 	})
@@ -466,7 +466,7 @@ func (s *transactionsTestSuite) TestSendSpeedUpTransaction() {
 	require.NoError(s.T(), err)
 
 	txDeployRequest := testdata.FakeDeployContractRequest()
-	txDeployRequest.Params.From = &ethAccRes.Address
+	txDeployRequest.Params.From = utils.ToPtr(ethcommon.HexToAddress(ethAccRes.Address)).(*ethcommon.Address)
 	txDeployRequest.Params.ContractName = contractReq.Name
 	txResponse, err := s.client.SendDeployTransaction(ctx, txDeployRequest)
 	require.NoError(s.T(), err)
@@ -475,7 +475,7 @@ func (s *transactionsTestSuite) TestSendSpeedUpTransaction() {
 
 	// Emulate an update done by tx-sender after sending tx to blockchain
 	fakeTx := entitiestestdata.FakeETHTransaction()
-	fakeTx.GasFeeCap = utils.BigIntStringToHex("10000")
+	fakeTx.GasFeeCap = utils.StringBigIntToHex("10000")
 	fakeTx.From = nil
 	_, err = s.client.UpdateJob(ctx, txResponse.Jobs[0].UUID, &api.UpdateJobRequest{
 		Transaction: fakeTx,
@@ -494,7 +494,7 @@ func (s *transactionsTestSuite) TestSendSpeedUpTransaction() {
 		callOffJob := txResponse.Jobs[len(txResponse.Jobs)-1]
 		assert.Equal(t, callOffJob.ParentJobUUID, parentJob.UUID)
 		assert.Equal(t, callOffJob.Transaction.Data, parentJob.Transaction.Data)
-		assert.Equal(t, "0x2af8", callOffJob.Transaction.GasFeeCap.String())
+		assert.Equal(t, "0x2af8", callOffJob.Transaction.GasFeeCap)
 		assert.Equal(t, callOffJob.ScheduleUUID, evlp.GetID())
 		assert.Equal(t, callOffJob.UUID, evlp.GetJobUUID())
 	})

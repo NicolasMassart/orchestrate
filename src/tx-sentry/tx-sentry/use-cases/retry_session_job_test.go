@@ -20,7 +20,7 @@ func TestCreateChildJob_Execute(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	initialGasPrice := utils.BigIntStringToHex("1000000000")
+	initialGasPrice := utils.StringBigIntToHex("1000000000")
 	ctx := context.Background()
 
 	mockClient := mock.NewMockOrchestrateClient(ctrl)
@@ -42,7 +42,7 @@ func TestCreateChildJob_Execute(t *testing.T) {
 		childJobResponse := apitestdata.FakeJobResponse()
 		parentJobResponse := apitestdata.FakeJobResponse()
 		parentJobResponse.Status = entities.StatusPending
-		parentJobResponse.Transaction.GasPrice = initialGasPrice
+		parentJobResponse.Transaction.GasPrice = initialGasPrice.String()
 		parentJobResponse.Annotations.GasPricePolicy.RetryPolicy.Increment = 0.1
 		parentJobResponse.Annotations.GasPricePolicy.RetryPolicy.Limit = 0.2
 
@@ -59,7 +59,7 @@ func TestCreateChildJob_Execute(t *testing.T) {
 		parentJob := testdata.FakeJob()
 		parentJobResponse := apitestdata.FakeJobResponse()
 		parentJobResponse.Status = entities.StatusPending
-		parentJobResponse.Transaction.GasPrice = initialGasPrice
+		parentJobResponse.Transaction.GasPrice = initialGasPrice.String()
 
 		mockClient.EXPECT().GetJob(gomock.Any(), parentJob.UUID).Return(parentJobResponse, nil)
 		mockClient.EXPECT().ResendJobTx(gomock.Any(), parentJob.UUID).Return(nil)
@@ -76,7 +76,7 @@ func TestCreateChildJob_Execute(t *testing.T) {
 		parentJobResponse.Status = entities.StatusPending
 		parentJobResponse.Annotations.GasPricePolicy.RetryPolicy.Increment = 0.1
 		parentJobResponse.Annotations.GasPricePolicy.RetryPolicy.Limit = 0.2
-		parentJobResponse.Transaction.GasPrice = initialGasPrice
+		parentJobResponse.Transaction.GasPrice = initialGasPrice.String()
 
 		mockClient.EXPECT().GetJob(gomock.Any(), parentJob.UUID).Return(parentJobResponse, nil)
 		mockClient.EXPECT().ResendJobTx(gomock.Any(), childJob.UUID).Return(nil)
@@ -89,7 +89,7 @@ func TestCreateChildJob_Execute(t *testing.T) {
 	t.Run("should send the same job if job is a raw transaction", func(t *testing.T) {
 		parentJob := testdata.FakeJob()
 		parentJobResponse := apitestdata.FakeJobResponse()
-		parentJobResponse.Transaction.Raw = utils.StringToHexBytes("0xAB")
+		parentJobResponse.Transaction.Raw = utils.StringToHexBytes("0xAB").String()
 		parentJobResponse.Type = entities.EthereumRawTransaction
 		parentJobResponse.Status = entities.StatusPending
 		parentJobResponse.Annotations.GasPricePolicy.RetryPolicy.Increment = 0.1
@@ -110,9 +110,9 @@ func TestCreateChildJob_Execute(t *testing.T) {
 
 		parentJobResponse := apitestdata.FakeJobResponse()
 		parentJobResponse.Status = entities.StatusPending
-		parentJobResponse.Transaction.GasPrice = initialGasPrice
+		parentJobResponse.Transaction.GasPrice = initialGasPrice.String()
 		parentJobResponse.Transaction.Nonce = utils.ToPtr(uint64(1)).(*uint64)
-		parentJobResponse.Transaction.TransactionType = entities.LegacyTxType
+		parentJobResponse.Transaction.TransactionType = entities.LegacyTxType.String()
 		parentJobResponse.Annotations.GasPricePolicy.RetryPolicy.Increment = 0.06
 		parentJobResponse.Annotations.GasPricePolicy.RetryPolicy.Limit = 0.12
 
@@ -137,9 +137,9 @@ func TestCreateChildJob_Execute(t *testing.T) {
 
 		parentJobResponse := apitestdata.FakeJobResponse()
 		parentJobResponse.Status = entities.StatusPending
-		parentJobResponse.Transaction.GasTipCap = initialGasPrice
+		parentJobResponse.Transaction.GasTipCap = initialGasPrice.String()
 		parentJobResponse.Transaction.Nonce = utils.ToPtr(uint64(1)).(*uint64)
-		parentJobResponse.Transaction.TransactionType = entities.DynamicFeeTxType
+		parentJobResponse.Transaction.TransactionType = entities.DynamicFeeTxType.String()
 		parentJobResponse.Annotations.GasPricePolicy.RetryPolicy.Increment = 0.06
 		parentJobResponse.Annotations.GasPricePolicy.RetryPolicy.Limit = 0.12
 
@@ -164,9 +164,9 @@ func TestCreateChildJob_Execute(t *testing.T) {
 
 		parentJobResponse := apitestdata.FakeJobResponse()
 		parentJobResponse.Status = entities.StatusPending
-		parentJobResponse.Transaction.GasPrice = initialGasPrice
+		parentJobResponse.Transaction.GasPrice = initialGasPrice.String()
 		parentJobResponse.Transaction.Nonce = utils.ToPtr(uint64(1)).(*uint64)
-		parentJobResponse.Transaction.TransactionType = entities.LegacyTxType
+		parentJobResponse.Transaction.TransactionType = entities.LegacyTxType.String()
 		parentJobResponse.Annotations.GasPricePolicy.RetryPolicy.Increment = 0.06
 		parentJobResponse.Annotations.GasPricePolicy.RetryPolicy.Limit = 0.05
 
@@ -191,9 +191,9 @@ func TestCreateChildJob_Execute(t *testing.T) {
 
 		parentJobResponse := apitestdata.FakeJobResponse()
 		parentJobResponse.Status = entities.StatusPending
-		parentJobResponse.Transaction.GasTipCap = initialGasPrice
+		parentJobResponse.Transaction.GasTipCap = initialGasPrice.String()
 		parentJobResponse.Transaction.Nonce = utils.ToPtr(uint64(1)).(*uint64)
-		parentJobResponse.Transaction.TransactionType = entities.DynamicFeeTxType
+		parentJobResponse.Transaction.TransactionType = entities.DynamicFeeTxType.String()
 		parentJobResponse.Annotations.GasPricePolicy.RetryPolicy.Increment = 0.06
 		parentJobResponse.Annotations.GasPricePolicy.RetryPolicy.Limit = 0.05
 

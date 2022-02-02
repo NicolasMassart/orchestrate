@@ -5,12 +5,14 @@ import "time"
 type PrivateTxType string
 type PrivateTxManagerType string
 
-const (
+var (
 	PrivateTxTypeRestricted PrivateTxType = "restricted"
 
 	TesseraChainType PrivateTxManagerType = "Tessera"
 	EEAChainType     PrivateTxManagerType = "EEA"
+)
 
+const (
 	// Minimum gas is calculated by the size of the enclaveKey
 	TesseraGasLimit = 60000
 )

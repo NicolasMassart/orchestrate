@@ -19,11 +19,16 @@ type ContractResponse struct {
 	Tag              string                  `json:"tag" example:"v1.0.0"`                                                                                                          // Optional tag attached to the contract.
 	Registry         string                  `json:"registry" example:"registry.consensys.net/orchestrate"`                                                                         // URL of the contract's registry.
 	ABI              string                  `json:"abi" example:"[{anonymous: false, inputs: [{indexed: false, name: account, type: address}, name: MinterAdded, type: event}]}]"` // ABI of the contract.
-	Bytecode         hexutil.Bytes           `json:"bytecode,omitempty" example:"0x6080604052348015600f57600080f..." swaggertype:"string"`                                          // Bytecode of the contract.
-	DeployedBytecode hexutil.Bytes           `json:"deployedBytecode,omitempty" example:"0x6080604052348015600f57600080f..." swaggertype:"string"`                                  // Deployed bytecode of the contract.
-	Constructor      entities.ABIComponent   `json:"constructor"`                                                                                                                   // Contract constructor.
+	Bytecode         string                  `json:"bytecode,omitempty" example:"0x6080604052348015600f57600080f..." swaggertype:"string"`                                          // Bytecode of the contract.
+	DeployedBytecode string                  `json:"deployedBytecode,omitempty" example:"0x6080604052348015600f57600080f..." swaggertype:"string"`                                  // Deployed bytecode of the contract.
+	Constructor      ABIComponentResponse    `json:"constructor"`                                                                                                                   // Contract constructor.
 	Methods          []entities.ABIComponent `json:"methods"`                                                                                                                       // List of contract methods.
 	Events           []entities.ABIComponent `json:"events"`                                                                                                                        // List of contract events.
+}
+
+type ABIComponentResponse struct {
+	Signature string `json:"signature" example:"transfer(address,uint256)"`
+	ABI       string `json:"abi,omitempty" example:"[{anonymous: false, inputs: [{indexed: false, name: account, type: address}, name: MinterAdded, type: event}]}]"`
 }
 
 type GetContractEventsRequest struct {

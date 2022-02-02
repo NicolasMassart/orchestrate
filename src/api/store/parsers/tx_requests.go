@@ -26,10 +26,11 @@ func NewTxRequestEntity(txRequest *models.TransactionRequest) *entities.TxReques
 		ChainName:      txRequest.ChainName,
 		CreatedAt:      txRequest.CreatedAt,
 		Hash:           txRequest.RequestHash,
+		Params:         txRequest.Params,
 	}
 
 	if txRequest.Params != nil {
-		res.Params = &entities.ETHTransactionParams{}
+		res.Params = &entities.TxRequestParams{}
 		_ = utils.CopyInterface(txRequest.Params, res.Params)
 	}
 
@@ -78,14 +79,14 @@ func NewJobEntities(txRequest *entities.TxRequest, chainUUID string, txData []by
 		}
 		jobs = append(jobs, newJobEntityFromTxRequest(txRequest, rawTx, entities.EthereumRawTransaction, chainUUID))
 	default:
-		tx := newEthTransactionFromParams(txRequest.Params, txData, entities.TransactionType(txRequest.Params.TransactionType))
+		tx := newEthTransactionFromParams(txRequest.Params, txData, txRequest.Params.TransactionType)
 		jobs = append(jobs, newJobEntityFromTxRequest(txRequest, tx, entities.EthereumTransaction, chainUUID))
 	}
 
 	return jobs, nil
 }
 
-func newEthTransactionFromParams(params *entities.ETHTransactionParams, txData []byte, txType entities.TransactionType) *entities.ETHTransaction {
+func newEthTransactionFromParams(params *entities.TxRequestParams, txData []byte, txType entities.TransactionType) *entities.ETHTransaction {
 	tx := &entities.ETHTransaction{
 		From:            nil,
 		To:              nil,

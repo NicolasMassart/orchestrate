@@ -1,7 +1,6 @@
 package parsers
 
 import (
-	pkgjson "github.com/consensys/orchestrate/pkg/encoding/json"
 	"github.com/consensys/orchestrate/src/api/store/models"
 	"github.com/consensys/orchestrate/src/entities"
 )
@@ -45,20 +44,16 @@ func NewJobModelFromEntities(job *entities.Job) *models.Job {
 
 func NewJobEntity(jobModel *models.Job) *entities.Job {
 	job := &entities.Job{
-		UUID:        jobModel.UUID,
-		ChainUUID:   jobModel.ChainUUID,
-		NextJobUUID: jobModel.NextJobUUID,
-		Type:        entities.JobType(jobModel.Type),
-		Labels:      jobModel.Labels,
-		Logs:        []*entities.Log{},
-		CreatedAt:   jobModel.CreatedAt,
-		UpdatedAt:   jobModel.UpdatedAt,
-		Status:      entities.JobStatus(jobModel.Status),
-	}
-
-	if jobModel.InternalData != nil {
-		job.InternalData = &entities.InternalData{}
-		_ = pkgjson.UnmarshalInterface(jobModel.InternalData, job.InternalData)
+		UUID:         jobModel.UUID,
+		ChainUUID:    jobModel.ChainUUID,
+		NextJobUUID:  jobModel.NextJobUUID,
+		Type:         entities.JobType(jobModel.Type),
+		Labels:       jobModel.Labels,
+		Logs:         []*entities.Log{},
+		InternalData: jobModel.InternalData,
+		CreatedAt:    jobModel.CreatedAt,
+		UpdatedAt:    jobModel.UpdatedAt,
+		Status:       entities.JobStatus(jobModel.Status),
 	}
 
 	if jobModel.Schedule != nil {

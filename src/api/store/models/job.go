@@ -2,6 +2,8 @@ package models
 
 import (
 	"time"
+
+	"github.com/consensys/orchestrate/src/entities"
 )
 
 type Job struct {
@@ -18,8 +20,8 @@ type Job struct {
 	Transaction   *Transaction
 	Logs          []*Log
 	Labels        map[string]string
-	InternalData  interface{} `pg:",json"`
-	IsParent      bool        `pg:"alias:is_parent,default:false,use_zero"`
+	InternalData  *entities.InternalData `pg:",json"`
+	IsParent      bool                   `pg:"alias:is_parent,default:false,use_zero"`
 	Status        string
 	CreatedAt     time.Time `pg:"default:now()"`
 	UpdatedAt     time.Time `pg:"default:now()"`

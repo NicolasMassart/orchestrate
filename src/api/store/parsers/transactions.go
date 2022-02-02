@@ -4,7 +4,6 @@ import (
 	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/consensys/orchestrate/src/api/store/models"
 	"github.com/consensys/orchestrate/src/entities"
-	"github.com/ethereum/go-ethereum/core/types"
 )
 
 func NewTransactionModel(tx *entities.ETHTransaction) *models.Transaction {
@@ -35,23 +34,20 @@ func NewTransactionModel(tx *entities.ETHTransaction) *models.Transaction {
 }
 
 func NewTransactionEntity(tx *models.Transaction) *entities.ETHTransaction {
-	accessList := types.AccessList{}
-	_ = utils.CastInterfaceToObject(tx.AccessList, &accessList)
-
 	return &entities.ETHTransaction{
 		UUID:            tx.UUID,
 		Hash:            utils.StringToEthHash(tx.Hash),
 		From:            utils.ToEthAddr(tx.Sender),
 		To:              utils.ToEthAddr(tx.Recipient),
 		Nonce:           utils.StringToUint64(tx.Nonce),
-		Value:           utils.BigIntStringToHex(tx.Value),
-		GasPrice:        utils.BigIntStringToHex(tx.GasPrice),
+		Value:           utils.StringBigIntToHex(tx.Value),
+		GasPrice:        utils.StringBigIntToHex(tx.GasPrice),
 		Gas:             utils.StringToUint64(tx.Gas),
-		GasTipCap:       utils.BigIntStringToHex(tx.GasTipCap),
-		GasFeeCap:       utils.BigIntStringToHex(tx.GasFeeCap),
+		GasTipCap:       utils.StringBigIntToHex(tx.GasTipCap),
+		GasFeeCap:       utils.StringBigIntToHex(tx.GasFeeCap),
 		Data:            utils.StringToHexBytes(tx.Data),
 		TransactionType: entities.TransactionType(tx.TxType),
-		AccessList:      accessList,
+		AccessList:      tx.AccessList,
 		PrivateFrom:     tx.PrivateFrom,
 		PrivateFor:      tx.PrivateFor,
 		MandatoryFor:    tx.MandatoryFor,

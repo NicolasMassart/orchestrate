@@ -5,6 +5,8 @@ package integrationtests
 import (
 	"github.com/consensys/orchestrate/pkg/ethereum/account"
 	utilstypes "github.com/consensys/quorum-key-manager/src/utils/api/types"
+	ethcommon "github.com/ethereum/go-ethereum/common"
+
 	"testing"
 	"time"
 
@@ -43,7 +45,7 @@ func (s *accountsTestSuite) TestCreate() {
 		ethAccRes, err := s.client.CreateAccount(ctx, txRequest)
 		require.NoError(s.T(), err)
 
-		resp, err := s.client.GetAccount(ctx, ethAccRes.Address)
+		resp, err := s.client.GetAccount(ctx, ethcommon.HexToAddress(ethAccRes.Address))
 		require.NoError(s.T(), err)
 
 		assert.Equal(s.T(), resp.Address, ethAccRes.Address)
@@ -196,7 +198,7 @@ func (s *accountsTestSuite) TestUpdate() {
 		require.NoError(s.T(), err)
 
 		txRequest2 := testdata.FakeUpdateAccountRequest()
-		resp, err := s.client.UpdateAccount(ctx, ethAccRes.Address, txRequest2)
+		resp, err := s.client.UpdateAccount(ctx, ethcommon.HexToAddress(ethAccRes.Address), txRequest2)
 		require.NoError(s.T(), err)
 
 		assert.Equal(s.T(), resp.Alias, txRequest2.Alias)
@@ -215,7 +217,7 @@ func (s *accountsTestSuite) TestSignMessageAndVerify() {
 	var signedPayload string
 
 	s.T().Run("should sign message successfully", func(t *testing.T) {
-		signedPayload, err = s.client.SignMessage(ctx, ethAccRes.Address, &qkmtypes.SignMessageRequest{
+		signedPayload, err = s.client.SignMessage(ctx, ethcommon.HexToAddress(ethAccRes.Address), &qkmtypes.SignMessageRequest{
 			Message: message,
 		})
 		require.NoError(s.T(), err)
@@ -226,7 +228,7 @@ func (s *accountsTestSuite) TestSignMessageAndVerify() {
 		verifyRequest := &utilstypes.VerifyRequest{
 			Data:      message,
 			Signature: hexutil.MustDecode(signedPayload),
-			Address:   ethAccRes.Address,
+			Address:   ethcommon.HexToAddress(ethAccRes.Address),
 		}
 		err := s.client.VerifyMessageSignature(ctx, verifyRequest)
 		assert.NoError(s.T(), err)
@@ -244,7 +246,7 @@ func (s *accountsTestSuite) TestSignTypedData() {
 	var signature string
 
 	s.T().Run("should sign typed data successfully", func(t *testing.T) {
-		signature, err = s.client.SignTypedData(ctx, ethAccRes.Address, &qkmtypes.SignTypedDataRequest{
+		signature, err = s.client.SignTypedData(ctx, ethcommon.HexToAddress(ethAccRes.Address), &qkmtypes.SignTypedDataRequest{
 			DomainSeparator: typedDataRequest.DomainSeparator,
 			Types:           typedDataRequest.Types,
 			Message:         typedDataRequest.Message,
@@ -259,7 +261,7 @@ func (s *accountsTestSuite) TestSignTypedData() {
 		err := s.client.VerifyTypedDataSignature(ctx, &utilstypes.VerifyTypedDataRequest{
 			TypedData: *typedDataRequest,
 			Signature: hexutil.MustDecode(signature),
-			Address:   ethAccRes.Address,
+			Address:   ethcommon.HexToAddress(ethAccRes.Address),
 		})
 		assert.NoError(s.T(), err)
 	})

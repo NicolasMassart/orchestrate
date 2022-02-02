@@ -3,11 +3,9 @@ package signer
 import (
 	"context"
 
-	pkgcryto "github.com/consensys/orchestrate/pkg/crypto/ethereum"
 	"github.com/consensys/orchestrate/pkg/encoding/rlp"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/pkg/utils"
-	"github.com/consensys/orchestrate/src/api/service/formatters"
 	"github.com/consensys/orchestrate/src/entities"
 	qkmtypes "github.com/consensys/quorum-key-manager/src/stores/api/types"
 	quorumtypes "github.com/consensys/quorum/core/types"
@@ -41,7 +39,7 @@ func NewSignQuorumPrivateTransactionUseCase(keyManagerClient client.KeyManagerCl
 func (uc *signQuorumPrivateTransactionUseCase) Execute(ctx context.Context, job *entities.Job) (signedRaw hexutil.Bytes, txHash *ethcommon.Hash, err error) {
 	logger := uc.logger.WithContext(ctx).WithField("one_time_key", job.InternalData.OneTimeKey)
 
-	transaction := formatters.ETHTransactionToQuorumTransaction(job.Transaction)
+	transaction := ethTransactionToQuorumTransaction(job.Transaction)
 	transaction.SetPrivate()
 	if job.InternalData.OneTimeKey {
 		signedRaw, txHash, err = uc.signWithOneTimeKey(ctx, transaction)
@@ -67,8 +65,8 @@ func (uc *signQuorumPrivateTransactionUseCase) signWithOneTimeKey(ctx context.Co
 		return nil, nil, errors.CryptoOperationError(errMessage)
 	}
 
-	signer := pkgcryto.GetQuorumPrivateTxSigner()
-	decodedSignature, err := pkgcryto.SignQuorumPrivateTransaction(transaction, privKey, signer)
+	signer := getQuorumPrivateTxSigner()
+	decodedSignature, err := signQuorumPrivateTransaction(transaction, privKey, signer)
 	if err != nil {
 		logger.WithError(err).Error("failed to sign private transaction")
 		return nil, nil, err

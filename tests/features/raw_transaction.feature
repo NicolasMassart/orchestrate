@@ -9,6 +9,7 @@ Feature: Send raw transfer transaction
       | alias   | tenantID        |
       | tenant1 | {{random.uuid}} |
 
+  @test
   Scenario: Send raw transaction
     Given I register the following alias
       | alias          | value              |

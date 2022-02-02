@@ -182,7 +182,7 @@ func importTestIdentities(ctx context.Context, testData *utils3.TestData) error 
 				return err
 			}
 
-			logger.WithField("address", resp.Address.String()).Info("account imported successfully")
+			logger.WithField("address", resp.Address).Info("account imported successfully")
 		}
 	}
 

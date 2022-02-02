@@ -25,8 +25,8 @@ type Contract struct {
 }
 
 type ABIComponent struct {
-	Signature string `json:"signature" example:"transfer(address,uint256)"`
-	ABI       string `json:"abi,omitempty" example:"[{anonymous: false, inputs: [{indexed: false, name: account, type: address}, name: MinterAdded, type: event}]}]"`
+	Signature string
+	ABI       string
 }
 
 type Arguments struct {

@@ -4,11 +4,9 @@ import (
 	"context"
 	"math/big"
 
-	pkgcryto "github.com/consensys/orchestrate/pkg/crypto/ethereum"
 	"github.com/consensys/orchestrate/pkg/encoding/rlp"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/pkg/utils"
-	"github.com/consensys/orchestrate/src/api/service/formatters"
 	"github.com/consensys/orchestrate/src/entities"
 	qkmtypes "github.com/consensys/quorum-key-manager/src/stores/api/types"
 	ethcommon "github.com/ethereum/go-ethereum/common"
@@ -41,7 +39,7 @@ func NewSignETHTransactionUseCase(keyManagerClient client.KeyManagerClient) usec
 func (uc *signETHTransactionUseCase) Execute(ctx context.Context, job *entities.Job) (signedRaw hexutil.Bytes, txHash *ethcommon.Hash, err error) {
 	logger := uc.logger.WithContext(ctx).WithField("one_time_key", job.InternalData.OneTimeKey)
 
-	transaction := formatters.ETHTransactionToTransaction(job.Transaction, job.InternalData.ChainID)
+	transaction := ethTransactionToTransaction(job.Transaction, job.InternalData.ChainID)
 	if job.InternalData.OneTimeKey {
 		signedRaw, txHash, err = uc.signWithOneTimeKey(ctx, transaction, job.InternalData.ChainID)
 	} else {
@@ -65,7 +63,7 @@ func (uc *signETHTransactionUseCase) signWithOneTimeKey(ctx context.Context, tra
 	}
 
 	signer := types.NewEIP155Signer(chainID)
-	decodedSignature, err := pkgcryto.SignTransaction(transaction, privKey, signer)
+	decodedSignature, err := signTransaction(transaction, privKey, signer)
 	if err != nil {
 		logger.WithError(err).Error("failed to sign Ethereum transaction")
 		return nil, nil, err

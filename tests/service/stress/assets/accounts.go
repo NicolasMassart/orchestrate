@@ -24,7 +24,7 @@ func CreateNewAccount(ctx context.Context, client orchestrateclient.OrchestrateC
 	}
 
 	logger.WithField("address", resp.Address).Info("account has been registered")
-	return contextWithAccounts(ctx, append(ContextAccounts(ctx), resp.Address)), nil
+	return contextWithAccounts(ctx, append(ContextAccounts(ctx), ethcommon.HexToAddress(resp.Address))), nil
 }
 
 func contextWithAccounts(ctx context.Context, accounts []ethcommon.Address) context.Context {

@@ -4,8 +4,8 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/consensys/orchestrate/src/infra/ethclient/rpc"
 	"github.com/consensys/orchestrate/src/entities"
+	"github.com/consensys/orchestrate/src/infra/ethclient/rpc"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 
@@ -35,18 +35,20 @@ func FakeETHTransaction() *entities.ETHTransaction {
 	}
 }
 
-func FakeETHTransactionParams() *entities.ETHTransactionParams {
-	return &entities.ETHTransactionParams{
-		From:            utils.ToPtr(ethcommon.HexToAddress("0x7357589f8e367c2C31F51242fB77B350A11830F3")).(*ethcommon.Address),
-		To:              utils.ToPtr(ethcommon.HexToAddress("0x7357589f8e367c2C31F51242fB77B350A11830F2")).(*ethcommon.Address),
-		Value:           (*hexutil.Big)(hexutil.MustDecodeBig("0xC350")),
-		GasPrice:        (*hexutil.Big)(hexutil.MustDecodeBig("0x2710")),
-		Gas:             utils.ToPtr(uint64(21000)).(*uint64),
+func FakeETHTransactionParams() *entities.TxRequestParams {
+	return &entities.TxRequestParams{
+		ETHTransaction: &entities.ETHTransaction{
+			From:     utils.ToPtr(ethcommon.HexToAddress("0x7357589f8e367c2C31F51242fB77B350A11830F3")).(*ethcommon.Address),
+			To:       utils.ToPtr(ethcommon.HexToAddress("0x7357589f8e367c2C31F51242fB77B350A11830F2")).(*ethcommon.Address),
+			Value:    (*hexutil.Big)(hexutil.MustDecodeBig("0xC350")),
+			GasPrice: (*hexutil.Big)(hexutil.MustDecodeBig("0x2710")),
+			Gas:      utils.ToPtr(uint64(21000)).(*uint64),
+			Nonce:    utils.ToPtr(uint64(1)).(*uint64),
+		},
 		MethodSignature: "transfer(address,uint256)",
 		Args:            ParseIArray("0x7357589f8e367c2C31F51242fB77B350A11830F3", 500),
 		ContractName:    "ContractName",
 		ContractTag:     "ContractTag",
-		Nonce:           utils.ToPtr(uint64(1)).(*uint64),
 	}
 }
 
@@ -59,7 +61,7 @@ func FakeETHAccount() *entities.ETHAccount {
 	}
 }
 
-func FakeTesseraTransactionParams() *entities.ETHTransactionParams {
+func FakeTesseraTransactionParams() *entities.TxRequestParams {
 	tx := FakeETHTransactionParams()
 	tx.PrivateFrom = "ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc="
 	tx.PrivateFor = []string{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bd="}
@@ -68,7 +70,7 @@ func FakeTesseraTransactionParams() *entities.ETHTransactionParams {
 	return tx
 }
 
-func FakeEEATransactionParams() *entities.ETHTransactionParams {
+func FakeEEATransactionParams() *entities.TxRequestParams {
 	tx := FakeETHTransactionParams()
 	tx.PrivateFrom = "ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Be="
 	tx.PrivacyGroupID = "ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bf="
@@ -77,18 +79,22 @@ func FakeEEATransactionParams() *entities.ETHTransactionParams {
 	return tx
 }
 
-func FakeRawTransactionParams() *entities.ETHTransactionParams {
-	return &entities.ETHTransactionParams{
-		Raw: hexutil.MustDecode("0xABCDE012312312"),
+func FakeRawTransactionParams() *entities.TxRequestParams {
+	return &entities.TxRequestParams{
+		ETHTransaction: &entities.ETHTransaction{
+			Raw: hexutil.MustDecode("0xABCDE012312312"),
+		},
 	}
 }
 
-func FakeTransferTransactionParams() *entities.ETHTransactionParams {
+func FakeTransferTransactionParams() *entities.TxRequestParams {
 	from := ethcommon.HexToAddress("0x7357589f8e367c2C31F51242fB77B350A11830FA")
-	return &entities.ETHTransactionParams{
-		From:  &from,
-		To:    utils.ToPtr(ethcommon.HexToAddress("0x7357589f8e367c2C31F51242fB77B350A11830FB")).(*ethcommon.Address),
-		Value: utils.ToPtr(hexutil.Big(*big.NewInt(50000))).(*hexutil.Big),
+	return &entities.TxRequestParams{
+		ETHTransaction: &entities.ETHTransaction{
+			From:  &from,
+			To:    utils.ToPtr(ethcommon.HexToAddress("0x7357589f8e367c2C31F51242fB77B350A11830FB")).(*ethcommon.Address),
+			Value: utils.ToPtr(hexutil.Big(*big.NewInt(50000))).(*hexutil.Big),
+		},
 	}
 }
 

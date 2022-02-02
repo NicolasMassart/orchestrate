@@ -14,22 +14,35 @@ import (
 )
 
 func FormatChainResponse(chain *entities.Chain) *types.ChainResponse {
-	return &types.ChainResponse{
+	res := &types.ChainResponse{
 		UUID:                      chain.UUID,
 		Name:                      chain.Name,
 		TenantID:                  chain.TenantID,
 		OwnerID:                   chain.OwnerID,
 		URLs:                      chain.URLs,
-		ChainID:                   chain.ChainID,
+		ChainID:                   chain.ChainID.String(),
 		ListenerDepth:             chain.ListenerDepth,
 		ListenerCurrentBlock:      chain.ListenerCurrentBlock,
 		ListenerStartingBlock:     chain.ListenerStartingBlock,
 		ListenerBackOffDuration:   chain.ListenerBackOffDuration,
 		ListenerExternalTxEnabled: chain.ListenerExternalTxEnabled,
-		PrivateTxManager:          chain.PrivateTxManager,
 		Labels:                    chain.Labels,
 		CreatedAt:                 chain.CreatedAt,
 		UpdatedAt:                 chain.UpdatedAt,
+	}
+
+	if chain.PrivateTxManager != nil {
+		res.PrivateTxManager = FormatPrivateTxManagerResponse(chain.PrivateTxManager)
+	}
+
+	return res
+}
+
+func FormatPrivateTxManagerResponse(txManager *entities.PrivateTxManager) *types.PrivateTxManagerResponse {
+	return &types.PrivateTxManagerResponse{
+		URL:       txManager.URL,
+		Type:      txManager.Type,
+		CreatedAt: txManager.CreatedAt,
 	}
 }
 

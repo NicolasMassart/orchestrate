@@ -8,8 +8,10 @@ import (
 	"github.com/consensys/orchestrate/pkg/errors"
 	orchestrateclient "github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
+	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities"
+	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -131,17 +133,17 @@ func newChildJobRequest(parentJob *types.JobResponse, gasPriceMultiplier float64
 	// raw transactions are resent as-is with no modifications
 	if parentJob.Type == entities.EthereumRawTransaction {
 		newJobRequest.Transaction = entities.ETHTransaction{
-			Raw: parentJob.Transaction.Raw,
+			Raw: utils.StringToHexBytes(parentJob.Transaction.Raw),
 		}
 
 		return newJobRequest
 	}
 
 	newJobRequest.Transaction = entities.ETHTransaction{
-		From:           parentJob.Transaction.From,
-		To:             parentJob.Transaction.To,
-		Value:          parentJob.Transaction.Value,
-		Data:           parentJob.Transaction.Data,
+		From:           utils.ToPtr(ethcommon.HexToAddress(parentJob.Transaction.From)).(*ethcommon.Address),
+		To:             utils.ToPtr(ethcommon.HexToAddress(parentJob.Transaction.To)).(*ethcommon.Address),
+		Value:          utils.StringBigIntToHex(parentJob.Transaction.Value),
+		Data:           utils.StringToHexBytes(parentJob.Transaction.Data),
 		PrivateFrom:    parentJob.Transaction.PrivateFrom,
 		PrivateFor:     parentJob.Transaction.PrivateFor,
 		PrivacyGroupID: parentJob.Transaction.PrivacyGroupID,
@@ -149,14 +151,14 @@ func newChildJobRequest(parentJob *types.JobResponse, gasPriceMultiplier float64
 	}
 
 	switch parentJob.Transaction.TransactionType {
-	case entities.LegacyTxType:
-		curGasPriceF := new(big.Float).SetInt(parentJob.Transaction.GasPrice.ToInt())
+	case entities.LegacyTxType.String():
+		curGasPriceF, _ := new(big.Float).SetString(parentJob.Transaction.GasPrice)
 		nextGasPriceF := new(big.Float).Mul(curGasPriceF, big.NewFloat(1+gasPriceMultiplier))
 		nextGasPrice := new(big.Int)
 		nextGasPriceF.Int(nextGasPrice)
 		newJobRequest.Transaction.GasPrice = (*hexutil.Big)(nextGasPrice)
-	case entities.DynamicFeeTxType:
-		curGasTipCapF := new(big.Float).SetInt(parentJob.Transaction.GasTipCap.ToInt())
+	case entities.DynamicFeeTxType.String():
+		curGasTipCapF, _ := new(big.Float).SetString(parentJob.Transaction.GasTipCap)
 		nextGasTipCapF := new(big.Float).Mul(curGasTipCapF, big.NewFloat(1+gasPriceMultiplier))
 		nextGasTipCap := new(big.Int)
 		nextGasTipCapF.Int(nextGasTipCap)

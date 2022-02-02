@@ -61,7 +61,7 @@ func TestSession_Run(t *testing.T) {
 		jobResponse := apitestdata.FakeJobResponse()
 		chain := newFakeChain()
 		block := newFakeBlock(newBlockPosition, toAddress)
-		jobResponse.Transaction.Hash = &txHash
+		jobResponse.Transaction.Hash = txHash.String()
 		session := NewSession(chain, mockEthClient, mockClient, mockHook, mockOffsetManager, mockMetrics)
 		bckoff := &backoffmock.MockIntervalBackoff{}
 		session.bckOff = bckoff
@@ -184,7 +184,7 @@ func TestSession_Run(t *testing.T) {
 		jobResponse := apitestdata.FakeJobResponse()
 		chain := newFakeChain()
 		block := newFakeBlock(newBlockPosition, eeaPrivPrecompiledContractAddr)
-		jobResponse.Transaction.Hash = &txHashPrivate
+		jobResponse.Transaction.Hash = txHashPrivate.String()
 		session := NewSession(chain, mockEthClient, mockClient, mockHook, mockOffsetManager, mockMetrics)
 		bckoff := &backoffmock.MockIntervalBackoff{}
 		session.bckOff = bckoff

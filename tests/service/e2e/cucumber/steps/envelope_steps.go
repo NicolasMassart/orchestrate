@@ -3,6 +3,7 @@ package steps
 import (
 	"bytes"
 	"context"
+	"crypto/ecdsa"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
@@ -19,7 +20,6 @@ import (
 	clientutils "github.com/consensys/orchestrate/pkg/toolkit/app/http/client-utils"
 
 	"github.com/cenkalti/backoff/v4"
-	pkgcryto "github.com/consensys/orchestrate/pkg/crypto/ethereum"
 	"github.com/consensys/orchestrate/pkg/encoding/rlp"
 	utils4 "github.com/consensys/orchestrate/pkg/utils"
 	api "github.com/consensys/orchestrate/src/api/service/types"
@@ -338,7 +338,7 @@ func (sc *ScenarioContext) iHaveCreatedTheFollowingAccounts(table *gherkin.Pickl
 			return err
 		}
 
-		sc.aliases.Set(accRes.Address.String(), sc.Pickle.Id, aliasCol.Rows[idx+1].Cells[0].Value)
+		sc.aliases.Set(accRes.Address, sc.Pickle.Id, aliasCol.Rows[idx+1].Cells[0].Value)
 	}
 
 	return nil
@@ -705,7 +705,7 @@ func (sc *ScenarioContext) craftAndSignEnvelope(ctx context.Context, e *tx.Envel
 		return err
 	}
 
-	signature, err := pkgcryto.SignTransaction(transaction, acc, signer)
+	signature, err := signTransaction(transaction, acc, signer)
 	if err != nil {
 		log.WithError(err).Error("failed to sign transaction")
 		return err
@@ -725,6 +725,16 @@ func (sc *ScenarioContext) craftAndSignEnvelope(ctx context.Context, e *tx.Envel
 
 	_ = e.SetRaw(signedRaw).SetTxHash(signedTx.Hash())
 	return nil
+}
+
+func signTransaction(transaction *types.Transaction, privKey *ecdsa.PrivateKey, signer types.Signer) ([]byte, error) {
+	h := signer.Hash(transaction)
+	decodedSignature, err := crypto.Sign(h[:], privKey)
+	if err != nil {
+		return nil, errors.CryptoOperationError(err.Error())
+	}
+
+	return decodedSignature, nil
 }
 
 func initEnvelopeSteps(s *godog.ScenarioContext, sc *ScenarioContext) {

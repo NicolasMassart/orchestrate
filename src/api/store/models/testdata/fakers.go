@@ -8,8 +8,6 @@ import (
 
 	"github.com/consensys/orchestrate/src/entities"
 
-	"github.com/consensys/orchestrate/src/entities/testdata"
-
 	"github.com/consensys/orchestrate/pkg/utils"
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
@@ -35,30 +33,10 @@ func FakeSchedule(tenantID, username string) *models.Schedule {
 	}
 }
 
-func FakeTxRequest(scheduleID int) *models.TransactionRequest {
-	fakeSchedule := FakeSchedule("", "")
-	fakeSchedule.ID = scheduleID
-
-	return &models.TransactionRequest{
-		IdempotencyKey: utils.RandString(16),
-		ChainName:      "chain",
-		RequestHash:    "requestHash",
-		Params:         testdata.FakeETHTransactionParams(),
-		Schedule:       fakeSchedule,
-	}
-}
-
 func FakeTransaction() *models.Transaction {
 	return &models.Transaction{
 		UUID: uuid.Must(uuid.NewV4()).String(),
 	}
-}
-
-func FakePrivateTx() *models.Transaction {
-	tx := FakeTransaction()
-	tx.PrivateFrom = "ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc="
-	tx.PrivateFor = []string{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bd=", "ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Be="}
-	return tx
 }
 
 func FakeJobModel(scheduleID int) *models.Job {
