@@ -3,7 +3,7 @@ module github.com/consensys/orchestrate
 go 1.16
 
 require (
-	github.com/Shopify/sarama v1.27.2
+	github.com/Shopify/sarama v1.31.1
 	github.com/alicebob/gopher-json v0.0.0-20180125190556-5a6b3ba71ee6 // indirect
 	github.com/alicebob/miniredis v2.5.0+incompatible
 	github.com/auth0/go-jwt-middleware/v2 v2.0.0-beta.1
@@ -21,9 +21,9 @@ require (
 	github.com/ethereum/go-ethereum v1.10.8
 	github.com/go-kit/kit v0.10.1-0.20200915143503-439c4d2ed3ea
 	github.com/go-pg/migrations/v7 v7.1.9
-	github.com/go-pg/pg/v9 v9.1.5
+	github.com/go-pg/pg/v9 v9.2.1
 	github.com/go-playground/validator/v10 v10.10.0
-	github.com/gofrs/uuid v4.0.0+incompatible
+	github.com/gofrs/uuid v4.2.0+incompatible
 	github.com/golang/mock v1.6.0
 	github.com/golang/protobuf v1.5.2
 	github.com/gomodule/redigo v1.8.2
@@ -40,7 +40,7 @@ require (
 	github.com/prometheus/client_golang v1.11.0
 	github.com/prometheus/client_model v0.2.0
 	github.com/prometheus/common v0.26.0
-	github.com/rs/cors v1.7.0
+	github.com/rs/cors v1.8.2
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.2.1
 	github.com/spf13/pflag v1.0.5
@@ -52,8 +52,8 @@ require (
 	github.com/unrolled/secure v1.0.9
 	github.com/vulcand/oxy v1.3.0
 	github.com/yuin/gopher-lua v0.0.0-20191220021717-ab39c6098bdb // indirect
-	golang.org/x/crypto v0.0.0-20211209193657-4570a0811e8b
-	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2
+	golang.org/x/crypto v0.0.0-20220128200615-198e4374d7ed
+	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd
 	golang.org/x/time v0.0.0-20210611083556-38a9dc6acbc6
 	google.golang.org/protobuf v1.26.0
 	gopkg.in/DATA-DOG/go-sqlmock.v1 v1.3.0 // indirect
@@ -63,7 +63,7 @@ require (
 
 replace (
 	github.com/Azure/go-autorest => github.com/Azure/go-autorest v14.2.0+incompatible
-	github.com/containerd/containerd => github.com/containerd/containerd v1.4.11
+	github.com/containerd/containerd => github.com/containerd/containerd v1.4.12
 	github.com/docker/docker => github.com/docker/engine v1.4.2-0.20200204220554-5f6d6f3f2203
 	github.com/spf13/viper => github.com/spf13/viper v1.8.1
 	google.golang.org/api => google.golang.org/api v0.10.0

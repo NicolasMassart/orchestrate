@@ -32,6 +32,7 @@ func NewScheduleModel(schedule *entities.Schedule) *models.Schedule {
 	scheduleModel := &models.Schedule{
 		UUID:     schedule.UUID,
 		TenantID: schedule.TenantID,
+		OwnerID:  schedule.OwnerID,
 	}
 
 	for _, job := range schedule.Jobs {

@@ -122,7 +122,7 @@ var ValidOpt = &tls.Option{
 		},
 	},
 	NextProtos:       []string{"h2", "http/1.1"},
-	CipherSuites:     []string{"TLS_ECDHE_ECDSA_WITH_RC4_128_SHA"},
+	CipherSuites:     []string{"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA"},
 	CurvePreferences: []string{"secp256r1"},
 	CAs: [][]byte{
 		[]byte(OneLineRSACertPEMB),

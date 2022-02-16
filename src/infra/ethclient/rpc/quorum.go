@@ -196,7 +196,7 @@ func (ec *Client) retryHTTPRequest(requestURL string, doRequest func() (*http.Re
 			log.
 				WithError(err).
 				WithFields(log.Fields{
-					"requestURL": requestURL,
+					"requestURL": fmt.Sprintf("%q", requestURL),
 				}).Warnf("tessera-http-client: error sending requests to Tessera, retrying in %v...", duration)
 		},
 	)

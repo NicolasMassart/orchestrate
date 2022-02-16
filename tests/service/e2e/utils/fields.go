@@ -85,11 +85,14 @@ func getField(fieldPath string, val reflect.Value) (reflect.Value, error) {
 			return reflect.Value{}, fmt.Errorf("%s is an array - expected '[' ']'", fieldPath)
 		}
 		for _, v := range sliceMatch {
-			i, _ := strconv.ParseInt(v[1], 10, 64)
-			if int(i) >= val.Len() {
+			i, err := strconv.Atoi(v[1])
+			if err != nil {
+				return reflect.Value{}, err
+			}
+			if i >= val.Len() {
 				return reflect.Value{}, fmt.Errorf("%s length is only %d could not reach %d", fieldPath, val.Len(), i)
 			}
-			val = val.Index(int(i))
+			val = val.Index(i)
 		}
 	}
 

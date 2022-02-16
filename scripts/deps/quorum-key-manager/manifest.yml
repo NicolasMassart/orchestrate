@@ -22,8 +22,3 @@
   specs:
     key_store: orchestrate-keystore
 
-- kind: Store
-  type: ethereum
-  name: orchestrate-eth2
-  specs:
-    key_store: orchestrate-keystore

@@ -9,8 +9,8 @@ import (
 	"github.com/consensys/orchestrate/pkg/toolkit/app/auth"
 	authutils "github.com/consensys/orchestrate/pkg/toolkit/app/auth/utils"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http/config/dynamic"
+	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
-	"github.com/traefik/traefik/v2/pkg/log"
 )
 
 type Builder struct {
@@ -39,12 +39,14 @@ func (b *Builder) Build(_ context.Context, _ string, configuration interface{}) 
 type Auth struct {
 	checker      auth.Checker
 	multitenancy bool
+	logger       *log.Logger
 }
 
 func New(jwt, key auth.Checker, multitenancyEnabled bool) *Auth {
 	return &Auth{
 		checker:      auth.NewCombineCheckers(key, jwt),
 		multitenancy: multitenancyEnabled,
+		logger:       log.NewLogger(),
 	}
 }
 
@@ -82,25 +84,19 @@ func (a *Auth) Handler(h http.Handler) http.Handler {
 
 		userInfo, err := a.checker.Check(authCtx)
 		if err != nil {
-			log.FromContext(authCtx).WithError(err).Errorf("unauthorized request")
+			a.logger.WithError(err).Errorf("unauthorized request")
 			a.writeUnauthorized(rw, err)
 			return
 		}
 
 		if userInfo != nil {
-			// Bypass JWT authentication
-			log.FromContext(authCtx).
-				WithField("tenant_id", userInfo.TenantID).
-				WithField("username", userInfo.Username).
-				WithField("allowed_tenants", userInfo.AllowedTenants).
-				Debugf("authentication succeeded (%s)", userInfo.AuthMode)
-
+			a.logger.Debug(fmt.Sprintf("authentication succeeded %s", userInfo.AuthMode))
 			a.serveNext(rw, req.WithContext(multitenancy.WithUserInfo(authCtx, userInfo)), h)
 			return
 		}
 
 		err = errors.UnauthorizedError("missing required credentials")
-		log.FromContext(authCtx).WithError(err).Errorf("unauthorized request")
+		a.logger.WithError(err).Errorf("unauthorized request")
 		a.writeUnauthorized(rw, err)
 	})
 }

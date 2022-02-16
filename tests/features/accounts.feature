@@ -11,7 +11,6 @@ Feature: Account management
       | name        | artifacts        | API-KEY            | Tenant               |
       | SimpleToken | SimpleToken.json | {{global.api-key}} | {{tenant1.tenantID}} |
 
-  @test
   Scenario: Import account and update it and sign with it
     Given I register the following alias
       | alias          | value           |

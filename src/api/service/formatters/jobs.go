@@ -1,6 +1,7 @@
 package formatters
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -98,7 +99,7 @@ func FormatJobFilterRequest(req *http.Request) (*entities.JobFilters, error) {
 		updatedAfter, err := time.Parse(time.RFC3339, qUpdatedAfter)
 		if err != nil {
 			errMessage := "failed to parse updated_after as time"
-			log.WithError(err).WithField("updated_after", qUpdatedAfter).Error(errMessage)
+			log.WithError(err).WithField("updated_after", fmt.Sprintf("%q", qUpdatedAfter)).Error(errMessage)
 			return nil, errors.InvalidParameterError(errMessage)
 		}
 

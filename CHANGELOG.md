@@ -5,10 +5,12 @@
 * New available endpoint `/transaction/{TX_UUID}/speed-up` to retry transaction with a defined gas increment.
 * New available endpoint `/transaction/{TX_UUID}/call-off` resend a transaction with same nonce,empty data and 10% more gas than previous job.
 
-## v21.12.2 (Unreleased)
+## v21.12.2 (2022-02-16)
 ### 🛠 Bug fixes
-* Fixed Chain Proxy issues caused by additional header being added to forwarded request.  
+* Fixed Chain Proxy issues caused by additional header being added to the forwarded request.  
 * Fixed wrong error code returned importing duplicate accounts
+* Fixed missing `nonce` attribute in transaction request payloads.
+* Fixed go-web3 panic error passing HEX as bytes.
 
 ## v21.12.1 (2022-01-13)
 ### 🆕 Features

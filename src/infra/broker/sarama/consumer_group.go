@@ -69,6 +69,22 @@ func (c *consumerGroup) Errors() <-chan error {
 	return c.errors
 }
 
+func (c *consumerGroup) Pause(partitions map[string][]int32) {
+	c.g.Pause(partitions)
+}
+
+func (c *consumerGroup) Resume(partitions map[string][]int32) {
+	c.g.Resume(partitions)
+}
+
+func (c *consumerGroup) PauseAll() {
+	c.g.PauseAll()
+}
+
+func (c *consumerGroup) ResumeAll() {
+	c.g.ResumeAll()
+}
+
 // Close implements ConsumerGroup.
 func (c *consumerGroup) Close() error {
 	err := c.g.Close()

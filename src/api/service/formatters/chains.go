@@ -1,6 +1,7 @@
 package formatters
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -64,7 +65,7 @@ func FormatRegisterChainRequest(request *types.RegisterChainRequest, fromLatest 
 		startingBlock, err := strconv.ParseUint(request.Listener.FromBlock, 10, 64)
 		if err != nil {
 			errMessage := "fromBlock must be an integer value"
-			log.WithField("from_block", request.Listener.FromBlock).Error(errMessage)
+			log.WithField("from_block", fmt.Sprintf("%q", request.Listener.FromBlock)).Error(errMessage)
 			return nil, errors.InvalidFormatError(errMessage)
 		}
 		chain.ListenerStartingBlock = startingBlock

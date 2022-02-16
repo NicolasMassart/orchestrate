@@ -87,6 +87,18 @@ func (g *ConsumerGroup) Errors() <-chan error {
 	return g.errors
 }
 
+func (g *ConsumerGroup) Pause(partitions map[string][]int32) {
+}
+
+func (g *ConsumerGroup) Resume(partitions map[string][]int32) {
+}
+
+func (g *ConsumerGroup) PauseAll() {
+}
+
+func (g *ConsumerGroup) ResumeAll() {
+}
+
 // Close stops the ConsumerGroup and detaches any running sessions.
 func (g *ConsumerGroup) Close() error {
 	g.closeOnce.Do(func() {
