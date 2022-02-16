@@ -174,10 +174,8 @@ func (cm *HTTPCache) distributedRequestMutex(cacheKey string) *sync.Mutex {
 	if cMutex == nil {
 		// In case targeted mutex key remains nil after exclusive access, we update it
 		cm.mutex.Lock()
-		if cm.reqMutex[mutexHashKey] == nil {
-			cMutex = &sync.Mutex{}
-			cm.reqMutex[mutexHashKey] = cMutex
-		}
+		cMutex = &sync.Mutex{}
+		cm.reqMutex[mutexHashKey] = cMutex
 		cm.mutex.Unlock()
 	}
 

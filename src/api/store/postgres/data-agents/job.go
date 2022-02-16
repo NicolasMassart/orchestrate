@@ -129,7 +129,7 @@ func (agent *PGJob) Search(ctx context.Context, filters *entities.JobFilters, te
 		query = query.Where(fmt.Sprintf("(%s) OR (%s)",
 			"job.is_parent is false AND job.internal_data @> '{\"parentJobUUID\": \"?\"}'",
 			"job.is_parent is true AND job.uuid = '?'",
-		), filters.ParentJobUUID, filters.ParentJobUUID)
+		), gopg.Safe(filters.ParentJobUUID), gopg.Safe(filters.ParentJobUUID))
 	}
 
 	if filters.OnlyParents {
