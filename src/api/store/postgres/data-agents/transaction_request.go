@@ -30,8 +30,10 @@ func NewPGTransactionRequest(db pg.DB) store.TransactionRequestAgent {
 
 // Insert Inserts a new transaction request in DB
 func (agent *PGTransactionRequest) Insert(ctx context.Context, txRequest *entities.TxRequest, requestHash, scheduleUUID string) error {
+	txRequest.CreatedAt = time.Now().UTC()
+	txRequest.Params.CreatedAt = txRequest.CreatedAt
+	txRequest.Params.UpdatedAt = txRequest.CreatedAt
 	model := parsers.NewTxRequestModel(txRequest, requestHash)
-	model.CreatedAt = time.Now().UTC()
 
 	scheduleID, err := getScheduleIDByUUID(ctx, agent.db, agent.logger, scheduleUUID)
 	if err != nil {

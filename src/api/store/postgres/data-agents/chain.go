@@ -36,6 +36,8 @@ func (agent *PGChain) Insert(ctx context.Context, chain *entities.Chain) error {
 		model.UUID = uuid.Must(uuid.NewV4()).String()
 	}
 
+	model.CreatedAt = time.Now().UTC()
+	model.UpdatedAt = model.CreatedAt
 	err := pg.Insert(ctx, agent.db, model)
 	if err != nil {
 		agent.logger.WithContext(ctx).WithError(err).Error("failed to insert chain")

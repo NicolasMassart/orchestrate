@@ -34,7 +34,7 @@ func NewPGFaucet(db pg.DB) store.FaucetAgent {
 func (agent *PGFaucet) Insert(ctx context.Context, faucet *entities.Faucet) error {
 	model := parsers.NewFaucetModel(faucet)
 	model.CreatedAt = time.Now().UTC()
-	model.UpdatedAt = time.Now().UTC()
+	model.UpdatedAt = model.CreatedAt
 	if model.UUID == "" {
 		model.UUID = uuid.Must(uuid.NewV4()).String()
 	}

@@ -17,11 +17,11 @@ require (
 	github.com/docker/docker v20.10.7+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/eapache/channels v1.1.0
-	github.com/elazarl/go-bindata-assetfs v1.0.0
-	github.com/ethereum/go-ethereum v1.10.8
+	github.com/elazarl/go-bindata-assetfs v1.0.1
+	github.com/ethereum/go-ethereum v1.10.16
 	github.com/go-kit/kit v0.10.1-0.20200915143503-439c4d2ed3ea
 	github.com/go-pg/migrations/v7 v7.1.9
-	github.com/go-pg/pg/v9 v9.2.1
+	github.com/go-pg/pg/v9 v9.1.5
 	github.com/go-playground/validator/v10 v10.10.0
 	github.com/gofrs/uuid v4.2.0+incompatible
 	github.com/golang/mock v1.6.0
@@ -32,7 +32,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/heptiolabs/healthcheck v0.0.0-20180807145615-6ff867650f40
 	github.com/justinas/alice v1.2.0
-	github.com/mitchellh/copystructure v1.0.0
+	github.com/mitchellh/copystructure v1.2.0
 	github.com/mitchellh/mapstructure v1.4.3
 	github.com/nmvalera/striped-mutex v0.1.0
 	github.com/opentracing/opentracing-go v1.2.0

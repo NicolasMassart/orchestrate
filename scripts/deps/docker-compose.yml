@@ -7,6 +7,8 @@ x-container-common: &container-common
 
 x-qkm-common: &qkm-common
   DB_HOST: ${DB_HOST-postgres}
+  DB_PASSWORD: ${DB_PASSWORD-postgres}
+  AUTH_OIDC_CUSTOM_CLAIMS: ${AUTH_OIDC_CUSTOM_CLAIMS-https://api.orchestrate.network}
   DB_PORT: ${DB_PORT-}
   LOG_LEVEL: ${LOG_LEVEL-}
   LOG_FORMAT: ${LOG_FORMAT-}
@@ -152,7 +154,7 @@ services:
 
   quorum-key-manager-migration:
     <<: *container-common
-    image: consensys/quorum-key-manager:v21.12.0
+    image: consensys/quorum-key-manager:v21.12.2
     environment:
       <<: *qkm-common
     restart: "no"
@@ -160,7 +162,7 @@ services:
 
   quorum-key-manager:
     <<: *container-common
-    image: consensys/quorum-key-manager:v21.12.0
+    image: consensys/quorum-key-manager:v21.12.2
     depends_on:
       - vault
       - quorum-key-manager-migration

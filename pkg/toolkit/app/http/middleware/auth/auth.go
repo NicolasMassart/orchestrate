@@ -84,19 +84,19 @@ func (a *Auth) Handler(h http.Handler) http.Handler {
 
 		userInfo, err := a.checker.Check(authCtx)
 		if err != nil {
-			a.logger.WithError(err).Errorf("unauthorized request")
+			a.logger.WithError(err).Error("unauthorized request")
 			a.writeUnauthorized(rw, err)
 			return
 		}
 
 		if userInfo != nil {
-			a.logger.Debug(fmt.Sprintf("authentication succeeded %s", userInfo.AuthMode))
+			a.logger.Debugf("authentication succeeded %q", userInfo.AuthMode)
 			a.serveNext(rw, req.WithContext(multitenancy.WithUserInfo(authCtx, userInfo)), h)
 			return
 		}
 
 		err = errors.UnauthorizedError("missing required credentials")
-		a.logger.WithError(err).Errorf("unauthorized request")
+		a.logger.WithError(err).Error("unauthorized request")
 		a.writeUnauthorized(rw, err)
 	})
 }

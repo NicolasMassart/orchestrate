@@ -34,6 +34,8 @@ func (agent *PGTransaction) Insert(ctx context.Context, tx *entities.ETHTransact
 	if model.UUID == "" {
 		model.UUID = uuid.Must(uuid.NewV4()).String()
 	}
+	model.CreatedAt = time.Now().UTC()
+	model.UpdatedAt = model.CreatedAt
 
 	err := pg.Insert(ctx, agent.db, model)
 	if err != nil {

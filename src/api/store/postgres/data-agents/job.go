@@ -38,7 +38,7 @@ func (agent *PGJob) Insert(ctx context.Context, job *entities.Job, scheduleUUID,
 		model.UUID = uuid.Must(uuid.NewV4()).String()
 	}
 	model.CreatedAt = time.Now().UTC()
-	model.UpdatedAt = time.Now().UTC()
+	model.UpdatedAt = model.CreatedAt
 
 	scheduleID, err := getScheduleIDByUUID(ctx, agent.db, agent.logger, scheduleUUID)
 	if err != nil {
