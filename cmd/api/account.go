@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/consensys/orchestrate/cmd/flags"
+	"github.com/consensys/orchestrate/src/infra/quorum-key-manager/http"
+
 	"github.com/consensys/orchestrate/src/infra/database/postgres"
-	qkm "github.com/consensys/orchestrate/src/infra/quorum-key-manager"
-	qkmClient "github.com/consensys/quorum-key-manager/pkg/client"
+	qkm "github.com/consensys/quorum-key-manager/pkg/client"
 	"github.com/go-pg/pg/v9"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -16,33 +18,44 @@ import (
 
 func newAccountCmd() *cobra.Command {
 	var db *pg.DB
+	var qkmClient qkm.KeyManagerClient
+	var storeName string
 
 	accountCmd := &cobra.Command{
 		Use:   "account",
 		Short: "Account management",
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			vipr := viper.GetViper()
+
 			// Set database connection
-			opts, err := postgres.NewConfig(viper.GetViper()).PGOptions()
+			opts, err := postgres.NewConfig(vipr).PGOptions()
 			if err != nil {
 				return err
 			}
 			db = pg.Connect(opts)
 
 			// Init QKM client
-			qkm.Init()
+			qkmConfig := flags.NewQKMConfig(vipr)
+			qkmClient, err = http.New(qkmConfig)
+			if err != nil {
+				return err
+			}
+
+			storeName = qkmConfig.StoreName
+
 			return nil
 		},
 	}
 
 	// Postgres flags
 	postgres.PGFlags(accountCmd.Flags())
-	qkm.Flags(accountCmd.Flags())
+	flags.QKMFlags(accountCmd.Flags())
 
 	importCmd := &cobra.Command{
 		Use:   "import",
 		Short: "import accounts",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return importAccounts(cmd.Context(), db, qkm.GlobalClient(), qkm.GlobalStoreName())
+			return importAccounts(cmd.Context(), db, qkmClient, storeName)
 		},
 	}
 	accountCmd.AddCommand(importCmd)
@@ -50,7 +63,7 @@ func newAccountCmd() *cobra.Command {
 	return accountCmd
 }
 
-func importAccounts(ctx context.Context, db *pg.DB, client qkmClient.KeyManagerClient, storeName string) error {
+func importAccounts(ctx context.Context, db *pg.DB, client qkm.KeyManagerClient, storeName string) error {
 	log.Debug("Loading accounts from Vault...")
 
 	accounts, err := client.ListEthAccounts(ctx, storeName, 0, 0)
@@ -67,7 +80,7 @@ func importAccounts(ctx context.Context, db *pg.DB, client qkmClient.KeyManagerC
 			return err2
 		}
 
-		tenantIDs := strings.Split(acc.Tags[qkm.TagIDAllowedTenants], qkm.TagSeparatorAllowedTenants)
+		tenantIDs := strings.Split(acc.Tags[http.TagIDAllowedTenants], http.TagSeparatorAllowedTenants)
 		for _, tenantID := range tenantIDs {
 			queryInsertItems = append(queryInsertItems, fmt.Sprintf("('%s', '%s', '%s', '%s', '{\"source\": \"kv-v2\"}')",
 				tenantID,

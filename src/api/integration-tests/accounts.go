@@ -4,13 +4,13 @@ package integrationtests
 
 import (
 	"github.com/consensys/orchestrate/pkg/ethereum/account"
+	qkm "github.com/consensys/orchestrate/src/infra/quorum-key-manager/testutils"
 	utilstypes "github.com/consensys/quorum-key-manager/src/utils/api/types"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 
 	"testing"
 	"time"
 
-	qkm "github.com/consensys/orchestrate/src/infra/quorum-key-manager"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	api "github.com/consensys/orchestrate/src/api/service/types"
 	qkmtypes "github.com/consensys/quorum-key-manager/src/stores/api/types"
@@ -18,10 +18,10 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/consensys/orchestrate/pkg/errors"
-	"github.com/consensys/orchestrate/src/entities"
-	"github.com/consensys/orchestrate/src/api/service/types/testdata"
-	entitiestestdata "github.com/consensys/orchestrate/src/entities/testdata"
 	"github.com/consensys/orchestrate/pkg/utils"
+	"github.com/consensys/orchestrate/src/api/service/types/testdata"
+	"github.com/consensys/orchestrate/src/entities"
+	entitiestestdata "github.com/consensys/orchestrate/src/entities/testdata"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"github.com/traefik/traefik/v2/pkg/log"

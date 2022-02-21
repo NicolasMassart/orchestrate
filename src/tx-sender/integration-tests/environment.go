@@ -23,7 +23,6 @@ import (
 	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/consensys/orchestrate/src/infra/broker/sarama"
 	ethclient "github.com/consensys/orchestrate/src/infra/ethclient/rpc"
-	qkm "github.com/consensys/orchestrate/src/infra/quorum-key-manager"
 	"github.com/consensys/orchestrate/src/infra/redis"
 	txsender "github.com/consensys/orchestrate/src/tx-sender"
 	"github.com/consensys/orchestrate/src/tx-sender/store"
@@ -228,7 +227,6 @@ func newTxSender(ctx context.Context, txSenderConfig *txsender.Config, redisCli 
 	// Initialize dependencies
 	sarama.InitSyncProducer(ctx)
 	sarama.InitConsumerGroup(ctx, txSenderConfig.GroupName)
-	qkm.Init()
 
 	httpClient := httputils.NewClient(httputils.NewDefaultConfig())
 	gock.InterceptClient(httpClient)

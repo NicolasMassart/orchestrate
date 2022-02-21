@@ -1,7 +1,9 @@
-package quorumkeymanager
+package testutils
 
 import (
 	"strings"
+
+	client2 "github.com/consensys/orchestrate/src/infra/quorum-key-manager/http"
 
 	utilstypes "github.com/consensys/quorum-key-manager/src/utils/api/types"
 
@@ -14,7 +16,7 @@ func FakeEthAccountResponse(addr ethcommon.Address, tenants []string) *types.Eth
 	return &types.EthAccountResponse{
 		Address: addr,
 		Tags: map[string]string{
-			TagIDAllowedTenants: strings.Join(tenants, TagSeparatorAllowedTenants),
+			client2.TagIDAllowedTenants: strings.Join(tenants, client2.TagSeparatorAllowedTenants),
 		},
 	}
 }

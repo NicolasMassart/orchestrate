@@ -1,4 +1,4 @@
-package quorumkeymanager
+package http
 
 const (
 	TagIDAllowedTenants        = "tenants"

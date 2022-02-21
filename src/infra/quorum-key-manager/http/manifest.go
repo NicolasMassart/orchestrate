@@ -1,4 +1,4 @@
-package quorumkeymanager
+package http
 
 import (
 	"gopkg.in/yaml.v2"

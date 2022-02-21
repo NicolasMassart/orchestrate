@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/consensys/orchestrate/src/infra/quorum-key-manager/http"
+
 	authjwt "github.com/consensys/orchestrate/pkg/toolkit/app/auth/jwt"
 
 	integrationtest "github.com/consensys/orchestrate/pkg/integration-test"
@@ -28,7 +30,6 @@ import (
 	"github.com/consensys/orchestrate/src/infra/broker/sarama"
 	"github.com/consensys/orchestrate/src/infra/database/postgres"
 	ethclient "github.com/consensys/orchestrate/src/infra/ethclient/rpc"
-	qkm "github.com/consensys/orchestrate/src/infra/quorum-key-manager"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"github.com/traefik/traefik/v2/pkg/log"
@@ -133,7 +134,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	qkmContainerMigrate := quorumkeymanagerDocker.NewDefaultMigrate().
 		SetDBHost(qkmPostgresContainerID)
 
-	err = qkmContainer.CreateManifest("manifest.yml", &qkm.Manifest{
+	err = qkmContainer.CreateManifest("manifest.yml", &http.Manifest{
 		Kind:    "Ethereum",
 		Version: "0.0.1",
 		Name:    qkmDefaultStoreID,
@@ -409,11 +410,16 @@ func (env *IntegrationEnvironment) migrate(ctx context.Context) error {
 
 func newAPI(ctx context.Context, topicCfg *sarama.KafkaTopicConfig) (*app.App, error) {
 	// Initialize dependencies
+	apiConfig := api.NewConfig(viper.GetViper())
+	qkmClient, err := http.New(apiConfig.QKM)
+	if err != nil {
+		return nil, err
+	}
+
 	authjwt.Init(ctx)
 	authkey.Init(ctx)
 	sarama.InitSyncProducer(ctx)
 	ethclient.Init(ctx)
-	qkm.Init()
 
 	interceptedHTTPClient := httputils.NewClient(httputils.NewDefaultConfig())
 	gock.InterceptClient(interceptedHTTPClient)
@@ -425,8 +431,8 @@ func newAPI(ctx context.Context, topicCfg *sarama.KafkaTopicConfig) (*app.App, e
 		txSchedulerConfig,
 		pgmngr,
 		authjwt.GlobalChecker(), authkey.GlobalChecker(),
-		qkm.GlobalClient(),
-		qkm.GlobalStoreName(),
+		qkmClient,
+		apiConfig.QKM.StoreName,
 		ethclient.GlobalClient(),
 		sarama.GlobalSyncProducer(),
 		topicCfg,

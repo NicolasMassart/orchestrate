@@ -1,4 +1,4 @@
-package quorumkeymanager
+package nonclient
 
 import (
 	"context"

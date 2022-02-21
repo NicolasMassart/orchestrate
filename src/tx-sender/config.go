@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	quorumkeymanager "github.com/consensys/orchestrate/src/infra/quorum-key-manager/http"
+
 	"github.com/consensys/orchestrate/cmd/flags"
 	"github.com/consensys/orchestrate/src/infra/redis/redigo"
 
@@ -17,7 +19,6 @@ import (
 	metricregistry "github.com/consensys/orchestrate/pkg/toolkit/app/metrics/registry"
 	tcpmetrics "github.com/consensys/orchestrate/pkg/toolkit/tcp/metrics"
 	broker "github.com/consensys/orchestrate/src/infra/broker/sarama"
-	qkm "github.com/consensys/orchestrate/src/infra/quorum-key-manager"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
@@ -79,13 +80,13 @@ const (
 // Flags register flags for tx sentry
 func Flags(f *pflag.FlagSet) {
 	flags.RedisFlags(f)
+	flags.QKMFlags(f)
 
 	log.Flags(f)
 	authkey.Flags(f)
 	broker.KafkaConsumerFlags(f)
 	broker.KafkaTopicTxSender(f)
 	broker.KafkaTopicTxRecover(f)
-	qkm.Flags(f)
 	orchestrateclient.Flags(f)
 	app.MetricFlags(f)
 	metricregistry.Flags(f, tcpmetrics.ModuleName)
@@ -136,6 +137,7 @@ type Config struct {
 	NonceManagerType       string
 	RedisCfg               *redigo.Config
 	NonceManagerExpiration time.Duration
+	QKM                    *quorumkeymanager.Config
 }
 
 func NewConfig(vipr *viper.Viper) *Config {
@@ -151,6 +153,7 @@ func NewConfig(vipr *viper.Viper) *Config {
 		NonceManagerExpiration: vipr.GetDuration(NonceManagerExpirationViperKey),
 		RedisCfg:               flags.NewRedisConfig(vipr),
 		NConsumer:              int(vipr.GetUint64(KafkaConsumerViperKey)),
+		QKM:                    flags.NewQKMConfig(vipr),
 	}
 }
 

@@ -5,15 +5,16 @@ package accounts
 import (
 	"context"
 	"fmt"
+	"github.com/consensys/orchestrate/src/infra/quorum-key-manager/http"
+	qkm "github.com/consensys/orchestrate/src/infra/quorum-key-manager/testutils"
 	"testing"
 
 	"github.com/consensys/orchestrate/pkg/errors"
-	"github.com/consensys/orchestrate/src/entities/testdata"
-	qkm "github.com/consensys/orchestrate/src/infra/quorum-key-manager"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
-	"github.com/consensys/orchestrate/src/entities"
 	mocks2 "github.com/consensys/orchestrate/src/api/business/use-cases/mocks"
 	"github.com/consensys/orchestrate/src/api/store/mocks"
+	"github.com/consensys/orchestrate/src/entities"
+	"github.com/consensys/orchestrate/src/entities/testdata"
 	qkmtypes "github.com/consensys/quorum-key-manager/src/stores/api/types"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/golang/mock/gomock"
@@ -48,8 +49,8 @@ func TestCreateAccount_Execute(t *testing.T) {
 		mockClient.EXPECT().CreateEthAccount(gomock.Any(), accEntity.StoreID, &qkmtypes.CreateEthAccountRequest{
 			KeyID: generateKeyID(userInfo.TenantID, accEntity.Alias),
 			Tags: map[string]string{
-				qkm.TagIDAllowedTenants:  userInfo.TenantID,
-				qkm.TagIDAllowedUsername: userInfo.Username,
+				http.TagIDAllowedTenants:  userInfo.TenantID,
+				http.TagIDAllowedUsername: userInfo.Username,
 			},
 		}).Return(acc, nil)
 		accountAgent.EXPECT().Insert(gomock.Any(), gomock.Any()).Return(nil)
@@ -74,8 +75,8 @@ func TestCreateAccount_Execute(t *testing.T) {
 			KeyID:      generateKeyID(userInfo.TenantID, accEntity.Alias),
 			PrivateKey: privKey,
 			Tags: map[string]string{
-				qkm.TagIDAllowedTenants:  userInfo.TenantID,
-				qkm.TagIDAllowedUsername: userInfo.Username,
+				http.TagIDAllowedTenants:  userInfo.TenantID,
+				http.TagIDAllowedUsername: userInfo.Username,
 			},
 		}).Return(acc, nil)
 		accountAgent.EXPECT().Insert(gomock.Any(), gomock.Any()).Return(nil)
@@ -100,8 +101,8 @@ func TestCreateAccount_Execute(t *testing.T) {
 		mockClient.EXPECT().CreateEthAccount(gomock.Any(), accEntity.StoreID, &qkmtypes.CreateEthAccountRequest{
 			KeyID: generateKeyID(userInfo.TenantID, accEntity.Alias),
 			Tags: map[string]string{
-				qkm.TagIDAllowedTenants:  userInfo.TenantID,
-				qkm.TagIDAllowedUsername: userInfo.Username,
+				http.TagIDAllowedTenants:  userInfo.TenantID,
+				http.TagIDAllowedUsername: userInfo.Username,
 			},
 		}).Return(acc, nil)
 		accountAgent.EXPECT().Insert(gomock.Any(), gomock.Any()).Return(nil)
@@ -150,8 +151,8 @@ func TestCreateAccount_Execute(t *testing.T) {
 		mockClient.EXPECT().CreateEthAccount(gomock.Any(), accEntity.StoreID, &qkmtypes.CreateEthAccountRequest{
 			KeyID: generateKeyID(userInfo.TenantID, accEntity.Alias),
 			Tags: map[string]string{
-				qkm.TagIDAllowedTenants:  userInfo.TenantID,
-				qkm.TagIDAllowedUsername: userInfo.Username,
+				http.TagIDAllowedTenants:  userInfo.TenantID,
+				http.TagIDAllowedUsername: userInfo.Username,
 			},
 		}).Return(nil, expectedErr)
 
@@ -216,8 +217,8 @@ func TestCreateAccount_Execute(t *testing.T) {
 		mockClient.EXPECT().CreateEthAccount(gomock.Any(), accEntity.StoreID, &qkmtypes.CreateEthAccountRequest{
 			KeyID: generateKeyID(userInfo.TenantID, accEntity.Alias),
 			Tags: map[string]string{
-				qkm.TagIDAllowedTenants:  userInfo.TenantID,
-				qkm.TagIDAllowedUsername: userInfo.Username,
+				http.TagIDAllowedTenants:  userInfo.TenantID,
+				http.TagIDAllowedUsername: userInfo.Username,
 			},
 		}).Return(acc, nil)
 		accountAgent.EXPECT().Insert(gomock.Any(), gomock.Any()).Return(expectedErr)
@@ -240,8 +241,8 @@ func TestCreateAccount_Execute(t *testing.T) {
 		mockClient.EXPECT().CreateEthAccount(gomock.Any(), accEntity.StoreID, &qkmtypes.CreateEthAccountRequest{
 			KeyID: generateKeyID(userInfo.TenantID, accEntity.Alias),
 			Tags: map[string]string{
-				qkm.TagIDAllowedTenants:  userInfo.TenantID,
-				qkm.TagIDAllowedUsername: userInfo.Username,
+				http.TagIDAllowedTenants:  userInfo.TenantID,
+				http.TagIDAllowedUsername: userInfo.Username,
 			},
 		}).Return(acc, nil)
 		accountAgent.EXPECT().Insert(gomock.Any(), gomock.Any()).Return(nil)

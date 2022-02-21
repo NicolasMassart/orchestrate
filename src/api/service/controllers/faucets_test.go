@@ -6,23 +6,23 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	qkm "github.com/consensys/orchestrate/src/infra/quorum-key-manager/testutils"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
-	qkm "github.com/consensys/orchestrate/src/infra/quorum-key-manager"
-	api "github.com/consensys/orchestrate/src/api/service/types"
-	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/service/formatters"
+	api "github.com/consensys/orchestrate/src/api/service/types"
+	"github.com/consensys/orchestrate/src/entities"
 	mocks2 "github.com/consensys/quorum-key-manager/pkg/client/mock"
 
 	"encoding/json"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
-	"github.com/consensys/orchestrate/src/entities/testdata"
-	apitestdata "github.com/consensys/orchestrate/src/api/service/types/testdata"
 	"github.com/consensys/orchestrate/src/api/business/use-cases/mocks"
+	apitestdata "github.com/consensys/orchestrate/src/api/service/types/testdata"
+	"github.com/consensys/orchestrate/src/entities/testdata"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
@@ -41,7 +41,7 @@ type faucetsCtrlTestSuite struct {
 	deleteFaucetUC   *mocks.MockDeleteFaucetUseCase
 	keyManagerClient *mocks2.MockKeyManagerClient
 	ctx              context.Context
-	userInfo		 *multitenancy.UserInfo
+	userInfo         *multitenancy.UserInfo
 	router           *mux.Router
 }
 

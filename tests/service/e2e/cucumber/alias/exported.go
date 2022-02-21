@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"sync"
 
+	"github.com/consensys/orchestrate/cmd/flags"
+
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/auth/key"
-	qkm "github.com/consensys/orchestrate/src/infra/quorum-key-manager"
 	txlistener "github.com/consensys/orchestrate/src/tx-listener"
 	txsender "github.com/consensys/orchestrate/src/tx-sender"
 	log "github.com/sirupsen/logrus"
@@ -47,8 +48,8 @@ func importGlobalAlias(rawTestData string) {
 		"api-key":             viper.GetString(key.APIKeyViperKey),
 		"tx-sender-metrics":   viper.GetString(txsender.MetricsURLViperKey),
 		"tx-listener-metrics": viper.GetString(txlistener.MetricsURLViperKey),
-		"key-manager":         viper.GetString(qkm.URLViperKey),
-		"key-manager-metrics": viper.GetString(qkm.MetricsURLViperKey),
+		"key-manager":         viper.GetString(flags.URLViperKey),
+		"key-manager-metrics": viper.GetString(flags.MetricsURLViperKey),
 		"external-tx-label":   ExternalTxLabel,
 	}
 

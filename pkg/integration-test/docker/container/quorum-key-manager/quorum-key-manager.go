@@ -9,8 +9,9 @@ import (
 	"strconv"
 	"time"
 
+	qkm "github.com/consensys/orchestrate/src/infra/quorum-key-manager/http"
+
 	httputils "github.com/consensys/orchestrate/pkg/toolkit/app/http"
-	qkm "github.com/consensys/orchestrate/src/infra/quorum-key-manager"
 	"github.com/docker/docker/api/types/mount"
 	log "github.com/sirupsen/logrus"
 
@@ -19,7 +20,7 @@ import (
 	"github.com/docker/go-connections/nat"
 )
 
-const defaultHashicorpVaultImage = "consensys/quorum-key-manager:v21.9.3"
+const defaultQKMImage = "consensys/quorum-key-manager:v21.9.2"
 const defaultHostPort = "8080"
 const defaultHost = "localhost"
 
@@ -37,7 +38,7 @@ type Config struct {
 
 func NewDefault() *Config {
 	return &Config{
-		Image:  defaultHashicorpVaultImage,
+		Image:  defaultQKMImage,
 		Port:   defaultHostPort,
 		Host:   defaultHost,
 		DBHost: defaultDBHost,

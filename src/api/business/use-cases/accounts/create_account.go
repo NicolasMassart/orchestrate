@@ -5,6 +5,8 @@ import (
 	"crypto/md5"
 	"fmt"
 
+	qkm "github.com/consensys/orchestrate/src/infra/quorum-key-manager/http"
+
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/ethereum/account"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
@@ -13,7 +15,6 @@ import (
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/store"
 	"github.com/consensys/orchestrate/src/entities"
-	qkm "github.com/consensys/orchestrate/src/infra/quorum-key-manager"
 	"github.com/consensys/quorum-key-manager/pkg/client"
 	qkmtypes "github.com/consensys/quorum-key-manager/src/stores/api/types"
 	"github.com/ethereum/go-ethereum/common/hexutil"

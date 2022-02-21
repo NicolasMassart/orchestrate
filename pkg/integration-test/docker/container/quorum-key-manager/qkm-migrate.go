@@ -23,7 +23,7 @@ type ConfigMigrate struct {
 
 func NewDefaultMigrate() *ConfigMigrate {
 	return &ConfigMigrate{
-		Image:  defaultHashicorpVaultImage,
+		Image:  defaultQKMImage,
 		DBPort: defaultDBPort,
 		DBHost: defaultDBHost,
 	}

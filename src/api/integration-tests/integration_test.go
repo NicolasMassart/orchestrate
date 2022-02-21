@@ -4,13 +4,13 @@ package integrationtests
 
 import (
 	"context"
+	integrationtest "github.com/consensys/orchestrate/pkg/integration-test"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http"
-	integrationtest "github.com/consensys/orchestrate/pkg/integration-test"
+	"github.com/consensys/orchestrate/pkg/utils"
 	api "github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/api/service/types/testdata"
 	entitiestestdata "github.com/consensys/orchestrate/src/entities/testdata"
-	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/stretchr/testify/suite"
 	"gopkg.in/h2non/gock.v1"
 	"os"
@@ -33,7 +33,7 @@ func (s *apiTestSuite) SetupSuite() {
 	if s.err != nil {
 		s.Fail(s.err.Error())
 	}
-	time.Sleep(2 * time.Second)
+	time.Sleep(1 * time.Second)
 
 	s.env.logger.Debug("setting up test accounts and chains")
 

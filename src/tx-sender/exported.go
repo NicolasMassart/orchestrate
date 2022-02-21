@@ -3,8 +3,11 @@ package txsender
 import (
 	"context"
 
+	qkmhttp "github.com/consensys/orchestrate/src/infra/quorum-key-manager/http"
+	nonclient "github.com/consensys/orchestrate/src/infra/quorum-key-manager/non-client"
 	"github.com/consensys/orchestrate/src/infra/redis"
 	"github.com/consensys/orchestrate/src/infra/redis/redigo"
+	"github.com/consensys/quorum-key-manager/pkg/client"
 
 	sarama2 "github.com/Shopify/sarama"
 	orchestrateClient "github.com/consensys/orchestrate/pkg/sdk/client"
@@ -13,45 +16,45 @@ import (
 	ethclient "github.com/consensys/orchestrate/src/infra/ethclient/rpc"
 
 	"github.com/consensys/orchestrate/src/infra/broker/sarama"
-	qkm "github.com/consensys/orchestrate/src/infra/quorum-key-manager"
 	"github.com/spf13/viper"
 )
 
 // New Utility function used to initialize a new service
 func New(ctx context.Context) (*app.App, error) {
 	logger := log.FromContext(ctx)
-	config := NewConfig(viper.GetViper())
-	var redisClient redis.Client
-	var err error
+	cfg := NewConfig(viper.GetViper())
+
+	// Initialize infra dependencies
+	redisClient, err := getRedisClient(cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	qkmClient, err := getQKMClient(cfg)
+	if err != nil {
+		return nil, err
+	}
 
 	sarama.InitSyncProducer(ctx)
-	qkm.Init()
 	orchestrateClient.Init()
 	ethclient.Init(ctx)
 
-	if config.NonceManagerType == NonceManagerTypeRedis {
-		redisClient, err = redigo.New(config.RedisCfg)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	consumerGroups := make([]sarama2.ConsumerGroup, config.NConsumer)
+	consumerGroups := make([]sarama2.ConsumerGroup, cfg.NConsumer)
 	hostnames := viper.GetStringSlice(sarama.KafkaURLViperKey)
-	for idx := 0; idx < config.NConsumer; idx++ {
-		consumerGroups[idx], err = NewSaramaConsumer(hostnames, config.GroupName)
+	for idx := 0; idx < cfg.NConsumer; idx++ {
+		consumerGroups[idx], err = NewSaramaConsumer(hostnames, cfg.GroupName)
 		if err != nil {
 			return nil, err
 		}
-		logger.WithField("host", hostnames).WithField("group_name", config.GroupName).
+		logger.WithField("host", hostnames).WithField("group_name", cfg.GroupName).
 			Info("consumer client ready")
 	}
 
 	return NewTxSender(
-		config,
+		cfg,
 		consumerGroups,
 		sarama.GlobalSyncProducer(),
-		qkm.GlobalClient(),
+		qkmClient,
 		orchestrateClient.GlobalClient(),
 		ethclient.GlobalClient(),
 		redisClient,
@@ -59,15 +62,31 @@ func New(ctx context.Context) (*app.App, error) {
 }
 
 func NewSaramaConsumer(hostnames []string, groupName string) (sarama2.ConsumerGroup, error) {
-	config, err := sarama.NewSaramaConfig()
+	cfg, err := sarama.NewSaramaConfig()
 	if err != nil {
 		return nil, err
 	}
 
-	client, err := sarama.NewClient(hostnames, config)
+	saramaClient, err := sarama.NewClient(hostnames, cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	return sarama.NewConsumerGroupFromClient(groupName, client)
+	return sarama.NewConsumerGroupFromClient(groupName, saramaClient)
+}
+
+func getRedisClient(cfg *Config) (redis.Client, error) {
+	if cfg.NonceManagerType == NonceManagerTypeRedis {
+		return redigo.New(cfg.RedisCfg)
+	}
+
+	return nil, nil
+}
+
+func getQKMClient(cfg *Config) (client.KeyManagerClient, error) {
+	if cfg.QKM.URL != "" {
+		return qkmhttp.New(cfg.QKM)
+	}
+
+	return nonclient.NewNonClient(), nil
 }
