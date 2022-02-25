@@ -25,6 +25,11 @@ type OrchestrateClient interface {
 	FaucetClient
 	ChainClient
 	ContractClient
+	ChainProxyClient
+}
+
+type ChainProxyClient interface {
+	ChainProxyURL(string) string
 }
 
 type TransactionClient interface {

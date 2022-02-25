@@ -52,6 +52,7 @@ linters:
 
 issues:
   max-same-issues: 10
+  exclude-use-default: true
 
 run:
   deadline: 20m
@@ -64,6 +65,7 @@ run:
     - /scripts
     - /vendor
     - /tests
+    - /src/tx-listener
   skip-files:
     - ".*\\.pb(\\.gw)?\\.go$"
     - pkg/toolkit/app/http/handler/dashboard/genstatic/gen.go

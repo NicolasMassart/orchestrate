@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/consensys/orchestrate/pkg/errors"
-	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/consensys/orchestrate/src/entities"
+	infra "github.com/consensys/orchestrate/src/infra/api"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
@@ -26,7 +26,7 @@ type IntervalRetryParams struct {
 const SentryMaxRetries = 10
 
 func (g *RetryParams) Validate() error {
-	if err := utils.GetValidator().Struct(g); err != nil {
+	if err := infra.GetValidator().Struct(g); err != nil {
 		return err
 	}
 

@@ -3,6 +3,9 @@ package http
 import (
 	"crypto/tls"
 	"time"
+
+	"github.com/consensys/orchestrate/pkg/toolkit/app/auth/key"
+	"github.com/spf13/viper"
 )
 
 type Config struct {
@@ -31,4 +34,10 @@ func NewDefaultConfig() *Config {
 		AuthHeaderForward:     true,
 		InsecureSkipVerify:    false,
 	}
+}
+
+func NewConfig(vipr *viper.Viper) *Config {
+	cfg := NewDefaultConfig()
+	cfg.XAPIKey = vipr.GetString(key.APIKeyViperKey)
+	return cfg
 }

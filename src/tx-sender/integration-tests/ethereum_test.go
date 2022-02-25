@@ -7,7 +7,13 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	pkgjson "github.com/consensys/orchestrate/pkg/encoding/json"
+	"io/ioutil"
+	"math/big"
+	http2 "net/http"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http/httputil"
@@ -15,12 +21,6 @@ import (
 	"github.com/consensys/orchestrate/src/infra/ethclient/rpc"
 	quorumkeymanager "github.com/consensys/orchestrate/src/infra/quorum-key-manager/http"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"io/ioutil"
-	"math/big"
-	http2 "net/http"
-	"strings"
-	"testing"
-	"time"
 
 	"github.com/Shopify/sarama"
 	encoding "github.com/consensys/orchestrate/pkg/encoding/proto"
@@ -30,6 +30,7 @@ import (
 	"github.com/consensys/orchestrate/pkg/utils"
 	api "github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities"
+	infra "github.com/consensys/orchestrate/src/infra/api"
 	utils2 "github.com/consensys/orchestrate/src/infra/ethclient/utils"
 	"github.com/consensys/quorum-key-manager/src/stores/api/types"
 	ethcommon "github.com/ethereum/go-ethereum/common"
@@ -1278,7 +1279,7 @@ func (s *txSenderEthereumTestSuite) TestZHealthCheck() {
 
 		assert.Equal(s.T(), 200, resp.StatusCode)
 		status := healthRes{}
-		err = pkgjson.UnmarshalBody(resp.Body, &status)
+		err = infra.UnmarshalBody(resp.Body, &status)
 		assert.NoError(s.T(), err)
 		assert.Equal(s.T(), "OK", status.API)
 		assert.Equal(s.T(), "OK", status.Kafka)
@@ -1307,7 +1308,7 @@ func (s *txSenderEthereumTestSuite) TestZHealthCheck() {
 
 		assert.Equal(s.T(), 503, resp.StatusCode)
 		status := healthRes{}
-		err = pkgjson.UnmarshalBody(resp.Body, &status)
+		err = infra.UnmarshalBody(resp.Body, &status)
 		assert.NoError(s.T(), err)
 		assert.NotEqual(s.T(), "OK", status.Kafka)
 		assert.Equal(s.T(), "OK", status.API)

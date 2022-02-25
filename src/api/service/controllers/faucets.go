@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"net/http"
 
-	jsonutils "github.com/consensys/orchestrate/pkg/encoding/json"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http/httputil"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"github.com/consensys/orchestrate/src/api/service/formatters"
 	api "github.com/consensys/orchestrate/src/api/service/types"
+	infra "github.com/consensys/orchestrate/src/infra/api"
 
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/gorilla/mux"
@@ -102,7 +102,7 @@ func (c *FaucetsController) register(rw http.ResponseWriter, request *http.Reque
 	ctx := request.Context()
 
 	faucetRequest := &api.RegisterFaucetRequest{}
-	err := jsonutils.UnmarshalBody(request.Body, faucetRequest)
+	err := infra.UnmarshalBody(request.Body, faucetRequest)
 	if err != nil {
 		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
@@ -136,7 +136,7 @@ func (c *FaucetsController) update(rw http.ResponseWriter, request *http.Request
 	ctx := request.Context()
 
 	faucetRequest := &api.UpdateFaucetRequest{}
-	err := jsonutils.UnmarshalBody(request.Body, faucetRequest)
+	err := infra.UnmarshalBody(request.Body, faucetRequest)
 	if err != nil {
 		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return

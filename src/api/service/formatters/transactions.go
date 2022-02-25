@@ -7,6 +7,7 @@ import (
 
 	"github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities"
+	infra "github.com/consensys/orchestrate/src/infra/api"
 
 	"github.com/consensys/orchestrate/pkg/utils"
 )
@@ -158,7 +159,7 @@ func FormatTransactionsFilterRequest(req *http.Request) (*entities.TransactionRe
 		filters.IdempotencyKeys = strings.Split(qIdempotencyKeys, ",")
 	}
 
-	if err := utils.GetValidator().Struct(filters); err != nil {
+	if err := infra.GetValidator().Struct(filters); err != nil {
 		return nil, err
 	}
 

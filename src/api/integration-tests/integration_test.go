@@ -37,7 +37,7 @@ func (s *apiTestSuite) SetupSuite() {
 
 	s.env.logger.Debug("setting up test accounts and chains")
 
-	conf := client.NewConfig(s.env.baseURL, nil)
+	conf := client.NewConfig(s.env.baseURL, "", nil)
 	conf.MetricsURL = s.env.metricsURL
 	s.client = client.NewHTTPClient(http.NewClient(http.NewDefaultConfig()), conf)
 

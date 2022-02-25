@@ -7,8 +7,8 @@ import (
 
 	"github.com/consensys/orchestrate/pkg/errors"
 	api "github.com/consensys/orchestrate/src/api/service/types"
+	infra "github.com/consensys/orchestrate/src/infra/api"
 
-	jsonutils "github.com/consensys/orchestrate/pkg/encoding/json"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http/httputil"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
@@ -72,7 +72,7 @@ func (c *TransactionsController) send(rw http.ResponseWriter, request *http.Requ
 	ctx := request.Context()
 
 	txRequest := &api.SendTransactionRequest{}
-	if err := jsonutils.UnmarshalBody(request.Body, txRequest); err != nil {
+	if err := infra.UnmarshalBody(request.Body, txRequest); err != nil {
 		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -114,7 +114,7 @@ func (c *TransactionsController) deployContract(rw http.ResponseWriter, request 
 	ctx := request.Context()
 
 	txRequest := &api.DeployContractRequest{}
-	if err := jsonutils.UnmarshalBody(request.Body, txRequest); err != nil {
+	if err := infra.UnmarshalBody(request.Body, txRequest); err != nil {
 		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -154,7 +154,7 @@ func (c *TransactionsController) sendRaw(rw http.ResponseWriter, request *http.R
 	ctx := request.Context()
 
 	txRequest := &api.RawTransactionRequest{}
-	err := jsonutils.UnmarshalBody(request.Body, txRequest)
+	err := infra.UnmarshalBody(request.Body, txRequest)
 	if err != nil {
 		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
@@ -190,7 +190,7 @@ func (c *TransactionsController) transfer(rw http.ResponseWriter, request *http.
 	ctx := request.Context()
 
 	txRequest := &api.TransferRequest{}
-	err := jsonutils.UnmarshalBody(request.Body, txRequest)
+	err := infra.UnmarshalBody(request.Body, txRequest)
 	if err != nil {
 		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return

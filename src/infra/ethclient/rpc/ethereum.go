@@ -6,8 +6,8 @@ import (
 	"math/big"
 
 	"github.com/consensys/orchestrate/pkg/errors"
-	"github.com/consensys/orchestrate/pkg/ethereum/types"
 	proto "github.com/consensys/orchestrate/pkg/types/ethereum"
+	"github.com/consensys/orchestrate/src/infra/ethclient/types"
 	"github.com/consensys/orchestrate/src/infra/ethclient/utils"
 	eth "github.com/ethereum/go-ethereum"
 	ethcommon "github.com/ethereum/go-ethereum/common"
@@ -34,11 +34,25 @@ func (ec *Client) BlockByHash(ctx context.Context, endpoint string, hash ethcomm
 //
 // Note that loading full blocks requires two requests. Use HeaderByNumber
 // if you don't need all transactions or uncle headers.
-func (ec *Client) BlockByNumber(ctx context.Context, endpoint string, number *big.Int) (*ethtypes.Block, error) {
+func (ec *Client) BlockByNumber(ctx context.Context, endpoint string, number *big.Int, includeTxs bool) (*ethtypes.Block, error) {
 	// Perform RPC call
 	var header *ethtypes.Header
 	var body *Body
-	err := ec.Call(ctx, endpoint, processBlockResult(&header, &body), "eth_getBlockByNumber", toBlockNumArg(number), true)
+	// @TODO if includeTxs==false, it fails because Transactions does not match
+	err := ec.Call(ctx, endpoint, processBlockResult(&header, &body), "eth_getBlockByNumber", toBlockNumArg(number), includeTxs)
+	if err != nil {
+		return nil, errors.FromError(err).ExtendComponent(component)
+	}
+
+	return ethtypes.NewBlock(header, body.Transactions, []*ethtypes.Header{}, []*ethtypes.Receipt{}, new(trie.Trie)), nil
+}
+
+func (ec *Client) LatestBlock(ctx context.Context, endpoint string, includeTxs bool) (*ethtypes.Block, error) {
+	// Perform RPC call
+	var header *ethtypes.Header
+	var body *Body
+	// @TODO if includeTxs==false, it fails because Transactions does not match
+	err := ec.Call(ctx, endpoint, processBlockResult(&header, &body), "eth_getBlockByNumber", "latest", includeTxs)
 	if err != nil {
 		return nil, errors.FromError(err).ExtendComponent(component)
 	}

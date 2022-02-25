@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities"
+	infra "github.com/consensys/orchestrate/src/infra/api"
 )
 
 func FormatRegisterFaucetRequest(request *types.RegisterFaucetRequest) *entities.Faucet {
@@ -60,7 +60,7 @@ func FormatFaucetFilters(req *http.Request) (*entities.FaucetFilters, error) {
 		filters.ChainRule = qChainRule
 	}
 
-	if err := utils.GetValidator().Struct(filters); err != nil {
+	if err := infra.GetValidator().Struct(filters); err != nil {
 		return nil, err
 	}
 

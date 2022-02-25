@@ -7,7 +7,7 @@ import (
 
 	"github.com/consensys/orchestrate/pkg/backoff"
 	"github.com/consensys/orchestrate/pkg/errors"
-	"github.com/consensys/orchestrate/pkg/toolkit/app"
+	"github.com/consensys/orchestrate/pkg/toolkit/app/http"
 	ethclient "github.com/consensys/orchestrate/src/infra/ethclient/rpc"
 	"github.com/sirupsen/logrus"
 
@@ -52,7 +52,8 @@ func Start(ctx context.Context) error {
 		return err
 	}
 
-	httpClient := app.NewHTTPClient(viper.GetViper())
+	httpClientCfg := http.NewConfig(viper.GetViper())
+	httpClient := http.NewClient(httpClientCfg)
 	backoffConf := orchestrateclient.NewConfigFromViper(viper.GetViper(),
 		backoff.IncrementalBackOff(time.Second, time.Second*5, time.Minute))
 	client := orchestrateclient.NewHTTPClient(httpClient, backoffConf)

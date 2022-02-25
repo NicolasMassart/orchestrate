@@ -7,9 +7,9 @@ package mock
 import (
 	context "context"
 	json "encoding/json"
-	types "github.com/consensys/orchestrate/pkg/ethereum/types"
-	rpc "github.com/consensys/orchestrate/src/infra/ethclient/rpc"
 	ethereum "github.com/consensys/orchestrate/pkg/types/ethereum"
+	rpc "github.com/consensys/orchestrate/src/infra/ethclient/rpc"
+	types "github.com/consensys/orchestrate/src/infra/ethclient/types"
 	ethereum0 "github.com/ethereum/go-ethereum"
 	common "github.com/ethereum/go-ethereum/common"
 	hexutil "github.com/ethereum/go-ethereum/common/hexutil"
@@ -232,18 +232,33 @@ func (mr *MockChainLedgerReaderMockRecorder) BlockByHash(ctx, url, hash interfac
 }
 
 // BlockByNumber mocks base method
-func (m *MockChainLedgerReader) BlockByNumber(ctx context.Context, url string, number *big.Int) (*types0.Block, error) {
+func (m *MockChainLedgerReader) BlockByNumber(ctx context.Context, url string, number *big.Int, includeTxs bool) (*types0.Block, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BlockByNumber", ctx, url, number)
+	ret := m.ctrl.Call(m, "BlockByNumber", ctx, url, number, includeTxs)
 	ret0, _ := ret[0].(*types0.Block)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // BlockByNumber indicates an expected call of BlockByNumber
-func (mr *MockChainLedgerReaderMockRecorder) BlockByNumber(ctx, url, number interface{}) *gomock.Call {
+func (mr *MockChainLedgerReaderMockRecorder) BlockByNumber(ctx, url, number, includeTxs interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockByNumber", reflect.TypeOf((*MockChainLedgerReader)(nil).BlockByNumber), ctx, url, number)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockByNumber", reflect.TypeOf((*MockChainLedgerReader)(nil).BlockByNumber), ctx, url, number, includeTxs)
+}
+
+// LatestBlock mocks base method
+func (m *MockChainLedgerReader) LatestBlock(ctx context.Context, url string, includeTxs bool) (*types0.Block, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LatestBlock", ctx, url, includeTxs)
+	ret0, _ := ret[0].(*types0.Block)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LatestBlock indicates an expected call of LatestBlock
+func (mr *MockChainLedgerReaderMockRecorder) LatestBlock(ctx, url, includeTxs interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LatestBlock", reflect.TypeOf((*MockChainLedgerReader)(nil).LatestBlock), ctx, url, includeTxs)
 }
 
 // HeaderByHash mocks base method
@@ -905,18 +920,33 @@ func (mr *MockMultiClientMockRecorder) BlockByHash(ctx, url, hash interface{}) *
 }
 
 // BlockByNumber mocks base method
-func (m *MockMultiClient) BlockByNumber(ctx context.Context, url string, number *big.Int) (*types0.Block, error) {
+func (m *MockMultiClient) BlockByNumber(ctx context.Context, url string, number *big.Int, includeTxs bool) (*types0.Block, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BlockByNumber", ctx, url, number)
+	ret := m.ctrl.Call(m, "BlockByNumber", ctx, url, number, includeTxs)
 	ret0, _ := ret[0].(*types0.Block)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // BlockByNumber indicates an expected call of BlockByNumber
-func (mr *MockMultiClientMockRecorder) BlockByNumber(ctx, url, number interface{}) *gomock.Call {
+func (mr *MockMultiClientMockRecorder) BlockByNumber(ctx, url, number, includeTxs interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockByNumber", reflect.TypeOf((*MockMultiClient)(nil).BlockByNumber), ctx, url, number)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockByNumber", reflect.TypeOf((*MockMultiClient)(nil).BlockByNumber), ctx, url, number, includeTxs)
+}
+
+// LatestBlock mocks base method
+func (m *MockMultiClient) LatestBlock(ctx context.Context, url string, includeTxs bool) (*types0.Block, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LatestBlock", ctx, url, includeTxs)
+	ret0, _ := ret[0].(*types0.Block)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LatestBlock indicates an expected call of LatestBlock
+func (mr *MockMultiClientMockRecorder) LatestBlock(ctx, url, includeTxs interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LatestBlock", reflect.TypeOf((*MockMultiClient)(nil).LatestBlock), ctx, url, includeTxs)
 }
 
 // HeaderByHash mocks base method
@@ -1473,18 +1503,33 @@ func (mr *MockClientMockRecorder) BlockByHash(ctx, url, hash interface{}) *gomoc
 }
 
 // BlockByNumber mocks base method
-func (m *MockClient) BlockByNumber(ctx context.Context, url string, number *big.Int) (*types0.Block, error) {
+func (m *MockClient) BlockByNumber(ctx context.Context, url string, number *big.Int, includeTxs bool) (*types0.Block, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BlockByNumber", ctx, url, number)
+	ret := m.ctrl.Call(m, "BlockByNumber", ctx, url, number, includeTxs)
 	ret0, _ := ret[0].(*types0.Block)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // BlockByNumber indicates an expected call of BlockByNumber
-func (mr *MockClientMockRecorder) BlockByNumber(ctx, url, number interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) BlockByNumber(ctx, url, number, includeTxs interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockByNumber", reflect.TypeOf((*MockClient)(nil).BlockByNumber), ctx, url, number)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockByNumber", reflect.TypeOf((*MockClient)(nil).BlockByNumber), ctx, url, number, includeTxs)
+}
+
+// LatestBlock mocks base method
+func (m *MockClient) LatestBlock(ctx context.Context, url string, includeTxs bool) (*types0.Block, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LatestBlock", ctx, url, includeTxs)
+	ret0, _ := ret[0].(*types0.Block)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LatestBlock indicates an expected call of LatestBlock
+func (mr *MockClientMockRecorder) LatestBlock(ctx, url, includeTxs interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LatestBlock", reflect.TypeOf((*MockClient)(nil).LatestBlock), ctx, url, includeTxs)
 }
 
 // HeaderByHash mocks base method
@@ -2184,18 +2229,33 @@ func (mr *MockQuorumClientMockRecorder) BlockByHash(ctx, url, hash interface{}) 
 }
 
 // BlockByNumber mocks base method
-func (m *MockQuorumClient) BlockByNumber(ctx context.Context, url string, number *big.Int) (*types0.Block, error) {
+func (m *MockQuorumClient) BlockByNumber(ctx context.Context, url string, number *big.Int, includeTxs bool) (*types0.Block, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BlockByNumber", ctx, url, number)
+	ret := m.ctrl.Call(m, "BlockByNumber", ctx, url, number, includeTxs)
 	ret0, _ := ret[0].(*types0.Block)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // BlockByNumber indicates an expected call of BlockByNumber
-func (mr *MockQuorumClientMockRecorder) BlockByNumber(ctx, url, number interface{}) *gomock.Call {
+func (mr *MockQuorumClientMockRecorder) BlockByNumber(ctx, url, number, includeTxs interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockByNumber", reflect.TypeOf((*MockQuorumClient)(nil).BlockByNumber), ctx, url, number)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockByNumber", reflect.TypeOf((*MockQuorumClient)(nil).BlockByNumber), ctx, url, number, includeTxs)
+}
+
+// LatestBlock mocks base method
+func (m *MockQuorumClient) LatestBlock(ctx context.Context, url string, includeTxs bool) (*types0.Block, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LatestBlock", ctx, url, includeTxs)
+	ret0, _ := ret[0].(*types0.Block)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LatestBlock indicates an expected call of LatestBlock
+func (mr *MockQuorumClientMockRecorder) LatestBlock(ctx, url, includeTxs interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LatestBlock", reflect.TypeOf((*MockQuorumClient)(nil).LatestBlock), ctx, url, includeTxs)
 }
 
 // HeaderByHash mocks base method

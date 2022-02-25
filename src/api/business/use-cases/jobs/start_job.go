@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
-	"github.com/consensys/orchestrate/pkg/utils/envelope"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/metrics"
 	"github.com/consensys/orchestrate/src/entities"
@@ -66,7 +65,7 @@ func (uc *startJobUseCase) Execute(ctx context.Context, jobUUID string, userInfo
 		return errors.FromError(err).ExtendComponent(startJobComponent)
 	}
 
-	partition, offset, err := envelope.SendJobMessage(job, uc.kafkaProducer, uc.topicsCfg.Sender)
+	partition, offset, err := SendJobMessage(job, uc.kafkaProducer, uc.topicsCfg.Sender)
 	if err != nil {
 		errMsg := "failed to send job message"
 		_ = uc.updateStatus(ctx, job, entities.StatusFailed, errMsg)
@@ -74,7 +73,9 @@ func (uc *startJobUseCase) Execute(ctx context.Context, jobUUID string, userInfo
 		return errors.FromError(err).ExtendComponent(startJobComponent)
 	}
 
-	logger.WithField("partition", partition).WithField("offset", offset).Info("job started successfully")
+	logger.WithField("partition", partition).
+		WithField("offset", offset).
+		Info("job started successfully")
 
 	return nil
 }

@@ -6,8 +6,8 @@ import (
 
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/entities"
+	infra "github.com/consensys/orchestrate/src/infra/api"
 
-	jsonutils "github.com/consensys/orchestrate/pkg/encoding/json"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http/httputil"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"github.com/consensys/orchestrate/src/api/service/formatters"
@@ -50,7 +50,7 @@ func (c *SchedulesController) create(rw http.ResponseWriter, request *http.Reque
 	ctx := request.Context()
 
 	scheduleRequest := &api.CreateScheduleRequest{}
-	err := jsonutils.UnmarshalBody(request.Body, scheduleRequest)
+	err := infra.UnmarshalBody(request.Body, scheduleRequest)
 	if err != nil {
 		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return

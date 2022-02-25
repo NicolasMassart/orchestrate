@@ -119,7 +119,7 @@ func (ec *Client) call(req *http.Request, processResult ParseResultFunc) error {
 	case err == nil && len(respMsg.Result) == 0:
 		return errors.NotFoundError("data not found")
 	case resp.StatusCode == 404:
-		return errors.NotFoundError("url %s not found", req.URL)
+		return errors.ConnectionError("url %s not found", req.URL)
 	case resp.StatusCode < 200 || resp.StatusCode >= 300:
 		return errors.EthConnectionError("%v (code=%v)", resp.Status, resp.StatusCode)
 	case err != nil:
@@ -211,7 +211,13 @@ type Body struct {
 	UncleHashes  []ethcommon.Hash        `json:"uncles"`
 }
 
-func processBlockResult(header **ethtypes.Header, body **Body) ParseResultFunc {
+type SimpleBody struct {
+	Hash         ethcommon.Hash    `json:"hash"`
+	Transactions []*ethcommon.Hash `json:"transactions"`
+	UncleHashes  []ethcommon.Hash  `json:"uncles"`
+}
+
+func processBlockResult(header **ethtypes.Header, body interface{}) ParseResultFunc {
 	return func(result json.RawMessage) error {
 		var raw json.RawMessage
 		err := utils.ProcessResult(&raw)(result)

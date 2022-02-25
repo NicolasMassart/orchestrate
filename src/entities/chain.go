@@ -15,7 +15,7 @@ type Chain struct {
 	ListenerDepth             uint64
 	ListenerCurrentBlock      uint64
 	ListenerStartingBlock     uint64
-	ListenerBackOffDuration   string
+	ListenerBackOffDuration   time.Duration
 	ListenerExternalTxEnabled bool
 	PrivateTxManager          *PrivateTxManager
 	Labels                    map[string]string

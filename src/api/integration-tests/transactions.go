@@ -4,19 +4,18 @@ package integrationtests
 
 import (
 	"context"
-	api "github.com/consensys/orchestrate/src/api/service/types"
 	"testing"
 	"time"
+
+	api "github.com/consensys/orchestrate/src/api/service/types"
 
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	clientutils "github.com/consensys/orchestrate/pkg/toolkit/app/http/client-utils"
-	"github.com/consensys/orchestrate/src/entities"
-	"github.com/consensys/orchestrate/src/api/service/types/testdata"
-	entitiestestdata "github.com/consensys/orchestrate/src/entities/testdata"
-	"github.com/consensys/orchestrate/pkg/types/tx"
 	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/consensys/orchestrate/src/api/service/controllers"
+	"github.com/consensys/orchestrate/src/api/service/types/testdata"
+	"github.com/consensys/orchestrate/src/entities"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -84,7 +83,7 @@ func (s *transactionsTestSuite) TestDeployContract() {
 		}
 		assert.Equal(t, job.ScheduleUUID, evlp.GetID())
 		assert.Equal(t, job.UUID, evlp.GetJobUUID())
-		assert.Equal(t, tx.JobTypeMap[entities.EthereumTransaction].String(), evlp.GetJobTypeString())
+		assert.Equal(t, entities.JobTypeToEnvelopeType[entities.EthereumTransaction].String(), evlp.GetJobTypeString())
 	})
 }
 
@@ -134,7 +133,7 @@ func (s *transactionsTestSuite) TestSendTransaction() {
 		assert.Equal(t, job.ScheduleUUID, evlp.GetID())
 		assert.Equal(t, job.UUID, evlp.GetJobUUID())
 		assert.True(t, evlp.IsOneTimeKeySignature())
-		assert.Equal(t, tx.JobTypeMap[entities.EthereumTransaction].String(), evlp.GetJobTypeString())
+		assert.Equal(t, entities.JobTypeToEnvelopeType[entities.EthereumTransaction].String(), evlp.GetJobTypeString())
 		assert.Equal(t, evlp.PartitionKey(), "")
 	})
 
@@ -275,7 +274,7 @@ func (s *transactionsTestSuite) TestSendEEATransaction() {
 
 		assert.Equal(t, privTxJob.ScheduleUUID, privTxEvlp.GetID())
 		assert.Equal(t, privTxJob.UUID, privTxEvlp.GetJobUUID())
-		assert.Equal(t, tx.JobTypeMap[entities.EEAPrivateTransaction].String(), privTxEvlp.GetJobTypeString())
+		assert.Equal(t, entities.JobTypeToEnvelopeType[entities.EEAPrivateTransaction].String(), privTxEvlp.GetJobTypeString())
 	})
 }
 
@@ -317,7 +316,7 @@ func (s *transactionsTestSuite) TestSendRawTransaction() {
 		}
 		assert.Equal(t, job.ScheduleUUID, evlp.GetID())
 		assert.Equal(t, job.UUID, evlp.GetJobUUID())
-		assert.Equal(t, tx.JobTypeMap[entities.EthereumRawTransaction].String(), evlp.GetJobTypeString())
+		assert.Equal(t, entities.JobTypeToEnvelopeType[entities.EthereumRawTransaction].String(), evlp.GetJobTypeString())
 	})
 }
 
@@ -359,7 +358,7 @@ func (s *transactionsTestSuite) TestSendRawTransaction() {
 // 
 // 		assert.Equal(t, job.ScheduleUUID, evlp.GetID())
 // 		assert.Equal(t, job.UUID, evlp.GetJobUUID())
-// 		assert.Equal(t, tx.JobTypeMap[entities.EthereumTransaction].String(), evlp.GetJobTypeString())
+// 		assert.Equal(t, entities.JobTypeToEnvelopeType[entities.EthereumTransaction].String(), evlp.GetJobTypeString())
 // 	})
 // }
 
@@ -406,7 +405,7 @@ func (s *transactionsTestSuite) TestSendTesseraTransaction() {
 		assert.Equal(t, privTxJob.ScheduleUUID, privTxEvlp.GetID())
 		assert.Equal(t, privTxJob.UUID, privTxEvlp.GetJobUUID())
 		assert.False(t, privTxEvlp.IsOneTimeKeySignature())
-		assert.Equal(t, tx.JobTypeMap[entities.TesseraPrivateTransaction].String(), privTxEvlp.GetJobTypeString())
+		assert.Equal(t, entities.JobTypeToEnvelopeType[entities.TesseraPrivateTransaction].String(), privTxEvlp.GetJobTypeString())
 	})
 }
 
@@ -429,7 +428,7 @@ func (s *transactionsTestSuite) TestSendCallOffTransaction() {
 	require.NoError(s.T(), err)
 
 	// Emulate an update done by tx-sender after sending tx to blockchain
-	fakeTx := entitiestestdata.FakeETHTransaction()
+	fakeTx := testdata.FakeETHTransactionReq()
 	fakeTx.GasFeeCap = utils.StringBigIntToHex("10000")
 	fakeTx.From = nil
 	_, err = s.client.UpdateJob(ctx, txResponse.Jobs[0].UUID, &api.UpdateJobRequest{
@@ -474,7 +473,7 @@ func (s *transactionsTestSuite) TestSendSpeedUpTransaction() {
 	require.NoError(s.T(), err)
 
 	// Emulate an update done by tx-sender after sending tx to blockchain
-	fakeTx := entitiestestdata.FakeETHTransaction()
+	fakeTx := testdata.FakeETHTransactionReq()
 	fakeTx.GasFeeCap = utils.StringBigIntToHex("10000")
 	fakeTx.From = nil
 	_, err = s.client.UpdateJob(ctx, txResponse.Jobs[0].UUID, &api.UpdateJobRequest{

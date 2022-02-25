@@ -120,39 +120,6 @@ func TestRequestToBuilder(t *testing.T) {
 			nil,
 		},
 		{
-			"tx request with validation error",
-			&TxEnvelope{
-				Msg: &TxEnvelope_TxRequest{
-					TxRequest: &TxRequest{
-						Headers: map[string]string{"testHeader1Key": "testHeader1Value"},
-						Chain:   "testChainName",
-						Params: &Params{
-							From:            "0x7e654d251da770a068413677967f6d3ea2fea9e4",
-							To:              "0xdbb881a51cd4023e4400cef3ef73046743f08da3",
-							Gas:             "11",
-							GasPrice:        "0xc",
-							Value:           "0xd",
-							Nonce:           "14",
-							Data:            "0xab",
-							Contract:        "testContractName[testContractTag]",
-							MethodSignature: "testMethodSignature(string,string)",
-							Args:            []string{"test1", "test2"},
-							PrivateFor:      []string{"not a Base64"},
-							PrivateFrom:     "ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc=",
-						},
-						Id:            "14483d15-d3bf-4aa0-a1ba-1244ba9ef2a6",
-						ContextLabels: map[string]string{"testContextLabelsKey": "testContextLabelsValue"},
-					},
-				},
-				InternalLabels: map[string]string{
-					ChainIDLabel:   "1",
-					ChainUUIDLabel: "testChainUUID",
-				},
-			},
-			nil,
-			errors.DataError("[42000@: invalid PrivateFor[0] got not a Base64]"),
-		},
-		{
 			"tx request with invalid internal labels error",
 			&TxEnvelope{
 				Msg: &TxEnvelope_TxRequest{

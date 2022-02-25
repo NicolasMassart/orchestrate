@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/consensys/orchestrate/pkg/errors"
+	infra "github.com/consensys/orchestrate/src/infra/api"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/consensys/orchestrate/src/entities"
@@ -44,7 +45,7 @@ func FormatJobCreateRequest(request *types.CreateJobRequest) *entities.Job {
 		Type:         request.Type,
 		Labels:       request.Labels,
 		InternalData: FormatAnnotationsToInternalData(request.Annotations),
-		Transaction:  &request.Transaction,
+		Transaction:  FormatETHTransactionRequest(&request.Transaction),
 	}
 
 	if request.ParentJobUUID != "" {
@@ -60,8 +61,11 @@ func FormatJobCreateRequest(request *types.CreateJobRequest) *entities.Job {
 
 func FormatJobUpdateRequest(request *types.UpdateJobRequest) *entities.Job {
 	job := &entities.Job{
-		Labels:      request.Labels,
-		Transaction: request.Transaction,
+		Labels: request.Labels,
+	}
+
+	if request.Transaction != nil {
+		job.Transaction = FormatETHTransactionRequest(request.Transaction)
 	}
 
 	if request.Annotations != nil {
@@ -116,7 +120,7 @@ func FormatJobFilterRequest(req *http.Request) (*entities.JobFilters, error) {
 		filters.WithLogs = true
 	}
 
-	if err := utils.GetValidator().Struct(filters); err != nil {
+	if err := infra.GetValidator().Struct(filters); err != nil {
 		return nil, err
 	}
 

@@ -13,9 +13,9 @@ import (
 	"strings"
 	"time"
 
-	pkgjson "github.com/consensys/orchestrate/pkg/encoding/json"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/src/entities"
+	"github.com/consensys/orchestrate/src/infra/api"
 
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/utils"
@@ -78,7 +78,7 @@ func HTTPCacheResponse(ctx context.Context, resp *http.Response) bool {
 	default:
 		reader = resp.Body
 	}
-	err := pkgjson.UnmarshalBody(reader, &msg)
+	err := api.UnmarshalBody(reader, &msg)
 	if err != nil {
 		logger.WithError(err).Debug("failed to decode rpc response")
 		return false

@@ -12,11 +12,9 @@ import (
 	error1 "github.com/consensys/orchestrate/pkg/types/error"
 	"github.com/consensys/orchestrate/pkg/types/ethereum"
 	"github.com/consensys/orchestrate/pkg/utils"
-	"github.com/consensys/orchestrate/src/entities"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/go-playground/validator/v10"
 	"github.com/opentracing/opentracing-go"
 )
 
@@ -231,22 +229,6 @@ func (e *Envelope) SetContextLabels(ctxLabels map[string]string) *Envelope {
 		e.ContextLabels = ctxLabels
 	}
 	return e
-}
-
-func (e *Envelope) Validate() []error {
-	err := utils.GetValidator().Struct(e)
-	if err != nil {
-		return utils.HandleValidatorError(err.(validator.ValidationErrors))
-	}
-
-	if e.IsEeaSendPrivateTransaction() && len(e.GetPrivateFor()) > 0 && e.GetPrivacyGroupID() != "" {
-		return []error{errors.DataError("privacyGroupId and privateFor fields are mutually exclusive")}
-	}
-
-	if e.IsEeaSendPrivateTransaction() && len(e.GetPrivateFor()) == 0 && e.GetPrivacyGroupID() == "" {
-		return []error{errors.DataError("privacyGroupId or privateFor is missing")}
-	}
-	return nil
 }
 
 func (e *Envelope) GetContextLabelsValue(key string) string {
@@ -880,12 +862,12 @@ func (e *Envelope) ShortContract() string {
 }
 
 type Private struct {
-	PrivateFor     []string             `validate:"dive,base64"`
-	MandatoryFor   []string             `validate:"dive,base64"`
-	PrivateFrom    string               `validate:"omitempty,base64"`
-	PrivateTxType  string               `validate:"omitempty,oneof=restricted unrestricted"`
-	PrivacyGroupID string               `validate:"omitempty,base64"`
-	PrivacyFlag    entities.PrivacyFlag `validate:"omitempty,isPrivacyFlag"`
+	PrivateFor     []string
+	MandatoryFor   []string
+	PrivateFrom    string
+	PrivateTxType  string
+	PrivacyGroupID string
+	PrivacyFlag    int
 }
 
 func (e *Envelope) GetPrivateFor() []string {
@@ -905,12 +887,12 @@ func (e *Envelope) SetMandatoryFor(mandatoryFor []string) *Envelope {
 	return e
 }
 
-func (e *Envelope) GetPrivacyFlag() entities.PrivacyFlag {
+func (e *Envelope) GetPrivacyFlag() int {
 	return e.PrivacyFlag
 }
 
 func (e *Envelope) SetPrivacyFlag(privacyFlag int32) *Envelope {
-	e.PrivacyFlag = entities.PrivacyFlag(privacyFlag)
+	e.PrivacyFlag = int(privacyFlag)
 	return e
 }
 

@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"math/big"
 
-	"github.com/consensys/orchestrate/pkg/ethereum/types"
 	proto "github.com/consensys/orchestrate/pkg/types/ethereum"
 	"github.com/consensys/orchestrate/src/infra/ethclient/rpc"
+	"github.com/consensys/orchestrate/src/infra/ethclient/types"
 	eth "github.com/ethereum/go-ethereum"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -52,7 +52,10 @@ type ChainLedgerReader interface {
 	BlockByHash(ctx context.Context, url string, hash ethcommon.Hash) (*ethtypes.Block, error)
 
 	// BlockByNumber returns a block from the current canonical chain
-	BlockByNumber(ctx context.Context, url string, number *big.Int) (*ethtypes.Block, error)
+	BlockByNumber(ctx context.Context, url string, number *big.Int, includeTxs bool) (*ethtypes.Block, error)
+
+	// BlockByNumber returns a block from the current canonical chain
+	LatestBlock(ctx context.Context, url string, includeTxs bool) (*ethtypes.Block, error)
 
 	// HeaderByHash returns the block header with the given hash.
 	HeaderByHash(ctx context.Context, url string, hash ethcommon.Hash) (*ethtypes.Header, error)

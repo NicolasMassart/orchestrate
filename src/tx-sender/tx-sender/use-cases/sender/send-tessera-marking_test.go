@@ -8,6 +8,7 @@ import (
 
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/sdk/client/mock"
+	testdata2 "github.com/consensys/orchestrate/src/api/service/types/testdata"
 	mock2 "github.com/consensys/orchestrate/src/infra/ethclient/mock"
 	api "github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities"
@@ -51,9 +52,11 @@ func TestSendTesseraMarking_Execute(t *testing.T) {
 		ec.EXPECT().SendQuorumRawPrivateTransaction(gomock.Any(), proxyURL, job.Transaction.Raw, job.Transaction.PrivateFor, nil, 0).
 			Return(txHash, nil)
 		nonceChecker.EXPECT().IncrementNonce(gomock.Any(), job).Return(nil)
-		jobClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, &api.UpdateJobRequest{
-			Status:      entities.StatusPending,
-			Transaction: job.Transaction,
+		jobClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, gomock.Any()).DoAndReturn(func(ctx context.Context, jobUUID string, request *api.UpdateJobRequest) (*api.JobResponse, error) {
+			assert.Equal(t, request.Status, entities.StatusPending)
+			assert.Equal(t, request.Transaction.Hash, job.Transaction.Hash)
+			assert.Equal(t, request.Transaction.Raw, job.Transaction.Raw)
+			return testdata2.FakeJobResponse(), nil
 		})
 
 		err := usecase.Execute(ctx, job)
@@ -74,9 +77,11 @@ func TestSendTesseraMarking_Execute(t *testing.T) {
 		ec.EXPECT().SendQuorumRawPrivateTransaction(gomock.Any(), proxyURL, job.Transaction.Raw, job.Transaction.PrivateFor, nil, 0).
 			Return(txHash, nil)
 		nonceChecker.EXPECT().IncrementNonce(gomock.Any(), job).Return(nil)
-		jobClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, &api.UpdateJobRequest{
-			Status:      entities.StatusResending,
-			Transaction: job.Transaction,
+		jobClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, gomock.Any()).DoAndReturn(func(ctx context.Context, jobUUID string, request *api.UpdateJobRequest) (*api.JobResponse, error) {
+			assert.Equal(t, request.Status, entities.StatusResending)
+			assert.Equal(t, request.Transaction.Hash, job.Transaction.Hash)
+			assert.Equal(t, request.Transaction.Raw, job.Transaction.Raw)
+			return testdata2.FakeJobResponse(), nil
 		})
 
 		err := usecase.Execute(ctx, job)
@@ -97,9 +102,11 @@ func TestSendTesseraMarking_Execute(t *testing.T) {
 		ec.EXPECT().SendQuorumRawPrivateTransaction(gomock.Any(), proxyURL, job.Transaction.Raw, job.Transaction.PrivateFor, nil, 0).
 			Return(txHash2, nil)
 		nonceChecker.EXPECT().IncrementNonce(gomock.Any(), job).Return(nil)
-		jobClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, &api.UpdateJobRequest{
-			Status:      entities.StatusPending,
-			Transaction: job.Transaction,
+		jobClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, gomock.Any()).DoAndReturn(func(ctx context.Context, jobUUID string, request *api.UpdateJobRequest) (*api.JobResponse, error) {
+			assert.Equal(t, request.Status, entities.StatusPending)
+			assert.Equal(t, request.Transaction.Hash, job.Transaction.Hash)
+			assert.Equal(t, request.Transaction.Raw, job.Transaction.Raw)
+			return testdata2.FakeJobResponse(), nil
 		})
 
 		jobClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, gomock.Any())
@@ -140,10 +147,12 @@ func TestSendTesseraMarking_Execute(t *testing.T) {
 		job.Transaction.Hash = &txHash
 
 		expectedErr := errors.InternalError("internal error")
-		jobClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, &api.UpdateJobRequest{
-			Status:      entities.StatusPending,
-			Transaction: job.Transaction,
-		}).Return(nil, expectedErr)
+		jobClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, gomock.Any()).DoAndReturn(func(ctx context.Context, jobUUID string, request *api.UpdateJobRequest) (*api.JobResponse, error) {
+			assert.Equal(t, request.Status, entities.StatusPending)
+			assert.Equal(t, request.Transaction.Hash, job.Transaction.Hash)
+			assert.Equal(t, request.Transaction.Raw, job.Transaction.Raw)
+			return nil, expectedErr
+		})
 
 		err := usecase.Execute(ctx, job)
 		assert.Equal(t, err, expectedErr)
@@ -159,9 +168,11 @@ func TestSendTesseraMarking_Execute(t *testing.T) {
 
 		expectedErr := errors.InternalError("internal error")
 		proxyURL := utils.GetProxyURL(chainRegistryURL, job.ChainUUID)
-		jobClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, &api.UpdateJobRequest{
-			Status:      entities.StatusPending,
-			Transaction: job.Transaction,
+		jobClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, gomock.Any()).DoAndReturn(func(ctx context.Context, jobUUID string, request *api.UpdateJobRequest) (*api.JobResponse, error) {
+			assert.Equal(t, request.Status, entities.StatusPending)
+			assert.Equal(t, request.Transaction.Hash, job.Transaction.Hash)
+			assert.Equal(t, request.Transaction.Raw, job.Transaction.Raw)
+			return testdata2.FakeJobResponse(), nil
 		})
 		ec.EXPECT().SendQuorumRawPrivateTransaction(gomock.Any(), proxyURL, job.Transaction.Raw, job.Transaction.PrivateFor, nil, 0).
 			Return(txHash, expectedErr)

@@ -236,7 +236,7 @@ func newTxSender(ctx context.Context, txSenderConfig *txsender.Config, redisCli 
 		URL: keyManagerURL,
 	})
 
-	conf2 := client.NewConfig(apiURL, nil)
+	conf2 := client.NewConfig(apiURL, "", nil)
 	conf2.MetricsURL = apiMetricsURL
 	apiClient := client.NewHTTPClient(httpClient, conf2)
 

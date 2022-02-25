@@ -13,7 +13,7 @@ import (
 	"github.com/cenkalti/backoff/v4"
 	backoffmock "github.com/consensys/orchestrate/pkg/backoff/mock"
 	"github.com/consensys/orchestrate/pkg/errors"
-	"github.com/consensys/orchestrate/pkg/ethereum/types"
+	"github.com/consensys/orchestrate/src/infra/ethclient/types"
 	"github.com/consensys/orchestrate/src/infra/ethclient/testutils"
 	"github.com/consensys/orchestrate/src/infra/ethclient/utils"
 	pkgUtils "github.com/consensys/orchestrate/pkg/utils"
@@ -145,7 +145,7 @@ func TestBlockByNumber(t *testing.T) {
 
 	// Test 1 with Error
 	ctx := testutils.NewContext(fmt.Errorf("test-error"), 0, nil)
-	_, err := ec.BlockByNumber(ctx, "test-endpoint", nil)
+	_, err := ec.BlockByNumber(ctx, "test-endpoint", nil, true)
 	assert.Error(t, err, "#1 BlockByNumber should  error")
 
 	// Test 2: empty block response
@@ -156,20 +156,20 @@ func TestBlockByNumber(t *testing.T) {
 	}
 
 	ctx = testutils.NewContext(nil, 200, testutils.MakeRespBody(*expectedBlock.Header(), ""))
-	respBlock, err := ec.BlockByNumber(ctx, "test-endpoint", nil)
+	respBlock, err := ec.BlockByNumber(ctx, "test-endpoint", nil, true)
 	assert.NoError(t, err, "#2 BlockByNumber should not error")
 	assert.Equal(t, expectedBlock.NumberU64(), respBlock.NumberU64(), "Block number should match")
 	assert.Equal(t, expectedBlock.ParentHash().Hex(), respBlock.ParentHash().Hex(), "Parent hash should match")
 
 	// Test 3: empty block response
 	ctx = testutils.NewContext(nil, 200, testutils.MakeRespBody(nil, ""))
-	_, err = ec.BlockByNumber(ctx, "test-endpoint", nil)
+	_, err = ec.BlockByNumber(ctx, "test-endpoint", nil, true)
 	assert.Error(t, err, "#3 BlockByNumber should error")
 	assert.True(t, errors.IsInvalidParameterError(err), "#3 BlockByNumber error should be not found")
 
 	// Test 4: null block response
 	ctx = testutils.NewContext(nil, 200, testutils.MakeRespBody([]byte(`null`), ""))
-	_, err = ec.BlockByNumber(ctx, "test-endpoint", nil)
+	_, err = ec.BlockByNumber(ctx, "test-endpoint", nil, true)
 	assert.Error(t, err, "#4 BlockByNumber should error")
 	assert.True(t, errors.IsInvalidParameterError(err), "#4 BlockByNumber error should be not found")
 }

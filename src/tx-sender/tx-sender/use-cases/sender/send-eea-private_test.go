@@ -8,6 +8,7 @@ import (
 
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/sdk/client/mock"
+	testdata2 "github.com/consensys/orchestrate/src/api/service/types/testdata"
 	mock2 "github.com/consensys/orchestrate/src/infra/ethclient/mock"
 	apitypes "github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities"
@@ -49,9 +50,11 @@ func TestSendEEAPrivate_Execute(t *testing.T) {
 		proxyURL := utils.GetProxyURL(chainRegistryURL, job.ChainUUID)
 		ec.EXPECT().PrivDistributeRawTransaction(gomock.Any(), proxyURL, job.Transaction.Raw).Return(txHash, nil)
 		nonceManager.EXPECT().IncrementNonce(gomock.Any(), job).Return(nil)
-		jobClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, &apitypes.UpdateJobRequest{
-			Status:      entities.StatusStored,
-			Transaction: job.Transaction,
+		jobClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, gomock.Any()).DoAndReturn(func(ctx context.Context, jobUUID string, request *apitypes.UpdateJobRequest) (*apitypes.JobResponse, error) {
+			assert.Equal(t, request.Status, entities.StatusStored)
+			assert.Equal(t, request.Transaction.Hash, job.Transaction.Hash)
+			assert.Equal(t, request.Transaction.Raw, job.Transaction.Raw)
+			return testdata2.FakeJobResponse(), nil
 		})
 
 		err := usecase.Execute(ctx, job)

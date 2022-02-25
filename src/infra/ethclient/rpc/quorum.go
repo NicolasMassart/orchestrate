@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
-	pkgjson "github.com/consensys/orchestrate/pkg/encoding/json"
 	"github.com/consensys/orchestrate/pkg/errors"
+	infra "github.com/consensys/orchestrate/src/infra/api"
 	"github.com/consensys/orchestrate/src/infra/ethclient/utils"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -119,7 +119,7 @@ func readResponseString(requestURL string, resp *http.Response) (string, error) 
 func readResponse(requestURL string, resp *http.Response, result interface{}) error {
 	log.Debugf("request to '%s' resulted with %d status code", requestURL, resp.StatusCode)
 
-	err := pkgjson.UnmarshalBody(resp.Body, result)
+	err := infra.UnmarshalBody(resp.Body, result)
 
 	if err != nil {
 		return errors.DataCorruptedError("failed to parse reply from '%s' request: %s", requestURL, err)

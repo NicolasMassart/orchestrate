@@ -2,6 +2,7 @@ package parsers
 
 import (
 	"math/big"
+	"time"
 
 	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/consensys/orchestrate/src/api/store/models"
@@ -9,6 +10,8 @@ import (
 )
 
 func NewChainEntity(chainModel *models.Chain) *entities.Chain {
+	listenerBackOffDuration, _ := time.ParseDuration(chainModel.ListenerBackOffDuration)
+
 	chain := &entities.Chain{
 		UUID:                      chainModel.UUID,
 		Name:                      chainModel.Name,
@@ -19,7 +22,7 @@ func NewChainEntity(chainModel *models.Chain) *entities.Chain {
 		ListenerDepth:             chainModel.ListenerDepth,
 		ListenerCurrentBlock:      chainModel.ListenerCurrentBlock,
 		ListenerStartingBlock:     chainModel.ListenerStartingBlock,
-		ListenerBackOffDuration:   chainModel.ListenerBackOffDuration,
+		ListenerBackOffDuration:   listenerBackOffDuration,
 		ListenerExternalTxEnabled: chainModel.ListenerExternalTxEnabled,
 		Labels:                    chainModel.Labels,
 		CreatedAt:                 chainModel.CreatedAt,
@@ -80,11 +83,14 @@ func NewChainModel(chain *entities.Chain) *models.Chain {
 		ListenerDepth:             chain.ListenerDepth,
 		ListenerCurrentBlock:      chain.ListenerCurrentBlock,
 		ListenerStartingBlock:     chain.ListenerStartingBlock,
-		ListenerBackOffDuration:   chain.ListenerBackOffDuration,
 		ListenerExternalTxEnabled: chain.ListenerExternalTxEnabled,
 		Labels:                    chain.Labels,
 		CreatedAt:                 chain.CreatedAt,
 		UpdatedAt:                 chain.UpdatedAt,
+	}
+
+	if chain.ListenerBackOffDuration.Milliseconds() > 0 {
+		chainModel.ListenerBackOffDuration = chain.ListenerBackOffDuration.String()
 	}
 
 	if chain.ChainID != nil {

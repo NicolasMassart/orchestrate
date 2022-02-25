@@ -7,10 +7,8 @@ import (
 	"testing"
 
 	"github.com/consensys/orchestrate/src/entities"
-	"github.com/consensys/orchestrate/pkg/utils/envelope"
 
 	"github.com/consensys/orchestrate/src/entities/testdata"
-	"github.com/consensys/orchestrate/pkg/types/tx"
 
 	"github.com/stretchr/testify/assert"
 	modelstestdata "github.com/consensys/orchestrate/src/api/store/models/testdata"
@@ -47,11 +45,11 @@ func TestParsersJob_NewEnvelopeFromModel(t *testing.T) {
 	headers := map[string]string{
 		"Authorization": "Bearer MyToken",
 	}
-	txEnvelope := envelope.NewEnvelopeFromJob(job, headers)
+	txEnvelope := job.TxEnvelope(headers)
 
 	txRequest := txEnvelope.GetTxRequest()
 	assert.Equal(t, job.ChainUUID, txEnvelope.GetChainUUID())
-	assert.Equal(t, tx.JobTypeMap[job.Type], txRequest.GetJobType())
+	assert.Equal(t, entities.JobTypeToEnvelopeType[job.Type], txRequest.GetJobType())
 	assert.Equal(t, job.Transaction.From.String(), txRequest.Params.GetFrom())
 	assert.Equal(t, job.Transaction.To.String(), txRequest.Params.GetTo())
 	assert.Equal(t, job.Transaction.Data.String(), txRequest.Params.GetData())
@@ -71,7 +69,7 @@ func TestParsersJob_NewEnvelopeFromModelOneTimeKey(t *testing.T) {
 		OneTimeKey: true,
 	}
 
-	txEnvelope := envelope.NewEnvelopeFromJob(job, map[string]string{})
+	txEnvelope := job.TxEnvelope(map[string]string{})
 
 	evlp, err := txEnvelope.Envelope()
 	assert.NoError(t, err)

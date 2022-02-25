@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/consensys/orchestrate/src/entities"
+	infra "github.com/consensys/orchestrate/src/infra/api"
 
-	jsonutils "github.com/consensys/orchestrate/pkg/encoding/json"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http/httputil"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
@@ -92,7 +92,7 @@ func (c *JobsController) create(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
 	jobRequest := &api.CreateJobRequest{}
-	err := jsonutils.UnmarshalBody(request.Body, jobRequest)
+	err := infra.UnmarshalBody(request.Body, jobRequest)
 	if err != nil {
 		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
@@ -209,7 +209,7 @@ func (c *JobsController) update(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
 	jobRequest := &api.UpdateJobRequest{}
-	err := jsonutils.UnmarshalBody(request.Body, jobRequest)
+	err := infra.UnmarshalBody(request.Body, jobRequest)
 	if err != nil {
 		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return

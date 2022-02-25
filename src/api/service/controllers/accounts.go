@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"net/http"
 
-	jsonutils "github.com/consensys/orchestrate/pkg/encoding/json"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http/httputil"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"github.com/consensys/orchestrate/pkg/utils"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/service/formatters"
 	api "github.com/consensys/orchestrate/src/api/service/types"
+	infra "github.com/consensys/orchestrate/src/infra/api"
 	"github.com/consensys/quorum-key-manager/pkg/client"
 	qkmstoretypes "github.com/consensys/quorum-key-manager/src/stores/api/types"
 	qkmutilstypes "github.com/consensys/quorum-key-manager/src/utils/api/types"
@@ -63,7 +63,7 @@ func (c *AccountsController) create(rw http.ResponseWriter, request *http.Reques
 	ctx := request.Context()
 
 	req := &api.CreateAccountRequest{}
-	err := jsonutils.UnmarshalBody(request.Body, req)
+	err := infra.UnmarshalBody(request.Body, req)
 	if err != nil {
 		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
@@ -167,7 +167,7 @@ func (c *AccountsController) importKey(rw http.ResponseWriter, request *http.Req
 	ctx := request.Context()
 
 	req := &api.ImportAccountRequest{}
-	err := jsonutils.UnmarshalBody(request.Body, req)
+	err := infra.UnmarshalBody(request.Body, req)
 	if err != nil {
 		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
@@ -203,7 +203,7 @@ func (c *AccountsController) update(rw http.ResponseWriter, request *http.Reques
 	ctx := request.Context()
 
 	accRequest := &api.UpdateAccountRequest{}
-	err := jsonutils.UnmarshalBody(request.Body, accRequest)
+	err := infra.UnmarshalBody(request.Body, accRequest)
 	if err != nil {
 		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
@@ -245,7 +245,7 @@ func (c *AccountsController) update(rw http.ResponseWriter, request *http.Reques
 func (c *AccountsController) signMessage(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 	payloadRequest := &api.SignMessageRequest{}
-	err := jsonutils.UnmarshalBody(request.Body, payloadRequest)
+	err := infra.UnmarshalBody(request.Body, payloadRequest)
 	if err != nil {
 		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
@@ -296,7 +296,7 @@ func (c *AccountsController) signMessage(rw http.ResponseWriter, request *http.R
 func (c *AccountsController) signTypedData(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 	signRequest := &api.SignTypedDataRequest{}
-	err := jsonutils.UnmarshalBody(request.Body, signRequest)
+	err := infra.UnmarshalBody(request.Body, signRequest)
 	if err != nil {
 		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
@@ -346,7 +346,7 @@ func (c *AccountsController) signTypedData(rw http.ResponseWriter, request *http
 // @Router       /accounts/verify-typed-data [post]
 func (c *AccountsController) verifyTypedDataSignature(rw http.ResponseWriter, request *http.Request) {
 	verifyRequest := &qkmutilstypes.VerifyTypedDataRequest{}
-	err := jsonutils.UnmarshalBody(request.Body, verifyRequest)
+	err := infra.UnmarshalBody(request.Body, verifyRequest)
 	if err != nil {
 		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
@@ -374,7 +374,7 @@ func (c *AccountsController) verifyTypedDataSignature(rw http.ResponseWriter, re
 // @Router       /accounts/verify-message [post]
 func (c *AccountsController) verifyMessageSignature(rw http.ResponseWriter, request *http.Request) {
 	verifyRequest := &qkmutilstypes.VerifyRequest{}
-	err := jsonutils.UnmarshalBody(request.Body, verifyRequest)
+	err := infra.UnmarshalBody(request.Body, verifyRequest)
 	if err != nil {
 		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return

@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	pkgjson "github.com/consensys/orchestrate/pkg/encoding/json"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http"
 	httpmetrics "github.com/consensys/orchestrate/pkg/toolkit/app/http/metrics"
@@ -17,6 +16,7 @@ import (
 	tpcmetrics "github.com/consensys/orchestrate/pkg/toolkit/tcp/metrics"
 	"github.com/consensys/orchestrate/src/api/service/types/testdata"
 	"github.com/consensys/orchestrate/src/api/metrics"
+	"github.com/consensys/orchestrate/src/infra/api"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -123,7 +123,7 @@ func (s *metricsTestSuite) TestZHealthCheck() {
 
 		assert.Equal(s.T(), 200, resp.StatusCode)
 		status := healthRes{}
-		err = pkgjson.UnmarshalBody(resp.Body, &status)
+		err = api.UnmarshalBody(resp.Body, &status)
 
 		assert.NoError(s.T(), err)
 		assert.Equal(s.T(), "OK", status.Database)
@@ -148,7 +148,7 @@ func (s *metricsTestSuite) TestZHealthCheck() {
 
 		assert.Equal(s.T(), 503, resp.StatusCode)
 		status := healthRes{}
-		err = pkgjson.UnmarshalBody(resp.Body, &status)
+		err = api.UnmarshalBody(resp.Body, &status)
 
 		assert.NoError(s.T(), err)
 		assert.Equal(s.T(), "OK", status.Database)
@@ -173,7 +173,7 @@ func (s *metricsTestSuite) TestZHealthCheck() {
 
 		assert.Equal(s.T(), 503, resp.StatusCode)
 		status := healthRes{}
-		err = pkgjson.UnmarshalBody(resp.Body, &status)
+		err = api.UnmarshalBody(resp.Body, &status)
 
 		assert.NoError(s.T(), err)
 		assert.NotEqual(s.T(), "OK", status.Database)

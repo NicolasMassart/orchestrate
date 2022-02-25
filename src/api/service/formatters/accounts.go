@@ -4,13 +4,13 @@ import (
 	"net/http"
 	"strings"
 
-	api "github.com/consensys/orchestrate/src/api/service/types"
+	"github.com/consensys/orchestrate/src/api/service/types"
+	infra "github.com/consensys/orchestrate/src/infra/api"
 
-	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/consensys/orchestrate/src/entities"
 )
 
-func FormatCreateAccountRequest(req *api.CreateAccountRequest, defaultStoreID string) *entities.Account {
+func FormatCreateAccountRequest(req *types.CreateAccountRequest, defaultStoreID string) *entities.Account {
 	acc := &entities.Account{
 		Alias:      req.Alias,
 		Attributes: req.Attributes,
@@ -24,7 +24,7 @@ func FormatCreateAccountRequest(req *api.CreateAccountRequest, defaultStoreID st
 	return acc
 }
 
-func FormatImportAccountRequest(req *api.ImportAccountRequest, defaultStoreID string) *entities.Account {
+func FormatImportAccountRequest(req *types.ImportAccountRequest, defaultStoreID string) *entities.Account {
 	acc := &entities.Account{
 		Alias:      req.Alias,
 		Attributes: req.Attributes,
@@ -38,7 +38,7 @@ func FormatImportAccountRequest(req *api.ImportAccountRequest, defaultStoreID st
 	return acc
 }
 
-func FormatUpdateAccountRequest(req *api.UpdateAccountRequest) *entities.Account {
+func FormatUpdateAccountRequest(req *types.UpdateAccountRequest) *entities.Account {
 	return &entities.Account{
 		Alias:      req.Alias,
 		Attributes: req.Attributes,
@@ -46,8 +46,8 @@ func FormatUpdateAccountRequest(req *api.UpdateAccountRequest) *entities.Account
 	}
 }
 
-func FormatAccountResponse(iden *entities.Account) *api.AccountResponse {
-	return &api.AccountResponse{
+func FormatAccountResponse(iden *entities.Account) *types.AccountResponse {
+	return &types.AccountResponse{
 		Alias:               iden.Alias,
 		Attributes:          iden.Attributes,
 		Address:             iden.Address.String(),
@@ -69,7 +69,7 @@ func FormatAccountFilterRequest(req *http.Request) (*entities.AccountFilters, er
 		filters.Aliases = strings.Split(qAliases, ",")
 	}
 
-	if err := utils.GetValidator().Struct(filters); err != nil {
+	if err := infra.GetValidator().Struct(filters); err != nil {
 		return nil, err
 	}
 

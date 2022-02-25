@@ -5,18 +5,8 @@ import (
 	"regexp"
 
 	"github.com/consensys/orchestrate/pkg/errors"
-	"github.com/consensys/orchestrate/src/entities"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 )
-
-var JobTypeMap = map[entities.JobType]JobType{
-	entities.EthereumTransaction:       JobType_ETH_TX,
-	entities.EthereumRawTransaction:    JobType_ETH_RAW_TX,
-	entities.EEAMarkingTransaction:     JobType_ETH_EEA_MARKING_TX,
-	entities.EEAPrivateTransaction:     JobType_ETH_EEA_PRIVATE_TX,
-	entities.TesseraMarkingTransaction: JobType_ETH_TESSERA_MARKING_TX,
-	entities.TesseraPrivateTransaction: JobType_ETH_TESSERA_PRIVATE_TX,
-}
 
 func (m *TxEnvelope) Envelope() (*Envelope, error) {
 	var b *Envelope
@@ -85,10 +75,6 @@ func (m *TxRequest) Envelope() (*Envelope, error) {
 	}
 	_ = envelope.SetContractName(contractName).SetContractTag(contractTag)
 
-	if err := envelope.Validate(); err != nil {
-		return nil, errors.DataError("%v", err)
-	}
-
 	return envelope, nil
 }
 
@@ -121,10 +107,6 @@ func (m *TxResponse) Envelope() (*Envelope, error) {
 
 	if len(errs) > 0 {
 		return nil, errors.DataError("%v", errs)
-	}
-
-	if err := envelope.Validate(); err != nil {
-		return nil, errors.DataError("%v", err)
 	}
 
 	return envelope, nil

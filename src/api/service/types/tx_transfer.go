@@ -1,7 +1,7 @@
 package types
 
 import (
-	"github.com/consensys/orchestrate/pkg/utils"
+	infra "github.com/consensys/orchestrate/src/infra/api"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -27,7 +27,7 @@ type TransferParams struct {
 }
 
 func (params *TransferParams) Validate() error {
-	if err := utils.GetValidator().Struct(params); err != nil {
+	if err := infra.GetValidator().Struct(params); err != nil {
 		return err
 	}
 	return params.GasPricePolicy.RetryPolicy.Validate()

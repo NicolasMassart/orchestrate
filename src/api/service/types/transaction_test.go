@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/consensys/orchestrate/pkg/utils"
+	infra "github.com/consensys/orchestrate/src/infra/api"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/assert"
 )
@@ -33,7 +34,7 @@ func TestTransactionParams_SuccessfulOneTimeKeyWithoutFrom(t *testing.T) {
 		ContractName:    "ContractName",
 	}
 
-	err := utils.GetValidator().Struct(params)
+	err := infra.GetValidator().Struct(params)
 	assert.NoError(t, err)
 }
 
@@ -194,7 +195,7 @@ func TestDeployContractParams_BasicSuccessful(t *testing.T) {
 		ContractName: "SimpleContract",
 	}
 
-	err := utils.GetValidator().Struct(params)
+	err := infra.GetValidator().Struct(params)
 	assert.NoError(t, err)
 }
 
@@ -204,7 +205,7 @@ func TestDeployContractParams_SuccessfulOneTimeKeyWithoutFrom(t *testing.T) {
 		OneTimeKey:   true,
 	}
 
-	err := utils.GetValidator().Struct(params)
+	err := infra.GetValidator().Struct(params)
 	assert.NoError(t, err)
 }
 

@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/consensys/orchestrate/src/entities"
+	infra "github.com/consensys/orchestrate/src/infra/api"
 
-	jsonutils "github.com/consensys/orchestrate/pkg/encoding/json"
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http/httputil"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
@@ -82,7 +82,7 @@ func (c *ContractsController) register(rw http.ResponseWriter, request *http.Req
 	ctx := request.Context()
 
 	req := &api.RegisterContractRequest{}
-	err := jsonutils.UnmarshalBody(request.Body, req)
+	err := infra.UnmarshalBody(request.Body, req)
 	if err != nil {
 		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
@@ -168,7 +168,7 @@ func (c *ContractsController) setCodeHash(rw http.ResponseWriter, request *http.
 	}
 
 	req := &api.SetContractCodeHashRequest{}
-	err := jsonutils.UnmarshalBody(request.Body, req)
+	err := infra.UnmarshalBody(request.Body, req)
 	if err != nil {
 		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return

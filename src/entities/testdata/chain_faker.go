@@ -2,6 +2,7 @@ package testdata
 
 import (
 	"math/big"
+	"time"
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"github.com/consensys/orchestrate/src/entities"
@@ -9,6 +10,7 @@ import (
 )
 
 func FakeChain() *entities.Chain {
+	backOffDuration, _ := time.ParseDuration("5s")
 	return &entities.Chain{
 		UUID:                      uuid.Must(uuid.NewV4()).String(),
 		Name:                      "ganache",
@@ -18,7 +20,7 @@ func FakeChain() *entities.Chain {
 		ListenerDepth:             0,
 		ListenerCurrentBlock:      0,
 		ListenerStartingBlock:     0,
-		ListenerBackOffDuration:   "5s",
+		ListenerBackOffDuration:   backOffDuration,
 		ListenerExternalTxEnabled: false,
 		PrivateTxManager:          FakePrivateTxManager(),
 	}

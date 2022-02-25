@@ -2,14 +2,16 @@ package formatters
 
 import (
 	"fmt"
+	"math/big"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/consensys/orchestrate/pkg/errors"
+	infra "github.com/consensys/orchestrate/src/infra/api"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities"
 )
@@ -25,7 +27,7 @@ func FormatChainResponse(chain *entities.Chain) *types.ChainResponse {
 		ListenerDepth:             chain.ListenerDepth,
 		ListenerCurrentBlock:      chain.ListenerCurrentBlock,
 		ListenerStartingBlock:     chain.ListenerStartingBlock,
-		ListenerBackOffDuration:   chain.ListenerBackOffDuration,
+		ListenerBackOffDuration:   chain.ListenerBackOffDuration.String(),
 		ListenerExternalTxEnabled: chain.ListenerExternalTxEnabled,
 		Labels:                    chain.Labels,
 		CreatedAt:                 chain.CreatedAt,
@@ -52,13 +54,18 @@ func FormatRegisterChainRequest(request *types.RegisterChainRequest, fromLatest 
 		Name:                      request.Name,
 		URLs:                      request.URLs,
 		ListenerDepth:             request.Listener.Depth,
-		ListenerBackOffDuration:   request.Listener.BackOffDuration,
 		ListenerExternalTxEnabled: request.Listener.ExternalTxEnabled,
 		Labels:                    request.Labels,
 	}
 
 	if request.Listener.BackOffDuration == "" {
-		chain.ListenerBackOffDuration = "5s"
+		chain.ListenerBackOffDuration, _ = time.ParseDuration("5s")
+	} else {
+		var err error
+		chain.ListenerBackOffDuration, err = time.ParseDuration(request.Listener.BackOffDuration)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if !fromLatest {
@@ -82,7 +89,7 @@ func FormatRegisterChainRequest(request *types.RegisterChainRequest, fromLatest 
 	return chain, nil
 }
 
-func FormatUpdateChainRequest(request *types.UpdateChainRequest, uuid string) *entities.Chain {
+func FormatUpdateChainRequest(request *types.UpdateChainRequest, uuid string) (*entities.Chain, error) {
 	chain := &entities.Chain{
 		UUID:   uuid,
 		Name:   request.Name,
@@ -90,7 +97,13 @@ func FormatUpdateChainRequest(request *types.UpdateChainRequest, uuid string) *e
 	}
 
 	if request.Listener != nil {
-		chain.ListenerBackOffDuration = request.Listener.BackOffDuration
+		if request.Listener.BackOffDuration != "" {
+			var err error
+			chain.ListenerBackOffDuration, err = time.ParseDuration(request.Listener.BackOffDuration)
+			if err != nil {
+				return nil, err
+			}
+		}
 		chain.ListenerDepth = request.Listener.Depth
 		chain.ListenerExternalTxEnabled = request.Listener.ExternalTxEnabled
 		chain.ListenerCurrentBlock = request.Listener.CurrentBlock
@@ -103,7 +116,7 @@ func FormatUpdateChainRequest(request *types.UpdateChainRequest, uuid string) *e
 		}
 	}
 
-	return chain
+	return chain, nil
 }
 
 func FormatChainFiltersRequest(req *http.Request) (*entities.ChainFilters, error) {
@@ -114,9 +127,44 @@ func FormatChainFiltersRequest(req *http.Request) (*entities.ChainFilters, error
 		filters.Names = strings.Split(qNames, ",")
 	}
 
-	if err := utils.GetValidator().Struct(filters); err != nil {
+	if err := infra.GetValidator().Struct(filters); err != nil {
 		return nil, err
 	}
 
 	return filters, nil
+}
+
+func ChainResponseToEntity(chain *types.ChainResponse) *entities.Chain {
+	// Cannot fail as the duration coming from a response is expected to be valid
+	chainID, _ := new(big.Int).SetString(chain.ChainID, 10)
+	listenerBackOffDuration, _ := time.ParseDuration(chain.ListenerBackOffDuration)
+	return &entities.Chain{
+		UUID:                      chain.UUID,
+		Name:                      chain.Name,
+		TenantID:                  chain.TenantID,
+		OwnerID:                   chain.OwnerID,
+		URLs:                      chain.URLs,
+		ChainID:                   chainID,
+		ListenerDepth:             chain.ListenerDepth,
+		ListenerCurrentBlock:      chain.ListenerCurrentBlock,
+		ListenerStartingBlock:     chain.ListenerStartingBlock,
+		ListenerBackOffDuration:   listenerBackOffDuration,
+		ListenerExternalTxEnabled: chain.ListenerExternalTxEnabled,
+		PrivateTxManager:          PrivateTxManagerResponseToEntity(chain.PrivateTxManager),
+		Labels:                    chain.Labels,
+		CreatedAt:                 chain.CreatedAt,
+		UpdatedAt:                 chain.UpdatedAt,
+	}
+}
+
+func PrivateTxManagerResponseToEntity(privTxMngr *types.PrivateTxManagerResponse) *entities.PrivateTxManager {
+	if privTxMngr == nil {
+		return nil
+	}
+	// Cannot fail as the duration coming from a response is expected to be valid
+	return &entities.PrivateTxManager{
+		URL:       privTxMngr.URL,
+		CreatedAt: privTxMngr.CreatedAt,
+		Type:      privTxMngr.Type,
+	}
 }

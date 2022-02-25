@@ -5,25 +5,26 @@ package controllers
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
-	api "github.com/consensys/orchestrate/src/api/service/types"
-	"github.com/consensys/orchestrate/src/entities"
-	"github.com/consensys/orchestrate/src/api/business/use-cases"
-	"github.com/consensys/orchestrate/src/api/service/formatters"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
+	"github.com/consensys/orchestrate/src/api/business/use-cases"
+	"github.com/consensys/orchestrate/src/api/service/formatters"
+	api "github.com/consensys/orchestrate/src/api/service/types"
+	"github.com/consensys/orchestrate/src/entities"
+
+	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
+	"github.com/consensys/orchestrate/src/api/business/use-cases/mocks"
+	apitestdata "github.com/consensys/orchestrate/src/api/service/types/testdata"
+	"github.com/consensys/orchestrate/src/entities/testdata"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	"encoding/json"
-	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
-	"github.com/consensys/orchestrate/src/entities/testdata"
-	apitestdata "github.com/consensys/orchestrate/src/api/service/types/testdata"
-	"github.com/consensys/orchestrate/src/api/business/use-cases/mocks"
 
 	ethcommon "github.com/ethereum/go-ethereum/common"
 )
@@ -38,7 +39,7 @@ type chainsCtrlTestSuite struct {
 	updateChainUC   *mocks.MockUpdateChainUseCase
 	deleteChainUC   *mocks.MockDeleteChainUseCase
 	ctx             context.Context
-	userInfo		 *multitenancy.UserInfo
+	userInfo        *multitenancy.UserInfo
 	router          *mux.Router
 }
 
@@ -203,8 +204,9 @@ func (s *chainsCtrlTestSuite) TestUpdate() {
 			NewRequest(http.MethodPatch, chainsEndpoint+"/chainUUID", bytes.NewReader(requestBytes)).
 			WithContext(s.ctx)
 
+		nextChain, _ := formatters.FormatUpdateChainRequest(req, "chainUUID")
 		s.updateChainUC.EXPECT().
-			Execute(gomock.Any(), formatters.FormatUpdateChainRequest(req, "chainUUID"), s.userInfo).
+			Execute(gomock.Any(), nextChain, s.userInfo).
 			Return(chain, nil)
 
 		s.router.ServeHTTP(rw, httpRequest)

@@ -9,11 +9,12 @@ import (
 
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/sdk/client/mock"
-	mock2 "github.com/consensys/orchestrate/src/infra/ethclient/mock"
+	"github.com/consensys/orchestrate/pkg/utils"
 	api "github.com/consensys/orchestrate/src/api/service/types"
+	testdata2 "github.com/consensys/orchestrate/src/api/service/types/testdata"
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/entities/testdata"
-	"github.com/consensys/orchestrate/pkg/utils"
+	mock2 "github.com/consensys/orchestrate/src/infra/ethclient/mock"
 	"github.com/consensys/orchestrate/src/tx-sender/tx-sender/use-cases/mocks"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/golang/mock/gomock"
@@ -43,9 +44,11 @@ func TestSendTesseraPrivate_Execute(t *testing.T) {
 		crafter.EXPECT().Execute(gomock.Any(), job)
 		ec.EXPECT().StoreRaw(gomock.Any(), proxyURL, job.Transaction.Data, job.Transaction.PrivateFrom).Return(enclaveKey, nil)
 
-		jobClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, &api.UpdateJobRequest{
-			Status: entities.StatusStored,
-			Transaction: job.Transaction,
+		jobClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, gomock.Any()).DoAndReturn(func(ctx context.Context, jobUUID string, request *api.UpdateJobRequest) (*api.JobResponse, error) {
+			assert.Equal(t, request.Status, entities.StatusStored)
+			assert.Equal(t, request.Transaction.Data, job.Transaction.Data)
+			assert.Equal(t, request.Transaction.EnclaveKey, job.Transaction.EnclaveKey)
+			return testdata2.FakeJobResponse(), nil
 		})
 
 		err := usecase.Execute(ctx, job)

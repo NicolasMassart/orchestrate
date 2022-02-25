@@ -8,6 +8,54 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
+func FormatETHTransactionRequest(tx *types.ETHTransactionRequest) *entities.ETHTransaction {
+	return &entities.ETHTransaction{
+		Hash:            tx.Hash,
+		From:            tx.From,
+		To:              tx.To,
+		Nonce:           tx.Nonce,
+		Value:           tx.Value,
+		Gas:             tx.Gas,
+		GasPrice:        tx.GasPrice,
+		GasFeeCap:       tx.GasFeeCap,
+		GasTipCap:       tx.GasTipCap,
+		AccessList:      tx.AccessList,
+		TransactionType: tx.TransactionType,
+		Data:            tx.Data,
+		Raw:             tx.Raw,
+		EnclaveKey:      tx.EnclaveKey,
+		PrivateFrom:     tx.PrivateFrom,
+		PrivateFor:      tx.PrivateFor,
+		MandatoryFor:    tx.MandatoryFor,
+		PrivacyGroupID:  tx.PrivacyGroupID,
+		PrivacyFlag:     tx.PrivacyFlag,
+	}
+}
+
+func ETHTransactionRequestToEntity(tx *entities.ETHTransaction) *types.ETHTransactionRequest {
+	return &types.ETHTransactionRequest{
+		Hash:            tx.Hash,
+		From:            tx.From,
+		To:              tx.To,
+		Nonce:           tx.Nonce,
+		Value:           tx.Value,
+		Gas:             tx.Gas,
+		GasPrice:        tx.GasPrice,
+		GasFeeCap:       tx.GasFeeCap,
+		GasTipCap:       tx.GasTipCap,
+		AccessList:      tx.AccessList,
+		TransactionType: tx.TransactionType,
+		Data:            tx.Data,
+		Raw:             tx.Raw,
+		EnclaveKey:      tx.EnclaveKey,
+		PrivateFrom:     tx.PrivateFrom,
+		PrivateFor:      tx.PrivateFor,
+		MandatoryFor:    tx.MandatoryFor,
+		PrivacyGroupID:  tx.PrivacyGroupID,
+		PrivacyFlag:     tx.PrivacyFlag,
+	}
+}
+
 func FormatETHTransactionResponse(tx *entities.ETHTransaction) *types.ETHTransactionResponse {
 	res := &types.ETHTransactionResponse{
 		Nonce:           tx.Nonce,

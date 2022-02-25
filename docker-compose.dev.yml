@@ -11,7 +11,7 @@ x-default-variables: &default-variables
   KEY_MANAGER_CLIENT_TLS_CERT: ${KEY_MANAGER_CLIENT_TLS_CERT-}
   KEY_MANAGER_CLIENT_TLS_KEY: ${KEY_MANAGER_CLIENT_TLS_KEY-}
   TX_SENDER_METRICS_URL: ${TX_SENDER_METRICS_URL-http://tx-sender:8082}
-  TX_LISTENER_METRICS_URL: ${TX_LISTENER_METRICS_URL-http://tx-listener:8082}
+  CHAIN_LISTENER_METRICS_URL: ${CHAIN_LISTENER_METRICS_URL-http://chain-listener:8082}
   ETH_CLIENT_RETRY_MAX_ELAPSED_TIME: 5s
   ACCESSLOG_ENABLED: ${ACCESSLOG_ENABLED-false}
   LOG_LEVEL: ${LOG_LEVEL-debug}
@@ -131,7 +131,7 @@ services:
       - api
     command: tx-sender run
 
-  tx-listener:
+  chain-listener:
     ports:
       - 8082:8082
     <<: *container-common
@@ -139,7 +139,7 @@ services:
       <<: *default-variables
     depends_on:
       - api
-    command: tx-listener run
+    command: chain-listener run
 
 networks:
   orchestrate:

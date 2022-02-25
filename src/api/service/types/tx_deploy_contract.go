@@ -1,8 +1,8 @@
 package types
 
 import (
-	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/consensys/orchestrate/src/entities"
+	infra "github.com/consensys/orchestrate/src/infra/api"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -37,7 +37,7 @@ type DeployContractParams struct {
 }
 
 func (params *DeployContractParams) Validate() error {
-	if err := utils.GetValidator().Struct(params); err != nil {
+	if err := infra.GetValidator().Struct(params); err != nil {
 		return err
 	}
 

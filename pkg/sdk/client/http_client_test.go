@@ -44,7 +44,7 @@ func TestClientUpdate_DefaultSuccess(t *testing.T) {
 	server := testServer(expectedRes)
 	client = NewHTTPClient(
 		server.Client(),
-		NewConfig(server.URL, nil),
+		NewConfig(server.URL, "", nil),
 	)
 
 	res, err := client.UpdateJob(ctx, jobUUID, req)
@@ -64,7 +64,7 @@ func TestClientUpdate_DoesNotRetryOnSuccess(t *testing.T) {
 	server := testServer(expectedRes)
 	client = NewHTTPClient(
 		server.Client(),
-		NewConfig(server.URL, bckoff),
+		NewConfig(server.URL, "", bckoff),
 	)
 
 	res, err := client.UpdateJob(ctx, jobUUID, req)
@@ -88,7 +88,7 @@ func TestClientUpdate_RetryOnInvalidStateError(t *testing.T) {
 	}, expectedRes)
 	client = NewHTTPClient(
 		server.Client(),
-		NewConfig(server.URL, bckoff),
+		NewConfig(server.URL, "", bckoff),
 	)
 
 	res, err := client.UpdateJob(ctx, jobUUID, req)
@@ -113,7 +113,7 @@ func TestClientUpdate_NotRetryOnNotInvalidStateError(t *testing.T) {
 
 	client = NewHTTPClient(
 		server.Client(),
-		NewConfig(server.URL, bckoff),
+		NewConfig(server.URL, "", bckoff),
 	)
 
 	_, err := client.UpdateJob(ctx, jobUUID, req)

@@ -97,13 +97,13 @@ func FakeCreateJobRequest() *types.CreateJobRequest {
 		ScheduleUUID: uuid.Must(uuid.NewV4()).String(),
 		ChainUUID:    uuid.Must(uuid.NewV4()).String(),
 		Type:         entities.EthereumTransaction,
-		Transaction:  *testdata.FakeETHTransaction(),
+		Transaction:  *FakeETHTransactionReq(),
 	}
 }
 
 func FakeJobUpdateRequest() *types.UpdateJobRequest {
 	return &types.UpdateJobRequest{
-		Transaction: testdata.FakeETHTransaction(),
+		Transaction: FakeETHTransactionReq(),
 		Status:      entities.StatusPending,
 	}
 }

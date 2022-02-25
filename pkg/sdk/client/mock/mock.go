@@ -6,10 +6,10 @@ package mock
 
 import (
 	context "context"
-	api "github.com/consensys/orchestrate/src/api/service/types"
+	types "github.com/consensys/orchestrate/src/api/service/types"
 	entities "github.com/consensys/orchestrate/src/entities"
-	types "github.com/consensys/quorum-key-manager/src/stores/api/types"
-	types0 "github.com/consensys/quorum-key-manager/src/utils/api/types"
+	types0 "github.com/consensys/quorum-key-manager/src/stores/api/types"
+	types1 "github.com/consensys/quorum-key-manager/src/utils/api/types"
 	common "github.com/ethereum/go-ethereum/common"
 	gomock "github.com/golang/mock/gomock"
 	healthcheck "github.com/heptiolabs/healthcheck"
@@ -41,10 +41,10 @@ func (m *MockOrchestrateClient) EXPECT() *MockOrchestrateClientMockRecorder {
 }
 
 // SendContractTransaction mocks base method
-func (m *MockOrchestrateClient) SendContractTransaction(ctx context.Context, request *api.SendTransactionRequest) (*api.TransactionResponse, error) {
+func (m *MockOrchestrateClient) SendContractTransaction(ctx context.Context, request *types.SendTransactionRequest) (*types.TransactionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendContractTransaction", ctx, request)
-	ret0, _ := ret[0].(*api.TransactionResponse)
+	ret0, _ := ret[0].(*types.TransactionResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -56,10 +56,10 @@ func (mr *MockOrchestrateClientMockRecorder) SendContractTransaction(ctx, reques
 }
 
 // SendDeployTransaction mocks base method
-func (m *MockOrchestrateClient) SendDeployTransaction(ctx context.Context, request *api.DeployContractRequest) (*api.TransactionResponse, error) {
+func (m *MockOrchestrateClient) SendDeployTransaction(ctx context.Context, request *types.DeployContractRequest) (*types.TransactionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendDeployTransaction", ctx, request)
-	ret0, _ := ret[0].(*api.TransactionResponse)
+	ret0, _ := ret[0].(*types.TransactionResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -71,10 +71,10 @@ func (mr *MockOrchestrateClientMockRecorder) SendDeployTransaction(ctx, request 
 }
 
 // SendRawTransaction mocks base method
-func (m *MockOrchestrateClient) SendRawTransaction(ctx context.Context, request *api.RawTransactionRequest) (*api.TransactionResponse, error) {
+func (m *MockOrchestrateClient) SendRawTransaction(ctx context.Context, request *types.RawTransactionRequest) (*types.TransactionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendRawTransaction", ctx, request)
-	ret0, _ := ret[0].(*api.TransactionResponse)
+	ret0, _ := ret[0].(*types.TransactionResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -86,10 +86,10 @@ func (mr *MockOrchestrateClientMockRecorder) SendRawTransaction(ctx, request int
 }
 
 // SendTransferTransaction mocks base method
-func (m *MockOrchestrateClient) SendTransferTransaction(ctx context.Context, request *api.TransferRequest) (*api.TransactionResponse, error) {
+func (m *MockOrchestrateClient) SendTransferTransaction(ctx context.Context, request *types.TransferRequest) (*types.TransactionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendTransferTransaction", ctx, request)
-	ret0, _ := ret[0].(*api.TransactionResponse)
+	ret0, _ := ret[0].(*types.TransactionResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -101,10 +101,10 @@ func (mr *MockOrchestrateClientMockRecorder) SendTransferTransaction(ctx, reques
 }
 
 // GetTxRequest mocks base method
-func (m *MockOrchestrateClient) GetTxRequest(ctx context.Context, txRequestUUID string) (*api.TransactionResponse, error) {
+func (m *MockOrchestrateClient) GetTxRequest(ctx context.Context, txRequestUUID string) (*types.TransactionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTxRequest", ctx, txRequestUUID)
-	ret0, _ := ret[0].(*api.TransactionResponse)
+	ret0, _ := ret[0].(*types.TransactionResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -116,10 +116,10 @@ func (mr *MockOrchestrateClientMockRecorder) GetTxRequest(ctx, txRequestUUID int
 }
 
 // SendCallOffTransaction mocks base method
-func (m *MockOrchestrateClient) SendCallOffTransaction(ctx context.Context, txRequestUUID string) (*api.TransactionResponse, error) {
+func (m *MockOrchestrateClient) SendCallOffTransaction(ctx context.Context, txRequestUUID string) (*types.TransactionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendCallOffTransaction", ctx, txRequestUUID)
-	ret0, _ := ret[0].(*api.TransactionResponse)
+	ret0, _ := ret[0].(*types.TransactionResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -131,10 +131,10 @@ func (mr *MockOrchestrateClientMockRecorder) SendCallOffTransaction(ctx, txReque
 }
 
 // SendSpeedUpTransaction mocks base method
-func (m *MockOrchestrateClient) SendSpeedUpTransaction(ctx context.Context, txRequestUUID string, increment *float64) (*api.TransactionResponse, error) {
+func (m *MockOrchestrateClient) SendSpeedUpTransaction(ctx context.Context, txRequestUUID string, increment *float64) (*types.TransactionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendSpeedUpTransaction", ctx, txRequestUUID, increment)
-	ret0, _ := ret[0].(*api.TransactionResponse)
+	ret0, _ := ret[0].(*types.TransactionResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -146,10 +146,10 @@ func (mr *MockOrchestrateClientMockRecorder) SendSpeedUpTransaction(ctx, txReque
 }
 
 // GetSchedule mocks base method
-func (m *MockOrchestrateClient) GetSchedule(ctx context.Context, scheduleUUID string) (*api.ScheduleResponse, error) {
+func (m *MockOrchestrateClient) GetSchedule(ctx context.Context, scheduleUUID string) (*types.ScheduleResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSchedule", ctx, scheduleUUID)
-	ret0, _ := ret[0].(*api.ScheduleResponse)
+	ret0, _ := ret[0].(*types.ScheduleResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -161,10 +161,10 @@ func (mr *MockOrchestrateClientMockRecorder) GetSchedule(ctx, scheduleUUID inter
 }
 
 // GetSchedules mocks base method
-func (m *MockOrchestrateClient) GetSchedules(ctx context.Context) ([]*api.ScheduleResponse, error) {
+func (m *MockOrchestrateClient) GetSchedules(ctx context.Context) ([]*types.ScheduleResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSchedules", ctx)
-	ret0, _ := ret[0].([]*api.ScheduleResponse)
+	ret0, _ := ret[0].([]*types.ScheduleResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -176,10 +176,10 @@ func (mr *MockOrchestrateClientMockRecorder) GetSchedules(ctx interface{}) *gomo
 }
 
 // CreateSchedule mocks base method
-func (m *MockOrchestrateClient) CreateSchedule(ctx context.Context, request *api.CreateScheduleRequest) (*api.ScheduleResponse, error) {
+func (m *MockOrchestrateClient) CreateSchedule(ctx context.Context, request *types.CreateScheduleRequest) (*types.ScheduleResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateSchedule", ctx, request)
-	ret0, _ := ret[0].(*api.ScheduleResponse)
+	ret0, _ := ret[0].(*types.ScheduleResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -191,10 +191,10 @@ func (mr *MockOrchestrateClientMockRecorder) CreateSchedule(ctx, request interfa
 }
 
 // GetJob mocks base method
-func (m *MockOrchestrateClient) GetJob(ctx context.Context, jobUUID string) (*api.JobResponse, error) {
+func (m *MockOrchestrateClient) GetJob(ctx context.Context, jobUUID string) (*types.JobResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetJob", ctx, jobUUID)
-	ret0, _ := ret[0].(*api.JobResponse)
+	ret0, _ := ret[0].(*types.JobResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -206,10 +206,10 @@ func (mr *MockOrchestrateClientMockRecorder) GetJob(ctx, jobUUID interface{}) *g
 }
 
 // GetJobs mocks base method
-func (m *MockOrchestrateClient) GetJobs(ctx context.Context) ([]*api.JobResponse, error) {
+func (m *MockOrchestrateClient) GetJobs(ctx context.Context) ([]*types.JobResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetJobs", ctx)
-	ret0, _ := ret[0].([]*api.JobResponse)
+	ret0, _ := ret[0].([]*types.JobResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -221,10 +221,10 @@ func (mr *MockOrchestrateClientMockRecorder) GetJobs(ctx interface{}) *gomock.Ca
 }
 
 // CreateJob mocks base method
-func (m *MockOrchestrateClient) CreateJob(ctx context.Context, request *api.CreateJobRequest) (*api.JobResponse, error) {
+func (m *MockOrchestrateClient) CreateJob(ctx context.Context, request *types.CreateJobRequest) (*types.JobResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateJob", ctx, request)
-	ret0, _ := ret[0].(*api.JobResponse)
+	ret0, _ := ret[0].(*types.JobResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -236,10 +236,10 @@ func (mr *MockOrchestrateClientMockRecorder) CreateJob(ctx, request interface{})
 }
 
 // UpdateJob mocks base method
-func (m *MockOrchestrateClient) UpdateJob(ctx context.Context, jobUUID string, request *api.UpdateJobRequest) (*api.JobResponse, error) {
+func (m *MockOrchestrateClient) UpdateJob(ctx context.Context, jobUUID string, request *types.UpdateJobRequest) (*types.JobResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateJob", ctx, jobUUID, request)
-	ret0, _ := ret[0].(*api.JobResponse)
+	ret0, _ := ret[0].(*types.JobResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -279,10 +279,10 @@ func (mr *MockOrchestrateClientMockRecorder) ResendJobTx(ctx, jobUUID interface{
 }
 
 // SearchJob mocks base method
-func (m *MockOrchestrateClient) SearchJob(ctx context.Context, filters *entities.JobFilters) ([]*api.JobResponse, error) {
+func (m *MockOrchestrateClient) SearchJob(ctx context.Context, filters *entities.JobFilters) ([]*types.JobResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SearchJob", ctx, filters)
-	ret0, _ := ret[0].([]*api.JobResponse)
+	ret0, _ := ret[0].([]*types.JobResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -323,10 +323,10 @@ func (mr *MockOrchestrateClientMockRecorder) Prometheus(arg0 interface{}) *gomoc
 }
 
 // CreateAccount mocks base method
-func (m *MockOrchestrateClient) CreateAccount(ctx context.Context, request *api.CreateAccountRequest) (*api.AccountResponse, error) {
+func (m *MockOrchestrateClient) CreateAccount(ctx context.Context, request *types.CreateAccountRequest) (*types.AccountResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateAccount", ctx, request)
-	ret0, _ := ret[0].(*api.AccountResponse)
+	ret0, _ := ret[0].(*types.AccountResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -338,10 +338,10 @@ func (mr *MockOrchestrateClientMockRecorder) CreateAccount(ctx, request interfac
 }
 
 // SearchAccounts mocks base method
-func (m *MockOrchestrateClient) SearchAccounts(ctx context.Context, filters *entities.AccountFilters) ([]*api.AccountResponse, error) {
+func (m *MockOrchestrateClient) SearchAccounts(ctx context.Context, filters *entities.AccountFilters) ([]*types.AccountResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SearchAccounts", ctx, filters)
-	ret0, _ := ret[0].([]*api.AccountResponse)
+	ret0, _ := ret[0].([]*types.AccountResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -353,10 +353,10 @@ func (mr *MockOrchestrateClientMockRecorder) SearchAccounts(ctx, filters interfa
 }
 
 // GetAccount mocks base method
-func (m *MockOrchestrateClient) GetAccount(ctx context.Context, address common.Address) (*api.AccountResponse, error) {
+func (m *MockOrchestrateClient) GetAccount(ctx context.Context, address common.Address) (*types.AccountResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAccount", ctx, address)
-	ret0, _ := ret[0].(*api.AccountResponse)
+	ret0, _ := ret[0].(*types.AccountResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -368,10 +368,10 @@ func (mr *MockOrchestrateClientMockRecorder) GetAccount(ctx, address interface{}
 }
 
 // ImportAccount mocks base method
-func (m *MockOrchestrateClient) ImportAccount(ctx context.Context, request *api.ImportAccountRequest) (*api.AccountResponse, error) {
+func (m *MockOrchestrateClient) ImportAccount(ctx context.Context, request *types.ImportAccountRequest) (*types.AccountResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ImportAccount", ctx, request)
-	ret0, _ := ret[0].(*api.AccountResponse)
+	ret0, _ := ret[0].(*types.AccountResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -383,10 +383,10 @@ func (mr *MockOrchestrateClientMockRecorder) ImportAccount(ctx, request interfac
 }
 
 // UpdateAccount mocks base method
-func (m *MockOrchestrateClient) UpdateAccount(ctx context.Context, address common.Address, request *api.UpdateAccountRequest) (*api.AccountResponse, error) {
+func (m *MockOrchestrateClient) UpdateAccount(ctx context.Context, address common.Address, request *types.UpdateAccountRequest) (*types.AccountResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateAccount", ctx, address, request)
-	ret0, _ := ret[0].(*api.AccountResponse)
+	ret0, _ := ret[0].(*types.AccountResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -398,7 +398,7 @@ func (mr *MockOrchestrateClientMockRecorder) UpdateAccount(ctx, address, request
 }
 
 // SignMessage mocks base method
-func (m *MockOrchestrateClient) SignMessage(ctx context.Context, address common.Address, request *types.SignMessageRequest) (string, error) {
+func (m *MockOrchestrateClient) SignMessage(ctx context.Context, address common.Address, request *types0.SignMessageRequest) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SignMessage", ctx, address, request)
 	ret0, _ := ret[0].(string)
@@ -413,7 +413,7 @@ func (mr *MockOrchestrateClientMockRecorder) SignMessage(ctx, address, request i
 }
 
 // SignTypedData mocks base method
-func (m *MockOrchestrateClient) SignTypedData(ctx context.Context, address common.Address, request *types.SignTypedDataRequest) (string, error) {
+func (m *MockOrchestrateClient) SignTypedData(ctx context.Context, address common.Address, request *types0.SignTypedDataRequest) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SignTypedData", ctx, address, request)
 	ret0, _ := ret[0].(string)
@@ -428,7 +428,7 @@ func (mr *MockOrchestrateClientMockRecorder) SignTypedData(ctx, address, request
 }
 
 // VerifyMessageSignature mocks base method
-func (m *MockOrchestrateClient) VerifyMessageSignature(ctx context.Context, request *types0.VerifyRequest) error {
+func (m *MockOrchestrateClient) VerifyMessageSignature(ctx context.Context, request *types1.VerifyRequest) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "VerifyMessageSignature", ctx, request)
 	ret0, _ := ret[0].(error)
@@ -442,7 +442,7 @@ func (mr *MockOrchestrateClientMockRecorder) VerifyMessageSignature(ctx, request
 }
 
 // VerifyTypedDataSignature mocks base method
-func (m *MockOrchestrateClient) VerifyTypedDataSignature(ctx context.Context, request *types0.VerifyTypedDataRequest) error {
+func (m *MockOrchestrateClient) VerifyTypedDataSignature(ctx context.Context, request *types1.VerifyTypedDataRequest) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "VerifyTypedDataSignature", ctx, request)
 	ret0, _ := ret[0].(error)
@@ -456,10 +456,10 @@ func (mr *MockOrchestrateClientMockRecorder) VerifyTypedDataSignature(ctx, reque
 }
 
 // RegisterFaucet mocks base method
-func (m *MockOrchestrateClient) RegisterFaucet(ctx context.Context, request *api.RegisterFaucetRequest) (*api.FaucetResponse, error) {
+func (m *MockOrchestrateClient) RegisterFaucet(ctx context.Context, request *types.RegisterFaucetRequest) (*types.FaucetResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RegisterFaucet", ctx, request)
-	ret0, _ := ret[0].(*api.FaucetResponse)
+	ret0, _ := ret[0].(*types.FaucetResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -471,10 +471,10 @@ func (mr *MockOrchestrateClientMockRecorder) RegisterFaucet(ctx, request interfa
 }
 
 // UpdateFaucet mocks base method
-func (m *MockOrchestrateClient) UpdateFaucet(ctx context.Context, uuid string, request *api.UpdateFaucetRequest) (*api.FaucetResponse, error) {
+func (m *MockOrchestrateClient) UpdateFaucet(ctx context.Context, uuid string, request *types.UpdateFaucetRequest) (*types.FaucetResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateFaucet", ctx, uuid, request)
-	ret0, _ := ret[0].(*api.FaucetResponse)
+	ret0, _ := ret[0].(*types.FaucetResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -486,10 +486,10 @@ func (mr *MockOrchestrateClientMockRecorder) UpdateFaucet(ctx, uuid, request int
 }
 
 // GetFaucet mocks base method
-func (m *MockOrchestrateClient) GetFaucet(ctx context.Context, uuid string) (*api.FaucetResponse, error) {
+func (m *MockOrchestrateClient) GetFaucet(ctx context.Context, uuid string) (*types.FaucetResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFaucet", ctx, uuid)
-	ret0, _ := ret[0].(*api.FaucetResponse)
+	ret0, _ := ret[0].(*types.FaucetResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -501,10 +501,10 @@ func (mr *MockOrchestrateClientMockRecorder) GetFaucet(ctx, uuid interface{}) *g
 }
 
 // SearchFaucets mocks base method
-func (m *MockOrchestrateClient) SearchFaucets(ctx context.Context, filters *entities.FaucetFilters) ([]*api.FaucetResponse, error) {
+func (m *MockOrchestrateClient) SearchFaucets(ctx context.Context, filters *entities.FaucetFilters) ([]*types.FaucetResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SearchFaucets", ctx, filters)
-	ret0, _ := ret[0].([]*api.FaucetResponse)
+	ret0, _ := ret[0].([]*types.FaucetResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -530,10 +530,10 @@ func (mr *MockOrchestrateClientMockRecorder) DeleteFaucet(ctx, uuid interface{})
 }
 
 // RegisterChain mocks base method
-func (m *MockOrchestrateClient) RegisterChain(ctx context.Context, request *api.RegisterChainRequest) (*api.ChainResponse, error) {
+func (m *MockOrchestrateClient) RegisterChain(ctx context.Context, request *types.RegisterChainRequest) (*types.ChainResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RegisterChain", ctx, request)
-	ret0, _ := ret[0].(*api.ChainResponse)
+	ret0, _ := ret[0].(*types.ChainResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -545,10 +545,10 @@ func (mr *MockOrchestrateClientMockRecorder) RegisterChain(ctx, request interfac
 }
 
 // UpdateChain mocks base method
-func (m *MockOrchestrateClient) UpdateChain(ctx context.Context, uuid string, request *api.UpdateChainRequest) (*api.ChainResponse, error) {
+func (m *MockOrchestrateClient) UpdateChain(ctx context.Context, uuid string, request *types.UpdateChainRequest) (*types.ChainResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateChain", ctx, uuid, request)
-	ret0, _ := ret[0].(*api.ChainResponse)
+	ret0, _ := ret[0].(*types.ChainResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -560,10 +560,10 @@ func (mr *MockOrchestrateClientMockRecorder) UpdateChain(ctx, uuid, request inte
 }
 
 // GetChain mocks base method
-func (m *MockOrchestrateClient) GetChain(ctx context.Context, uuid string) (*api.ChainResponse, error) {
+func (m *MockOrchestrateClient) GetChain(ctx context.Context, uuid string) (*types.ChainResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetChain", ctx, uuid)
-	ret0, _ := ret[0].(*api.ChainResponse)
+	ret0, _ := ret[0].(*types.ChainResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -575,10 +575,10 @@ func (mr *MockOrchestrateClientMockRecorder) GetChain(ctx, uuid interface{}) *go
 }
 
 // SearchChains mocks base method
-func (m *MockOrchestrateClient) SearchChains(ctx context.Context, filters *entities.ChainFilters) ([]*api.ChainResponse, error) {
+func (m *MockOrchestrateClient) SearchChains(ctx context.Context, filters *entities.ChainFilters) ([]*types.ChainResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SearchChains", ctx, filters)
-	ret0, _ := ret[0].([]*api.ChainResponse)
+	ret0, _ := ret[0].([]*types.ChainResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -604,10 +604,10 @@ func (mr *MockOrchestrateClientMockRecorder) DeleteChain(ctx, uuid interface{}) 
 }
 
 // RegisterContract mocks base method
-func (m *MockOrchestrateClient) RegisterContract(ctx context.Context, req *api.RegisterContractRequest) (*api.ContractResponse, error) {
+func (m *MockOrchestrateClient) RegisterContract(ctx context.Context, req *types.RegisterContractRequest) (*types.ContractResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RegisterContract", ctx, req)
-	ret0, _ := ret[0].(*api.ContractResponse)
+	ret0, _ := ret[0].(*types.ContractResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -633,10 +633,10 @@ func (mr *MockOrchestrateClientMockRecorder) DeregisterContract(ctx, name, tag i
 }
 
 // GetContract mocks base method
-func (m *MockOrchestrateClient) GetContract(ctx context.Context, name, tag string) (*api.ContractResponse, error) {
+func (m *MockOrchestrateClient) GetContract(ctx context.Context, name, tag string) (*types.ContractResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetContract", ctx, name, tag)
-	ret0, _ := ret[0].(*api.ContractResponse)
+	ret0, _ := ret[0].(*types.ContractResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -648,10 +648,10 @@ func (mr *MockOrchestrateClientMockRecorder) GetContract(ctx, name, tag interfac
 }
 
 // SearchContract mocks base method
-func (m *MockOrchestrateClient) SearchContract(ctx context.Context, req *api.SearchContractRequest) (*api.ContractResponse, error) {
+func (m *MockOrchestrateClient) SearchContract(ctx context.Context, req *types.SearchContractRequest) (*types.ContractResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SearchContract", ctx, req)
-	ret0, _ := ret[0].(*api.ContractResponse)
+	ret0, _ := ret[0].(*types.ContractResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -693,7 +693,7 @@ func (mr *MockOrchestrateClientMockRecorder) GetContractTags(ctx, name interface
 }
 
 // SetContractAddressCodeHash mocks base method
-func (m *MockOrchestrateClient) SetContractAddressCodeHash(ctx context.Context, address, chainID string, req *api.SetContractCodeHashRequest) error {
+func (m *MockOrchestrateClient) SetContractAddressCodeHash(ctx context.Context, address, chainID string, req *types.SetContractCodeHashRequest) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetContractAddressCodeHash", ctx, address, chainID, req)
 	ret0, _ := ret[0].(error)
@@ -707,10 +707,10 @@ func (mr *MockOrchestrateClientMockRecorder) SetContractAddressCodeHash(ctx, add
 }
 
 // GetContractEvents mocks base method
-func (m *MockOrchestrateClient) GetContractEvents(ctx context.Context, address, chainID string, req *api.GetContractEventsRequest) (*api.GetContractEventsBySignHashResponse, error) {
+func (m *MockOrchestrateClient) GetContractEvents(ctx context.Context, address, chainID string, req *types.GetContractEventsRequest) (*types.GetContractEventsBySignHashResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetContractEvents", ctx, address, chainID, req)
-	ret0, _ := ret[0].(*api.GetContractEventsBySignHashResponse)
+	ret0, _ := ret[0].(*types.GetContractEventsBySignHashResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -719,6 +719,57 @@ func (m *MockOrchestrateClient) GetContractEvents(ctx context.Context, address, 
 func (mr *MockOrchestrateClientMockRecorder) GetContractEvents(ctx, address, chainID, req interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContractEvents", reflect.TypeOf((*MockOrchestrateClient)(nil).GetContractEvents), ctx, address, chainID, req)
+}
+
+// ChainProxyURL mocks base method
+func (m *MockOrchestrateClient) ChainProxyURL(arg0 string) string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ChainProxyURL", arg0)
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// ChainProxyURL indicates an expected call of ChainProxyURL
+func (mr *MockOrchestrateClientMockRecorder) ChainProxyURL(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChainProxyURL", reflect.TypeOf((*MockOrchestrateClient)(nil).ChainProxyURL), arg0)
+}
+
+// MockChainProxyClient is a mock of ChainProxyClient interface
+type MockChainProxyClient struct {
+	ctrl     *gomock.Controller
+	recorder *MockChainProxyClientMockRecorder
+}
+
+// MockChainProxyClientMockRecorder is the mock recorder for MockChainProxyClient
+type MockChainProxyClientMockRecorder struct {
+	mock *MockChainProxyClient
+}
+
+// NewMockChainProxyClient creates a new mock instance
+func NewMockChainProxyClient(ctrl *gomock.Controller) *MockChainProxyClient {
+	mock := &MockChainProxyClient{ctrl: ctrl}
+	mock.recorder = &MockChainProxyClientMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockChainProxyClient) EXPECT() *MockChainProxyClientMockRecorder {
+	return m.recorder
+}
+
+// ChainProxyURL mocks base method
+func (m *MockChainProxyClient) ChainProxyURL(arg0 string) string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ChainProxyURL", arg0)
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// ChainProxyURL indicates an expected call of ChainProxyURL
+func (mr *MockChainProxyClientMockRecorder) ChainProxyURL(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChainProxyURL", reflect.TypeOf((*MockChainProxyClient)(nil).ChainProxyURL), arg0)
 }
 
 // MockTransactionClient is a mock of TransactionClient interface
@@ -745,10 +796,10 @@ func (m *MockTransactionClient) EXPECT() *MockTransactionClientMockRecorder {
 }
 
 // SendContractTransaction mocks base method
-func (m *MockTransactionClient) SendContractTransaction(ctx context.Context, request *api.SendTransactionRequest) (*api.TransactionResponse, error) {
+func (m *MockTransactionClient) SendContractTransaction(ctx context.Context, request *types.SendTransactionRequest) (*types.TransactionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendContractTransaction", ctx, request)
-	ret0, _ := ret[0].(*api.TransactionResponse)
+	ret0, _ := ret[0].(*types.TransactionResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -760,10 +811,10 @@ func (mr *MockTransactionClientMockRecorder) SendContractTransaction(ctx, reques
 }
 
 // SendDeployTransaction mocks base method
-func (m *MockTransactionClient) SendDeployTransaction(ctx context.Context, request *api.DeployContractRequest) (*api.TransactionResponse, error) {
+func (m *MockTransactionClient) SendDeployTransaction(ctx context.Context, request *types.DeployContractRequest) (*types.TransactionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendDeployTransaction", ctx, request)
-	ret0, _ := ret[0].(*api.TransactionResponse)
+	ret0, _ := ret[0].(*types.TransactionResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -775,10 +826,10 @@ func (mr *MockTransactionClientMockRecorder) SendDeployTransaction(ctx, request 
 }
 
 // SendRawTransaction mocks base method
-func (m *MockTransactionClient) SendRawTransaction(ctx context.Context, request *api.RawTransactionRequest) (*api.TransactionResponse, error) {
+func (m *MockTransactionClient) SendRawTransaction(ctx context.Context, request *types.RawTransactionRequest) (*types.TransactionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendRawTransaction", ctx, request)
-	ret0, _ := ret[0].(*api.TransactionResponse)
+	ret0, _ := ret[0].(*types.TransactionResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -790,10 +841,10 @@ func (mr *MockTransactionClientMockRecorder) SendRawTransaction(ctx, request int
 }
 
 // SendTransferTransaction mocks base method
-func (m *MockTransactionClient) SendTransferTransaction(ctx context.Context, request *api.TransferRequest) (*api.TransactionResponse, error) {
+func (m *MockTransactionClient) SendTransferTransaction(ctx context.Context, request *types.TransferRequest) (*types.TransactionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendTransferTransaction", ctx, request)
-	ret0, _ := ret[0].(*api.TransactionResponse)
+	ret0, _ := ret[0].(*types.TransactionResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -805,10 +856,10 @@ func (mr *MockTransactionClientMockRecorder) SendTransferTransaction(ctx, reques
 }
 
 // GetTxRequest mocks base method
-func (m *MockTransactionClient) GetTxRequest(ctx context.Context, txRequestUUID string) (*api.TransactionResponse, error) {
+func (m *MockTransactionClient) GetTxRequest(ctx context.Context, txRequestUUID string) (*types.TransactionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTxRequest", ctx, txRequestUUID)
-	ret0, _ := ret[0].(*api.TransactionResponse)
+	ret0, _ := ret[0].(*types.TransactionResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -820,10 +871,10 @@ func (mr *MockTransactionClientMockRecorder) GetTxRequest(ctx, txRequestUUID int
 }
 
 // SendCallOffTransaction mocks base method
-func (m *MockTransactionClient) SendCallOffTransaction(ctx context.Context, txRequestUUID string) (*api.TransactionResponse, error) {
+func (m *MockTransactionClient) SendCallOffTransaction(ctx context.Context, txRequestUUID string) (*types.TransactionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendCallOffTransaction", ctx, txRequestUUID)
-	ret0, _ := ret[0].(*api.TransactionResponse)
+	ret0, _ := ret[0].(*types.TransactionResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -835,10 +886,10 @@ func (mr *MockTransactionClientMockRecorder) SendCallOffTransaction(ctx, txReque
 }
 
 // SendSpeedUpTransaction mocks base method
-func (m *MockTransactionClient) SendSpeedUpTransaction(ctx context.Context, txRequestUUID string, increment *float64) (*api.TransactionResponse, error) {
+func (m *MockTransactionClient) SendSpeedUpTransaction(ctx context.Context, txRequestUUID string, increment *float64) (*types.TransactionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendSpeedUpTransaction", ctx, txRequestUUID, increment)
-	ret0, _ := ret[0].(*api.TransactionResponse)
+	ret0, _ := ret[0].(*types.TransactionResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -873,10 +924,10 @@ func (m *MockScheduleClient) EXPECT() *MockScheduleClientMockRecorder {
 }
 
 // GetSchedule mocks base method
-func (m *MockScheduleClient) GetSchedule(ctx context.Context, scheduleUUID string) (*api.ScheduleResponse, error) {
+func (m *MockScheduleClient) GetSchedule(ctx context.Context, scheduleUUID string) (*types.ScheduleResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSchedule", ctx, scheduleUUID)
-	ret0, _ := ret[0].(*api.ScheduleResponse)
+	ret0, _ := ret[0].(*types.ScheduleResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -888,10 +939,10 @@ func (mr *MockScheduleClientMockRecorder) GetSchedule(ctx, scheduleUUID interfac
 }
 
 // GetSchedules mocks base method
-func (m *MockScheduleClient) GetSchedules(ctx context.Context) ([]*api.ScheduleResponse, error) {
+func (m *MockScheduleClient) GetSchedules(ctx context.Context) ([]*types.ScheduleResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSchedules", ctx)
-	ret0, _ := ret[0].([]*api.ScheduleResponse)
+	ret0, _ := ret[0].([]*types.ScheduleResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -903,10 +954,10 @@ func (mr *MockScheduleClientMockRecorder) GetSchedules(ctx interface{}) *gomock.
 }
 
 // CreateSchedule mocks base method
-func (m *MockScheduleClient) CreateSchedule(ctx context.Context, request *api.CreateScheduleRequest) (*api.ScheduleResponse, error) {
+func (m *MockScheduleClient) CreateSchedule(ctx context.Context, request *types.CreateScheduleRequest) (*types.ScheduleResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateSchedule", ctx, request)
-	ret0, _ := ret[0].(*api.ScheduleResponse)
+	ret0, _ := ret[0].(*types.ScheduleResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -941,10 +992,10 @@ func (m *MockJobClient) EXPECT() *MockJobClientMockRecorder {
 }
 
 // GetJob mocks base method
-func (m *MockJobClient) GetJob(ctx context.Context, jobUUID string) (*api.JobResponse, error) {
+func (m *MockJobClient) GetJob(ctx context.Context, jobUUID string) (*types.JobResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetJob", ctx, jobUUID)
-	ret0, _ := ret[0].(*api.JobResponse)
+	ret0, _ := ret[0].(*types.JobResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -956,10 +1007,10 @@ func (mr *MockJobClientMockRecorder) GetJob(ctx, jobUUID interface{}) *gomock.Ca
 }
 
 // GetJobs mocks base method
-func (m *MockJobClient) GetJobs(ctx context.Context) ([]*api.JobResponse, error) {
+func (m *MockJobClient) GetJobs(ctx context.Context) ([]*types.JobResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetJobs", ctx)
-	ret0, _ := ret[0].([]*api.JobResponse)
+	ret0, _ := ret[0].([]*types.JobResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -971,10 +1022,10 @@ func (mr *MockJobClientMockRecorder) GetJobs(ctx interface{}) *gomock.Call {
 }
 
 // CreateJob mocks base method
-func (m *MockJobClient) CreateJob(ctx context.Context, request *api.CreateJobRequest) (*api.JobResponse, error) {
+func (m *MockJobClient) CreateJob(ctx context.Context, request *types.CreateJobRequest) (*types.JobResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateJob", ctx, request)
-	ret0, _ := ret[0].(*api.JobResponse)
+	ret0, _ := ret[0].(*types.JobResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -986,10 +1037,10 @@ func (mr *MockJobClientMockRecorder) CreateJob(ctx, request interface{}) *gomock
 }
 
 // UpdateJob mocks base method
-func (m *MockJobClient) UpdateJob(ctx context.Context, jobUUID string, request *api.UpdateJobRequest) (*api.JobResponse, error) {
+func (m *MockJobClient) UpdateJob(ctx context.Context, jobUUID string, request *types.UpdateJobRequest) (*types.JobResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateJob", ctx, jobUUID, request)
-	ret0, _ := ret[0].(*api.JobResponse)
+	ret0, _ := ret[0].(*types.JobResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1029,10 +1080,10 @@ func (mr *MockJobClientMockRecorder) ResendJobTx(ctx, jobUUID interface{}) *gomo
 }
 
 // SearchJob mocks base method
-func (m *MockJobClient) SearchJob(ctx context.Context, filters *entities.JobFilters) ([]*api.JobResponse, error) {
+func (m *MockJobClient) SearchJob(ctx context.Context, filters *entities.JobFilters) ([]*types.JobResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SearchJob", ctx, filters)
-	ret0, _ := ret[0].([]*api.JobResponse)
+	ret0, _ := ret[0].([]*types.JobResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1119,10 +1170,10 @@ func (m *MockAccountClient) EXPECT() *MockAccountClientMockRecorder {
 }
 
 // CreateAccount mocks base method
-func (m *MockAccountClient) CreateAccount(ctx context.Context, request *api.CreateAccountRequest) (*api.AccountResponse, error) {
+func (m *MockAccountClient) CreateAccount(ctx context.Context, request *types.CreateAccountRequest) (*types.AccountResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateAccount", ctx, request)
-	ret0, _ := ret[0].(*api.AccountResponse)
+	ret0, _ := ret[0].(*types.AccountResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1134,10 +1185,10 @@ func (mr *MockAccountClientMockRecorder) CreateAccount(ctx, request interface{})
 }
 
 // SearchAccounts mocks base method
-func (m *MockAccountClient) SearchAccounts(ctx context.Context, filters *entities.AccountFilters) ([]*api.AccountResponse, error) {
+func (m *MockAccountClient) SearchAccounts(ctx context.Context, filters *entities.AccountFilters) ([]*types.AccountResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SearchAccounts", ctx, filters)
-	ret0, _ := ret[0].([]*api.AccountResponse)
+	ret0, _ := ret[0].([]*types.AccountResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1149,10 +1200,10 @@ func (mr *MockAccountClientMockRecorder) SearchAccounts(ctx, filters interface{}
 }
 
 // GetAccount mocks base method
-func (m *MockAccountClient) GetAccount(ctx context.Context, address common.Address) (*api.AccountResponse, error) {
+func (m *MockAccountClient) GetAccount(ctx context.Context, address common.Address) (*types.AccountResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAccount", ctx, address)
-	ret0, _ := ret[0].(*api.AccountResponse)
+	ret0, _ := ret[0].(*types.AccountResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1164,10 +1215,10 @@ func (mr *MockAccountClientMockRecorder) GetAccount(ctx, address interface{}) *g
 }
 
 // ImportAccount mocks base method
-func (m *MockAccountClient) ImportAccount(ctx context.Context, request *api.ImportAccountRequest) (*api.AccountResponse, error) {
+func (m *MockAccountClient) ImportAccount(ctx context.Context, request *types.ImportAccountRequest) (*types.AccountResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ImportAccount", ctx, request)
-	ret0, _ := ret[0].(*api.AccountResponse)
+	ret0, _ := ret[0].(*types.AccountResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1179,10 +1230,10 @@ func (mr *MockAccountClientMockRecorder) ImportAccount(ctx, request interface{})
 }
 
 // UpdateAccount mocks base method
-func (m *MockAccountClient) UpdateAccount(ctx context.Context, address common.Address, request *api.UpdateAccountRequest) (*api.AccountResponse, error) {
+func (m *MockAccountClient) UpdateAccount(ctx context.Context, address common.Address, request *types.UpdateAccountRequest) (*types.AccountResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateAccount", ctx, address, request)
-	ret0, _ := ret[0].(*api.AccountResponse)
+	ret0, _ := ret[0].(*types.AccountResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1194,7 +1245,7 @@ func (mr *MockAccountClientMockRecorder) UpdateAccount(ctx, address, request int
 }
 
 // SignMessage mocks base method
-func (m *MockAccountClient) SignMessage(ctx context.Context, address common.Address, request *types.SignMessageRequest) (string, error) {
+func (m *MockAccountClient) SignMessage(ctx context.Context, address common.Address, request *types0.SignMessageRequest) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SignMessage", ctx, address, request)
 	ret0, _ := ret[0].(string)
@@ -1209,7 +1260,7 @@ func (mr *MockAccountClientMockRecorder) SignMessage(ctx, address, request inter
 }
 
 // SignTypedData mocks base method
-func (m *MockAccountClient) SignTypedData(ctx context.Context, address common.Address, request *types.SignTypedDataRequest) (string, error) {
+func (m *MockAccountClient) SignTypedData(ctx context.Context, address common.Address, request *types0.SignTypedDataRequest) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SignTypedData", ctx, address, request)
 	ret0, _ := ret[0].(string)
@@ -1224,7 +1275,7 @@ func (mr *MockAccountClientMockRecorder) SignTypedData(ctx, address, request int
 }
 
 // VerifyMessageSignature mocks base method
-func (m *MockAccountClient) VerifyMessageSignature(ctx context.Context, request *types0.VerifyRequest) error {
+func (m *MockAccountClient) VerifyMessageSignature(ctx context.Context, request *types1.VerifyRequest) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "VerifyMessageSignature", ctx, request)
 	ret0, _ := ret[0].(error)
@@ -1238,7 +1289,7 @@ func (mr *MockAccountClientMockRecorder) VerifyMessageSignature(ctx, request int
 }
 
 // VerifyTypedDataSignature mocks base method
-func (m *MockAccountClient) VerifyTypedDataSignature(ctx context.Context, request *types0.VerifyTypedDataRequest) error {
+func (m *MockAccountClient) VerifyTypedDataSignature(ctx context.Context, request *types1.VerifyTypedDataRequest) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "VerifyTypedDataSignature", ctx, request)
 	ret0, _ := ret[0].(error)
@@ -1275,10 +1326,10 @@ func (m *MockFaucetClient) EXPECT() *MockFaucetClientMockRecorder {
 }
 
 // RegisterFaucet mocks base method
-func (m *MockFaucetClient) RegisterFaucet(ctx context.Context, request *api.RegisterFaucetRequest) (*api.FaucetResponse, error) {
+func (m *MockFaucetClient) RegisterFaucet(ctx context.Context, request *types.RegisterFaucetRequest) (*types.FaucetResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RegisterFaucet", ctx, request)
-	ret0, _ := ret[0].(*api.FaucetResponse)
+	ret0, _ := ret[0].(*types.FaucetResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1290,10 +1341,10 @@ func (mr *MockFaucetClientMockRecorder) RegisterFaucet(ctx, request interface{})
 }
 
 // UpdateFaucet mocks base method
-func (m *MockFaucetClient) UpdateFaucet(ctx context.Context, uuid string, request *api.UpdateFaucetRequest) (*api.FaucetResponse, error) {
+func (m *MockFaucetClient) UpdateFaucet(ctx context.Context, uuid string, request *types.UpdateFaucetRequest) (*types.FaucetResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateFaucet", ctx, uuid, request)
-	ret0, _ := ret[0].(*api.FaucetResponse)
+	ret0, _ := ret[0].(*types.FaucetResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1305,10 +1356,10 @@ func (mr *MockFaucetClientMockRecorder) UpdateFaucet(ctx, uuid, request interfac
 }
 
 // GetFaucet mocks base method
-func (m *MockFaucetClient) GetFaucet(ctx context.Context, uuid string) (*api.FaucetResponse, error) {
+func (m *MockFaucetClient) GetFaucet(ctx context.Context, uuid string) (*types.FaucetResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFaucet", ctx, uuid)
-	ret0, _ := ret[0].(*api.FaucetResponse)
+	ret0, _ := ret[0].(*types.FaucetResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1320,10 +1371,10 @@ func (mr *MockFaucetClientMockRecorder) GetFaucet(ctx, uuid interface{}) *gomock
 }
 
 // SearchFaucets mocks base method
-func (m *MockFaucetClient) SearchFaucets(ctx context.Context, filters *entities.FaucetFilters) ([]*api.FaucetResponse, error) {
+func (m *MockFaucetClient) SearchFaucets(ctx context.Context, filters *entities.FaucetFilters) ([]*types.FaucetResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SearchFaucets", ctx, filters)
-	ret0, _ := ret[0].([]*api.FaucetResponse)
+	ret0, _ := ret[0].([]*types.FaucetResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1372,10 +1423,10 @@ func (m *MockChainClient) EXPECT() *MockChainClientMockRecorder {
 }
 
 // RegisterChain mocks base method
-func (m *MockChainClient) RegisterChain(ctx context.Context, request *api.RegisterChainRequest) (*api.ChainResponse, error) {
+func (m *MockChainClient) RegisterChain(ctx context.Context, request *types.RegisterChainRequest) (*types.ChainResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RegisterChain", ctx, request)
-	ret0, _ := ret[0].(*api.ChainResponse)
+	ret0, _ := ret[0].(*types.ChainResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1387,10 +1438,10 @@ func (mr *MockChainClientMockRecorder) RegisterChain(ctx, request interface{}) *
 }
 
 // UpdateChain mocks base method
-func (m *MockChainClient) UpdateChain(ctx context.Context, uuid string, request *api.UpdateChainRequest) (*api.ChainResponse, error) {
+func (m *MockChainClient) UpdateChain(ctx context.Context, uuid string, request *types.UpdateChainRequest) (*types.ChainResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateChain", ctx, uuid, request)
-	ret0, _ := ret[0].(*api.ChainResponse)
+	ret0, _ := ret[0].(*types.ChainResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1402,10 +1453,10 @@ func (mr *MockChainClientMockRecorder) UpdateChain(ctx, uuid, request interface{
 }
 
 // GetChain mocks base method
-func (m *MockChainClient) GetChain(ctx context.Context, uuid string) (*api.ChainResponse, error) {
+func (m *MockChainClient) GetChain(ctx context.Context, uuid string) (*types.ChainResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetChain", ctx, uuid)
-	ret0, _ := ret[0].(*api.ChainResponse)
+	ret0, _ := ret[0].(*types.ChainResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1417,10 +1468,10 @@ func (mr *MockChainClientMockRecorder) GetChain(ctx, uuid interface{}) *gomock.C
 }
 
 // SearchChains mocks base method
-func (m *MockChainClient) SearchChains(ctx context.Context, filters *entities.ChainFilters) ([]*api.ChainResponse, error) {
+func (m *MockChainClient) SearchChains(ctx context.Context, filters *entities.ChainFilters) ([]*types.ChainResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SearchChains", ctx, filters)
-	ret0, _ := ret[0].([]*api.ChainResponse)
+	ret0, _ := ret[0].([]*types.ChainResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1469,10 +1520,10 @@ func (m *MockContractClient) EXPECT() *MockContractClientMockRecorder {
 }
 
 // RegisterContract mocks base method
-func (m *MockContractClient) RegisterContract(ctx context.Context, req *api.RegisterContractRequest) (*api.ContractResponse, error) {
+func (m *MockContractClient) RegisterContract(ctx context.Context, req *types.RegisterContractRequest) (*types.ContractResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RegisterContract", ctx, req)
-	ret0, _ := ret[0].(*api.ContractResponse)
+	ret0, _ := ret[0].(*types.ContractResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1498,10 +1549,10 @@ func (mr *MockContractClientMockRecorder) DeregisterContract(ctx, name, tag inte
 }
 
 // GetContract mocks base method
-func (m *MockContractClient) GetContract(ctx context.Context, name, tag string) (*api.ContractResponse, error) {
+func (m *MockContractClient) GetContract(ctx context.Context, name, tag string) (*types.ContractResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetContract", ctx, name, tag)
-	ret0, _ := ret[0].(*api.ContractResponse)
+	ret0, _ := ret[0].(*types.ContractResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1513,10 +1564,10 @@ func (mr *MockContractClientMockRecorder) GetContract(ctx, name, tag interface{}
 }
 
 // SearchContract mocks base method
-func (m *MockContractClient) SearchContract(ctx context.Context, req *api.SearchContractRequest) (*api.ContractResponse, error) {
+func (m *MockContractClient) SearchContract(ctx context.Context, req *types.SearchContractRequest) (*types.ContractResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SearchContract", ctx, req)
-	ret0, _ := ret[0].(*api.ContractResponse)
+	ret0, _ := ret[0].(*types.ContractResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1558,7 +1609,7 @@ func (mr *MockContractClientMockRecorder) GetContractTags(ctx, name interface{})
 }
 
 // SetContractAddressCodeHash mocks base method
-func (m *MockContractClient) SetContractAddressCodeHash(ctx context.Context, address, chainID string, req *api.SetContractCodeHashRequest) error {
+func (m *MockContractClient) SetContractAddressCodeHash(ctx context.Context, address, chainID string, req *types.SetContractCodeHashRequest) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetContractAddressCodeHash", ctx, address, chainID, req)
 	ret0, _ := ret[0].(error)
@@ -1572,10 +1623,10 @@ func (mr *MockContractClientMockRecorder) SetContractAddressCodeHash(ctx, addres
 }
 
 // GetContractEvents mocks base method
-func (m *MockContractClient) GetContractEvents(ctx context.Context, address, chainID string, req *api.GetContractEventsRequest) (*api.GetContractEventsBySignHashResponse, error) {
+func (m *MockContractClient) GetContractEvents(ctx context.Context, address, chainID string, req *types.GetContractEventsRequest) (*types.GetContractEventsBySignHashResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetContractEvents", ctx, address, chainID, req)
-	ret0, _ := ret[0].(*api.GetContractEventsBySignHashResponse)
+	ret0, _ := ret[0].(*types.GetContractEventsBySignHashResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

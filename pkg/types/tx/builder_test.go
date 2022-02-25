@@ -100,32 +100,6 @@ func TestEnvelope_ContextLabels(t *testing.T) {
 	assert.Equal(t, "newLabelValue", b.GetContextLabelsValue("newLabelKey"), "Should be equal")
 }
 
-func TestEnvelope_Validate(t *testing.T) {
-	b := NewEnvelope().
-		SetID("jobUUID").
-		SetHeadersValue("testHeaderKey", "testHeaderValue").
-		SetChainName("chainName").
-		MustSetFromString("0x1").
-		SetJobType(JobType_ETH_TX).
-		MustSetToString("0x2").
-		SetGas(11).
-		SetGasPrice(utils.StringBigIntToHex("12")).
-		SetValue(utils.StringBigIntToHex("13")).
-		SetNonce(14).
-		SetData([]byte{1}).
-		SetContractName("testContractName").
-		SetContractTag("testContractTag").
-		SetMethodSignature("testMethodSignature").
-		SetArgs([]string{"testArg1", "testArg2"}).
-		SetRaw([]byte{1}).
-		SetPrivateFrom("testPrivateFrom").
-		SetPrivateFor([]string{"testPrivateFor1", "testPrivateFor2"}).
-		SetContextLabelsValue("testContextKey", "testContextValue")
-
-	errs := b.Validate()
-	assert.Len(t, errs, 4)
-}
-
 func TestEnvelope_InternalLabels(t *testing.T) {
 	b := NewEnvelope().SetInternalLabelsValue("key", "value")
 	assert.Equal(t, "value", b.GetInternalLabelsValue("key"), "Should be equal")
@@ -601,33 +575,6 @@ func TestEnvelope_TxResponse(t *testing.T) {
 	}
 
 	assert.Equal(t, res, b.TxResponse(), "Should be equal")
-}
-
-func TestPrivateValidation(t *testing.T) {
-	b := NewEnvelope().
-		SetID("9f8708ad-8019-4533-9690-6495cc79a03c").
-		SetJobType(JobType_ETH_EEA_PRIVATE_TX).
-		SetPrivateFor([]string{"kAbelwaVW7okoEn1+okO+AbA4Hhz/7DaCOWVQz9nx5M="}).
-		SetPrivacyGroupID("kAbelwaVW7okoEn1+okO+AbA4Hhz/7DaCOWVQz9nx5M=")
-
-	assert.Len(t, b.Validate(), 1)
-	if len(b.Validate()) == 1 {
-		assert.Equal(t, errors.DataError("privacyGroupId and privateFor fields are mutually exclusive"), b.Validate()[0])
-	}
-
-	b2 := NewEnvelope().
-		SetID("9f8708ad-8019-4533-9690-6495cc79a03c").
-		SetJobType(JobType_ETH_TESSERA_PRIVATE_TX).
-		SetPrivacyGroupID("kAbelwaVW7okoEn1+okO+AbA4Hhz/7DaCOWVQz9nx5M=")
-
-	assert.Len(t, b2.Validate(), 0)
-
-	b3 := NewEnvelope().
-		SetID("9f8708ad-8019-4533-9690-6495cc79a03c").
-		SetJobType(JobType_ETH_TESSERA_PRIVATE_TX).
-		SetPrivateFor([]string{"kAbelwaVW7okoEn1+okO+AbA4Hhz/7DaCOWVQz9nx5M="})
-
-	assert.Len(t, b3.Validate(), 0)
 }
 
 func TestPartitionKey(t *testing.T) {

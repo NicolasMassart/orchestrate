@@ -47,14 +47,20 @@ type Config struct {
 	backOff    backoff.BackOff
 }
 
-func NewConfig(url string, backOff backoff.BackOff) *Config {
+func NewConfig(url, metricURL string, backOff backoff.BackOff) *Config {
+	if url == "" {
+		url = urlDefault
+	}
+	if metricURL == "" {
+		metricURL = metricsURLDefault
+	}
 	if backOff == nil {
 		backOff = defaultClientBackOff
 	}
 
 	return &Config{
 		URL:        url,
-		MetricsURL: metricsURLDefault,
+		MetricsURL: metricURL,
 		backOff:    backOff,
 	}
 }

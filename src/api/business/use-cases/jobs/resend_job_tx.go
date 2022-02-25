@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
-	"github.com/consensys/orchestrate/pkg/utils/envelope"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/entities"
 
@@ -51,7 +50,7 @@ func (uc *resendJobTxUseCase) Execute(ctx context.Context, jobUUID string, userI
 		return errors.InvalidStateError(errMessage)
 	}
 
-	partition, offset, err := envelope.SendJobMessage(job, uc.kafkaProducer, uc.topicsCfg.Sender)
+	partition, offset, err := SendJobMessage(job, uc.kafkaProducer, uc.topicsCfg.Sender)
 	if err != nil {
 		logger.WithError(err).Error("failed to send job message")
 		return errors.FromError(err).ExtendComponent(resendJobTxComponent)

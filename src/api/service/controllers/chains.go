@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/consensys/orchestrate/src/entities"
+	infra "github.com/consensys/orchestrate/src/infra/api"
 
-	jsonutils "github.com/consensys/orchestrate/pkg/encoding/json"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http/httputil"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
@@ -109,14 +109,19 @@ func (c *ChainsController) update(rw http.ResponseWriter, request *http.Request)
 	ctx := request.Context()
 
 	chainRequest := &api.UpdateChainRequest{}
-	err := jsonutils.UnmarshalBody(request.Body, chainRequest)
+	err := infra.UnmarshalBody(request.Body, chainRequest)
 	if err != nil {
 		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	uuid := mux.Vars(request)["uuid"]
-	chain, err := c.ucs.UpdateChain().Execute(ctx, formatters.FormatUpdateChainRequest(chainRequest, uuid), multitenancy.UserInfoValue(ctx))
+	nextChain, err := formatters.FormatUpdateChainRequest(chainRequest, uuid)
+	if err != nil {
+		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+	chain, err := c.ucs.UpdateChain().Execute(ctx, nextChain, multitenancy.UserInfoValue(ctx))
 	if err != nil {
 		httputil.WriteHTTPErrorResponse(rw, err)
 		return
@@ -141,7 +146,7 @@ func (c *ChainsController) register(rw http.ResponseWriter, request *http.Reques
 	ctx := request.Context()
 
 	chainRequest := &api.RegisterChainRequest{}
-	err := jsonutils.UnmarshalBody(request.Body, chainRequest)
+	err := infra.UnmarshalBody(request.Body, chainRequest)
 	if err != nil {
 		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
