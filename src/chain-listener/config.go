@@ -25,9 +25,9 @@ type TxListenerConfig struct {
 	DecodedOutTopic string
 }
 
-func NewDefaultTxListenerConfig() *TxListenerConfig {
+func NewTxListenerConfig(interval time.Duration, topic string) *TxListenerConfig {
 	return &TxListenerConfig{
-		RefreshInterval: time.Second * 5,
-		DecodedOutTopic: DecodedOutTopic,
+		RefreshInterval: interval,
+		DecodedOutTopic: topic,
 	}
 }

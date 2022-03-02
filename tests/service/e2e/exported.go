@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"encoding/json"
 
@@ -101,6 +102,7 @@ func Start(ctx context.Context) error {
 
 	wg.Wait()
 
+	time.Sleep(time.Second * 3) // Wait few seconds to allow ongoing work to complete
 	if err := removeTestChains(ctx, chainUUIDs); err != nil {
 		gerr = errors.CombineErrors(gerr, err)
 	}

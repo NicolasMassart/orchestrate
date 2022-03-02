@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	quorumkeymanager "github.com/consensys/orchestrate/src/infra/quorum-key-manager/http"
 
 	"github.com/consensys/orchestrate/cmd/flags"
@@ -135,6 +136,7 @@ type Config struct {
 	BckOff                 backoff.BackOff
 	NonceMaxRecovery       uint64
 	NonceManagerType       string
+	IsMultiTenancyEnabled  bool
 	RedisCfg               *redigo.Config
 	NonceManagerExpiration time.Duration
 	QKM                    *quorumkeymanager.Config
@@ -153,6 +155,7 @@ func NewConfig(vipr *viper.Viper) *Config {
 		NonceManagerExpiration: vipr.GetDuration(NonceManagerExpirationViperKey),
 		RedisCfg:               flags.NewRedisConfig(vipr),
 		NConsumer:              int(vipr.GetUint64(KafkaConsumerViperKey)),
+		IsMultiTenancyEnabled:  vipr.GetBool(multitenancy.EnabledViperKey),
 		QKM:                    flags.NewQKMConfig(vipr),
 	}
 }

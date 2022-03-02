@@ -131,10 +131,7 @@ func FormatTransferRequest(transferRequest *types.TransferRequest, idempotencyKe
 				Gas:             transferRequest.Params.Gas,
 			},
 		},
-		InternalData: buildInternalData(
-			false,
-			&transferRequest.Params.GasPricePolicy,
-		),
+		InternalData: buildInternalData(false, &transferRequest.Params.GasPricePolicy),
 	}
 }
 

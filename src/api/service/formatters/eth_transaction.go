@@ -152,19 +152,19 @@ func ETHTransactionResponseToEntity(tx *types.ETHTransactionResponse) *entities.
 	}
 
 	if tx.Value != "" {
-		res.Value = utils.StringBigIntToHex(tx.Value)
+		res.Value = utils.HexToBigInt(tx.Value)
 	}
 
 	if tx.GasPrice != "" {
-		res.GasPrice = utils.StringBigIntToHex(tx.GasPrice)
+		res.GasPrice = utils.HexToBigInt(tx.GasPrice)
 	}
 
 	if tx.GasFeeCap != "" {
-		res.GasFeeCap = utils.StringBigIntToHex(tx.GasFeeCap)
+		res.GasFeeCap = utils.HexToBigInt(tx.GasFeeCap)
 	}
 
 	if tx.GasTipCap != "" {
-		res.GasTipCap = utils.StringBigIntToHex(tx.GasTipCap)
+		res.GasTipCap = utils.HexToBigInt(tx.GasTipCap)
 	}
 
 	if tx.Data != "" {

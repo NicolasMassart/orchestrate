@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"github.com/consensys/orchestrate/src/tx-sender/tx-sender/nonce"
 	"github.com/consensys/orchestrate/src/tx-sender/tx-sender/nonce/manager"
 
@@ -89,6 +90,10 @@ func (d *txSenderDaemon) Run(ctx context.Context) error {
 		d.config.BckOff)
 
 	ctx, d.cancel = context.WithCancel(ctx)
+	if d.config.IsMultiTenancyEnabled {
+		ctx = multitenancy.WithUserInfo(ctx, multitenancy.NewInternalAdminUser())
+	}
+
 	gr := &multierror.Group{}
 	for idx, consumerGroup := range d.consumerGroup {
 		cGroup := consumerGroup

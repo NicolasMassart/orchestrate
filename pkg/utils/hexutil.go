@@ -50,6 +50,18 @@ func StringBigIntToHex(v string) *hexutil.Big {
 	return nil
 }
 
+func HexToBigInt(v string) *hexutil.Big {
+	if v == "" {
+		return nil
+	}
+
+	if bv, err := hexutil.DecodeBig(v); err == nil {
+		return (*hexutil.Big)(bv)
+	}
+
+	return nil
+}
+
 func HexToBigIntString(v *hexutil.Big) string {
 	if v == nil {
 		return ""

@@ -27,8 +27,8 @@ func init() {
 const (
 	providerRefreshIntervalFlag     = "tx-listener-provider-refresh-interval"
 	providerRefreshIntervalViperKey = "tx-listener-provider.refresh-interval"
-	providerRefreshIntervalDefault  = 2 * time.Second
-	providerRefreshIntervalEnv      = "TX_LISTENER_PROVIDER_REFRESH_INTERVAL"
+	providerRefreshIntervalDefault  = time.Second
+	providerRefreshIntervalEnv      = "TX_LISTENER_REFRESH_INTERVAL"
 )
 
 // sentryRefreshInterval register flags for API
@@ -50,7 +50,7 @@ func txListenerFlags(f *pflag.FlagSet) {
 
 // ProviderRefreshInterval register flag for refresh interval duration
 func providerRefreshInterval(f *pflag.FlagSet) {
-	desc := fmt.Sprintf(`Time interval for refreshing the internal state
+	desc := fmt.Sprintf(`Time interval for refreshing the internal state such as active chains, pending jobs and subscriptions
 Environment variable: %q`, providerRefreshIntervalEnv)
 	f.Duration(providerRefreshIntervalFlag, providerRefreshIntervalDefault, desc)
 	_ = viper.BindPFlag(providerRefreshIntervalViperKey, f.Lookup(providerRefreshIntervalFlag))
@@ -62,9 +62,9 @@ func NewChainListenerConfig(vipr *viper.Viper) *chainlistener.Config {
 	httpClientCfg := http.NewDefaultConfig()
 	httpClientCfg.XAPIKey = vipr.GetString(authkey.APIKeyViperKey)
 
-	chainListenerCfg := chainlistener.NewDefaultTxListenerConfig()
-	chainListenerCfg.DecodedOutTopic = vipr.GetString(broker.TxDecodedViperKey)
-	chainListenerCfg.RefreshInterval = vipr.GetDuration(providerRefreshIntervalViperKey)
+	chainListenerCfg := chainlistener.NewTxListenerConfig(
+		vipr.GetDuration(providerRefreshIntervalViperKey),
+		vipr.GetString(broker.TxDecodedViperKey))
 
 	return &chainlistener.Config{
 		IsMultiTenancyEnabled: viper.GetBool(multitenancy.EnabledViperKey),

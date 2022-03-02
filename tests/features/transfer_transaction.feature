@@ -108,11 +108,6 @@ Feature: Send transfer transaction
     Then I register the following response fields
       | alias      | path         |
       | jobTwoUUID | jobs[0].uuid |
-    Then Envelopes should be in topic "tx.sender"
-    And Envelopes should have the following fields
-      | Nonce |
-      | 0     |
-      | 0     |
     Then Envelopes should be in topic "tx.decoded"
     And Envelopes should have the following fields
       | Receipt.Status |

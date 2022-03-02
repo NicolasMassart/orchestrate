@@ -321,7 +321,6 @@ Feature: Nonce manager
     Then the response code should be 202
     When I send "PUT" request to "{{global.api}}/jobs/{{txThreeJobUUID}}/start"
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.sender"
     Then Envelopes should be in topic "tx.decoded"
     And Envelopes should have the following fields
       | Receipt.Status | Nonce | To      |

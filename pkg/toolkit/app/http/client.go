@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http/transport"
-	"github.com/spf13/viper"
 )
 
 // NewClient creates an HTTP client
@@ -62,8 +61,4 @@ func NewClient(cfg *Config) *http.Client {
 	return &http.Client{
 		Transport: NewTransport(t, middlewares...),
 	}
-}
-
-func NewHTTPClientFromVipr(vipr *viper.Viper) *http.Client {
-	return NewClient(NewConfig(vipr))
 }

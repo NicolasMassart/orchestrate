@@ -356,6 +356,7 @@ func (sc *ScenarioContext) iRegisterTheFollowingChains(table *gherkin.PickleStep
 
 	onTearDown := func(uuid string, headers map[string]string) func() {
 		return func() {
+			time.Sleep(time.Second * 3) // Wait few seconds to allow ongoing work to complete
 			_ = sc.client.DeleteChain(context.WithValue(context.Background(), clientutils.RequestHeaderKey, headers), uuid)
 		}
 	}

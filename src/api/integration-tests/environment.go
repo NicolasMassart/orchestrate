@@ -38,14 +38,13 @@ import (
 
 const postgresContainerID = "postgres"
 const qkmPostgresContainerID = "qkm-postgres"
-const kafkaContainerID = "Kafka-api"
-const zookeeperContainerID = "zookeeper-api"
-const ganacheContainerID = "ganache-api"
+const kafkaContainerID = "tx-sender-kafka-api"
+const zookeeperContainerID = "tx-sender-zookeeper-api"
+const ganacheContainerID = "tx-sender-ganache-api"
 const qkmContainerID = "quorum-key-manager"
 const qkmContainerMigrateID = "quorum-key-manager-migrate"
 const hashicorpContainerID = "hashicorp"
 const networkName = "api"
-const localhost = "localhost"
 const qkmDefaultStoreID = "orchestrate-eth"
 const hashicorpMountPath = "orchestrate"
 
@@ -83,17 +82,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	envVaultHostPort = strconv.Itoa(utils.RandIntRange(10000, 15235))
 
 	// Define external hostname
-	kafkaExternalHostname := os.Getenv("KAFKA_HOST")
-	if kafkaExternalHostname == "" {
-		kafkaExternalHostname = localhost
-	}
-	kafkaExternalHostname = fmt.Sprintf("%s:%s", kafkaExternalHostname, envKafkaHostPort)
-
-	ganacheExternalHostname := os.Getenv("GANACHE_HOST")
-	if ganacheExternalHostname == "" {
-		ganacheExternalHostname = localhost
-	}
-
+	kafkaExternalHostname := fmt.Sprintf("localhost:%s", envKafkaHostPort)
 	quorumKeyManagerURL := fmt.Sprintf("http://localhost:%s", envQKMHostPort)
 
 	// Initialize environment flags
@@ -168,7 +157,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 			hashicorpContainerID:  {HashicorpVault: vaultContainer},
 			qkmContainerMigrateID: {QuorumKeyManagerMigrate: qkmContainerMigrate},
 			qkmContainerID:        {QuorumKeyManager: qkmContainer},
-			ganacheContainerID:    {Ganache: ganacheDocker.NewDefault().SetHostPort(envGanacheHostPort).SetHost(ganacheExternalHostname)},
+			ganacheContainerID:    {Ganache: ganacheDocker.NewDefault().SetHostPort(envGanacheHostPort)},
 		},
 	}
 
@@ -186,7 +175,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		pgmngr:            postgres.NewManager(),
 		baseURL:           "http://localhost:" + envHTTPPort,
 		metricsURL:        "http://localhost:" + envMetricsPort,
-		blockchainNodeURL: fmt.Sprintf("http://%s:%s", ganacheExternalHostname, envGanacheHostPort),
+		blockchainNodeURL: fmt.Sprintf("http://localhost:%s", envGanacheHostPort),
 	}, nil
 }
 

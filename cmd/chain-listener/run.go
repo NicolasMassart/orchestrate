@@ -35,10 +35,10 @@ func newRunCommand() *cobra.Command {
 
 func run(cmd *cobra.Command, _ []string) error {
 	cfg := flags.NewChainListenerConfig(viper.GetViper())
-	srv, err := chainlistener.NewService(cmd.Context(), cfg)
+	srv, err := chainlistener.New(cmd.Context(), cfg)
 	if err != nil {
 		return err
 	}
 
-	return srv.Run(cmd.Context())
+	return srv.Start(cmd.Context())
 }
