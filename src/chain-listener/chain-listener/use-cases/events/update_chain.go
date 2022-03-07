@@ -13,19 +13,16 @@ import (
 const updateChainUseCaseComponent = "chain-listener.use-case.event.update-chain"
 
 type updateChainUC struct {
-	chainState     store.Chain
-	sessionHandler usecases.RetryJobSessionManager
-	logger         *log.Logger
+	chainState store.Chain
+	logger     *log.Logger
 }
 
-func UpdateChainUseCase(sessionHandler usecases.RetryJobSessionManager,
-	chainState store.Chain,
+func UpdateChainUseCase(chainState store.Chain,
 	logger *log.Logger,
 ) usecases.UpdateChainUseCase {
 	return &updateChainUC{
-		sessionHandler: sessionHandler,
-		chainState:     chainState,
-		logger:         logger.SetComponent(updateChainUseCaseComponent),
+		chainState: chainState,
+		logger:     logger.SetComponent(updateChainUseCaseComponent),
 	}
 }
 

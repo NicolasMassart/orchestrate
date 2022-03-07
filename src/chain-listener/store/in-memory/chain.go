@@ -53,7 +53,7 @@ func (m *chainInMemory) Update(_ context.Context, chain *entities.Chain) error {
 	return nil
 }
 
-func (m *chainInMemory) Remove(_ context.Context, chainUUID string) error {
+func (m *chainInMemory) Delete(_ context.Context, chainUUID string) error {
 	m.mux.Lock()
 	defer m.mux.Unlock()
 	if _, ok := m.activeChains[chainUUID]; !ok {

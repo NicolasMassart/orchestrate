@@ -13,25 +13,28 @@ import (
 const chainBlockTxsUseCaseComponent = "chain-listener.use-case.event.chain-block-txs"
 
 type chainBlockTxsUC struct {
-	pendingJobState   store.PendingJob
-	retrySessionState store.RetrySessions
-	notifyMinedJob    usecases.NotifyMinedJob
-	sessionHandler    usecases.RetryJobSessionManager
-	logger            *log.Logger
+	pendingJobState     store.PendingJob
+	retrySessionState   store.RetrySessions
+	notifyMinedJob      usecases.NotifyMinedJob
+	updateChainHead     usecases.UpdateChainHead
+	retrySessionManager usecases.RetryJobSessionManager
+	logger              *log.Logger
 }
 
 func ChainBlockTxsUseCase(notifyMinedJob usecases.NotifyMinedJob,
-	sessionHandler usecases.RetryJobSessionManager,
+	updateChainHead usecases.UpdateChainHead,
+	retrySessionManager usecases.RetryJobSessionManager,
 	pendingJobState store.PendingJob,
 	retrySessionState store.RetrySessions,
 	logger *log.Logger,
 ) usecases.ChainBlockTxsUseCase {
 	return &chainBlockTxsUC{
-		pendingJobState:   pendingJobState,
-		retrySessionState: retrySessionState,
-		sessionHandler:    sessionHandler,
-		notifyMinedJob:    notifyMinedJob,
-		logger:            logger.SetComponent(chainBlockTxsUseCaseComponent),
+		pendingJobState:     pendingJobState,
+		retrySessionState:   retrySessionState,
+		retrySessionManager: retrySessionManager,
+		notifyMinedJob:      notifyMinedJob,
+		updateChainHead:     updateChainHead,
+		logger:              logger.SetComponent(chainBlockTxsUseCaseComponent),
 	}
 }
 
@@ -50,10 +53,18 @@ func (uc *chainBlockTxsUC) Execute(ctx context.Context, chainUUID string, blockN
 		}
 	}
 
+	// @TODO Can we reduce the amount of updates???
+	err := uc.updateChainHead.Execute(ctx, chainUUID, blockNumber)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func (uc *chainBlockTxsUC) handlePendingJob(ctx context.Context, chainUUID string, txHash *ethcommon.Hash) error {
+	logger := uc.logger.WithField("chain", chainUUID).WithField("tx_hash", txHash.String())
+	logger.Debug("handling pending job")
 	minedJob, err := uc.pendingJobState.GetByTxHash(ctx, chainUUID, txHash)
 	if err != nil {
 		if errors.IsNotFoundError(err) {
@@ -68,6 +79,7 @@ func (uc *chainBlockTxsUC) handlePendingJob(ctx context.Context, chainUUID strin
 	}
 	err = uc.pendingJobState.Remove(ctx, minedJob.UUID)
 	if err != nil {
+		logger.WithError(err).Error("failed to remove pending job")
 		return err
 	}
 
@@ -75,19 +87,23 @@ func (uc *chainBlockTxsUC) handlePendingJob(ctx context.Context, chainUUID strin
 }
 
 func (uc *chainBlockTxsUC) handleRetrySessionJob(ctx context.Context, chainUUID string, txHash *ethcommon.Hash) error {
+	logger := uc.logger.WithField("chain", chainUUID).WithField("tx_hash", txHash.String())
+	logger.Debug("handling retry session job")
 	retryJobSessID, err := uc.retrySessionState.GetByTxHash(ctx, chainUUID, txHash)
 	if err != nil {
 		if errors.IsNotFoundError(err) {
 			return nil
 		}
+		logger.WithError(err).Error("failed to find retry session")
 		return err
 	}
 
-	err = uc.sessionHandler.StopSession(ctx, retryJobSessID)
+	err = uc.retrySessionManager.StopSession(ctx, retryJobSessID)
 	if err != nil {
 		if errors.IsNotFoundError(err) {
 			return nil
 		}
+		logger.WithError(err).Error("failed to stop retry session")
 		return err
 	}
 

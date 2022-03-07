@@ -3,8 +3,11 @@ package integrationtests
 import (
 	"context"
 	"fmt"
+	"math/big"
 	http2 "net/http"
+	"net/url"
 	"strconv"
+	"testing"
 	"time"
 
 	sarama2 "github.com/Shopify/sarama"
@@ -20,10 +23,16 @@ import (
 	httputils "github.com/consensys/orchestrate/pkg/toolkit/app/http"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/pkg/utils"
-	api "github.com/consensys/orchestrate/src/api/service/types"
+	"github.com/consensys/orchestrate/src/api/service/formatters"
 	chainlistener "github.com/consensys/orchestrate/src/chain-listener"
-	listenermetrics "github.com/consensys/orchestrate/src/chain-listener/chain-listener/metrics"
+	chain_listener "github.com/consensys/orchestrate/src/chain-listener/chain-listener"
+	"github.com/consensys/orchestrate/src/chain-listener/chain-listener/builder"
+	"github.com/consensys/orchestrate/src/chain-listener/service/listener"
+	datapullers "github.com/consensys/orchestrate/src/chain-listener/service/listener/data-pullers"
+	"github.com/consensys/orchestrate/src/entities"
+	"github.com/consensys/orchestrate/src/entities/testdata"
 	"github.com/consensys/orchestrate/src/infra/broker/sarama"
+	ethclient2 "github.com/consensys/orchestrate/src/infra/ethclient"
 	ethclient "github.com/consensys/orchestrate/src/infra/ethclient/rpc"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -37,25 +46,31 @@ const apiMetricsURL = "http://api:8082"
 const networkName = "chain-listener"
 const maxRecoveryDefault = 1
 const ganacheContainerID = "chain-listener-ganache-api"
+const ganacheChainUUID = "ganacheChainUUID"
+const ganacheChainID = "666"
 
 var envKafkaHostPort string
 var envMetricsPort string
 var envGanacheHostPort string
 
 type IntegrationEnvironment struct {
-	ctx               context.Context
-	cancel            context.CancelFunc
-	logger            *log.Logger
-	chainListener     *chainlistener.Service
-	client            *docker.Client
-	consumer          *integrationtest.KafkaConsumer
-	producer          sarama2.SyncProducer
-	metricsURL        string
-	srvConfig         *chainlistener.Config
-	blockchainNodeURL string
+	ctx                context.Context
+	cancel             context.CancelFunc
+	T                  *testing.T
+	logger             *log.Logger
+	ucs                chain_listener.EventUseCases
+	chainBlockListener listener.ChainBlockListener
+	ethClient          ethclient2.MultiClient
+	client             *docker.Client
+	consumer           *integrationtest.KafkaConsumer
+	producer           sarama2.SyncProducer
+	cfg                *chainlistener.Config
+	chain              *entities.Chain
+	blockchainNodeURL  string
+	proxyURL           string
 }
 
-func NewIntegrationEnvironment(ctx context.Context, cancel context.CancelFunc) (*IntegrationEnvironment, error) {
+func NewIntegrationEnvironment(ctx context.Context, cancel context.CancelFunc, t *testing.T) (*IntegrationEnvironment, error) {
 	logger := log.NewLogger()
 	envMetricsPort = strconv.Itoa(utils.RandIntRange(30000, 38082))
 	envKafkaHostPort = strconv.Itoa(utils.RandIntRange(20000, 29092))
@@ -71,7 +86,7 @@ func NewIntegrationEnvironment(ctx context.Context, cancel context.CancelFunc) (
 		"--metrics-port=" + envMetricsPort,
 		"--kafka-url=" + kafkaExternalHostname,
 		"--api-url=" + apiURL,
-		"--log-level=info",
+		"--log-level=panic",
 	}
 
 	err := flgs.Parse(args)
@@ -90,7 +105,7 @@ func NewIntegrationEnvironment(ctx context.Context, cancel context.CancelFunc) (
 				SetKafkaInternalHostname(kafkaContainerID).
 				SetKafkaExternalHostname(kafkaExternalHostname),
 			},
-			ganacheContainerID: {Ganache: ganacheDocker.NewDefault().SetHostPort(envGanacheHostPort)},
+			ganacheContainerID: {Ganache: ganacheDocker.NewDefault().SetHostPort(envGanacheHostPort).SetChainID(ganacheChainID)},
 		},
 	}
 
@@ -101,14 +116,15 @@ func NewIntegrationEnvironment(ctx context.Context, cancel context.CancelFunc) (
 	}
 
 	return &IntegrationEnvironment{
+		T:                 t,
 		ctx:               ctx,
 		cancel:            cancel,
 		logger:            logger,
 		client:            dockerClient,
-		srvConfig:         flags.NewChainListenerConfig(viper.GetViper()),
-		metricsURL:        "http://localhost:" + envMetricsPort,
+		cfg:               flags.NewChainListenerConfig(viper.GetViper()),
 		producer:          sarama.GlobalSyncProducer(),
 		blockchainNodeURL: fmt.Sprintf("http://localhost:%s", envGanacheHostPort),
+		proxyURL:          fmt.Sprintf("%s/proxy/chains/%s", apiURL, ganacheChainUUID),
 	}, nil
 }
 
@@ -138,6 +154,13 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 		return err
 	}
 
+	sarama.InitSyncProducer(ctx)
+	err = sarama.InitClient(ctx)
+	if err != nil {
+		env.logger.WithError(err).Error("cannot initialize kafka client")
+		return err
+	}
+
 	// Start ganache
 	err = env.client.Up(ctx, ganacheContainerID, "")
 	if err != nil {
@@ -150,10 +173,9 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 		return err
 	}
 
-	// Create app
-	env.chainListener, err = newChainListener(ctx, env.srvConfig)
+	env.ethClient, err = newEthClient(env.blockchainNodeURL)
 	if err != nil {
-		env.logger.WithError(err).Error("could not initialize chain-listener")
+		env.logger.WithError(err).Error("could not initialize eth client")
 		return err
 	}
 
@@ -162,7 +184,7 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 		ctx,
 		"chain-listener-integration-listener-group",
 		sarama.GlobalClient(),
-		[]string{env.srvConfig.ChainListenerConfig.DecodedOutTopic},
+		[]string{env.cfg.ChainListenerConfig.DecodedOutTopic},
 	)
 	if err != nil {
 		env.logger.WithError(err).Error("could initialize Kafka")
@@ -177,42 +199,50 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 	// Set producer
 	env.producer = sarama.GlobalSyncProducer()
 
-	gock.New(apiURL).
-		Get("/chains").
-		Times(-1).
-		Reply(http2.StatusOK).JSON([]api.ChainResponse{
-		// {UUID: ganacheChainUUID},
-	})
+	apiClient := newAPIClient()
+	// Create app
+	env.ucs = newEventUseCases(ctx, env.cfg, apiClient, env.ethClient, env.logger)
 
-	// Start chain-listener app
+	env.chain = newChain(env.blockchainNodeURL)
+
+	env.chainBlockListener = datapullers.NewListenBlockSession(apiClient, env.ethClient, env.ucs.ChainBlockTxsUseCase(),
+		env.chain, env.logger)
+
+	err = env.ucs.AddChainUseCase().Execute(ctx, env.chain)
+	if err != nil {
+		env.logger.WithError(err).Error("could not add chain")
+		return err
+	}
+
 	go func() {
-		err = env.chainListener.Start(ctx)
-		if err != nil {
-			env.logger.WithError(err).Error("could not start chain-listener")
-			env.cancel()
-		}
+		gock.New(apiURL).
+			Patch("/chains/" + ganacheChainUUID).
+			Times(-1).
+			Reply(http2.StatusOK).JSON(formatters.FormatChainResponse(env.chain))
+
+		_ = env.chainBlockListener.Run(ctx)
 	}()
 
-	integrationtest.WaitForServiceLive(ctx, fmt.Sprintf("%s/live", env.metricsURL), "chain-listener", 15*time.Second)
 	return nil
 }
 
 func (env *IntegrationEnvironment) Teardown(ctx context.Context) {
 	env.logger.Info("tearing test suite down")
+	env.cancel()
 
-	err := env.chainListener.Stop(ctx)
+	err := env.ucs.DeleteChainUseCase().Execute(ctx, env.chain.UUID)
 	if err != nil {
-		env.logger.WithError(err).Error("could not stop chain-listener")
+		env.logger.WithError(err).Error("could delete chain")
 	}
 
 	err = env.client.Down(ctx, kafkaContainerID)
 	if err != nil {
-		env.logger.WithError(err).Errorf("could not down Kafka")
+		env.logger.WithError(err).Error("could not down Kafka")
 	}
 
 	err = env.client.Down(ctx, zookeeperContainerID)
 	if err != nil {
-		env.logger.WithError(err).Errorf("could not down zookeeper")
+		env.logger.WithError(err).Error("could not down zookeeper")
 	}
 
 	err = env.client.Down(ctx, ganacheContainerID)
@@ -222,28 +252,51 @@ func (env *IntegrationEnvironment) Teardown(ctx context.Context) {
 
 	err = env.client.RemoveNetwork(ctx, networkName)
 	if err != nil {
-		env.logger.WithError(err).Errorf("could not remove network")
+		env.logger.WithError(err).Error("could not remove network")
 	}
 }
 
-func newChainListener(ctx context.Context, cfg *chainlistener.Config) (*chainlistener.Service, error) {
+func newAPIClient() *client.HTTPClient {
+	httpClient := httputils.NewClient(httputils.NewDefaultConfig())
+	gock.InterceptClient(httpClient)
+
+	conf2 := client.NewConfig(apiURL, "", nil)
+	conf2.MetricsURL = apiMetricsURL
+	return client.NewHTTPClient(httpClient, conf2)
+}
+
+func newChain(blockchainURL string) *entities.Chain {
+	chain := testdata.FakeChain()
+	chain.UUID = ganacheChainUUID
+	chain.ChainID, _ = new(big.Int).SetString(ganacheChainID, 10)
+	chain.ListenerCurrentBlock = 0
+	chain.ListenerBackOffDuration = time.Second
+	chain.URLs = []string{blockchainURL}
+	return chain
+}
+
+func newEventUseCases(ctx context.Context, cfg *chainlistener.Config, apiClient client.OrchestrateClient,
+	ec ethclient2.MultiClient, logger *log.Logger) chain_listener.EventUseCases {
 	// Initialize dependencies
 	sarama.InitSyncProducer(ctx)
 	sarama.InitConsumerGroup(ctx, cfg.ChainListenerConfig.DecodedOutTopic)
 
-	httpClient := httputils.NewClient(httputils.NewDefaultConfig())
-	gock.InterceptClient(httpClient)
-
-	ec := ethclient.NewClient(testBackOff, httpClient)
-	listenerMetrics := listenermetrics.NewListenerNopMetrics()
-
-	conf2 := client.NewConfig(apiURL, "", nil)
-	conf2.MetricsURL = apiMetricsURL
-	apiClient := client.NewHTTPClient(httpClient, conf2)
-
-	return chainlistener.NewChainListener(cfg, apiClient, sarama.GlobalSyncProducer(), ec, listenerMetrics)
+	return builder.NewEventUseCases(apiClient, sarama.GlobalSyncProducer(), ec,
+		cfg.ChainListenerConfig.DecodedOutTopic, logger)
 }
 
-func testBackOff() backoff.BackOff {
-	return backoff.WithMaxRetries(backoff.NewConstantBackOff(time.Second), maxRecoveryDefault)
+func newEthClient(blockchainURL string) (ethclient2.MultiClient, error) {
+	proxyURL, err := url.Parse(blockchainURL)
+	if err != nil {
+		return nil, err
+	}
+
+	ec := ethclient.NewClient(func() backoff.BackOff {
+		return backoff.WithMaxRetries(backoff.NewConstantBackOff(time.Second), maxRecoveryDefault)
+	}, &http2.Client{
+		Transport: &http2.Transport{
+			Proxy: http2.ProxyURL(proxyURL),
+		},
+	})
+	return ec, nil
 }

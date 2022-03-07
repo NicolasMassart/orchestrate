@@ -6,8 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cenkalti/backoff/v4"
-	pkgbackoff "github.com/consensys/orchestrate/pkg/backoff"
 	"github.com/consensys/orchestrate/pkg/errors"
 	orchestrateclient "github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
@@ -27,9 +25,8 @@ type listenBlockListener struct {
 	ethClient         ethclient.Client
 	apiClient         orchestrateclient.OrchestrateClient
 	onChainBlockEvent usecases.ChainBlockTxsUseCase
-	updateChainHead   usecases.UpdateChainHead
 	chainListener     listener.ChainListener
-	sessions          map[string]*listenBlockSession
+	sessions          map[string]*ListenBlockSession
 	logger            *log.Logger
 	cancelCtx         context.CancelFunc
 	cerr              chan error
@@ -39,7 +36,6 @@ func ChainBlockListener(apiClient orchestrateclient.OrchestrateClient,
 	chainListener listener.ChainListener,
 	ethClient ethclient.Client,
 	onChainBlockEvent usecases.ChainBlockTxsUseCase,
-	updateChainHead usecases.UpdateChainHead,
 	logger *log.Logger,
 ) listener.ChainBlockListener {
 	return &listenBlockListener{
@@ -47,8 +43,7 @@ func ChainBlockListener(apiClient orchestrateclient.OrchestrateClient,
 		apiClient:         apiClient,
 		chainListener:     chainListener,
 		onChainBlockEvent: onChainBlockEvent,
-		updateChainHead:   updateChainHead,
-		sessions:          make(map[string]*listenBlockSession),
+		sessions:          make(map[string]*ListenBlockSession),
 		logger:            logger.SetComponent(listenBlocksComponent),
 		cerr:              make(chan error, 1),
 	}
@@ -101,7 +96,7 @@ func (l *listenBlockListener) Close() error {
 	l.cancelCtx()
 	gerr := []error{}
 	for _, sess := range l.sessions {
-		if err := sess.Stop(); err != nil {
+		if err := sess.Close(); err != nil {
 			gerr = append(gerr, err)
 		}
 	}
@@ -122,10 +117,10 @@ func (l *listenBlockListener) addChainSession(ctx context.Context, chain *entiti
 		return errors.AlreadyExistsError(errMsg)
 	}
 
-	sess := newListenBlockSession(l.ethClient, l.apiClient, l.onChainBlockEvent, l.updateChainHead, l.logger, chain)
+	sess := NewListenBlockSession(l.apiClient, l.ethClient, l.onChainBlockEvent, chain, l.logger)
 	l.sessions[sessID] = sess
-	go func(s *listenBlockSession) {
-		err := s.Start(ctx)
+	go func(s *ListenBlockSession) {
+		err := s.Run(ctx)
 		if err != nil {
 			l.cerr <- err
 		}
@@ -137,7 +132,7 @@ func (l *listenBlockListener) removeChainSession(_ context.Context, chain *entit
 	l.logger.Debug("chain block removing session...")
 	sessID := chain.UUID
 	if sess, ok := l.sessions[sessID]; ok {
-		return sess.Stop()
+		return sess.Close()
 	}
 
 	errMsg := "chain block session does not exist for removing"
@@ -157,41 +152,38 @@ func (l *listenBlockListener) updateChainSession(_ context.Context, chain *entit
 	return errors.NotFoundError(errMsg)
 }
 
-type listenBlockSession struct {
-	ethClient         ethclient.Client
-	apiClient         orchestrateclient.OrchestrateClient
-	onChainBlockEvent usecases.ChainBlockTxsUseCase
-	updateChainHead   usecases.UpdateChainHead
-	logger            *log.Logger
-	chain             *entities.Chain
-	cancelCtx         context.CancelFunc
-	curBlockNumber    uint64
-	interval          time.Duration
-	ticker            *time.Ticker
-	cerr              chan error
+type ListenBlockSession struct {
+	ethClient       ethclient.Client
+	apiClient       orchestrateclient.OrchestrateClient
+	chainBlockTxsUC usecases.ChainBlockTxsUseCase
+	logger          *log.Logger
+	chain           *entities.Chain
+	cancelCtx       context.CancelFunc
+	curBlockNumber  uint64
+	interval        time.Duration
+	ticker          *time.Ticker
+	cerr            chan error
 }
 
-func newListenBlockSession(ethClient ethclient.Client,
-	apiClient orchestrateclient.OrchestrateClient,
-	onChainBlockEvent usecases.ChainBlockTxsUseCase,
-	updateChainHead usecases.UpdateChainHead,
-	logger *log.Logger,
+func NewListenBlockSession(apiClient orchestrateclient.OrchestrateClient,
+	ethClient ethclient.Client,
+	chainBlockTxsUC usecases.ChainBlockTxsUseCase,
 	chain *entities.Chain,
-) *listenBlockSession {
-	return &listenBlockSession{
-		ethClient:         ethClient,
-		apiClient:         apiClient,
-		chain:             chain,
-		onChainBlockEvent: onChainBlockEvent,
-		updateChainHead:   updateChainHead,
-		logger:            logger.WithField("chain", chain.UUID).SetComponent(listenBlocksSessionComponent),
-		curBlockNumber:    chain.ListenerCurrentBlock,
-		interval:          chain.ListenerBackOffDuration,
-		cerr:              make(chan error, 1),
+	logger *log.Logger,
+) *ListenBlockSession {
+	return &ListenBlockSession{
+		ethClient:       ethClient,
+		apiClient:       apiClient,
+		chain:           chain,
+		chainBlockTxsUC: chainBlockTxsUC,
+		logger:          logger.WithField("chain", chain.UUID).SetComponent(listenBlocksSessionComponent),
+		curBlockNumber:  chain.ListenerCurrentBlock,
+		interval:        chain.ListenerBackOffDuration,
+		cerr:            make(chan error, 1),
 	}
 }
 
-func (s *listenBlockSession) Start(ctx context.Context) error {
+func (s *ListenBlockSession) Run(ctx context.Context) error {
 	s.logger.WithField("refresh", s.interval.String()).Info("chain block listener started")
 	ctx, s.cancelCtx = context.WithCancel(ctx)
 
@@ -224,14 +216,14 @@ func (s *listenBlockSession) Start(ctx context.Context) error {
 	}
 }
 
-func (s *listenBlockSession) Stop() error {
+func (s *ListenBlockSession) Close() error {
 	defer close(s.cerr)
 	s.cancelCtx()
 	s.logger.Info("chain block session listener closed")
 	return nil
 }
 
-func (s *listenBlockSession) Update(chain *entities.Chain) error {
+func (s *ListenBlockSession) Update(chain *entities.Chain) error {
 	s.logger.Info("chain block session listener updated")
 	if s.chain.ListenerBackOffDuration.Milliseconds() != chain.ListenerBackOffDuration.Milliseconds() {
 		s.ticker.Reset(chain.ListenerBackOffDuration)
@@ -241,7 +233,7 @@ func (s *listenBlockSession) Update(chain *entities.Chain) error {
 	return nil
 }
 
-func (s *listenBlockSession) runIt(ctx context.Context, curBlockNumber uint64) error {
+func (s *ListenBlockSession) runIt(ctx context.Context, curBlockNumber uint64) error {
 	blockEvents, nextBlockNumber, err := s.retrieveBlocks(ctx, curBlockNumber)
 	if err != nil {
 		return err
@@ -252,33 +244,14 @@ func (s *listenBlockSession) runIt(ctx context.Context, curBlockNumber uint64) e
 		return err
 	}
 
-	// @TODO Can we reduce the amount of updates???
-	// There is a racing issue when chain is deleted and updating head
-	err = backoff.RetryNotify(
-		func() error {
-			err = s.updateChainHead.Execute(ctx, s.chain.UUID, nextBlockNumber)
-			if err != nil && !errors.IsNotFoundError(err) {
-				return backoff.Permanent(err)
-			}
-			return err
-		},
-		pkgbackoff.ConstantBackOffWithMaxRetries(time.Second, 2),
-		func(err error, d time.Duration) {
-			s.logger.WithError(err).Warnf("error updating chain head, restarting in %v...", d)
-		},
-	)
-	if err != nil {
-		return err
-	}
-
 	s.curBlockNumber = nextBlockNumber
 	return nil
 }
 
-func (s *listenBlockSession) triggerEvents(ctx context.Context, blockEvents []*events.Block) error {
+func (s *ListenBlockSession) triggerEvents(ctx context.Context, blockEvents []*events.Block) error {
 	// @TODO Can I run it in parallel ???
 	for _, event := range blockEvents {
-		if err := s.onChainBlockEvent.Execute(ctx, s.chain.UUID, event.Number, event.TxHashes); err != nil {
+		if err := s.chainBlockTxsUC.Execute(ctx, s.chain.UUID, event.Number, event.TxHashes); err != nil {
 			return err
 		}
 	}
@@ -286,7 +259,7 @@ func (s *listenBlockSession) triggerEvents(ctx context.Context, blockEvents []*e
 	return nil
 }
 
-func (s *listenBlockSession) retrieveBlocks(ctx context.Context, curBlockNumber uint64) ([]*events.Block, uint64, error) {
+func (s *ListenBlockSession) retrieveBlocks(ctx context.Context, curBlockNumber uint64) ([]*events.Block, uint64, error) {
 	chainURL := s.apiClient.ChainProxyURL(s.chain.UUID)
 	newBlockEvents := []*events.Block{}
 
@@ -320,7 +293,7 @@ func (s *listenBlockSession) retrieveBlocks(ctx context.Context, curBlockNumber 
 	return newBlockEvents, latestBlock.NumberU64(), nil
 }
 
-func (s *listenBlockSession) retrieveBlock(ctx context.Context, chainURL string, blockNumber interface{}) (*ethtypes.Block, error) {
+func (s *ListenBlockSession) retrieveBlock(ctx context.Context, chainURL string, blockNumber interface{}) (*ethtypes.Block, error) {
 	var chainBlock *ethtypes.Block
 	var err error
 

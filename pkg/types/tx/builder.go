@@ -834,6 +834,9 @@ func (e *Envelope) SetContractName(contractName string) *Envelope {
 	e.ContractName = contractName
 	return e
 }
+func (e *Envelope) GetContractName() string {
+	return e.Receipt.ContractName
+}
 
 func (e *Envelope) SetMethodSignature(methodSignature string) *Envelope {
 	e.MethodSignature = methodSignature
@@ -847,6 +850,10 @@ func (e *Envelope) SetArgs(args []string) *Envelope {
 func (e *Envelope) SetContractTag(contractTag string) *Envelope {
 	e.ContractTag = contractTag
 	return e
+}
+
+func (e *Envelope) GetContractTag() string {
+	return e.Receipt.ContractTag
 }
 
 func (e *Envelope) ShortContract() string {

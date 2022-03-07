@@ -7,10 +7,12 @@ import (
 	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
+//go:generate mockgen -source=store.go -destination=mocks/store.go -package=mocks
+
 type Chain interface {
 	Add(ctx context.Context, chain *entities.Chain) error
 	Update(ctx context.Context, chain *entities.Chain) error
-	Remove(ctx context.Context, chainUUID string) error
+	Delete(ctx context.Context, chainUUID string) error
 	Get(ctx context.Context, chainUUID string) (*entities.Chain, error)
 }
 

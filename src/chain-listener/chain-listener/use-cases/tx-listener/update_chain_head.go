@@ -35,7 +35,7 @@ func (uc *updateChainHead) Execute(ctx context.Context, chainUUID string, nextCh
 	if err != nil {
 		errMsg := "failed to update chain head"
 		logger.WithError(err).Error(errMsg)
-		return errors.FromError(err).SetMessage(errMsg)
+		return errors.DependencyFailureError(errMsg)
 	}
 
 	uc.logger.WithField("head", nextChainHead).Debug("chain head updated")

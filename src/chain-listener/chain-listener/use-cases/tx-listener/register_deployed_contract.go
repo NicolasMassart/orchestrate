@@ -39,7 +39,9 @@ func RegisterDeployedContractUseCase(client orchestrateclient.OrchestrateClient,
 }
 
 func (uc *registerDeployedContractUseCase) Execute(ctx context.Context, job *entities.Job) error {
-	logger := uc.logger.WithField("chain", job.ChainUUID).WithField("job", job.UUID).
+	logger := uc.logger.
+		WithField("chain", job.ChainUUID).
+		WithField("job", job.UUID).
 		WithField("contract_address", job.Receipt.GetContractAddr().String())
 	logger.Debug("registering contract deployed")
 
@@ -62,9 +64,8 @@ func (uc *registerDeployedContractUseCase) Execute(ctx context.Context, job *ent
 
 	chain, err := uc.chainState.Get(ctx, job.ChainUUID)
 	if err != nil {
-		errMsg := "failed to get chain for registering contract"
-		logger.WithError(err).Error(errMsg)
-		return errors.DependencyFailureError(errMsg)
+		logger.WithError(err).Error("failed to get chain for contract registration")
+		return err
 	}
 	err = uc.client.SetContractAddressCodeHash(ctx, job.Receipt.ContractAddress, chain.ChainID.String(),
 		&api.SetContractCodeHashRequest{
@@ -73,11 +74,9 @@ func (uc *registerDeployedContractUseCase) Execute(ctx context.Context, job *ent
 	if err != nil {
 		errMsg := "failed to register contract"
 		logger.WithError(err).Error(errMsg)
-		return errors.FromError(err).SetMessage(errMsg)
+		return errors.DependencyFailureError(errMsg)
 	}
 
-	logger.WithField("name", job.Receipt.ContractName).
-		WithField("tag", job.Receipt.ContractTag).
-		Info("contract has been registered successfully")
+	logger.Info("contract has been registered successfully")
 	return nil
 }

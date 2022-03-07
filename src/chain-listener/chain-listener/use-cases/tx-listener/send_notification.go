@@ -39,7 +39,10 @@ func SendNotificationUseCase(client orchestrateclient.OrchestrateClient,
 }
 
 func (uc *sendNotificationUseCase) Execute(ctx context.Context, job *entities.Job) error {
-	logger := uc.logger.WithField("chain", job.ChainUUID).WithField("job", job.UUID).WithField("tx_hash", job.Transaction.Hash)
+	logger := uc.logger.
+		WithField("chain", job.ChainUUID).
+		WithField("job", job.UUID).
+		WithField("tx_hash", job.Transaction.Hash)
 	logger.Debug("sending job notification")
 
 	err := uc.attachContractData(ctx, job.Receipt)
@@ -92,8 +95,9 @@ func (uc *sendNotificationUseCase) attachContractData(ctx context.Context, recei
 		if errors.IsNotFoundError(err) {
 			return nil
 		}
-		logger.WithError(err).Error("failed to search contract")
-		return err
+		errMsg := "failed to search contract"
+		logger.WithError(err).Error(errMsg)
+		return errors.DependencyFailureError(errMsg)
 
 	}
 

@@ -13,28 +13,32 @@ import (
 	"github.com/docker/go-connections/nat"
 )
 
-const defaultGanacheImage = "trufflesuite/ganache-cli:v6.12.1"
+const defaultGanacheImage = "trufflesuite/ganache-cli:v6.12.2"
 const defaultHostPort = "8545"
 const defaultHost = "localhost"
+const defaultChainID = "666"
 
 var accounts = map[string]string{
-	"0x56202652fdffd802b7252a456dbd8f3ecc0352bbde76c23b40afe8aebd714e2e": "1000000000000000000000",
-	"0x5FBB50BFF6DFAD35C4A374C9237BA2F7EAED9C6868E0108CB259B62D68029B1A": "1000000000000000000000",
+	"0x56202652fdffd802b7252a456dbd8f3ecc0352bbde76c23b40afe8aebd714e2e": "1000000000000000000000", // 0x7E654d251Da770A068413677967F6d3Ea2FeA9E4
+	"0x5FBB50BFF6DFAD35C4A374C9237BA2F7EAED9C6868E0108CB259B62D68029B1A": "1000000000000000000000", // 0xdbb881a51CD4023E4400CEF3ef73046743f08da3
+	"0x1476c66de79a57e8ab4cadceccbe858c99e5edf3bffea5404b15322b5421e18c": "1000000000000000000000", // 0x93f7274c9059e601be4512F656B57b830e019E41
 }
 
 type Ganache struct{}
 
 type Config struct {
-	Image string
-	Port  string
-	Host  string
+	Image   string
+	Port    string
+	Host    string
+	ChainID string
 }
 
 func NewDefault() *Config {
 	return &Config{
-		Image: defaultGanacheImage,
-		Port:  defaultHostPort,
-		Host:  defaultHost,
+		Image:   defaultGanacheImage,
+		Port:    defaultHostPort,
+		Host:    defaultHost,
+		ChainID: defaultChainID,
 	}
 }
 
@@ -48,13 +52,18 @@ func (cfg *Config) SetHost(host string) *Config {
 	return cfg
 }
 
+func (cfg *Config) SetChainID(chainID string) *Config {
+	cfg.ChainID = chainID
+	return cfg
+}
+
 func (*Ganache) GenerateContainerConfig(_ context.Context, configuration interface{}) (*dockercontainer.Config, *dockercontainer.HostConfig, *network.NetworkingConfig, error) {
 	cfg, ok := configuration.(*Config)
 	if !ok {
 		return nil, nil, nil, fmt.Errorf("invalid configuration type (expected %T but got %T)", cfg, configuration)
 	}
 
-	cmd := []string{"ganache-cli", "--blockTime", "1"}
+	cmd := []string{"ganache-cli", "--blockTime", "1", "--chainId", cfg.ChainID}
 	for privKey, balance := range accounts {
 		cmd = append(cmd, fmt.Sprintf(`--account="%s,%s"`, privKey, balance))
 	}

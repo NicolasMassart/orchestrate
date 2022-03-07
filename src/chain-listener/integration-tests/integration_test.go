@@ -29,7 +29,7 @@ func (s *chainListenerTestSuite) SetupSuite() {
 		return
 	}
 
-	s.env.logger.Infof("setup test suite has completed")
+	s.env.logger.Info("setup test suite has completed")
 }
 
 func (s *chainListenerTestSuite) TearDownSuite() {
@@ -44,7 +44,7 @@ func TestChainListener(t *testing.T) {
 	s := new(chainListenerTestSuite)
 	ctx, cancel := context.WithCancel(context.Background())
 
-	s.env, s.err = NewIntegrationEnvironment(ctx, cancel)
+	s.env, s.err = NewIntegrationEnvironment(ctx, cancel, t)
 	if s.err != nil {
 		t.Errorf(s.err.Error())
 		return
@@ -65,6 +65,19 @@ func (s *chainListenerTestSuite) TestTxListener() {
 	}
 
 	testSuite := new(txListenerTestSuite)
+	testSuite.env = s.env
+
+	time.Sleep(3 * time.Second)
+	suite.Run(s.T(), testSuite)
+}
+
+func (s *chainListenerTestSuite) TestTxSEntry() {
+	if s.err != nil {
+		s.env.logger.Warn("skipping test...")
+		return
+	}
+
+	testSuite := new(txSentryTestSuite)
 	testSuite.env = s.env
 
 	time.Sleep(3 * time.Second)

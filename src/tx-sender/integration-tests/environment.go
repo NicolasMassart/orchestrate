@@ -209,17 +209,17 @@ func (env *IntegrationEnvironment) Teardown(ctx context.Context) {
 
 	err = env.client.Down(ctx, kafkaContainerID)
 	if err != nil {
-		env.logger.WithError(err).Errorf("could not down Kafka")
+		env.logger.WithError(err).Error("could not down Kafka")
 	}
 
 	err = env.client.Down(ctx, zookeeperContainerID)
 	if err != nil {
-		env.logger.WithError(err).Errorf("could not down zookeeper")
+		env.logger.WithError(err).Error("could not down zookeeper")
 	}
 
 	err = env.client.RemoveNetwork(ctx, networkName)
 	if err != nil {
-		env.logger.WithError(err).Errorf("could not remove network")
+		env.logger.WithError(err).Error("could not remove network")
 	}
 }
 

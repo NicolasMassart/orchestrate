@@ -111,7 +111,7 @@ func (s *chainsService) runIt(ctx context.Context) error {
 			}
 			s.activeChains[event.Chain.UUID] = event.Chain
 		case events.DeletedChain:
-			if err := s.deleteChainEvent.Execute(ctx, event.Chain); err != nil {
+			if err := s.deleteChainEvent.Execute(ctx, event.Chain.UUID); err != nil {
 				return err
 			}
 			delete(s.activeChains, event.Chain.UUID)

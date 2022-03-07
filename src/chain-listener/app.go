@@ -4,11 +4,8 @@ import (
 	"context"
 
 	"github.com/Shopify/sarama"
-	"github.com/consensys/orchestrate/src/chain-listener/chain-listener/use-cases/events"
-	tx_listener "github.com/consensys/orchestrate/src/chain-listener/chain-listener/use-cases/tx-listener"
-	tx_sentry "github.com/consensys/orchestrate/src/chain-listener/chain-listener/use-cases/tx-sentry"
+	"github.com/consensys/orchestrate/src/chain-listener/chain-listener/builder"
 	listener "github.com/consensys/orchestrate/src/chain-listener/service/listener/data-pullers"
-	in_memory "github.com/consensys/orchestrate/src/chain-listener/store/in-memory"
 	"github.com/consensys/orchestrate/src/infra/ethclient"
 	"github.com/prometheus/client_golang/prometheus"
 
@@ -38,33 +35,13 @@ func NewChainListener(cfg *Config,
 
 	logger := log.NewLogger()
 
-	chainInMemory := in_memory.NewChainInMemory()
-	pendingJobInMemory := in_memory.NewPendingJobInMemory()
-	retrySessionInMemory := in_memory.NewRetrySessionInMemory()
+	ucs := builder.NewEventUseCases(apiClient, saramaCli, ethClient, cfg.ChainListenerConfig.DecodedOutTopic, logger)
 
-	sendNotificationUC := tx_listener.SendNotificationUseCase(apiClient, saramaCli,
-		cfg.ChainListenerConfig.DecodedOutTopic, logger)
-	registerDeployedContractUC := tx_listener.RegisterDeployedContractUseCase(apiClient, ethClient, chainInMemory, logger)
-	updateJobStatusUC := tx_listener.NotifyMinedJobUseCase(apiClient, ethClient, sendNotificationUC,
-		registerDeployedContractUC, chainInMemory, logger)
-	updateChainHeadUC := tx_listener.UpdateChainHeadUseCase(apiClient, logger)
-	retrySessionJobUC := tx_sentry.RetrySessionJobUseCase(apiClient, logger)
-	retrySessionHandler := tx_sentry.RetrySessionManager(apiClient, retrySessionJobUC, retrySessionInMemory, logger)
-
-	addChainEventUC := events.AddChainUseCase(retrySessionHandler, chainInMemory, logger)
-	updateChainEventUC := events.UpdateChainUseCase(retrySessionHandler, chainInMemory, logger)
-	deleteChainEventUC := events.DeleteChainUseCase(retrySessionHandler, chainInMemory, pendingJobInMemory,
-		retrySessionInMemory, logger)
-	chainBlockEventHandler := events.ChainBlockTxsUseCase(updateJobStatusUC, retrySessionHandler, pendingJobInMemory,
-		retrySessionInMemory, logger)
-	pendingJobEventHandler := events.PendingJobUseCase(apiClient, ethClient, updateJobStatusUC, retrySessionHandler,
-		pendingJobInMemory, logger)
-
-	chainListener := listener.ChainListenerService(apiClient, ethClient, addChainEventUC, updateChainEventUC,
-		deleteChainEventUC, cfg.ChainListenerConfig.RefreshInterval, logger)
+	chainListener := listener.ChainListenerService(apiClient, ethClient, ucs.AddChainUseCase(), ucs.UpdateChainUseCase(),
+		ucs.DeleteChainUseCase(), cfg.ChainListenerConfig.RefreshInterval, logger)
 	chainBlocksListener := listener.ChainBlockListener(apiClient, chainListener, ethClient,
-		chainBlockEventHandler, updateChainHeadUC, logger)
-	chainPendingJobListener := listener.ChainPendingJobsListener(apiClient, chainListener, pendingJobEventHandler,
+		ucs.ChainBlockTxsUseCase(), logger)
+	chainPendingJobListener := listener.ChainPendingJobsListener(apiClient, chainListener, ucs.PendingJobUseCase(),
 		cfg.ChainListenerConfig.RefreshInterval, logger)
 
 	appli.RegisterDaemon(chainListener)

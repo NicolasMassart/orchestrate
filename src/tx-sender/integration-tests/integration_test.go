@@ -29,7 +29,7 @@ func (s *txSenderTestSuite) SetupSuite() {
 		return
 	}
 
-	s.env.logger.Infof("setup test suite has completed")
+	s.env.logger.Info("setup test suite has completed")
 }
 
 func (s *txSenderTestSuite) TearDownSuite() {

@@ -65,7 +65,6 @@ run:
     - /scripts
     - /vendor
     - /tests
-    - /src/tx-listener
   skip-files:
     - ".*\\.pb(\\.gw)?\\.go$"
     - pkg/toolkit/app/http/handler/dashboard/genstatic/gen.go

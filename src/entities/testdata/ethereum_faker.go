@@ -22,6 +22,7 @@ func FakeETHTransaction() *entities.ETHTransaction {
 	return &entities.ETHTransaction{
 		From:        FakeAddress(),
 		To:          FakeAddress(),
+		Hash:        FakeTxHash(),
 		Nonce:       utils.ToPtr(uint64(1)).(*uint64),
 		Value:       utils.ToPtr(hexutil.Big(*big.NewInt(50000))).(*hexutil.Big),
 		GasPrice:    utils.ToPtr(hexutil.Big(*big.NewInt(10000))).(*hexutil.Big),
@@ -105,6 +106,11 @@ func FakeAddress() *ethcommon.Address {
 
 func FakeHash() hexutil.Bytes {
 	return hexutil.MustDecode("0x" + utils.RandHexString(40))
+}
+
+func FakeTxHash() *ethcommon.Hash {
+	txHash := ethcommon.HexToHash("0x" + utils.RandHexString(64))
+	return &txHash
 }
 
 func FakeFeeHistory(nextBaseFee *big.Int) *rpc.FeeHistory {

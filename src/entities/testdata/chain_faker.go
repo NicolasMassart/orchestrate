@@ -6,6 +6,7 @@ import (
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"github.com/consensys/orchestrate/src/entities"
+	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/gofrs/uuid"
 )
 
@@ -18,7 +19,7 @@ func FakeChain() *entities.Chain {
 		URLs:                      []string{"http://ethereum-node:8545"},
 		ChainID:                   big.NewInt(888),
 		ListenerDepth:             0,
-		ListenerCurrentBlock:      0,
+		ListenerCurrentBlock:      uint64(common.RandInt(100)),
 		ListenerStartingBlock:     0,
 		ListenerBackOffDuration:   backOffDuration,
 		ListenerExternalTxEnabled: false,

@@ -25,5 +25,5 @@ type UpdateChainUseCase interface {
 	Execute(ctx context.Context, event *entities.Chain) error
 }
 type DeleteChainUseCase interface {
-	Execute(ctx context.Context, event *entities.Chain) error
+	Execute(ctx context.Context, chainUUID string) error
 }

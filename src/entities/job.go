@@ -92,6 +92,22 @@ func IsFinalJobStatus(status JobStatus) bool {
 		status == StatusNeverMined
 }
 
+func (job *Job) ShouldBeRetried() bool {
+	if job.InternalData.ParentJobUUID != "" {
+		return false
+	}
+
+	if job.InternalData.HasBeenRetried {
+		return false
+	}
+
+	if job.InternalData.RetryInterval == 0 {
+		return false
+	}
+
+	return true
+}
+
 func (job *Job) TxEnvelope(headers map[string]string) *tx.TxEnvelope {
 	contextLabels := job.Labels
 	if contextLabels == nil {
