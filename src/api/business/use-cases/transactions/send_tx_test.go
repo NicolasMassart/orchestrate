@@ -115,7 +115,7 @@ func (s *sendTxSuite) TestSendTx_Success() {
 	
 	s.T().Run("should execute send successfully a tessera tx", func(t *testing.T) {
 		txRequest := testdata.FakeTesseraTxRequest()
-		txRequest.Params.Protocol = entities.TesseraChainType
+		txRequest.Params.Protocol = entities.GoQuorumChainType
 	
 		response, err := successfulTestExecution(s, txRequest, false, entities.TesseraPrivateTransaction,
 			entities.TesseraMarkingTransaction)

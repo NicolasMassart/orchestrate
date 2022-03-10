@@ -66,7 +66,7 @@ func FakeTesseraTransactionParams() *entities.TxRequestParams {
 	tx := FakeETHTransactionParams()
 	tx.PrivateFrom = "ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc="
 	tx.PrivateFor = []string{"ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bd="}
-	tx.Protocol = entities.TesseraChainType
+	tx.Protocol = entities.GoQuorumChainType
 
 	return tx
 }

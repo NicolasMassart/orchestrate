@@ -20,11 +20,11 @@ type TestOIDC struct {
 }
 
 type TestDataChain struct {
-	URLs              []string                 `json:"URLs,omitempty"`
-	PrivateAddress    []string                 `json:"privateAddress,omitempty"`
-	FundedPublicKeys  []string                 `json:"fundedPublicKeys,omitempty"`
-	FundedPrivateKeys []hexutil.Bytes          `json:"fundedPrivateKeys,omitempty"`
-	PrivateTxManager  TestDataPrivateTxManager `json:"privateTxManager,omitempty"`
+	URLs                []string        `json:"URLs,omitempty"`
+	PrivateAddress      []string        `json:"privateAddress,omitempty"`
+	FundedPublicKeys    []string        `json:"fundedPublicKeys,omitempty"`
+	FundedPrivateKeys   []hexutil.Bytes `json:"fundedPrivateKeys,omitempty"`
+	PrivateTxManagerURL string          `json:"privateTxManagerURL,omitempty"`
 }
 
 type TestDataPrivateTxManager struct {

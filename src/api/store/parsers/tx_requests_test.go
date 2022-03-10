@@ -84,7 +84,7 @@ func TestParsersTxRequest_NewEEAJobEntityFromSendTx(t *testing.T) {
 
 func TestParsersTxRequest_NewTesseraJobEntityFromSendTx(t *testing.T) {
 	txReqEntity := testdata.FakeTxRequest()
-	txReqEntity.Params.Protocol = entities.TesseraChainType
+	txReqEntity.Params.Protocol = entities.GoQuorumChainType
 	txReqEntity.Params.PrivateFor = []string{"0xPrivateFor"}
 	chainUUID := "chainUUID"
 	jobs, _ := NewJobEntities(txReqEntity, chainUUID, hexutil.MustDecode("0x0ABC"))

@@ -1,4 +1,5 @@
 // +build unit
+// +build !race
 
 package service
 
@@ -9,37 +10,41 @@ import (
 
 	"github.com/Shopify/sarama"
 	"github.com/cenkalti/backoff/v4"
-	"github.com/consensys/orchestrate/src/infra/broker/sarama/mock"
 	"github.com/consensys/orchestrate/pkg/encoding/proto"
 	"github.com/consensys/orchestrate/pkg/errors"
 	mock3 "github.com/consensys/orchestrate/pkg/sdk/client/mock"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/auth/utils"
+	"github.com/consensys/orchestrate/pkg/types/tx"
 	api "github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities"
-	"github.com/consensys/orchestrate/pkg/types/tx"
+	"github.com/consensys/orchestrate/src/infra/broker/sarama/mock"
 	usecases "github.com/consensys/orchestrate/src/tx-sender/tx-sender/use-cases"
 	"github.com/consensys/orchestrate/src/tx-sender/tx-sender/use-cases/mocks"
 	"github.com/gofrs/uuid"
+	"github.com/stretchr/testify/require"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
+const errMsgExceedTime = "exceeded waiting time"
+
 type messageListenerCtrlTestSuite struct {
 	suite.Suite
-	listener           *MessageListener
-	producer           *mock.MockSyncProducer
-	sendETHUC          *mocks.MockSendETHTxUseCase
-	sendETHRawUC       *mocks.MockSendETHRawTxUseCase
-	sendEEAPrivateUC   *mocks.MockSendEEAPrivateTxUseCase
-	sendTesseraMarking *mocks.MockSendTesseraMarkingTxUseCase
-	sendTesseraPrivate *mocks.MockSendTesseraPrivateTxUseCase
-	apiClient          *mock3.MockOrchestrateClient
-	tenantID           string
-	allowedTenants     []string
-	senderTopic        string
-	recoverTopic       string
+	listener            *MessageListener
+	producer            *mock.MockSyncProducer
+	sendETHUC           *mocks.MockSendETHTxUseCase
+	sendETHRawUC        *mocks.MockSendETHRawTxUseCase
+	sendEEAPrivateUC    *mocks.MockSendEEAPrivateTxUseCase
+	sendGoQuorumMarking *mocks.MockSendGoQuorumMarkingTxUseCase
+	sendGoQuorumPrivate *mocks.MockSendGoQuorumPrivateTxUseCase
+	apiClient           *mock3.MockOrchestrateClient
+	tenantID            string
+	allowedTenants      []string
+	senderTopic         string
+	recoverTopic        string
+	consumerGroup       string
 }
 
 var _ usecases.UseCases = &messageListenerCtrlTestSuite{}
@@ -56,12 +61,12 @@ func (s *messageListenerCtrlTestSuite) SendEEAPrivateTx() usecases.SendEEAPrivat
 	return s.sendEEAPrivateUC
 }
 
-func (s *messageListenerCtrlTestSuite) SendTesseraPrivateTx() usecases.SendTesseraPrivateTxUseCase {
-	return s.sendTesseraPrivate
+func (s *messageListenerCtrlTestSuite) SendGoQuorumPrivateTx() usecases.SendGoQuorumPrivateTxUseCase {
+	return s.sendGoQuorumPrivate
 }
 
-func (s *messageListenerCtrlTestSuite) SendTesseraMarkingTx() usecases.SendTesseraMarkingTxUseCase {
-	return s.sendTesseraMarking
+func (s *messageListenerCtrlTestSuite) SendGoQuorumMarkingTx() usecases.SendGoQuorumMarkingTxUseCase {
+	return s.sendGoQuorumMarking
 }
 
 func TestMessageListener(t *testing.T) {
@@ -78,11 +83,12 @@ func (s *messageListenerCtrlTestSuite) SetupTest() {
 	s.sendETHRawUC = mocks.NewMockSendETHRawTxUseCase(ctrl)
 	s.sendETHUC = mocks.NewMockSendETHTxUseCase(ctrl)
 	s.sendEEAPrivateUC = mocks.NewMockSendEEAPrivateTxUseCase(ctrl)
-	s.sendTesseraPrivate = mocks.NewMockSendTesseraPrivateTxUseCase(ctrl)
-	s.sendTesseraMarking = mocks.NewMockSendTesseraMarkingTxUseCase(ctrl)
+	s.sendGoQuorumPrivate = mocks.NewMockSendGoQuorumPrivateTxUseCase(ctrl)
+	s.sendGoQuorumMarking = mocks.NewMockSendGoQuorumMarkingTxUseCase(ctrl)
 	s.apiClient = mock3.NewMockOrchestrateClient(ctrl)
 	s.senderTopic = "sender-topic"
 	s.recoverTopic = "recover-topic"
+	s.consumerGroup = "kafka-consumer-group"
 	s.producer = mock.NewMockSyncProducer()
 
 	bckoff := backoff.WithMaxRetries(backoff.NewConstantBackOff(time.Millisecond*100), 2)
@@ -90,190 +96,230 @@ func (s *messageListenerCtrlTestSuite) SetupTest() {
 }
 
 func (s *messageListenerCtrlTestSuite) TestMessageListener_PublicEthereum() {
-	s.T().Run("should execute use case for multiple public ethereum transactions", func(t *testing.T) {
-		var claims map[string][]int32
-		ctx, _ := context.WithTimeout(context.Background(), time.Millisecond*500)
+	var claims map[string][]int32
+	ctx, _ := context.WithTimeout(context.Background(), time.Second*5)
+	session := mock.NewConsumerGroupSession(ctx, s.consumerGroup, claims)
+	consumerClaim := mock.NewConsumerGroupClaim(s.senderTopic, 0, 0)
 
-		mockSession := mock.NewConsumerGroupSession(ctx, "kafka-consumer-group", claims)
-		mockClaim := mock.NewConsumerGroupClaim("topic", 0, 0)
+	defer func() {
+		s.producer.Clean()
+		_ = s.listener.Cleanup(session)
+	}()
+
+	go func() {
+		_ = s.listener.ConsumeClaim(session, consumerClaim)
+	}()
+
+	s.T().Run("should execute use case for multiple public ethereum transactions", func(t *testing.T) {
 		envelope := fakeEnvelope(s.tenantID)
 		msg := &sarama.ConsumerMessage{}
 		msg.Value, _ = proto.Marshal(envelope.TxEnvelopeAsRequest())
+		
+		cjob := make(chan *entities.Job, 1)
+		s.sendETHUC.EXPECT().Execute(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, job *entities.Job) error {
+			cjob <- job
+			return nil
+		})
 
-		s.sendETHUC.EXPECT().Execute(gomock.Any(), gomock.Any()).Times(2).Return(nil)
+		consumerClaim.ExpectMessage(msg)
 
-		cerr := make(chan error)
-		go func() {
-			cerr <- s.listener.ConsumeClaim(mockSession, mockClaim)
-		}()
-
-		mockClaim.ExpectMessage(msg)
-		mockClaim.ExpectMessage(msg)
-
-		assert.NoError(t, <-cerr)
-		assert.Nil(t, s.producer.LastMessage())
+		select {
+		case <-ctx.Done():
+			t.Error(ctx.Err())
+		case <-time.Tick(time.Millisecond * 500):
+			t.Error(errMsgExceedTime)
+		case rjob := <-cjob:
+			assert.Equal(t, rjob.UUID, envelope.GetJobUUID())
+			assert.Nil(t, s.producer.LastMessage())
+		}
 	})
 
 	s.T().Run("should execute use case for public raw ethereum transactions", func(t *testing.T) {
-		var claims map[string][]int32
-		ctx, _ := context.WithTimeout(context.Background(), time.Millisecond*500)
-
-		mockSession := mock.NewConsumerGroupSession(ctx, "kafka-consumer-group", claims)
-		mockClaim := mock.NewConsumerGroupClaim("topic", 0, 0)
 		envelope := fakeEnvelope(s.tenantID)
 		_ = envelope.SetJobType(tx.JobType_ETH_RAW_TX)
 		msg := &sarama.ConsumerMessage{}
 		msg.Value, _ = proto.Marshal(envelope.TxEnvelopeAsRequest())
 
-		s.sendETHRawUC.EXPECT().Execute(gomock.Any(), gomock.Any()).Return(nil)
+		cjob := make(chan *entities.Job, 1)
+		s.sendETHRawUC.EXPECT().Execute(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, job *entities.Job) error {
+			cjob <- job
+			return nil
+		})
 
-		cerr := make(chan error)
-		go func() {
-			cerr <- s.listener.ConsumeClaim(mockSession, mockClaim)
-		}()
+		consumerClaim.ExpectMessage(msg)
 
-		mockClaim.ExpectMessage(msg)
-
-		assert.NoError(t, <-cerr)
-		assert.Nil(t, s.producer.LastMessage())
+		select {
+		case <-ctx.Done():
+			t.Error(ctx.Err())
+		case <-time.Tick(time.Millisecond * 500):
+			t.Error(errMsgExceedTime)
+		case rjob := <-cjob:
+			assert.Equal(t, rjob.UUID, envelope.GetJobUUID())
+			assert.Nil(t, s.producer.LastMessage())
+		}
 	})
 
 	s.T().Run("should execute use case for eea transactions", func(t *testing.T) {
-		var claims map[string][]int32
-		ctx, _ := context.WithTimeout(context.Background(), time.Millisecond*500)
-
-		mockSession := mock.NewConsumerGroupSession(ctx, "kafka-consumer-group", claims)
-		mockClaim := mock.NewConsumerGroupClaim("topic", 0, 0)
 		envelope := fakeEnvelope(s.tenantID)
-		_ = envelope.SetJobType(tx.JobType_ETH_EEA_PRIVATE_TX)
+		_ = envelope.SetJobType(tx.JobType_EEA_PRIVATE_TX)
 		msg := &sarama.ConsumerMessage{}
 		msg.Value, _ = proto.Marshal(envelope.TxEnvelopeAsRequest())
 
-		s.sendEEAPrivateUC.EXPECT().Execute(gomock.Any(), gomock.Any()).Return(nil)
+		cjob := make(chan *entities.Job, 1)
+		s.sendEEAPrivateUC.EXPECT().Execute(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, job *entities.Job) error {
+			cjob <- job
+			return nil
+		})
 
-		cerr := make(chan error)
-		go func() {
-			cerr <- s.listener.ConsumeClaim(mockSession, mockClaim)
-		}()
+		consumerClaim.ExpectMessage(msg)
 
-		mockClaim.ExpectMessage(msg)
-
-		assert.NoError(t, <-cerr)
-		assert.Nil(t, s.producer.LastMessage())
+		select {
+		case <-ctx.Done():
+			t.Error(ctx.Err())
+		case <-time.Tick(time.Millisecond * 500):
+			t.Error(errMsgExceedTime)
+		case rjob := <-cjob:
+			assert.Equal(t, rjob.UUID, envelope.GetJobUUID())
+			assert.Nil(t, s.producer.LastMessage())
+		}
 	})
 
 	s.T().Run("should execute use case for tessera marking transactions", func(t *testing.T) {
-		var claims map[string][]int32
-		ctx, _ := context.WithTimeout(context.Background(), time.Millisecond*500)
-
-		mockSession := mock.NewConsumerGroupSession(ctx, "kafka-consumer-group", claims)
-		mockClaim := mock.NewConsumerGroupClaim("topic", 0, 0)
 		envelope := fakeEnvelope(s.tenantID)
-		_ = envelope.SetJobType(tx.JobType_ETH_TESSERA_MARKING_TX)
+		_ = envelope.SetJobType(tx.JobType_GO_QUORUM_MARKING_TX)
 		msg := &sarama.ConsumerMessage{}
 		msg.Value, _ = proto.Marshal(envelope.TxEnvelopeAsRequest())
 
-		s.sendTesseraMarking.EXPECT().Execute(gomock.Any(), gomock.Any()).Return(nil)
+		cjob := make(chan *entities.Job, 1)
+		s.sendGoQuorumMarking.EXPECT().Execute(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, job *entities.Job) error {
+			cjob <- job
+			return nil
+		})
+		
+		consumerClaim.ExpectMessage(msg)
 
-		cerr := make(chan error)
-		go func() {
-			cerr <- s.listener.ConsumeClaim(mockSession, mockClaim)
-		}()
-
-		mockClaim.ExpectMessage(msg)
-
-		assert.NoError(t, <-cerr)
-		assert.Nil(t, s.producer.LastMessage())
+		select {
+		case <-ctx.Done():
+			t.Error(ctx.Err())
+		case <-time.Tick(time.Millisecond * 500):
+			t.Error(errMsgExceedTime)
+		case rjob := <-cjob:
+			assert.Equal(t, rjob.UUID, envelope.GetJobUUID())
+			assert.Nil(t, s.producer.LastMessage())
+		}
 	})
 
-	s.T().Run("should execute use case for multiple tessera private transactions", func(t *testing.T) {
-		var claims map[string][]int32
-		ctx, _ := context.WithTimeout(context.Background(), time.Millisecond*500)
-
-		mockSession := mock.NewConsumerGroupSession(ctx, "kafka-consumer-group", claims)
-		mockClaim := mock.NewConsumerGroupClaim("topic", 0, 0)
+	s.T().Run("should execute use case for tessera private transactions", func(t *testing.T) {
 		envelope := fakeEnvelope(s.tenantID)
-		_ = envelope.SetJobType(tx.JobType_ETH_TESSERA_PRIVATE_TX)
+		_ = envelope.SetJobType(tx.JobType_GO_QUORUM_PRIVATE_TX)
 		msg := &sarama.ConsumerMessage{}
 		msg.Value, _ = proto.Marshal(envelope.TxEnvelopeAsRequest())
 
-		s.sendTesseraPrivate.EXPECT().Execute(gomock.Any(), gomock.Any()).Times(2).Return(nil)
+		cjob := make(chan *entities.Job, 1)
+		s.sendGoQuorumPrivate.EXPECT().Execute(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, job *entities.Job) error {
+			cjob <- job
+			return nil
+		})
 
-		cerr := make(chan error)
-		go func() {
-			cerr <- s.listener.ConsumeClaim(mockSession, mockClaim)
-		}()
+		consumerClaim.ExpectMessage(msg)
 
-		mockClaim.ExpectMessage(msg)
-		mockClaim.ExpectMessage(msg)
-
-		assert.NoError(t, <-cerr)
-		assert.Nil(t, s.producer.LastMessage())
+		select {
+		case <-ctx.Done():
+			t.Error(ctx.Err())
+		case <-time.Tick(time.Millisecond * 500):
+			t.Error(errMsgExceedTime)
+		case rjob := <-cjob:
+			assert.Equal(t, rjob.UUID, envelope.GetJobUUID())
+			assert.Nil(t, s.producer.LastMessage())
+		}
 	})
 }
 
 func (s *messageListenerCtrlTestSuite) TestMessageListener_PublicEthereum_Errors() {
-	s.T().Run("should update transaction and send message to tx-recover if sending fails", func(t *testing.T) {
-		var claims map[string][]int32
-		ctx, _ := context.WithTimeout(context.Background(), time.Second)
-		s.producer.Clean()
+	var claims map[string][]int32
+	ctx, _ := context.WithTimeout(context.Background(), time.Second*5)
+	session := mock.NewConsumerGroupSession(ctx, s.consumerGroup, claims)
+	consumerClaim := mock.NewConsumerGroupClaim(s.senderTopic, 0, 0)
 
-		mockSession := mock.NewConsumerGroupSession(ctx, "kafka-consumer-group", claims)
-		mockClaim := mock.NewConsumerGroupClaim("topic", 0, 0)
+	defer func() {
+		s.producer.Clean()
+		_ = s.listener.Cleanup(session)
+	}()
+
+	go func() {
+		_ = s.listener.ConsumeClaim(session, consumerClaim)
+	}()
+
+	s.T().Run("should update transaction and send message to tx-recover if sending fails", func(t *testing.T) {
+		defer func() {
+			s.producer.Clean()
+		}()
+
+		expectedErr := errors.InternalError("error")
 		evlp := fakeEnvelope(s.tenantID)
+		_ = evlp.SetJobType(tx.JobType_ETH_TX)
 		msg := &sarama.ConsumerMessage{}
 		msg.Value, _ = proto.Marshal(evlp.TxEnvelopeAsRequest())
 
-		err := errors.InternalError("error")
-		s.sendETHUC.EXPECT().Execute(gomock.Any(), gomock.Any()).Return(err)
+		cjob := make(chan *entities.Job, 1)
+		s.sendETHUC.EXPECT().Execute(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, job *entities.Job) error {
+			cjob <- job
+			return expectedErr
+		})
 		s.apiClient.EXPECT().UpdateJob(gomock.Any(), evlp.GetJobUUID(), &api.UpdateJobRequest{
 			Status:      entities.StatusFailed,
-			Message:     err.Error(),
+			Message:     expectedErr.Error(),
 			Transaction: nil,
 		}).Return(&api.JobResponse{}, nil)
 
-		cerr := make(chan error)
-		go func() {
-			cerr <- s.listener.ConsumeClaim(mockSession, mockClaim)
-		}()
+		consumerClaim.ExpectMessage(msg)
 
-		mockClaim.ExpectMessage(msg)
-
-		assert.NoError(t, <-cerr)
-		assert.NotNil(t, s.producer.LastMessage())
-		assert.Equal(t, s.recoverTopic, s.producer.LastMessage().Topic)
+		select {
+		case <-ctx.Done():
+			t.Error(ctx.Err())
+		case <-time.Tick(time.Millisecond * 500):
+			t.Error(errMsgExceedTime)
+		case rjob := <-cjob:
+			time.Sleep(time.Millisecond * 500) // Wait for receipt to be sent
+			assert.Equal(t, evlp.GetJobUUID(), rjob.UUID)
+			require.NotNil(t, s.producer.LastMessage())
+			assert.Equal(t, s.recoverTopic, s.producer.LastMessage().Topic)
+		}
 	})
 
 	s.T().Run("should update transaction and retry job if sending fails by nonce error", func(t *testing.T) {
-		var claims map[string][]int32
-		ctx, _ := context.WithTimeout(context.Background(), time.Second*2)
-
-		mockSession := mock.NewConsumerGroupSession(ctx, "kafka-consumer-group", claims)
-		mockClaim := mock.NewConsumerGroupClaim("topic", 0, 0)
+		invalidNonceErr := errors.InvalidNonceWarning("nonce too low")
 		evlp := fakeEnvelope(s.tenantID)
 		msg := &sarama.ConsumerMessage{}
 		msg.Value, _ = proto.Marshal(evlp.TxEnvelopeAsRequest())
 
-		err := errors.InvalidNonceWarning("nonce too low")
+		cjob := make(chan *entities.Job, 1)
 		gomock.InOrder(
-			s.sendETHUC.EXPECT().Execute(gomock.Any(), gomock.Any()).Return(err),
-			s.sendETHUC.EXPECT().Execute(gomock.Any(), gomock.Any()).Return(nil),
+			s.sendETHUC.EXPECT().Execute(gomock.Any(), gomock.Any()).Return(invalidNonceErr),
+			s.sendETHUC.EXPECT().Execute(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, job *entities.Job) error {
+				cjob <- job
+				return nil
+			}),
 		)
 
 		s.apiClient.EXPECT().UpdateJob(gomock.Any(), evlp.GetJobUUID(), &api.UpdateJobRequest{
 			Status:      entities.StatusRecovering,
-			Message:     err.Error(),
+			Message:     invalidNonceErr.Error(),
 			Transaction: nil,
 		}).Return(&api.JobResponse{}, nil)
 
-		cerr := make(chan error)
-		go func() {
-			cerr <- s.listener.ConsumeClaim(mockSession, mockClaim)
-		}()
 
-		mockClaim.ExpectMessage(msg)
+		consumerClaim.ExpectMessage(msg)
 
-		assert.NoError(t, <-cerr)
+		select {
+		case <-ctx.Done():
+			t.Error(ctx.Err())
+		case <-time.Tick(time.Millisecond * 500):
+			t.Error(errMsgExceedTime)
+		case rjob := <-cjob:
+			assert.Equal(t, evlp.GetJobUUID(), rjob.UUID)
+			require.Nil(t, s.producer.LastMessage())
+		}
 	})
 }
 

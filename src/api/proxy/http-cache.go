@@ -103,8 +103,8 @@ func httpCacheGenerateChainKey(chain *entities.Chain) string {
 
 	var urls = strings.Join(chain.URLs, "_")
 
-	if chain.PrivateTxManager != nil {
-		urls = urls + "_" + chain.PrivateTxManager.URL
+	if chain.PrivateTxManagerURL != "" {
+		urls = urls + "_" + chain.PrivateTxManagerURL
 	}
 
 	return urls

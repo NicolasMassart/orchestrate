@@ -46,7 +46,7 @@ func TestCallOffTx_Execute(t *testing.T) {
 	
 	t.Run("should fail to if it is a private transaction", func(t *testing.T) {
 		txRequest := testdata.FakeTxRequest()
-		txRequest.Params.Protocol = entities.TesseraChainType
+		txRequest.Params.Protocol = entities.GoQuorumChainType
 		
 		getTxUC.EXPECT().Execute(gomock.Any(), txRequest.Schedule.UUID, userInfo).Return(txRequest, nil)
 		_, err := usecase.Execute(ctx, txRequest.Schedule.UUID, userInfo)

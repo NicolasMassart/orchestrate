@@ -40,7 +40,7 @@ func NewCraftTransactionUseCase(ec ethclient.MultiClient, chainRegistryURL strin
 }
 
 func (uc *craftTxUseCase) Execute(ctx context.Context, job *entities.Job) error {
-	if string(job.Type) == tx.JobType_ETH_EEA_MARKING_TX.String() {
+	if string(job.Type) == tx.JobType_EEA_MARKING_TX.String() {
 		if err := uc.craftEEAMarkingTx(ctx, job); err != nil {
 			return err
 		}
@@ -84,7 +84,7 @@ func (uc *craftTxUseCase) Execute(ctx context.Context, job *entities.Job) error 
 }
 
 func (uc *craftTxUseCase) craftNonce(ctx context.Context, job *entities.Job) error {
-	if job.InternalData.OneTimeKey || string(job.Type) == tx.JobType_ETH_TESSERA_PRIVATE_TX.String() {
+	if job.InternalData.OneTimeKey || string(job.Type) == tx.JobType_GO_QUORUM_PRIVATE_TX.String() {
 		job.Transaction.Nonce = utils.ToPtr(uint64(0)).(*uint64)
 	} else {
 		n, err := uc.nonceManager.GetNonce(ctx, job)
@@ -118,7 +118,7 @@ func (uc *craftTxUseCase) craftEEAMarkingTx(ctx context.Context, job *entities.J
 func (uc *craftTxUseCase) craftGasEstimation(ctx context.Context, job *entities.Job) error {
 	logger := uc.logger.WithContext(ctx)
 
-	if string(job.Type) == tx.JobType_ETH_EEA_PRIVATE_TX.String() {
+	if string(job.Type) == tx.JobType_EEA_PRIVATE_TX.String() {
 		logger.Debug("skip gas estimation for eea private transaction")
 		return nil
 	}
@@ -144,7 +144,7 @@ func (uc *craftTxUseCase) craftGasEstimation(ctx context.Context, job *entities.
 
 	// We update the data to an arbitrary hash
 	// to avoid errors raised on eth_estimateGas on Besu 1.5.4 & 1.5.5
-	if string(job.Type) == tx.JobType_ETH_EEA_MARKING_TX.String() {
+	if string(job.Type) == tx.JobType_EEA_MARKING_TX.String() {
 		call.Data = hexutil.MustDecode("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")
 	}
 
@@ -163,7 +163,7 @@ func (uc *craftTxUseCase) craftGasEstimation(ctx context.Context, job *entities.
 func (uc *craftTxUseCase) craftGasPrice(ctx context.Context, job *entities.Job) error {
 	logger := uc.logger.WithContext(ctx)
 
-	if string(job.Type) == tx.JobType_ETH_EEA_PRIVATE_TX.String() {
+	if string(job.Type) == tx.JobType_EEA_PRIVATE_TX.String() {
 		logger.Debug("skip gas estimation for eea private transaction")
 		return nil
 	}
@@ -212,7 +212,7 @@ func (uc *craftTxUseCase) craftTransactionType(_ context.Context, job *entities.
 func (uc *craftTxUseCase) craftDynamicFeePrice(ctx context.Context, job *entities.Job) error {
 	logger := uc.logger.WithContext(ctx)
 
-	if string(job.Type) == tx.JobType_ETH_EEA_PRIVATE_TX.String() {
+	if string(job.Type) == tx.JobType_EEA_PRIVATE_TX.String() {
 		logger.Debug("skip gas dynamic fee estimation. EEA private transaction")
 		return nil
 	}

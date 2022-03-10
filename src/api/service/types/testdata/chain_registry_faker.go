@@ -4,10 +4,7 @@ import (
 	"time"
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
-	"github.com/consensys/orchestrate/src/api/service/formatters"
 	api "github.com/consensys/orchestrate/src/api/service/types"
-	"github.com/consensys/orchestrate/src/entities"
-	"github.com/consensys/orchestrate/src/entities/testdata"
 	"github.com/gofrs/uuid"
 )
 
@@ -19,10 +16,7 @@ func FakeRegisterChainRequest() *api.RegisterChainRequest {
 			FromBlock:         "latest",
 			ExternalTxEnabled: false,
 		},
-		PrivateTxManager: &api.PrivateTxManagerRequest{
-			URL:  "http://tessera-eea:8545",
-			Type: entities.EEAChainType,
-		},
+		PrivateTxManagerURL: "http://tessera-eea:8545",
 		Labels: map[string]string{
 			"label1": "val1",
 			"label2": "val2",
@@ -54,12 +48,7 @@ func FakeChainResponse() *api.ChainResponse {
 		ListenerStartingBlock:     0,
 		ListenerBackOffDuration:   "5s",
 		ListenerExternalTxEnabled: false,
-		PrivateTxManager:          FakePrivateTxManagerResponse(),
 		CreatedAt:                 time.Now(),
 		UpdatedAt:                 time.Now(),
 	}
-}
-
-func FakePrivateTxManagerResponse() *api.PrivateTxManagerResponse {
-	return formatters.FormatPrivateTxManagerResponse(testdata.FakePrivateTxManager())
 }

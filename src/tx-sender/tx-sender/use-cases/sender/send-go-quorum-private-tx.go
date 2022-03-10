@@ -14,9 +14,9 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
-const sendTesseraPrivateTxComponent = "use-cases.send-tessera-private-tx"
+const sendGoQuorumPrivateTxComponent = "use-cases.send-go-quorum-private-tx"
 
-type sendTesseraPrivateTxUseCase struct {
+type sendGoQuorumPrivateTxUseCase struct {
 	ec               ethclient.QuorumTransactionSender
 	chainRegistryURL string
 	jobClient        client.JobClient
@@ -24,23 +24,21 @@ type sendTesseraPrivateTxUseCase struct {
 	logger           *log.Logger
 }
 
-func NewSendTesseraPrivateTxUseCase(ec ethclient.QuorumTransactionSender, crafter usecases.CraftTransactionUseCase,
-	jobClient client.JobClient, chainRegistryURL string) usecases.SendTesseraPrivateTxUseCase {
-	return &sendTesseraPrivateTxUseCase{
+func NewSendGoQuorumPrivateTxUseCase(ec ethclient.QuorumTransactionSender, crafter usecases.CraftTransactionUseCase,
+	jobClient client.JobClient, chainRegistryURL string) usecases.SendGoQuorumPrivateTxUseCase {
+	return &sendGoQuorumPrivateTxUseCase{
 		ec:               ec,
 		chainRegistryURL: chainRegistryURL,
 		jobClient:        jobClient,
 		crafter:          crafter,
-		logger:           log.NewLogger().SetComponent(sendTesseraPrivateTxComponent),
+		logger:           log.NewLogger().SetComponent(sendGoQuorumPrivateTxComponent),
 	}
 }
 
-func (uc *sendTesseraPrivateTxUseCase) Execute(ctx context.Context, job *entities.Job) error {
+func (uc *sendGoQuorumPrivateTxUseCase) Execute(ctx context.Context, job *entities.Job) error {
 	ctx = log.With(log.WithFields(
 		ctx,
 		log.Field("job", job.UUID),
-		log.Field("tenant_id", job.TenantID),
-		log.Field("owner_id", job.OwnerID),
 		log.Field("schedule_uuid", job.ScheduleUUID),
 	), uc.logger)
 	logger := uc.logger.WithContext(ctx)
@@ -49,24 +47,24 @@ func (uc *sendTesseraPrivateTxUseCase) Execute(ctx context.Context, job *entitie
 	job.Transaction.Nonce = utils.ToPtr(uint64(0)).(*uint64)
 	err := uc.crafter.Execute(ctx, job)
 	if err != nil {
-		return errors.FromError(err).ExtendComponent(sendTesseraMarkingTxComponent)
+		return errors.FromError(err).ExtendComponent(sendGoQuorumMarkingTxComponent)
 	}
 
 	job.Transaction.EnclaveKey, err = uc.sendTx(ctx, job)
 	if err != nil {
-		return errors.FromError(err).ExtendComponent(sendTesseraPrivateTxComponent)
+		return errors.FromError(err).ExtendComponent(sendGoQuorumPrivateTxComponent)
 	}
 
 	err = utils2.UpdateJobStatus(ctx, uc.jobClient, job, entities.StatusStored, "", job.Transaction)
 	if err != nil {
-		return errors.FromError(err).ExtendComponent(sendTesseraPrivateTxComponent)
+		return errors.FromError(err).ExtendComponent(sendGoQuorumPrivateTxComponent)
 	}
 
 	logger.Info("tessera private job was sent successfully")
 	return nil
 }
 
-func (uc *sendTesseraPrivateTxUseCase) sendTx(ctx context.Context, job *entities.Job) (hexutil.Bytes, error) {
+func (uc *sendGoQuorumPrivateTxUseCase) sendTx(ctx context.Context, job *entities.Job) (hexutil.Bytes, error) {
 	logger := uc.logger.WithContext(ctx)
 	proxyTessera := utils.GetProxyTesseraURL(uc.chainRegistryURL, job.ChainUUID)
 

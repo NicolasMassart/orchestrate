@@ -27,7 +27,6 @@ type Agents interface {
 	ContractEvent() ContractEventAgent
 	Contract() ContractAgent
 	Chain() ChainAgent
-	PrivateTxManager() PrivateTxManagerAgent
 }
 
 type DB interface {

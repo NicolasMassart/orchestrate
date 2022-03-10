@@ -22,21 +22,19 @@ import (
 
 const signEEATransactionComponent = "use-cases.sign-eea-transaction"
 
-// signEEATransactionUseCase is a use case to sign a public Ethereum transaction
-type signEEATransactionUseCase struct {
+type signEEAPrivateTransactionUseCase struct {
 	keyManagerClient client.KeyManagerClient
 	logger           *log.Logger
 }
 
-// NewSignEEATransactionUseCase creates a new SignEEATransactionUseCase
-func NewSignEEATransactionUseCase(keyManagerClient client.KeyManagerClient) usecases.SignEEATransactionUseCase {
-	return &signEEATransactionUseCase{
+func NewSignEEAPrivateTransactionUseCase(keyManagerClient client.KeyManagerClient) usecases.SignEEATransactionUseCase {
+	return &signEEAPrivateTransactionUseCase{
 		keyManagerClient: keyManagerClient,
 		logger:           log.NewLogger().SetComponent(signEEATransactionComponent),
 	}
 }
 
-func (uc *signEEATransactionUseCase) Execute(ctx context.Context, job *entities.Job) (signedRaw hexutil.Bytes, txHash *ethcommon.Hash, err error) {
+func (uc *signEEAPrivateTransactionUseCase) Execute(ctx context.Context, job *entities.Job) (signedRaw hexutil.Bytes, txHash *ethcommon.Hash, err error) {
 	logger := uc.logger.WithContext(ctx).WithField("one_time_key", job.InternalData.OneTimeKey)
 
 	transaction := ethTransactionToTransaction(job.Transaction, job.InternalData.ChainID)
@@ -62,7 +60,7 @@ func (uc *signEEATransactionUseCase) Execute(ctx context.Context, job *entities.
 	return signedRaw, nil, nil
 }
 
-func (uc *signEEATransactionUseCase) signWithOneTimeKey(ctx context.Context, transaction *types.Transaction,
+func (uc *signEEAPrivateTransactionUseCase) signWithOneTimeKey(ctx context.Context, transaction *types.Transaction,
 	privateArgs *privateETHTransactionParams, chainID *big.Int) (hexutil.Bytes, error) {
 	logger := uc.logger.WithContext(ctx)
 	privKey, err := crypto.GenerateKey()
@@ -88,7 +86,7 @@ func (uc *signEEATransactionUseCase) signWithOneTimeKey(ctx context.Context, tra
 	return signedRaw, nil
 }
 
-func (uc *signEEATransactionUseCase) signWithAccount(ctx context.Context, job *entities.Job,
+func (uc *signEEAPrivateTransactionUseCase) signWithAccount(ctx context.Context, job *entities.Job,
 	privateArgs *privateETHTransactionParams, tx *types.Transaction, chainID *big.Int) (hexutil.Bytes, error) {
 	logger := uc.logger.WithContext(ctx)
 
@@ -123,7 +121,7 @@ func (uc *signEEATransactionUseCase) signWithAccount(ctx context.Context, job *e
 	return signedRaw, nil
 }
 
-func (uc *signEEATransactionUseCase) getSignedRawEEATransaction(ctx context.Context, transaction *types.Transaction,
+func (uc *signEEAPrivateTransactionUseCase) getSignedRawEEATransaction(ctx context.Context, transaction *types.Transaction,
 	privateArgs *privateETHTransactionParams, signature []byte, chainID *big.Int) (hexutil.Bytes, error) {
 	logger := uc.logger.WithContext(ctx)
 

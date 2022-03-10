@@ -11,7 +11,7 @@ x-service-variables: &service-variables
 x-besu-bootnode-def:
   &besu-bootnode-def
   restart: "on-failure"
-  image: hyperledger/besu:${BESU_VERSION:-21.7.4}
+  image: hyperledger/besu:${BESU_VERSION:-22.1.1}
   entrypoint:
     - /bin/bash
     - -c
@@ -54,7 +54,7 @@ x-besu-def:
 
 x-tessera-def:
   &tessera-def
-  image: quorumengineering/tessera:${QUORUM_TESSERA_VERSION:-21.7.1}
+  image: quorumengineering/tessera:${QUORUM_TESSERA_VERSION:-22.1.0}
   expose:
     - 9000
     - 9080

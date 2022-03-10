@@ -31,7 +31,7 @@ func TestSendTesseraPrivate_Execute(t *testing.T) {
 	chainRegistryURL := "chainRegistryURL:8081"
 	ctx := context.Background()
 
-	usecase := NewSendTesseraPrivateTxUseCase(ec, crafter, jobClient, chainRegistryURL)
+	usecase := NewSendGoQuorumPrivateTxUseCase(ec, crafter, jobClient, chainRegistryURL)
 
 	t.Run("should execute use case successfully", func(t *testing.T) {
 		job := testdata.FakeJob()

@@ -6,32 +6,30 @@ import (
 )
 
 type PGAgents struct {
-	tx               store.TransactionAgent
-	job              store.JobAgent
-	log              store.LogAgent
-	schedule         store.ScheduleAgent
-	txRequest        store.TransactionRequestAgent
-	account          store.AccountAgent
-	faucet           store.FaucetAgent
-	contractEvent    store.ContractEventAgent
-	contract         store.ContractAgent
-	chain            store.ChainAgent
-	privateTxManager store.PrivateTxManagerAgent
+	tx            store.TransactionAgent
+	job           store.JobAgent
+	log           store.LogAgent
+	schedule      store.ScheduleAgent
+	txRequest     store.TransactionRequestAgent
+	account       store.AccountAgent
+	faucet        store.FaucetAgent
+	contractEvent store.ContractEventAgent
+	contract      store.ContractAgent
+	chain         store.ChainAgent
 }
 
 func New(db pg.DB) *PGAgents {
 	return &PGAgents{
-		tx:               NewPGTransaction(db),
-		job:              NewPGJob(db),
-		log:              NewPGLog(db),
-		schedule:         NewPGSchedule(db),
-		txRequest:        NewPGTransactionRequest(db),
-		account:          NewPGAccount(db),
-		faucet:           NewPGFaucet(db),
-		contractEvent:    NewPGContractEvent(db),
-		contract:         NewPGContract(db),
-		chain:            NewPGChain(db),
-		privateTxManager: NewPGPrivateTxManager(db),
+		tx:            NewPGTransaction(db),
+		job:           NewPGJob(db),
+		log:           NewPGLog(db),
+		schedule:      NewPGSchedule(db),
+		txRequest:     NewPGTransactionRequest(db),
+		account:       NewPGAccount(db),
+		faucet:        NewPGFaucet(db),
+		contractEvent: NewPGContractEvent(db),
+		contract:      NewPGContract(db),
+		chain:         NewPGChain(db),
 	}
 }
 
@@ -73,8 +71,4 @@ func (a *PGAgents) Contract() store.ContractAgent {
 
 func (a *PGAgents) Chain() store.ChainAgent {
 	return a.chain
-}
-
-func (a *PGAgents) PrivateTxManager() store.PrivateTxManagerAgent {
-	return a.privateTxManager
 }

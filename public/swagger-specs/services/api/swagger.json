@@ -3210,7 +3210,7 @@
                 },
                 "protocol": {
                     "type": "string",
-                    "example": "Tessera"
+                    "example": "GoQuorum"
                 },
                 "transactionType": {
                     "type": "string",
@@ -3457,7 +3457,7 @@
                 "type": {
                     "description": "Currently supports `Tessera` and `EEA``.",
                     "type": "string",
-                    "example": "Tessera"
+                    "example": "GoQuorum"
                 },
                 "url": {
                     "description": "Transaction manager endpoint.",
@@ -3852,7 +3852,7 @@
                 },
                 "protocol": {
                     "type": "string",
-                    "example": "Tessera"
+                    "example": "GoQuorum"
                 },
                 "to": {
                     "type": "string",
@@ -4299,7 +4299,7 @@
                 },
                 "protocol": {
                     "type": "string",
-                    "example": "Tessera"
+                    "example": "GoQuorum"
                 },
                 "raw": {
                     "type": "string",

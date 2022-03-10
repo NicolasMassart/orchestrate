@@ -585,7 +585,7 @@ func (s *txSenderEthereumTestSuite) TestEEA() {
 		wg := &multierror.Group{}
 
 		envelope := fakeEnvelope()
-		_ = envelope.SetJobType(tx.JobType_ETH_EEA_PRIVATE_TX)
+		_ = envelope.SetJobType(tx.JobType_EEA_PRIVATE_TX)
 		_ = envelope.SetTransactionType(string(entities.LegacyTxType))
 
 		gock.New(keyManagerURL).
@@ -635,7 +635,7 @@ func (s *txSenderEthereumTestSuite) TestEEA() {
 		wg := &multierror.Group{}
 
 		envelope := fakeEnvelope()
-		_ = envelope.SetJobType(tx.JobType_ETH_EEA_PRIVATE_TX)
+		_ = envelope.SetJobType(tx.JobType_EEA_PRIVATE_TX)
 		_ = envelope.SetTransactionType(string(entities.LegacyTxType))
 
 		gock.New(apiURL).
@@ -663,7 +663,7 @@ func (s *txSenderEthereumTestSuite) TestEEA() {
 		wg := &multierror.Group{}
 
 		envelope := fakeEnvelope()
-		_ = envelope.SetJobType(tx.JobType_ETH_EEA_PRIVATE_TX)
+		_ = envelope.SetJobType(tx.JobType_EEA_PRIVATE_TX)
 		_ = envelope.SetTransactionType(string(entities.LegacyTxType))
 
 		gock.New(apiURL).
@@ -708,7 +708,7 @@ func (s *txSenderEthereumTestSuite) TestTesseraMarking() {
 
 		envelope := fakeEnvelope()
 		envelope.Nonce = nil
-		_ = envelope.SetJobType(tx.JobType_ETH_TESSERA_MARKING_TX)
+		_ = envelope.SetJobType(tx.JobType_GO_QUORUM_MARKING_TX)
 		_ = envelope.SetTransactionType(string(entities.LegacyTxType))
 
 		gock.New(keyManagerURL).
@@ -758,7 +758,7 @@ func (s *txSenderEthereumTestSuite) TestTesseraMarking() {
 
 		envelope := fakeEnvelope()
 		envelope.Nonce = nil
-		_ = envelope.SetJobType(tx.JobType_ETH_TESSERA_MARKING_TX)
+		_ = envelope.SetJobType(tx.JobType_GO_QUORUM_MARKING_TX)
 		_ = envelope.SetTransactionType(string(entities.LegacyTxType))
 
 		gock.New(keyManagerURL).
@@ -820,7 +820,7 @@ func (s *txSenderEthereumTestSuite) TestTesseraMarking() {
 		wg := &multierror.Group{}
 
 		envelope := fakeEnvelope()
-		_ = envelope.SetJobType(tx.JobType_ETH_TESSERA_MARKING_TX)
+		_ = envelope.SetJobType(tx.JobType_GO_QUORUM_MARKING_TX)
 		_ = envelope.SetTransactionType(string(entities.LegacyTxType))
 
 		gock.New(apiURL).
@@ -855,7 +855,7 @@ func (s *txSenderEthereumTestSuite) TestTesseraMarking() {
 		wg := &multierror.Group{}
 
 		envelope := fakeEnvelope()
-		_ = envelope.SetJobType(tx.JobType_ETH_TESSERA_MARKING_TX)
+		_ = envelope.SetJobType(tx.JobType_GO_QUORUM_MARKING_TX)
 		_ = envelope.SetTransactionType(string(entities.LegacyTxType))
 
 		gock.New(keyManagerURL).
@@ -918,7 +918,7 @@ func (s *txSenderEthereumTestSuite) TestTesseraPrivate() {
 
 		envelope := fakeEnvelope()
 		_ = envelope.SetDataString(data.String())
-		_ = envelope.SetJobType(tx.JobType_ETH_TESSERA_PRIVATE_TX)
+		_ = envelope.SetJobType(tx.JobType_GO_QUORUM_PRIVATE_TX)
 		_ = envelope.SetTransactionType(string(entities.LegacyTxType))
 
 		encodedKey := base64.StdEncoding.EncodeToString(enclaveKey)
@@ -948,7 +948,7 @@ func (s *txSenderEthereumTestSuite) TestTesseraPrivate() {
 
 		envelope := fakeEnvelope()
 		_ = envelope.SetDataString(data.String())
-		_ = envelope.SetJobType(tx.JobType_ETH_TESSERA_PRIVATE_TX)
+		_ = envelope.SetJobType(tx.JobType_GO_QUORUM_PRIVATE_TX)
 		_ = envelope.SetTransactionType(string(entities.LegacyTxType))
 
 		gock.New(apiURL).

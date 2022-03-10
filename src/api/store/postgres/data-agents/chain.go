@@ -51,7 +51,7 @@ func (agent *PGChain) Insert(ctx context.Context, chain *entities.Chain) error {
 // FindOneByUUID Finds a chain in DB by UUID
 func (agent *PGChain) FindOneByUUID(ctx context.Context, chainUUID string, tenants []string, ownerID string) (*entities.Chain, error) {
 	model := &models.Chain{}
-	query := agent.db.ModelContext(ctx, model).Where("uuid = ?", chainUUID).Relation("PrivateTxManagers")
+	query := agent.db.ModelContext(ctx, model).Where("uuid = ?", chainUUID)
 	query = pg.WhereAllowedTenants(query, "tenant_id", tenants)
 	query = pg.WhereAllowedOwner(query, "owner_id", ownerID)
 
@@ -119,17 +119,9 @@ func (agent *PGChain) Search(ctx context.Context, filters *entities.ChainFilters
 		chainsMap[c.UUID] = c
 	}
 
-	var privateTxManagers []*models.PrivateTxManager
-	query = agent.db.ModelContext(ctx, &privateTxManagers)
-	query = query.Where("chain_uuid in (?)", gopg.In(chainUUIDs))
-
 	if err := pg.Select(ctx, query); err != nil {
 		agent.logger.WithContext(ctx).WithError(err).Error("failed to search for private tx manager")
 		return nil, errors.FromError(err).ExtendComponent(chainDAComponent)
-	}
-
-	for _, pm := range privateTxManagers {
-		chainsMap[pm.ChainUUID].PrivateTxManagers = []*models.PrivateTxManager{pm}
 	}
 
 	return parsers.NewChainEntityArr(chains), nil

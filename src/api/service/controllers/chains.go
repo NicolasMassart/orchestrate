@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/consensys/orchestrate/src/entities"
 	infra "github.com/consensys/orchestrate/src/infra/api"
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http/httputil"
@@ -16,8 +15,6 @@ import (
 )
 
 // Hack for swagger generation
-var _ entities.PrivateTxManager
-
 type ChainsController struct {
 	ucs usecases.ChainUseCases
 }
@@ -73,7 +70,7 @@ func (c *ChainsController) search(rw http.ResponseWriter, request *http.Request)
 // @Security  ApiKeyAuth
 // @Security  JWTAuth
 // @Param     uuid  path      string  true  "ID of the chain"
-// @Success   200   {object}  api.ChainResponse{privateTxManager=entities.PrivateTxManager}
+// @Success   200   {object}  api.ChainResponse{}
 // @Failure   400   {object}  httputil.ErrorResponse  "Invalid request"
 // @Failure   404   {object}  httputil.ErrorResponse  "Chain not found"
 // @Failure   500   {object}  httputil.ErrorResponse  "Internal server error"
@@ -98,8 +95,8 @@ func (c *ChainsController) getOne(rw http.ResponseWriter, request *http.Request)
 // @Security  ApiKeyAuth
 // @Security  JWTAuth
 // @Param     uuid     path      string                                                                                                   true  "ID of the chain"
-// @Param     request  body      api.UpdateChainRequest{listener=api.UpdateListenerRequest,privateTxManager=api.PrivateTxManagerRequest}  true  "Chain update request"
-// @Success   200      {object}  api.ChainResponse{privateTxManager=entities.PrivateTxManager}
+// @Param     request  body      api.UpdateChainRequest{listener=api.UpdateListenerRequest}  true  "Chain update request"
+// @Success   200      {object}  api.ChainResponse{}
 // @Failure   400      {object}  httputil.ErrorResponse  "Invalid request"
 // @Failure   404      {object}  httputil.ErrorResponse  "Chain not found"
 // @Failure   500      {object}  httputil.ErrorResponse  "Internal server error"
@@ -136,7 +133,7 @@ func (c *ChainsController) update(rw http.ResponseWriter, request *http.Request)
 // @Produce   json
 // @Security  ApiKeyAuth
 // @Security  JWTAuth
-// @Param     request  body      api.RegisterChainRequest{listener=api.RegisterListenerRequest,privateTxManager=api.PrivateTxManagerRequest}  true  "Chain registration request."
+// @Param     request  body      api.RegisterChainRequest{listener=api.RegisterListenerRequest}  true  "Chain registration request."
 // @Success   200      {object}  api.ChainResponse{privateTxManager=entities.PrivateTxManager}
 // @Failure   400      {object}  httputil.ErrorResponse  "Invalid request"
 // @Failure   500      {object}  httputil.ErrorResponse  "Internal server error"

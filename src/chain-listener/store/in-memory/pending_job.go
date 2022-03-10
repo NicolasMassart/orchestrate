@@ -42,6 +42,20 @@ func (m *pendingJobInMemory) Add(_ context.Context, job *entities.Job) error {
 	return nil
 }
 
+func (m *pendingJobInMemory) Update(_ context.Context, job *entities.Job) error {
+	m.mux.Lock()
+	defer m.mux.Unlock()
+	if _, ok := m.indexByJobUUID[job.UUID]; !ok {
+		return errors.NotFoundError("job %q is duplicated", job.UUID)
+	}
+
+	previousJob := m.indexByJobUUID[job.UUID]
+	m.indexByJobUUID[job.UUID] = job
+	delete(m.indexByTxHash, previousJob.Transaction.Hash.String())
+	m.indexByTxHash[job.Transaction.Hash.String()] = job
+	return nil
+}
+
 func (m *pendingJobInMemory) Remove(_ context.Context, jobUUID string) error {
 	m.mux.Lock()
 	defer m.mux.Unlock()

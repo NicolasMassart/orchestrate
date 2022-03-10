@@ -6,6 +6,6 @@ type UseCases interface {
 	SendETHRawTx() SendETHRawTxUseCase
 	SendETHTx() SendETHTxUseCase
 	SendEEAPrivateTx() SendEEAPrivateTxUseCase
-	SendTesseraPrivateTx() SendTesseraPrivateTxUseCase
-	SendTesseraMarkingTx() SendTesseraMarkingTxUseCase
+	SendGoQuorumPrivateTx() SendGoQuorumPrivateTxUseCase
+	SendGoQuorumMarkingTx() SendGoQuorumMarkingTxUseCase
 }

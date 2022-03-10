@@ -20,10 +20,10 @@ type SendEEAPrivateTxUseCase interface {
 	Execute(ctx context.Context, job *entities.Job) error
 }
 
-type SendTesseraPrivateTxUseCase interface {
+type SendGoQuorumPrivateTxUseCase interface {
 	Execute(ctx context.Context, job *entities.Job) error
 }
 
-type SendTesseraMarkingTxUseCase interface {
+type SendGoQuorumMarkingTxUseCase interface {
 	Execute(ctx context.Context, job *entities.Job) error
 }

@@ -23,7 +23,7 @@ func TestSignQuorumPrivateTransaction_Execute(t *testing.T) {
 	mockKeyManagerClient := qkmmock.NewMockKeyManagerClient(ctrl)
 	ctx := context.Background()
 
-	usecase := NewSignQuorumPrivateTransactionUseCase(mockKeyManagerClient)
+	usecase := NewSignGoQuorumPrivateTransactionUseCase(mockKeyManagerClient)
 
 	signedRaw := utils.StringToHexBytes("0xf851018227108252088082c35080820713a09a0a890215ea6e79d06f9665297996ab967db117f36c2090d6d6ead5a2d32d52a065bc4bc766b5a833cb58b3319e44e952487559b9b939cb5268c0409398214c8b")
 

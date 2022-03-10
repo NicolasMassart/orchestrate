@@ -15,8 +15,8 @@ type useCases struct {
 	sendETHTx            usecases.SendETHTxUseCase
 	sendETHRawTx         usecases.SendETHRawTxUseCase
 	sendEEAPrivateTx     usecases.SendEEAPrivateTxUseCase
-	sendTesseraPrivateTx usecases.SendTesseraPrivateTxUseCase
-	sendTesseraMarkingTx usecases.SendTesseraMarkingTxUseCase
+	sendTesseraPrivateTx usecases.SendGoQuorumPrivateTxUseCase
+	sendTesseraMarkingTx usecases.SendGoQuorumMarkingTxUseCase
 }
 
 func NewUseCases(jobClient client.JobClient,
@@ -26,8 +26,8 @@ func NewUseCases(jobClient client.JobClient,
 	chainRegistryURL string,
 ) usecases.UseCases {
 	signETHTransactionUC := signer.NewSignETHTransactionUseCase(keyManagerClient)
-	signEEATransactionUC := signer.NewSignEEATransactionUseCase(keyManagerClient)
-	signQuorumTransactionUC := signer.NewSignQuorumPrivateTransactionUseCase(keyManagerClient)
+	signEEATransactionUC := signer.NewSignEEAPrivateTransactionUseCase(keyManagerClient)
+	signQuorumTransactionUC := signer.NewSignGoQuorumPrivateTransactionUseCase(keyManagerClient)
 
 	crafterUC := crafter.NewCraftTransactionUseCase(ec, chainRegistryURL, nonceManager)
 
@@ -35,8 +35,8 @@ func NewUseCases(jobClient client.JobClient,
 		sendETHTx:            sender.NewSendEthTxUseCase(signETHTransactionUC, crafterUC, ec, jobClient, chainRegistryURL, nonceManager),
 		sendETHRawTx:         sender.NewSendETHRawTxUseCase(ec, jobClient, chainRegistryURL),
 		sendEEAPrivateTx:     sender.NewSendEEAPrivateTxUseCase(signEEATransactionUC, crafterUC, ec, jobClient, chainRegistryURL, nonceManager),
-		sendTesseraPrivateTx: sender.NewSendTesseraPrivateTxUseCase(ec, crafterUC, jobClient, chainRegistryURL),
-		sendTesseraMarkingTx: sender.NewSendTesseraMarkingTxUseCase(signQuorumTransactionUC, crafterUC, ec, jobClient, chainRegistryURL, nonceManager),
+		sendTesseraPrivateTx: sender.NewSendGoQuorumPrivateTxUseCase(ec, crafterUC, jobClient, chainRegistryURL),
+		sendTesseraMarkingTx: sender.NewSendGoQuorumMarkingTxUseCase(signQuorumTransactionUC, crafterUC, ec, jobClient, chainRegistryURL, nonceManager),
 	}
 }
 
@@ -52,10 +52,10 @@ func (u *useCases) SendEEAPrivateTx() usecases.SendEEAPrivateTxUseCase {
 	return u.sendEEAPrivateTx
 }
 
-func (u *useCases) SendTesseraPrivateTx() usecases.SendTesseraPrivateTxUseCase {
+func (u *useCases) SendGoQuorumPrivateTx() usecases.SendGoQuorumPrivateTxUseCase {
 	return u.sendTesseraPrivateTx
 }
 
-func (u *useCases) SendTesseraMarkingTx() usecases.SendTesseraMarkingTxUseCase {
+func (u *useCases) SendGoQuorumMarkingTx() usecases.SendGoQuorumMarkingTxUseCase {
 	return u.sendTesseraMarkingTx
 }

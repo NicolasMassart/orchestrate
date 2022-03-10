@@ -4,7 +4,7 @@ version: '3.6'
 x-quorum-def:
   &quorum-def
   restart: "on-failure"
-  image: quorumengineering/quorum:21.4.2
+  image: quorumengineering/quorum:22.1.0
   expose:
     - 30303
     - 8545
@@ -43,11 +43,11 @@ x-quorum-def:
       --nodiscover \
       --permissioned \
       --verbosity 3 \
-      --istanbul.blockperiod 5 --mine --minerthreads 1 --emitcheckpoints \
+      --istanbul.blockperiod 5 --mine --miner.threads 1 --emitcheckpoints \
       --syncmode full --nousb \
       --networkid $${QUORUM_NETWORK_ID:-10} \
       --rpc --rpcaddr 0.0.0.0 --rpcport 8545 --rpccorsdomain "*" --rpcvhosts "*" --rpcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3,quorum,$${QUORUM_CONS_ALGO:-istanbul} \
-      --ws --wsaddr 0.0.0.0 --wsport 8546 --wsorigins "*" --wsapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3,quorum,$${QUORUM_CONS_ALGO:-istanbul} \
+      --ws --ws.addr 0.0.0.0 --ws.port 8546 --ws.origins "*" --ws.api admin,db,eth,debug,miner,net,shh,txpool,personal,web3,quorum,$${QUORUM_CONS_ALGO:-istanbul} \
       --port 30303 \
       --identity node$${NODE_ID}-$${QUORUM_CONS_ALGO:-istanbul} \
       --unlock 0 \
@@ -57,7 +57,7 @@ x-quorum-def:
 
 x-tessera-def:
   &tessera-def
-  image: quorumengineering/tessera:21.7.0
+  image: quorumengineering/tessera:22.1.0
   expose:
     - 9000
     - 9080

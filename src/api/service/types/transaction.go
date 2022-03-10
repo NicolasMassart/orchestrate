@@ -57,7 +57,7 @@ func validatePrivateTxParams(protocol entities.PrivateTxManagerType, privateFrom
 		return errors.InvalidParameterError("field 'protocol' cannot be empty")
 	}
 
-	if protocol != entities.TesseraChainType && privateFrom == "" {
+	if protocol != entities.GoQuorumChainType && privateFrom == "" {
 		return errors.InvalidParameterError("fields 'privateFrom' cannot be empty")
 	}
 

@@ -5,8 +5,8 @@
 package mocks
 
 import (
-	gomock "github.com/golang/mock/gomock"
 	usecases "github.com/consensys/orchestrate/src/tx-sender/tx-sender/use-cases"
+	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
 
@@ -75,30 +75,30 @@ func (mr *MockUseCasesMockRecorder) SendEEAPrivateTx() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendEEAPrivateTx", reflect.TypeOf((*MockUseCases)(nil).SendEEAPrivateTx))
 }
 
-// SendTesseraPrivateTx mocks base method
-func (m *MockUseCases) SendTesseraPrivateTx() usecases.SendTesseraPrivateTxUseCase {
+// SendGoQuorumPrivateTx mocks base method
+func (m *MockUseCases) SendGoQuorumPrivateTx() usecases.SendGoQuorumPrivateTxUseCase {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendTesseraPrivateTx")
-	ret0, _ := ret[0].(usecases.SendTesseraPrivateTxUseCase)
+	ret := m.ctrl.Call(m, "SendGoQuorumPrivateTx")
+	ret0, _ := ret[0].(usecases.SendGoQuorumPrivateTxUseCase)
 	return ret0
 }
 
-// SendTesseraPrivateTx indicates an expected call of SendTesseraPrivateTx
-func (mr *MockUseCasesMockRecorder) SendTesseraPrivateTx() *gomock.Call {
+// SendGoQuorumPrivateTx indicates an expected call of SendGoQuorumPrivateTx
+func (mr *MockUseCasesMockRecorder) SendGoQuorumPrivateTx() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendTesseraPrivateTx", reflect.TypeOf((*MockUseCases)(nil).SendTesseraPrivateTx))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendGoQuorumPrivateTx", reflect.TypeOf((*MockUseCases)(nil).SendGoQuorumPrivateTx))
 }
 
-// SendTesseraMarkingTx mocks base method
-func (m *MockUseCases) SendTesseraMarkingTx() usecases.SendTesseraMarkingTxUseCase {
+// SendGoQuorumMarkingTx mocks base method
+func (m *MockUseCases) SendGoQuorumMarkingTx() usecases.SendGoQuorumMarkingTxUseCase {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendTesseraMarkingTx")
-	ret0, _ := ret[0].(usecases.SendTesseraMarkingTxUseCase)
+	ret := m.ctrl.Call(m, "SendGoQuorumMarkingTx")
+	ret0, _ := ret[0].(usecases.SendGoQuorumMarkingTxUseCase)
 	return ret0
 }
 
-// SendTesseraMarkingTx indicates an expected call of SendTesseraMarkingTx
-func (mr *MockUseCasesMockRecorder) SendTesseraMarkingTx() *gomock.Call {
+// SendGoQuorumMarkingTx indicates an expected call of SendGoQuorumMarkingTx
+func (mr *MockUseCasesMockRecorder) SendGoQuorumMarkingTx() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendTesseraMarkingTx", reflect.TypeOf((*MockUseCases)(nil).SendTesseraMarkingTx))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendGoQuorumMarkingTx", reflect.TypeOf((*MockUseCases)(nil).SendGoQuorumMarkingTx))
 }

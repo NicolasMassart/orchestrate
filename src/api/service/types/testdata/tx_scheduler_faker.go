@@ -65,7 +65,7 @@ func FakeSendTesseraRequest() *types.SendTransactionRequest {
 			From:            &FromAddress,
 			MethodSignature: "transfer(address,uint256)",
 			To:              utils.ToPtr(ethcommon.HexToAddress("0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18")).(*ethcommon.Address),
-			Protocol:        entities.TesseraChainType,
+			Protocol:        entities.GoQuorumChainType,
 			PrivateFrom:     "A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=",
 			PrivateFor:      []string{"A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="},
 			Args:            []interface{}{"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18", 5},

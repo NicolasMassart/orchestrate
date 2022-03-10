@@ -8,8 +8,8 @@ type PrivateTxManagerType string
 var (
 	PrivateTxTypeRestricted PrivateTxType = "restricted"
 
-	TesseraChainType PrivateTxManagerType = "Tessera"
-	EEAChainType     PrivateTxManagerType = "EEA"
+	GoQuorumChainType PrivateTxManagerType = "GoQuorum"
+	EEAChainType      PrivateTxManagerType = "EEA"
 )
 
 const (

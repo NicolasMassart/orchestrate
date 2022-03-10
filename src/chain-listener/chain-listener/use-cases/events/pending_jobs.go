@@ -48,9 +48,14 @@ func (uc *pendingJobUC) Execute(ctx context.Context, job *entities.Job) error {
 
 	logger.Debug("handling new pending job")
 
+	jobHasBeenUpdated := false
 	if curJob, _ := uc.pendingJobState.GetJobUUID(ctx, job.UUID); curJob != nil {
-		logger.Warn("skipping already known job")
-		return nil
+		if curJob.Transaction.Hash.String() == job.Transaction.Hash.String() {
+			logger.Warn("skipping already known job")
+			return nil
+		}
+		logger.Warn("duplicated job with different transaction hash")
+		jobHasBeenUpdated = true
 	}
 
 	proxyURL := uc.apiClient.ChainProxyURL(job.ChainUUID)
@@ -63,12 +68,22 @@ func (uc *pendingJobUC) Execute(ctx context.Context, job *entities.Job) error {
 		return nil
 	}
 
-	err := uc.pendingJobState.Add(ctx, job)
-	if err != nil {
-		logger.WithError(err).Error("failed to persist job")
-		return err
+	var err error
+	if !jobHasBeenUpdated {
+		err = uc.pendingJobState.Add(ctx, job)
+		if err != nil {
+			logger.WithError(err).Error("failed to persist job")
+			return err
+		}
+		logger.Info("pending job persisted successfully")
+	} else {
+		err = uc.pendingJobState.Update(ctx, job)
+		if err != nil {
+			logger.WithError(err).Error("failed to update job")
+			return err
+		}
+		logger.Info("pending job updated successfully")
 	}
-	logger.Info("pending job persisted successfully")
 
 	if job.ShouldBeRetried() {
 		err := uc.retryJobSessionManager.StartSession(ctx, job)

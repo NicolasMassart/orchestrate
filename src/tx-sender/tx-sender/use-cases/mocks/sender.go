@@ -6,8 +6,8 @@ package mocks
 
 import (
 	context "context"
-	gomock "github.com/golang/mock/gomock"
 	entities "github.com/consensys/orchestrate/src/entities"
+	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
 
@@ -122,31 +122,31 @@ func (mr *MockSendEEAPrivateTxUseCaseMockRecorder) Execute(ctx, job interface{})
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockSendEEAPrivateTxUseCase)(nil).Execute), ctx, job)
 }
 
-// MockSendTesseraPrivateTxUseCase is a mock of SendTesseraPrivateTxUseCase interface
-type MockSendTesseraPrivateTxUseCase struct {
+// MockSendGoQuorumPrivateTxUseCase is a mock of SendGoQuorumPrivateTxUseCase interface
+type MockSendGoQuorumPrivateTxUseCase struct {
 	ctrl     *gomock.Controller
-	recorder *MockSendTesseraPrivateTxUseCaseMockRecorder
+	recorder *MockSendGoQuorumPrivateTxUseCaseMockRecorder
 }
 
-// MockSendTesseraPrivateTxUseCaseMockRecorder is the mock recorder for MockSendTesseraPrivateTxUseCase
-type MockSendTesseraPrivateTxUseCaseMockRecorder struct {
-	mock *MockSendTesseraPrivateTxUseCase
+// MockSendGoQuorumPrivateTxUseCaseMockRecorder is the mock recorder for MockSendGoQuorumPrivateTxUseCase
+type MockSendGoQuorumPrivateTxUseCaseMockRecorder struct {
+	mock *MockSendGoQuorumPrivateTxUseCase
 }
 
-// NewMockSendTesseraPrivateTxUseCase creates a new mock instance
-func NewMockSendTesseraPrivateTxUseCase(ctrl *gomock.Controller) *MockSendTesseraPrivateTxUseCase {
-	mock := &MockSendTesseraPrivateTxUseCase{ctrl: ctrl}
-	mock.recorder = &MockSendTesseraPrivateTxUseCaseMockRecorder{mock}
+// NewMockSendGoQuorumPrivateTxUseCase creates a new mock instance
+func NewMockSendGoQuorumPrivateTxUseCase(ctrl *gomock.Controller) *MockSendGoQuorumPrivateTxUseCase {
+	mock := &MockSendGoQuorumPrivateTxUseCase{ctrl: ctrl}
+	mock.recorder = &MockSendGoQuorumPrivateTxUseCaseMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockSendTesseraPrivateTxUseCase) EXPECT() *MockSendTesseraPrivateTxUseCaseMockRecorder {
+func (m *MockSendGoQuorumPrivateTxUseCase) EXPECT() *MockSendGoQuorumPrivateTxUseCaseMockRecorder {
 	return m.recorder
 }
 
 // Execute mocks base method
-func (m *MockSendTesseraPrivateTxUseCase) Execute(ctx context.Context, job *entities.Job) error {
+func (m *MockSendGoQuorumPrivateTxUseCase) Execute(ctx context.Context, job *entities.Job) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Execute", ctx, job)
 	ret0, _ := ret[0].(error)
@@ -154,36 +154,36 @@ func (m *MockSendTesseraPrivateTxUseCase) Execute(ctx context.Context, job *enti
 }
 
 // Execute indicates an expected call of Execute
-func (mr *MockSendTesseraPrivateTxUseCaseMockRecorder) Execute(ctx, job interface{}) *gomock.Call {
+func (mr *MockSendGoQuorumPrivateTxUseCaseMockRecorder) Execute(ctx, job interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockSendTesseraPrivateTxUseCase)(nil).Execute), ctx, job)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockSendGoQuorumPrivateTxUseCase)(nil).Execute), ctx, job)
 }
 
-// MockSendTesseraMarkingTxUseCase is a mock of SendTesseraMarkingTxUseCase interface
-type MockSendTesseraMarkingTxUseCase struct {
+// MockSendGoQuorumMarkingTxUseCase is a mock of SendGoQuorumMarkingTxUseCase interface
+type MockSendGoQuorumMarkingTxUseCase struct {
 	ctrl     *gomock.Controller
-	recorder *MockSendTesseraMarkingTxUseCaseMockRecorder
+	recorder *MockSendGoQuorumMarkingTxUseCaseMockRecorder
 }
 
-// MockSendTesseraMarkingTxUseCaseMockRecorder is the mock recorder for MockSendTesseraMarkingTxUseCase
-type MockSendTesseraMarkingTxUseCaseMockRecorder struct {
-	mock *MockSendTesseraMarkingTxUseCase
+// MockSendGoQuorumMarkingTxUseCaseMockRecorder is the mock recorder for MockSendGoQuorumMarkingTxUseCase
+type MockSendGoQuorumMarkingTxUseCaseMockRecorder struct {
+	mock *MockSendGoQuorumMarkingTxUseCase
 }
 
-// NewMockSendTesseraMarkingTxUseCase creates a new mock instance
-func NewMockSendTesseraMarkingTxUseCase(ctrl *gomock.Controller) *MockSendTesseraMarkingTxUseCase {
-	mock := &MockSendTesseraMarkingTxUseCase{ctrl: ctrl}
-	mock.recorder = &MockSendTesseraMarkingTxUseCaseMockRecorder{mock}
+// NewMockSendGoQuorumMarkingTxUseCase creates a new mock instance
+func NewMockSendGoQuorumMarkingTxUseCase(ctrl *gomock.Controller) *MockSendGoQuorumMarkingTxUseCase {
+	mock := &MockSendGoQuorumMarkingTxUseCase{ctrl: ctrl}
+	mock.recorder = &MockSendGoQuorumMarkingTxUseCaseMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockSendTesseraMarkingTxUseCase) EXPECT() *MockSendTesseraMarkingTxUseCaseMockRecorder {
+func (m *MockSendGoQuorumMarkingTxUseCase) EXPECT() *MockSendGoQuorumMarkingTxUseCaseMockRecorder {
 	return m.recorder
 }
 
 // Execute mocks base method
-func (m *MockSendTesseraMarkingTxUseCase) Execute(ctx context.Context, job *entities.Job) error {
+func (m *MockSendGoQuorumMarkingTxUseCase) Execute(ctx context.Context, job *entities.Job) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Execute", ctx, job)
 	ret0, _ := ret[0].(error)
@@ -191,7 +191,7 @@ func (m *MockSendTesseraMarkingTxUseCase) Execute(ctx context.Context, job *enti
 }
 
 // Execute indicates an expected call of Execute
-func (mr *MockSendTesseraMarkingTxUseCaseMockRecorder) Execute(ctx, job interface{}) *gomock.Call {
+func (mr *MockSendGoQuorumMarkingTxUseCaseMockRecorder) Execute(ctx, job interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockSendTesseraMarkingTxUseCase)(nil).Execute), ctx, job)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockSendGoQuorumMarkingTxUseCase)(nil).Execute), ctx, job)
 }

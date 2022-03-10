@@ -57,7 +57,7 @@ func NewJobEntities(txRequest *entities.TxRequest, chainUUID string, txData []by
 		markingTxJob := newJobEntityFromTxRequest(txRequest, &entities.ETHTransaction{}, entities.EEAMarkingTransaction, chainUUID)
 		markingTxJob.InternalData.OneTimeKey = true
 		jobs = append(jobs, privTxJob, markingTxJob)
-	case txRequest.Params.Protocol == entities.TesseraChainType:
+	case txRequest.Params.Protocol == entities.GoQuorumChainType:
 		privTxJob := newJobEntityFromTxRequest(txRequest, newEthTransactionFromParams(txRequest.Params, txData, entities.LegacyTxType),
 			entities.TesseraPrivateTransaction, chainUUID)
 

@@ -39,7 +39,7 @@ const (
 )
 
 func issuerURLFlags(f *pflag.FlagSet) {
-	desc := fmt.Sprintf(`JWT issuer server domain (ie. https://orchestrate.eu.auth0.com).
+	desc := fmt.Sprintf(`JWT issuer server domain (ie. https://orchestrate.eu.auth0.com/).
 Environment variable: %q`, issuerURLEnv)
 	f.String(issuerURLFlag, "", desc)
 	_ = viper.BindPFlag(issuerURLViperKey, f.Lookup(issuerURLFlag))

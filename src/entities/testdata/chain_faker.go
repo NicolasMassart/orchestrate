@@ -23,15 +23,6 @@ func FakeChain() *entities.Chain {
 		ListenerStartingBlock:     0,
 		ListenerBackOffDuration:   backOffDuration,
 		ListenerExternalTxEnabled: false,
-		PrivateTxManager:          FakePrivateTxManager(),
 	}
 }
 
-func FakePrivateTxManager() *entities.PrivateTxManager {
-	return &entities.PrivateTxManager{
-		UUID:      uuid.Must(uuid.NewV4()).String(),
-		ChainUUID: uuid.Must(uuid.NewV4()).String(),
-		URL:       "http://tessera:8545",
-		Type:      "Tessera",
-	}
-}

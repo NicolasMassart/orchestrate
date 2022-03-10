@@ -16,9 +16,9 @@ import (
 	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
-const sendTesseraMarkingTxComponent = "use-cases.send-tessera-marking-tx"
+const sendGoQuorumMarkingTxComponent = "use-cases.send-go-quorum-marking-tx"
 
-type sendTesseraMarkingTxUseCase struct {
+type sendGoQuorumMarkingTxUseCase struct {
 	signTx           usecases.SignETHTransactionUseCase
 	crafter          usecases.CraftTransactionUseCase
 	nonceChecker     nonce.Manager
@@ -28,25 +28,25 @@ type sendTesseraMarkingTxUseCase struct {
 	logger           *log.Logger
 }
 
-func NewSendTesseraMarkingTxUseCase(signTx usecases.SignQuorumPrivateTransactionUseCase,
+func NewSendGoQuorumMarkingTxUseCase(signTx usecases.SignGoQuorumPrivateTransactionUseCase,
 	crafter usecases.CraftTransactionUseCase,
 	ec ethclient.QuorumTransactionSender,
 	jobClient client.JobClient,
 	chainRegistryURL string,
 	nonceChecker nonce.Manager,
-) usecases.SendTesseraMarkingTxUseCase {
-	return &sendTesseraMarkingTxUseCase{
+) usecases.SendGoQuorumMarkingTxUseCase {
+	return &sendGoQuorumMarkingTxUseCase{
 		signTx:           signTx,
 		nonceChecker:     nonceChecker,
 		ec:               ec,
 		jobClient:        jobClient,
 		chainRegistryURL: chainRegistryURL,
 		crafter:          crafter,
-		logger:           log.NewLogger().SetComponent(sendTesseraMarkingTxComponent),
+		logger:           log.NewLogger().SetComponent(sendGoQuorumMarkingTxComponent),
 	}
 }
 
-func (uc *sendTesseraMarkingTxUseCase) Execute(ctx context.Context, job *entities.Job) error {
+func (uc *sendGoQuorumMarkingTxUseCase) Execute(ctx context.Context, job *entities.Job) error {
 	ctx = log.With(log.WithFields(
 		ctx,
 		log.Field("job", job.UUID),
@@ -59,7 +59,7 @@ func (uc *sendTesseraMarkingTxUseCase) Execute(ctx context.Context, job *entitie
 
 	err := uc.crafter.Execute(ctx, job)
 	if err != nil {
-		return errors.FromError(err).ExtendComponent(sendTesseraMarkingTxComponent)
+		return errors.FromError(err).ExtendComponent(sendGoQuorumMarkingTxComponent)
 	}
 
 	// In case of job resending we don't need to sign again
@@ -71,21 +71,21 @@ func (uc *sendTesseraMarkingTxUseCase) Execute(ctx context.Context, job *entitie
 	} else {
 		job.Transaction.Raw, job.Transaction.Hash, err = uc.signTx.Execute(ctx, job)
 		if err != nil {
-			return errors.FromError(err).ExtendComponent(sendTesseraMarkingTxComponent)
+			return errors.FromError(err).ExtendComponent(sendGoQuorumMarkingTxComponent)
 		}
 
 		err = utils2.UpdateJobStatus(ctx, uc.jobClient, job, entities.StatusPending, "", job.Transaction)
 		if err != nil {
-			return errors.FromError(err).ExtendComponent(sendTesseraMarkingTxComponent)
+			return errors.FromError(err).ExtendComponent(sendGoQuorumMarkingTxComponent)
 		}
 	}
 
 	txHash, err := uc.sendTx(ctx, job)
 	if err != nil {
 		if err2 := uc.nonceChecker.CleanNonce(ctx, job, err); err2 != nil {
-			return errors.FromError(err2).ExtendComponent(sendTesseraMarkingTxComponent)
+			return errors.FromError(err2).ExtendComponent(sendGoQuorumMarkingTxComponent)
 		}
-		return errors.FromError(err).ExtendComponent(sendTesseraMarkingTxComponent)
+		return errors.FromError(err).ExtendComponent(sendGoQuorumMarkingTxComponent)
 	}
 
 	err = uc.nonceChecker.IncrementNonce(ctx, job)
@@ -98,7 +98,7 @@ func (uc *sendTesseraMarkingTxUseCase) Execute(ctx context.Context, job *entitie
 		job.Transaction.Hash = txHash
 		err = utils2.UpdateJobStatus(ctx, uc.jobClient, job, entities.StatusWarning, warnMessage, job.Transaction)
 		if err != nil {
-			return errors.FromError(err).ExtendComponent(sendTesseraMarkingTxComponent)
+			return errors.FromError(err).ExtendComponent(sendGoQuorumMarkingTxComponent)
 		}
 	}
 
@@ -106,7 +106,7 @@ func (uc *sendTesseraMarkingTxUseCase) Execute(ctx context.Context, job *entitie
 	return nil
 }
 
-func (uc *sendTesseraMarkingTxUseCase) sendTx(ctx context.Context, job *entities.Job) (*ethcommon.Hash, error) {
+func (uc *sendGoQuorumMarkingTxUseCase) sendTx(ctx context.Context, job *entities.Job) (*ethcommon.Hash, error) {
 	proxyURL := utils.GetProxyURL(uc.chainRegistryURL, job.ChainUUID)
 	txHash, err := uc.ec.SendQuorumRawPrivateTransaction(ctx, proxyURL, job.Transaction.Raw,
 		job.Transaction.PrivateFor, job.Transaction.MandatoryFor,

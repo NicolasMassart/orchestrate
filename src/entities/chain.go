@@ -11,13 +11,13 @@ type Chain struct {
 	TenantID                  string
 	OwnerID                   string
 	URLs                      []string
+	PrivateTxManagerURL       string
 	ChainID                   *big.Int
 	ListenerDepth             uint64
 	ListenerCurrentBlock      uint64
 	ListenerStartingBlock     uint64
 	ListenerBackOffDuration   time.Duration
 	ListenerExternalTxEnabled bool
-	PrivateTxManager          *PrivateTxManager
 	Labels                    map[string]string
 	CreatedAt                 time.Time
 	UpdatedAt                 time.Time

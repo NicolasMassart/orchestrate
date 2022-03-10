@@ -143,6 +143,20 @@ func (mr *MockPendingJobMockRecorder) Remove(ctx, jobUUID interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Remove", reflect.TypeOf((*MockPendingJob)(nil).Remove), ctx, jobUUID)
 }
 
+// Update mocks base method
+func (m *MockPendingJob) Update(ctx context.Context, job *entities.Job) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update", ctx, job)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Update indicates an expected call of Update
+func (mr *MockPendingJobMockRecorder) Update(ctx, job interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockPendingJob)(nil).Update), ctx, job)
+}
+
 // GetByTxHash mocks base method
 func (m *MockPendingJob) GetByTxHash(ctx context.Context, chainUUID string, txHash *common.Hash) (*entities.Job, error) {
 	m.ctrl.T.Helper()

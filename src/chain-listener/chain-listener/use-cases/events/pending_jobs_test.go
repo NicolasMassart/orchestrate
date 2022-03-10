@@ -80,10 +80,24 @@ func TestPendingJobs_Execute(t *testing.T) {
 		assert.NoError(t, err)
 	})
 	
-	t.Run("should not do anything if job is already known", func(t *testing.T) {
+	t.Run("should not do anything if job already exist with same tx hash", func(t *testing.T) {
 		job := testdata.FakeJob()
 		
 		pendingJobStore.EXPECT().GetJobUUID(gomock.Any(), job.UUID).Return(job, nil)
+		
+		err := usecase.Execute(ctx, job)
+
+		assert.NoError(t, err)
+	})
+	
+	t.Run("should rerun flow if job already exist but with different tx hash", func(t *testing.T) {
+		job := testdata.FakeJob()
+		job2 := testdata.FakeJob()
+		
+		pendingJobStore.EXPECT().GetJobUUID(gomock.Any(), job.UUID).Return(job2, nil)
+		apiClient.EXPECT().ChainProxyURL(job.ChainUUID).Return(proxyURL)
+		ethClient.EXPECT().TransactionReceipt(gomock.Any(), proxyURL, *job.Transaction.Hash).Return(nil, nil)
+		pendingJobStore.EXPECT().Update(gomock.Any(), job).Return(nil)
 		
 		err := usecase.Execute(ctx, job)
 

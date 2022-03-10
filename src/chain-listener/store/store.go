@@ -19,6 +19,7 @@ type Chain interface {
 type PendingJob interface {
 	Add(ctx context.Context, job *entities.Job) error
 	Remove(ctx context.Context, jobUUID string) error
+	Update(ctx context.Context, job *entities.Job) error
 	GetByTxHash(ctx context.Context, chainUUID string, txHash *ethcommon.Hash) (*entities.Job, error)
 	GetJobUUID(ctx context.Context, jobUUID string) (*entities.Job, error)
 	ListPerChainUUID(ctx context.Context, chainUUID string) ([]*entities.Job, error)

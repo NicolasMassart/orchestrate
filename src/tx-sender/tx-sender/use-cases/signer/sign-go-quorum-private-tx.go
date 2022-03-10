@@ -22,21 +22,20 @@ import (
 const signQuorumPrivateTransactionComponent = "use-cases.sign-quorum-private-transaction"
 
 // signQuorumPrivateTransactionUseCase is a use case to sign a quorum private transaction
-type signQuorumPrivateTransactionUseCase struct {
+type signGoQuorumPrivateTransactionUseCase struct {
 	keyManagerClient client.KeyManagerClient
 	logger           *log.Logger
 }
 
-// NewSignQuorumPrivateTransactionUseCase creates a new signQuorumPrivateTransactionUseCase
-func NewSignQuorumPrivateTransactionUseCase(keyManagerClient client.KeyManagerClient) usecases.SignQuorumPrivateTransactionUseCase {
-	return &signQuorumPrivateTransactionUseCase{
+func NewSignGoQuorumPrivateTransactionUseCase(keyManagerClient client.KeyManagerClient) usecases.SignGoQuorumPrivateTransactionUseCase {
+	return &signGoQuorumPrivateTransactionUseCase{
 		keyManagerClient: keyManagerClient,
 		logger:           log.NewLogger().SetComponent(signQuorumPrivateTransactionComponent),
 	}
 }
 
 // Execute signs a quorum private transaction
-func (uc *signQuorumPrivateTransactionUseCase) Execute(ctx context.Context, job *entities.Job) (signedRaw hexutil.Bytes, txHash *ethcommon.Hash, err error) {
+func (uc *signGoQuorumPrivateTransactionUseCase) Execute(ctx context.Context, job *entities.Job) (signedRaw hexutil.Bytes, txHash *ethcommon.Hash, err error) {
 	logger := uc.logger.WithContext(ctx).WithField("one_time_key", job.InternalData.OneTimeKey)
 
 	transaction := ethTransactionToQuorumTransaction(job.Transaction)
@@ -55,7 +54,7 @@ func (uc *signQuorumPrivateTransactionUseCase) Execute(ctx context.Context, job 
 	return signedRaw, txHash, nil
 }
 
-func (uc *signQuorumPrivateTransactionUseCase) signWithOneTimeKey(ctx context.Context, transaction *quorumtypes.Transaction) (
+func (uc *signGoQuorumPrivateTransactionUseCase) signWithOneTimeKey(ctx context.Context, transaction *quorumtypes.Transaction) (
 	signedRaw hexutil.Bytes, txHash *ethcommon.Hash, err error) {
 	logger := uc.logger.WithContext(ctx)
 	privKey, err := crypto.GenerateKey()
@@ -89,7 +88,7 @@ func (uc *signQuorumPrivateTransactionUseCase) signWithOneTimeKey(ctx context.Co
 	return signedRawB, utils.ToPtr(signedTx.Hash()).(*ethcommon.Hash), nil
 }
 
-func (uc *signQuorumPrivateTransactionUseCase) signWithAccount(ctx context.Context, job *entities.Job, tx *quorumtypes.Transaction) (
+func (uc *signGoQuorumPrivateTransactionUseCase) signWithAccount(ctx context.Context, job *entities.Job, tx *quorumtypes.Transaction) (
 	signedRaw hexutil.Bytes, txHash *ethcommon.Hash, err error) {
 	logger := uc.logger.WithContext(ctx)
 

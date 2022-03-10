@@ -216,20 +216,6 @@ func (mr *MockAgentsMockRecorder) Chain() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Chain", reflect.TypeOf((*MockAgents)(nil).Chain))
 }
 
-// PrivateTxManager mocks base method
-func (m *MockAgents) PrivateTxManager() store.PrivateTxManagerAgent {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PrivateTxManager")
-	ret0, _ := ret[0].(store.PrivateTxManagerAgent)
-	return ret0
-}
-
-// PrivateTxManager indicates an expected call of PrivateTxManager
-func (mr *MockAgentsMockRecorder) PrivateTxManager() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrivateTxManager", reflect.TypeOf((*MockAgents)(nil).PrivateTxManager))
-}
-
 // MockDB is a mock of DB interface
 type MockDB struct {
 	ctrl     *gomock.Controller
@@ -406,20 +392,6 @@ func (m *MockDB) Chain() store.ChainAgent {
 func (mr *MockDBMockRecorder) Chain() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Chain", reflect.TypeOf((*MockDB)(nil).Chain))
-}
-
-// PrivateTxManager mocks base method
-func (m *MockDB) PrivateTxManager() store.PrivateTxManagerAgent {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PrivateTxManager")
-	ret0, _ := ret[0].(store.PrivateTxManagerAgent)
-	return ret0
-}
-
-// PrivateTxManager indicates an expected call of PrivateTxManager
-func (mr *MockDBMockRecorder) PrivateTxManager() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrivateTxManager", reflect.TypeOf((*MockDB)(nil).PrivateTxManager))
 }
 
 // MockTx is a mock of Tx interface
@@ -640,20 +612,6 @@ func (m *MockTx) Chain() store.ChainAgent {
 func (mr *MockTxMockRecorder) Chain() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Chain", reflect.TypeOf((*MockTx)(nil).Chain))
-}
-
-// PrivateTxManager mocks base method
-func (m *MockTx) PrivateTxManager() store.PrivateTxManagerAgent {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PrivateTxManager")
-	ret0, _ := ret[0].(store.PrivateTxManagerAgent)
-	return ret0
-}
-
-// PrivateTxManager indicates an expected call of PrivateTxManager
-func (mr *MockTxMockRecorder) PrivateTxManager() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrivateTxManager", reflect.TypeOf((*MockTx)(nil).PrivateTxManager))
 }
 
 // MockTransactionRequestAgent is a mock of TransactionRequestAgent interface

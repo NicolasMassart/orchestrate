@@ -217,22 +217,6 @@ func (s *chainsCtrlTestSuite) TestUpdate() {
 		assert.Equal(t, http.StatusOK, rw.Code)
 	})
 
-	s.T().Run("should fail with Bad request if invalid format", func(t *testing.T) {
-		req := apitestdata.FakeUpdateChainRequest()
-		req.PrivateTxManager = &api.PrivateTxManagerRequest{
-			URL: "notAnURL",
-		}
-		requestBytes, _ := json.Marshal(req)
-
-		rw := httptest.NewRecorder()
-		httpRequest := httptest.
-			NewRequest(http.MethodPatch, chainsEndpoint+"/chainUUID", bytes.NewReader(requestBytes)).
-			WithContext(s.ctx)
-
-		s.router.ServeHTTP(rw, httpRequest)
-		assert.Equal(t, http.StatusBadRequest, rw.Code)
-	})
-
 	s.T().Run("should fail with 500 if use case fails with an unexpected error", func(t *testing.T) {
 		req := apitestdata.FakeUpdateChainRequest()
 		requestBytes, _ := json.Marshal(req)

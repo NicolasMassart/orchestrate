@@ -35,7 +35,7 @@ func TestSendTesseraMarking_Execute(t *testing.T) {
 	chainRegistryURL := "chainRegistryURL:8081"
 	ctx := context.Background()
 
-	usecase := NewSendTesseraMarkingTxUseCase(signTx, crafter, ec, jobClient, chainRegistryURL, nonceChecker)
+	usecase := NewSendGoQuorumMarkingTxUseCase(signTx, crafter, ec, jobClient, chainRegistryURL, nonceChecker)
 	raw := hexutil.MustDecode("0x1234")
 	txHash := ethcommon.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000abc")
 

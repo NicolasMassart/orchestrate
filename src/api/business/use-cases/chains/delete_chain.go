@@ -3,11 +3,9 @@ package chains
 import (
 	"context"
 
-	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
-	"github.com/consensys/orchestrate/src/infra/database"
-
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
+	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/store"
 )
@@ -41,23 +39,7 @@ func (uc *deleteChainUseCase) Execute(ctx context.Context, uuid string, userInfo
 		return errors.FromError(err).ExtendComponent(deleteChainComponent)
 	}
 
-	err = database.ExecuteInDBTx(uc.db, func(tx database.Tx) error {
-		var der error
-		if chain.PrivateTxManager != nil {
-			der = tx.(store.Tx).PrivateTxManager().Delete(ctx, chain.PrivateTxManager.UUID)
-			if der != nil {
-				return der
-			}
-		}
-
-		der = tx.(store.Tx).Chain().Delete(ctx, chain, userInfo.AllowedTenants)
-		if der != nil {
-			return der
-		}
-
-		return nil
-	})
-
+	err = uc.db.Chain().Delete(ctx, chain, userInfo.AllowedTenants)
 	if err != nil {
 		return errors.FromError(err).ExtendComponent(updateChainComponent)
 	}

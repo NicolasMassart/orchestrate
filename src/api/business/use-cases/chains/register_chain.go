@@ -10,7 +10,6 @@ import (
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/store"
 	"github.com/consensys/orchestrate/src/entities"
-	"github.com/consensys/orchestrate/src/infra/database"
 	"github.com/consensys/orchestrate/src/infra/ethclient"
 )
 
@@ -71,23 +70,7 @@ func (uc *registerChainUseCase) Execute(ctx context.Context, chain *entities.Cha
 
 	chain.TenantID = userInfo.TenantID
 	chain.OwnerID = userInfo.Username
-	err = database.ExecuteInDBTx(uc.db, func(tx database.Tx) error {
-		der := tx.(store.Tx).Chain().Insert(ctx, chain)
-		if der != nil {
-			return der
-		}
-
-		if chain.PrivateTxManager != nil {
-			chain.PrivateTxManager.ChainUUID = chain.UUID
-			der = tx.(store.Tx).PrivateTxManager().Insert(ctx, chain.PrivateTxManager)
-			if der != nil {
-				return der
-			}
-		}
-
-		return nil
-	})
-
+	err = uc.db.Chain().Insert(ctx, chain)
 	if err != nil {
 		return nil, errors.FromError(err).ExtendComponent(registerChainComponent)
 	}

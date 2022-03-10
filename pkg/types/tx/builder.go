@@ -107,21 +107,21 @@ func (e *Envelope) IsEthSendRawTransaction() bool {
 
 // IsEthSendTesseraMarkingTransaction for Quorum Constellation
 func (e *Envelope) IsEthSendTesseraMarkingTransaction() bool {
-	return e.JobType == JobType_ETH_TESSERA_MARKING_TX
+	return e.JobType == JobType_GO_QUORUM_MARKING_TX
 }
 
 // IsEthSendTesseraPrivateTransaction for Quorum Tessera
 func (e *Envelope) IsEthSendTesseraPrivateTransaction() bool {
-	return e.JobType == JobType_ETH_TESSERA_PRIVATE_TX
+	return e.JobType == JobType_GO_QUORUM_PRIVATE_TX
 }
 
 // IsEthSendRawTransaction for Besu/EEA
 func (e *Envelope) IsEeaSendMarkingTransaction() bool {
-	return e.JobType == JobType_ETH_EEA_MARKING_TX
+	return e.JobType == JobType_EEA_MARKING_TX
 }
 
 func (e *Envelope) IsEeaSendPrivateTransaction() bool {
-	return e.JobType == JobType_ETH_EEA_PRIVATE_TX
+	return e.JobType == JobType_EEA_PRIVATE_TX
 }
 
 // IsEthSendRawTransaction for Besu/EEA with Privacy Group

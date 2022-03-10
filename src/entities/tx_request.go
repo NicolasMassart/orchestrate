@@ -21,5 +21,5 @@ type TxRequestParams struct {
 	ContractName    string               `json:"contractName,omitempty"`
 	MethodSignature string               `json:"methodSignature,omitempty"`
 	Args            []interface{}        `json:"args,omitempty"`
-	Protocol        PrivateTxManagerType `json:"protocol,omitempty" example:"Tessera"`
+	Protocol        PrivateTxManagerType `json:"protocol,omitempty" example:"EEA"`
 }

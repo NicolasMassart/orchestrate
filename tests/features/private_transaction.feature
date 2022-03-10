@@ -33,7 +33,7 @@ Feature: Private transactions
         "chain": "{{chain.quorum0.Name}}",
         "params": {
           "from": "{{account1}}",
-          "protocol": "Tessera",
+          "protocol": "GoQuorum",
           "privateFor": [
             "{{global.nodes.quorum[1].privateAddress[0]}}"
           ],
@@ -89,7 +89,7 @@ Feature: Private transactions
             "0x6009608A02a7A15fd6689D6DaD560C44E9ab61Ff",
             "0x2"
           ],
-          "protocol": "Tessera",
+          "protocol": "GoQuorum",
           "privateFrom": "{{global.nodes.quorum[0].privateAddress[0]}}",
           "privateFor": [
             "{{global.nodes.quorum[1].privateAddress[0]}}"
@@ -122,7 +122,7 @@ Feature: Private transactions
         "chain": "{{chain.quorum0.Name}}",
         "params": {
           "from": "{{account1}}",
-          "protocol": "Tessera",
+          "protocol": "GoQuorum",
           "privateFrom": "{{global.nodes.quorum[0].privateAddress[0]}}",
           "privateFor": [
             "{{global.nodes.quorum[1].privateAddress[0]}}","{{global.nodes.quorum[2].privateAddress[0]}}"
@@ -130,7 +130,7 @@ Feature: Private transactions
           "mandatoryFor": [
             "{{global.nodes.quorum[1].privateAddress[0]}}"
           ],
-          "privacyFlag": 1,
+          "privacyFlag": 2,
           "contractName": "SimpleToken"
         },
         "labels": {
@@ -163,7 +163,7 @@ Feature: Private transactions
         "chain": "UnknownChain",
         "params": {
           "from": "{{account1}}",
-          "protocol": "Tessera",
+          "protocol": "GoQuorum",
           "privateFrom": "{{global.nodes.quorum[0].privateAddress[0]}}",
           "privateFor": [
             "{{global.nodes.quorum[1].privateAddress[0]}}"
@@ -192,7 +192,7 @@ Feature: Private transactions
         "chain": "{{chain.quorum0.Name}}",
         "params": {
           "from": "{{account1}}",
-          "protocol": "Tessera",
+          "protocol": "GoQuorum",
           "privateFrom": "{{global.nodes.quorum[1].privateAddress[0]}}",
           "privateFor": [
             "{{global.nodes.quorum[0].privateAddress[0]}}"
@@ -251,7 +251,7 @@ Feature: Private transactions
         "chain": "{{chain.quorum0.Name}}",
         "params": {
           "from": "{{account1}}",
-          "protocol": "Tessera",
+          "protocol": "GoQuorum",
           "privateFrom": "{{global.nodes.quorum[0].privateAddress[0]}}",
           "privateFor": [
             "{{global.nodes.quorum[1].privateAddress[0]}}"
@@ -283,7 +283,7 @@ Feature: Private transactions
         "chain": "{{chain.quorum0.Name}}",
         "params": {
           "from": "{{account1}}",
-          "protocol": "Tessera",
+          "protocol": "GoQuorum",
           "privateFrom": "{{global.nodes.quorum[0].privateAddress[0]}}",
           "contractName": "SimpleToken"
         },
@@ -309,7 +309,7 @@ Feature: Private transactions
         "chain": "quorum_2-{{scenarioID}}",
         "params": {
           "from": "{{account1}}",
-          "protocol": "Tessera",
+          "protocol": "GoQuorum",
           "privateFrom": "{{global.nodes.quorum[0].privateAddress[0]}}",
           "privateFor": [
             "{{global.nodes.quorum[1].privateAddress[0]}}"

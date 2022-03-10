@@ -137,10 +137,7 @@ func TestNewChainsProxyConfig(t *testing.T) {
 					URLs: []string{
 						"http://testURL10.com",
 					},
-					PrivateTxManager: &entities.PrivateTxManager{
-						URL:  "http://testURL10.com/tessera",
-						Type: entities.TesseraChainType,
-					},
+					PrivateTxManagerURL: "http://testURL10.com/tessera",
 				},
 			},
 			func(cfg *dynamic.Configuration) *dynamic.Configuration {

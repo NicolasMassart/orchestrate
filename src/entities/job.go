@@ -13,12 +13,12 @@ type JobType string
 type JobStatus string
 
 var (
-	EthereumTransaction       JobType = "eth://ethereum/transaction"       // Classic public Ethereum transaction
-	EthereumRawTransaction    JobType = "eth://ethereum/rawTransaction"    // Classic raw transaction
-	EEAMarkingTransaction     JobType = "eth://eea/markingTransaction"     // Besu marking transaction
-	EEAPrivateTransaction     JobType = "eth://eea/privateTransaction"     // Besu private EEA tx
-	TesseraMarkingTransaction JobType = "eth://tessera/markingTransaction" // Tessera public transaction
-	TesseraPrivateTransaction JobType = "eth://tessera/privateTransaction" // Tessera private transaction
+	EthereumTransaction       JobType = "eth://ethereum/transaction"         // Classic public Ethereum transaction
+	EthereumRawTransaction    JobType = "eth://ethereum/rawTransaction"      // Classic raw transaction
+	EEAMarkingTransaction     JobType = "eth://eea/markingTransaction"       // Besu marking transaction
+	EEAPrivateTransaction     JobType = "eth://eea/privateTransaction"       // Besu private EEA tx
+	TesseraMarkingTransaction JobType = "eth://go-quorum/markingTransaction" // GoQuorum public transaction
+	TesseraPrivateTransaction JobType = "eth://go-quorum/privateTransaction" // GoQuorum private transaction
 )
 
 func (jt *JobType) String() string {
@@ -222,8 +222,8 @@ func NewJobFromEnvelope(envelope *tx.Envelope) *Job {
 var JobTypeToEnvelopeType = map[JobType]tx.JobType{
 	EthereumTransaction:       tx.JobType_ETH_TX,
 	EthereumRawTransaction:    tx.JobType_ETH_RAW_TX,
-	EEAMarkingTransaction:     tx.JobType_ETH_EEA_MARKING_TX,
-	EEAPrivateTransaction:     tx.JobType_ETH_EEA_PRIVATE_TX,
-	TesseraMarkingTransaction: tx.JobType_ETH_TESSERA_MARKING_TX,
-	TesseraPrivateTransaction: tx.JobType_ETH_TESSERA_PRIVATE_TX,
+	EEAMarkingTransaction:     tx.JobType_EEA_MARKING_TX,
+	EEAPrivateTransaction:     tx.JobType_EEA_PRIVATE_TX,
+	TesseraMarkingTransaction: tx.JobType_GO_QUORUM_MARKING_TX,
+	TesseraPrivateTransaction: tx.JobType_GO_QUORUM_PRIVATE_TX,
 }

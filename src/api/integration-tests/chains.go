@@ -6,15 +6,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/consensys/orchestrate/pkg/errors"
+	"github.com/consensys/orchestrate/pkg/sdk/client"
+	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
+	"github.com/consensys/orchestrate/src/api/service/types/testdata"
+	"github.com/consensys/orchestrate/src/entities"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"github.com/consensys/orchestrate/pkg/errors"
-	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
-	"github.com/consensys/orchestrate/pkg/sdk/client"
-	api "github.com/consensys/orchestrate/src/api/service/types"
-	"github.com/consensys/orchestrate/src/entities"
-	"github.com/consensys/orchestrate/src/api/service/types/testdata"
 )
 
 type chainsTestSuite struct {
@@ -147,17 +146,9 @@ func (s *chainsTestSuite) TestRegister() {
 		assert.True(t, errors.IsInvalidFormatError(err))
 	})
 
-	s.T().Run("should fail with 400 if invalid private tx manager type", func(t *testing.T) {
-		req := testdata.FakeRegisterChainRequest()
-		req.PrivateTxManager.Type = "invalidType"
-
-		_, err := s.client.RegisterChain(ctx, req)
-		assert.True(t, errors.IsInvalidFormatError(err))
-	})
-
 	s.T().Run("should fail with 400 if invalid private tx manager url", func(t *testing.T) {
 		req := testdata.FakeRegisterChainRequest()
-		req.PrivateTxManager.URL = "invalidURL"
+		req.PrivateTxManagerURL = "invalidURL"
 
 		_, err := s.client.RegisterChain(ctx, req)
 		assert.True(t, errors.IsInvalidFormatError(err))
@@ -276,21 +267,6 @@ func (s *chainsTestSuite) TestUpdate() {
 		assert.Equal(t, req.Listener.Depth, resp.ListenerDepth)
 		assert.Equal(t, req.Listener.BackOffDuration, resp.ListenerBackOffDuration)
 		assert.Equal(t, req.Listener.ExternalTxEnabled, resp.ListenerExternalTxEnabled)
-		assert.NotEqual(t, resp.CreatedAt, resp.UpdatedAt)
-	})
-
-	s.T().Run("should update chain private tx manager successfully", func(t *testing.T) {
-		req := testdata.FakeUpdateChainRequest()
-		req.PrivateTxManager = &api.PrivateTxManagerRequest{
-			URL:  "http://myURLUpdated:8545",
-			Type: entities.TesseraChainType,
-		}
-
-		resp, err := s.client.UpdateChain(ctx, chain.UUID, req)
-		require.NoError(t, err)
-
-		assert.Equal(t, req.PrivateTxManager.URL, resp.PrivateTxManager.URL)
-		assert.Equal(t, req.PrivateTxManager.Type, resp.PrivateTxManager.Type)
 		assert.NotEqual(t, resp.CreatedAt, resp.UpdatedAt)
 	})
 

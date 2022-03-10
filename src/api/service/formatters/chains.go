@@ -23,6 +23,7 @@ func FormatChainResponse(chain *entities.Chain) *types.ChainResponse {
 		TenantID:                  chain.TenantID,
 		OwnerID:                   chain.OwnerID,
 		URLs:                      chain.URLs,
+		PrivateTxManagerURL:       chain.PrivateTxManagerURL,
 		ChainID:                   chain.ChainID.String(),
 		ListenerDepth:             chain.ListenerDepth,
 		ListenerCurrentBlock:      chain.ListenerCurrentBlock,
@@ -34,25 +35,14 @@ func FormatChainResponse(chain *entities.Chain) *types.ChainResponse {
 		UpdatedAt:                 chain.UpdatedAt,
 	}
 
-	if chain.PrivateTxManager != nil {
-		res.PrivateTxManager = FormatPrivateTxManagerResponse(chain.PrivateTxManager)
-	}
-
 	return res
-}
-
-func FormatPrivateTxManagerResponse(txManager *entities.PrivateTxManager) *types.PrivateTxManagerResponse {
-	return &types.PrivateTxManagerResponse{
-		URL:       txManager.URL,
-		Type:      txManager.Type,
-		CreatedAt: txManager.CreatedAt,
-	}
 }
 
 func FormatRegisterChainRequest(request *types.RegisterChainRequest, fromLatest bool) (*entities.Chain, error) {
 	chain := &entities.Chain{
 		Name:                      request.Name,
 		URLs:                      request.URLs,
+		PrivateTxManagerURL:       request.PrivateTxManagerURL,
 		ListenerDepth:             request.Listener.Depth,
 		ListenerExternalTxEnabled: request.Listener.ExternalTxEnabled,
 		Labels:                    request.Labels,
@@ -79,13 +69,6 @@ func FormatRegisterChainRequest(request *types.RegisterChainRequest, fromLatest 
 		chain.ListenerCurrentBlock = startingBlock
 	}
 
-	if request.PrivateTxManager != nil {
-		chain.PrivateTxManager = &entities.PrivateTxManager{
-			URL:  request.PrivateTxManager.URL,
-			Type: request.PrivateTxManager.Type,
-		}
-	}
-
 	return chain, nil
 }
 
@@ -107,13 +90,6 @@ func FormatUpdateChainRequest(request *types.UpdateChainRequest, uuid string) (*
 		chain.ListenerDepth = request.Listener.Depth
 		chain.ListenerExternalTxEnabled = request.Listener.ExternalTxEnabled
 		chain.ListenerCurrentBlock = request.Listener.CurrentBlock
-	}
-
-	if request.PrivateTxManager != nil {
-		chain.PrivateTxManager = &entities.PrivateTxManager{
-			URL:  request.PrivateTxManager.URL,
-			Type: request.PrivateTxManager.Type,
-		}
 	}
 
 	return chain, nil
@@ -150,21 +126,8 @@ func ChainResponseToEntity(chain *types.ChainResponse) *entities.Chain {
 		ListenerStartingBlock:     chain.ListenerStartingBlock,
 		ListenerBackOffDuration:   listenerBackOffDuration,
 		ListenerExternalTxEnabled: chain.ListenerExternalTxEnabled,
-		PrivateTxManager:          PrivateTxManagerResponseToEntity(chain.PrivateTxManager),
 		Labels:                    chain.Labels,
 		CreatedAt:                 chain.CreatedAt,
 		UpdatedAt:                 chain.UpdatedAt,
-	}
-}
-
-func PrivateTxManagerResponseToEntity(privTxMngr *types.PrivateTxManagerResponse) *entities.PrivateTxManager {
-	if privTxMngr == nil {
-		return nil
-	}
-	// Cannot fail as the duration coming from a response is expected to be valid
-	return &entities.PrivateTxManager{
-		URL:       privTxMngr.URL,
-		CreatedAt: privTxMngr.CreatedAt,
-		Type:      privTxMngr.Type,
 	}
 }

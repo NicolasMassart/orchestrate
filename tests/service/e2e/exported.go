@@ -2,16 +2,14 @@ package e2e
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sync"
 	"time"
 
-	"encoding/json"
-
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	api "github.com/consensys/orchestrate/src/api/service/types"
-	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/infra/ethclient/rpc"
 	"github.com/consensys/orchestrate/tests/service/e2e/cucumber/alias"
 	utils3 "github.com/consensys/orchestrate/tests/utils"
@@ -221,14 +219,9 @@ func initTestChains(ctx context.Context, testData *utils3.TestData) (map[string]
 			continue
 		}
 		req := &api.RegisterChainRequest{
-			URLs: node.URLs,
-			Name: fmt.Sprintf("quorum-%s", utils.RandString(5)),
-		}
-		if node.PrivateTxManager.URL != "" {
-			req.PrivateTxManager = &api.PrivateTxManagerRequest{
-				URL:  node.PrivateTxManager.URL,
-				Type: entities.TesseraChainType,
-			}
+			URLs:                node.URLs,
+			Name:                fmt.Sprintf("quorum-%s", utils.RandString(5)),
+			PrivateTxManagerURL: node.PrivateTxManagerURL,
 		}
 		reqs[fmt.Sprintf("quorum%d", idx)] = req
 	}

@@ -116,19 +116,8 @@ func FakeChainModel() *models.Chain {
 		ListenerStartingBlock:     0,
 		ListenerBackOffDuration:   "5s",
 		ListenerExternalTxEnabled: false,
-		PrivateTxManagers:         []*models.PrivateTxManager{},
 		Labels: map[string]string{
 			"label1": "value1",
 		},
-	}
-}
-
-func FakePrivateTxManagerModel() *models.PrivateTxManager {
-	return &models.PrivateTxManager{
-		UUID:      uuid.Must(uuid.NewV4()).String(),
-		ChainUUID: "uuid.Must(uuid.NewV4()).String()",
-		URL:       "http://tessera:8000",
-		Type:      "Tessera",
-		CreatedAt: time.Now(),
 	}
 }
