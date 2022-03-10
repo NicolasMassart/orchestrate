@@ -34,10 +34,10 @@ func TestRegisterFaucet_Execute(t *testing.T) {
 
 	faucet.TenantID = userInfo.TenantID
 	t.Run("should execute use case successfully", func(t *testing.T) {
-		mockSearchFaucetsUC.EXPECT().Execute(gomock.Any(), &entities.FaucetFilters{Names: []string{faucet.Name}, 
+		mockSearchFaucetsUC.EXPECT().Execute(gomock.Any(), &entities.FaucetFilters{Names: []string{faucet.Name},
 			TenantID: userInfo.TenantID},
 			userInfo).Return([]*entities.Faucet{}, nil)
-		faucetAgent.EXPECT().Insert(gomock.Any(), faucet).Return(nil)
+		faucetAgent.EXPECT().Insert(gomock.Any(), faucet).Return(faucet, nil)
 
 		resp, err := usecase.Execute(ctx, faucet, userInfo)
 
@@ -59,7 +59,7 @@ func TestRegisterFaucet_Execute(t *testing.T) {
 	t.Run("should fail with same error if search faucets fails", func(t *testing.T) {
 		expectedErr := errors.NotFoundError("error")
 
-		mockSearchFaucetsUC.EXPECT().Execute(gomock.Any(), &entities.FaucetFilters{Names: []string{faucet.Name}, 
+		mockSearchFaucetsUC.EXPECT().Execute(gomock.Any(), &entities.FaucetFilters{Names: []string{faucet.Name},
 			TenantID: userInfo.TenantID}, userInfo).Return(nil, expectedErr)
 
 		resp, err := usecase.Execute(ctx, faucet, userInfo)
@@ -74,7 +74,7 @@ func TestRegisterFaucet_Execute(t *testing.T) {
 
 		mockSearchFaucetsUC.EXPECT().Execute(gomock.Any(), &entities.FaucetFilters{Names: []string{faucet.Name}, TenantID: userInfo.TenantID},
 			userInfo).Return([]*entities.Faucet{}, nil)
-		faucetAgent.EXPECT().Insert(gomock.Any(), gomock.Any()).Return(expectedErr)
+		faucetAgent.EXPECT().Insert(gomock.Any(), gomock.Any()).Return(nil, expectedErr)
 
 		resp, err := usecase.Execute(ctx, faucet, userInfo)
 

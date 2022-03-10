@@ -140,8 +140,8 @@ func (c *AccountsController) search(rw http.ResponseWriter, request *http.Reques
 	}
 
 	response := []*api.AccountResponse{}
-	for _, iden := range accs {
-		response = append(response, formatters.FormatAccountResponse(iden))
+	for _, acc := range accs {
+		response = append(response, formatters.FormatAccountResponse(acc))
 	}
 
 	_ = json.NewEncoder(rw).Encode(response)

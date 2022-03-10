@@ -7,22 +7,19 @@ import (
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
-	"github.com/consensys/orchestrate/src/api/store"
 	"github.com/consensys/orchestrate/src/entities"
 )
 
 const callOffTxComponent = "use-cases.call-off-tx"
 
 type callOffTxUseCase struct {
-	db           store.DB
 	getTxUC      usecases.GetTxUseCase
 	retryJobTxUC usecases.RetryJobTxUseCase
 	logger       *log.Logger
 }
 
-func NewCallOffTxUseCase(db store.DB, getTxUC usecases.GetTxUseCase, retryJobTxUC usecases.RetryJobTxUseCase) usecases.CallOffTxUseCase {
+func NewCallOffTxUseCase(getTxUC usecases.GetTxUseCase, retryJobTxUC usecases.RetryJobTxUseCase) usecases.CallOffTxUseCase {
 	return &callOffTxUseCase{
-		db:           db,
 		getTxUC:      getTxUC,
 		retryJobTxUC: retryJobTxUC,
 		logger:       log.NewLogger().SetComponent(callOffTxComponent),

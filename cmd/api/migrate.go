@@ -1,8 +1,9 @@
 package api
 
 import (
-	"github.com/consensys/orchestrate/src/api/store/postgres/migrations"
-	"github.com/consensys/orchestrate/src/infra/database/postgres"
+	"github.com/consensys/orchestrate/cmd/flags"
+	apimigrations "github.com/consensys/orchestrate/src/api/store/postgres/migrations"
+	"github.com/go-pg/migrations/v7"
 	"github.com/go-pg/pg/v9"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -17,12 +18,16 @@ func newMigrateCmd() *cobra.Command {
 		Use:   "migrate",
 		Short: "Migrate database",
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			var err error
+
 			// Set database connection
-			opts, err := postgres.NewConfig(viper.GetViper()).PGOptions()
+			postgresConfig := flags.NewPGConfig(viper.GetViper())
+			pgOptions, err := postgresConfig.ToPGOptionsV9()
 			if err != nil {
 				return err
 			}
-			db = pg.Connect(opts)
+
+			db = pg.Connect(pgOptions)
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -31,13 +36,13 @@ func newMigrateCmd() *cobra.Command {
 		PersistentPostRun: func(cmd *cobra.Command, args []string) {
 			err := db.Close()
 			if err != nil {
-				log.WithError(err).Warn("could not close Postgres connection")
+				log.WithError(err).Error("failed to close DB connection")
 			}
 		},
 	}
 
 	// Postgres flags
-	postgres.PGFlags(migrateCmd.Flags())
+	flags.PGFlags(migrateCmd.Flags())
 
 	// Register Up command
 	upCmd := &cobra.Command{
@@ -111,8 +116,8 @@ func newMigrateCmd() *cobra.Command {
 	return migrateCmd
 }
 
-func migrate(db *pg.DB, a ...string) error {
-	oldVersion, newVersion, err := migrations.Run(db, a...)
+func migrate(db migrations.DB, a ...string) error {
+	oldVersion, newVersion, err := apimigrations.Run(db, a...)
 	if err != nil {
 		log.WithError(err).Error("Migration failed")
 		return err

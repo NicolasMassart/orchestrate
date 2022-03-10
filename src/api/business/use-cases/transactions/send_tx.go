@@ -7,14 +7,15 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/consensys/orchestrate/pkg/utils"
+	"github.com/ethereum/go-ethereum/core/types"
+
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/store"
-	"github.com/consensys/orchestrate/src/api/store/parsers"
 	"github.com/consensys/orchestrate/src/entities"
-	"github.com/consensys/orchestrate/src/infra/database"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/gofrs/uuid"
@@ -22,7 +23,6 @@ import (
 
 const sendTxComponent = "use-cases.send-tx"
 
-// sendTxUsecase is a use case to create a new transaction
 type sendTxUsecase struct {
 	db                 store.DB
 	searchChainsUC     usecases.SearchChainsUseCase
@@ -33,7 +33,6 @@ type sendTxUsecase struct {
 	logger             *log.Logger
 }
 
-// NewSendTxUseCase creates a new SendTxUseCase
 func NewSendTxUseCase(
 	db store.DB,
 	searchChainsUC usecases.SearchChainsUseCase,
@@ -53,7 +52,6 @@ func NewSendTxUseCase(
 	}
 }
 
-// Execute validates, creates and starts a new transaction
 func (uc *sendTxUsecase) Execute(ctx context.Context, txRequest *entities.TxRequest, txData hexutil.Bytes, userInfo *multitenancy.UserInfo) (*entities.TxRequest, error) {
 	ctx = log.WithFields(ctx, log.Field("idempotency-key", txRequest.IdempotencyKey))
 	logger := uc.logger.WithContext(ctx)
@@ -62,15 +60,15 @@ func (uc *sendTxUsecase) Execute(ctx context.Context, txRequest *entities.TxRequ
 	// Step 1: Get chain from chain registry
 	chain, err := uc.getChain(ctx, txRequest.ChainName, userInfo)
 	if err != nil {
-		logger.WithError(err).WithField("chain_name", txRequest.ChainName).Error("failed to get chain")
 		return nil, errors.FromError(err).ExtendComponent(sendTxComponent)
 	}
 
 	// Step 2: Generate request hash
 	requestHash, err := generateRequestHash(chain.UUID, txRequest.Params)
 	if err != nil {
-		logger.WithError(err).Error("failed to generate request hash")
-		return nil, errors.FromError(err).ExtendComponent(sendTxComponent)
+		errMessage := "failed to generate request hash"
+		logger.WithError(err).Error(errMessage)
+		return nil, errors.InvalidParameterError("failed to generate request hash").ExtendComponent(sendTxComponent)
 	}
 
 	// Step 3: Insert Schedule + Job + Transaction + TxRequest atomically OR get tx request if it exists
@@ -95,7 +93,7 @@ func (uc *sendTxUsecase) Execute(ctx context.Context, txRequest *entities.TxRequ
 		if err = uc.startJobUC.Execute(ctx, job.UUID, userInfo); err != nil {
 			return nil, errors.FromError(err).ExtendComponent(sendTxComponent)
 		}
-	} else { // Load latest Schedule status from DB
+	} else { // Load the latest Schedule status from DB
 		txRequest, err = uc.getTxUC.Execute(ctx, txRequest.Schedule.UUID, userInfo)
 		if err != nil {
 			return nil, errors.FromError(err).ExtendComponent(sendTxComponent)
@@ -109,11 +107,12 @@ func (uc *sendTxUsecase) Execute(ctx context.Context, txRequest *entities.TxRequ
 func (uc *sendTxUsecase) getChain(ctx context.Context, chainName string, userInfo *multitenancy.UserInfo) (*entities.Chain, error) {
 	chains, err := uc.searchChainsUC.Execute(ctx, &entities.ChainFilters{Names: []string{chainName}}, userInfo)
 	if err != nil {
-		return nil, errors.FromError(err)
+		return nil, err
 	}
 
 	if len(chains) == 0 {
 		errMessage := fmt.Sprintf("chain '%s' does not exist", chainName)
+		uc.logger.WithContext(ctx).Error(errMessage)
 		return nil, errors.InvalidParameterError(errMessage)
 	}
 
@@ -151,54 +150,48 @@ func (uc *sendTxUsecase) insertNewTxRequest(
 	txData []byte, requestHash, chainUUID, tenantID string,
 	userInfo *multitenancy.UserInfo,
 ) (*entities.TxRequest, error) {
-	err := database.ExecuteInDBTx(uc.db, func(dbtx database.Tx) error {
+	err := uc.db.RunInTransaction(ctx, func(dbtx store.DB) error {
 		txRequest.Schedule = &entities.Schedule{TenantID: tenantID, OwnerID: userInfo.Username}
-		if der := dbtx.(store.Tx).Schedule().Insert(ctx, txRequest.Schedule); der != nil {
-			return der
+		err := dbtx.Schedule().Insert(ctx, txRequest.Schedule)
+		if err != nil {
+			return err
 		}
 
-		if der := dbtx.(store.Tx).TransactionRequest().Insert(ctx, txRequest, requestHash, txRequest.Schedule.UUID); der != nil {
-			return der
+		_, err = dbtx.TransactionRequest().Insert(ctx, txRequest, requestHash, txRequest.Schedule.UUID)
+		if err != nil {
+			return err
 		}
 
 		return nil
 	})
-
 	if err != nil {
-		return nil, errors.FromError(err).ExtendComponent(sendTxComponent)
+		return nil, err
 	}
 
-	sendTxJobs, err := parsers.NewJobEntities(txRequest, chainUUID, txData)
+	sendTxJobs, err := uc.newJobEntities(txRequest, chainUUID, txData)
 	if err != nil {
-		return nil, errors.FromError(err).ExtendComponent(sendTxComponent)
+		return nil, err
 	}
 
 	txRequest.Schedule.Jobs = make([]*entities.Job, len(sendTxJobs))
-	err = database.ExecuteInDBTx(uc.db, func(dbtx database.Tx) error {
-		var nextJobUUID string
-		for idx, txJob := range sendTxJobs {
-			if nextJobUUID != "" {
-				txJob.UUID = nextJobUUID
-			}
-
-			if idx < len(sendTxJobs)-1 {
-				nextJobUUID = uuid.Must(uuid.NewV4()).String()
-				txJob.NextJobUUID = nextJobUUID
-			}
-
-			var job *entities.Job
-			job, err = uc.createJobUC.WithDBTransaction(dbtx.(store.Tx)).Execute(ctx, txJob, userInfo)
-			if err != nil {
-				return err
-			}
-
-			txRequest.Schedule.Jobs[idx] = job
+	var nextJobUUID string
+	for idx, txJob := range sendTxJobs {
+		if nextJobUUID != "" {
+			txJob.UUID = nextJobUUID
 		}
-		return nil
-	})
 
-	if err != nil {
-		return nil, errors.FromError(err).ExtendComponent(sendTxComponent)
+		if idx < len(sendTxJobs)-1 {
+			nextJobUUID = uuid.Must(uuid.NewV4()).String()
+			txJob.NextJobUUID = nextJobUUID
+		}
+
+		var job *entities.Job
+		job, err = uc.createJobUC.Execute(ctx, txJob, userInfo)
+		if err != nil {
+			return nil, err
+		}
+
+		txRequest.Schedule.Jobs[idx] = job
 	}
 
 	return txRequest, nil
@@ -216,7 +209,7 @@ func (uc *sendTxUsecase) startFaucetJob(ctx context.Context, account *ethcommon.
 		if errors.IsNotFoundError(err) {
 			return nil, nil
 		}
-		return nil, errors.FromError(err).ExtendComponent(sendTxComponent)
+		return nil, err
 	}
 	logger.WithField("faucet_amount", faucet.Amount).Debug("faucet: credit approved")
 
@@ -255,4 +248,120 @@ func generateRequestHash(chainUUID string, params interface{}) (string, error) {
 
 	hash := md5.Sum([]byte(string(jsonParams) + chainUUID))
 	return hex.EncodeToString(hash[:]), nil
+}
+
+func (uc *sendTxUsecase) newJobEntities(txRequest *entities.TxRequest, chainUUID string, txData []byte) ([]*entities.Job, error) {
+	var jobs []*entities.Job
+	switch {
+	case txRequest.Params.Protocol == entities.EEAChainType:
+		privTxJob := uc.newJobEntityFromTxRequest(txRequest, uc.newEthTransactionFromParams(txRequest.Params, txData, entities.LegacyTxType), entities.EEAPrivateTransaction, chainUUID)
+		markingTxJob := uc.newJobEntityFromTxRequest(txRequest, &entities.ETHTransaction{}, entities.EEAMarkingTransaction, chainUUID)
+		markingTxJob.InternalData.OneTimeKey = true
+		jobs = append(jobs, privTxJob, markingTxJob)
+	case txRequest.Params.Protocol == entities.GoQuorumChainType:
+		privTxJob := uc.newJobEntityFromTxRequest(txRequest, uc.newEthTransactionFromParams(txRequest.Params, txData, entities.LegacyTxType),
+			entities.TesseraPrivateTransaction, chainUUID)
+
+		markingTx := &entities.ETHTransaction{
+			From:         nil,
+			PrivateFor:   txRequest.Params.PrivateFor,
+			MandatoryFor: txRequest.Params.MandatoryFor,
+			PrivacyFlag:  txRequest.Params.PrivacyFlag,
+		}
+		if txRequest.Params.From != nil {
+			markingTx.From = txRequest.Params.From
+		}
+		markingTxJob := uc.newJobEntityFromTxRequest(txRequest, markingTx, entities.TesseraMarkingTransaction, chainUUID)
+		jobs = append(jobs, privTxJob, markingTxJob)
+	case txRequest.Params.Raw != nil:
+		rawTx, err := uc.newTransactionFromRaw(txRequest.Params.Raw)
+		if err != nil {
+			return nil, err
+		}
+		jobs = append(jobs, uc.newJobEntityFromTxRequest(txRequest, rawTx, entities.EthereumRawTransaction, chainUUID))
+	default:
+		tx := uc.newEthTransactionFromParams(txRequest.Params, txData, txRequest.Params.TransactionType)
+		jobs = append(jobs, uc.newJobEntityFromTxRequest(txRequest, tx, entities.EthereumTransaction, chainUUID))
+	}
+
+	return jobs, nil
+}
+
+func (uc *sendTxUsecase) newEthTransactionFromParams(params *entities.TxRequestParams, txData []byte, txType entities.TransactionType) *entities.ETHTransaction {
+	tx := &entities.ETHTransaction{
+		From:            nil,
+		To:              nil,
+		Nonce:           params.Nonce,
+		Value:           params.Value,
+		GasPrice:        params.GasPrice,
+		Gas:             params.Gas,
+		GasFeeCap:       params.GasFeeCap,
+		GasTipCap:       params.GasTipCap,
+		AccessList:      params.AccessList,
+		TransactionType: txType,
+		Raw:             params.Raw,
+		Data:            txData,
+		PrivateFrom:     params.PrivateFrom,
+		PrivateFor:      params.PrivateFor,
+		MandatoryFor:    params.MandatoryFor,
+		PrivacyFlag:     params.PrivacyFlag,
+		PrivacyGroupID:  params.PrivacyGroupID,
+	}
+	if params.From != nil {
+		tx.From = params.From
+	}
+	if params.To != nil {
+		tx.To = params.To
+	}
+	return tx
+}
+
+func (uc *sendTxUsecase) newJobEntityFromTxRequest(txRequest *entities.TxRequest, ethTx *entities.ETHTransaction, jobType entities.JobType, chainUUID string) *entities.Job {
+	internalData := *txRequest.InternalData
+	return &entities.Job{
+		ScheduleUUID: txRequest.Schedule.UUID,
+		ChainUUID:    chainUUID,
+		Type:         jobType,
+		Labels:       txRequest.Labels,
+		InternalData: &internalData,
+		Transaction:  ethTx,
+		TenantID:     txRequest.Schedule.TenantID,
+		OwnerID:      txRequest.Schedule.OwnerID,
+	}
+}
+
+func (uc *sendTxUsecase) newTransactionFromRaw(raw hexutil.Bytes) (*entities.ETHTransaction, error) {
+	tx := &types.Transaction{}
+
+	err := tx.UnmarshalBinary(raw)
+	if err != nil {
+		errMessage := "failed to unmarshal raw transaction"
+		uc.logger.WithError(err).Error(errMessage)
+		return nil, errors.InvalidParameterError(errMessage)
+	}
+
+	from, err := types.Sender(types.NewEIP155Signer(tx.ChainId()), tx)
+	if err != nil {
+		errMessage := "failed to get sender from raw transaction"
+		uc.logger.WithError(err).Error(errMessage)
+		return nil, errors.InvalidParameterError(errMessage)
+	}
+
+	jobTx := &entities.ETHTransaction{
+		From:     &from,
+		Data:     tx.Data(),
+		Gas:      utils.ToPtr(tx.Gas()).(*uint64),
+		GasPrice: (*hexutil.Big)(tx.GasPrice()),
+		Value:    (*hexutil.Big)(tx.Value()),
+		Nonce:    utils.ToPtr(tx.Gas()).(*uint64),
+		Hash:     utils.ToPtr(tx.Hash()).(*ethcommon.Hash),
+		Raw:      raw,
+	}
+
+	// If not contract creation
+	if tx.To() != nil {
+		jobTx.To = tx.To()
+	}
+
+	return jobTx, nil
 }

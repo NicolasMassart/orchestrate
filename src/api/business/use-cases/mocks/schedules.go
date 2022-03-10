@@ -7,9 +7,8 @@ package mocks
 import (
 	context "context"
 	multitenancy "github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
-	entities "github.com/consensys/orchestrate/src/entities"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
-	store "github.com/consensys/orchestrate/src/api/store"
+	entities "github.com/consensys/orchestrate/src/entities"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -115,20 +114,6 @@ func (m *MockCreateScheduleUseCase) Execute(ctx context.Context, schedule *entit
 func (mr *MockCreateScheduleUseCaseMockRecorder) Execute(ctx, schedule, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockCreateScheduleUseCase)(nil).Execute), ctx, schedule, userInfo)
-}
-
-// WithDBTransaction mocks base method
-func (m *MockCreateScheduleUseCase) WithDBTransaction(dbtx store.Tx) usecases.CreateScheduleUseCase {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "WithDBTransaction", dbtx)
-	ret0, _ := ret[0].(usecases.CreateScheduleUseCase)
-	return ret0
-}
-
-// WithDBTransaction indicates an expected call of WithDBTransaction
-func (mr *MockCreateScheduleUseCaseMockRecorder) WithDBTransaction(dbtx interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithDBTransaction", reflect.TypeOf((*MockCreateScheduleUseCase)(nil).WithDBTransaction), dbtx)
 }
 
 // MockGetScheduleUseCase is a mock of GetScheduleUseCase interface

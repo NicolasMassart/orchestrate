@@ -8,6 +8,10 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/consensys/orchestrate/cmd/flags"
+	"github.com/consensys/orchestrate/src/infra/postgres/gopg"
+	"github.com/go-pg/pg/v9"
+
 	"github.com/consensys/orchestrate/src/infra/quorum-key-manager/http"
 
 	authjwt "github.com/consensys/orchestrate/pkg/toolkit/app/auth/jwt"
@@ -28,7 +32,6 @@ import (
 	"github.com/consensys/orchestrate/src/api"
 	"github.com/consensys/orchestrate/src/api/store/postgres/migrations"
 	"github.com/consensys/orchestrate/src/infra/broker/sarama"
-	"github.com/consensys/orchestrate/src/infra/database/postgres"
 	ethclient "github.com/consensys/orchestrate/src/infra/ethclient/rpc"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -63,7 +66,6 @@ type IntegrationEnvironment struct {
 	api               *app.App
 	client            *docker.Client
 	consumer          *integrationtest.KafkaConsumer
-	pgmngr            postgres.Manager
 	baseURL           string
 	metricsURL        string
 	kafkaTopicConfig  *sarama.KafkaTopicConfig
@@ -87,7 +89,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 
 	// Initialize environment flags
 	flgs := pflag.NewFlagSet("api-integration-test", pflag.ContinueOnError)
-	api.Flags(flgs)
+	flags.NewAPIFlags(flgs)
 	args := []string{
 		"--metrics-port=" + envMetricsPort,
 		"--rest-port=" + envHTTPPort,
@@ -172,7 +174,6 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		ctx:               ctx,
 		logger:            logger,
 		client:            dockerClient,
-		pgmngr:            postgres.NewManager(),
 		baseURL:           "http://localhost:" + envHTTPPort,
 		metricsURL:        "http://localhost:" + envMetricsPort,
 		blockchainNodeURL: fmt.Sprintf("http://localhost:%s", envGanacheHostPort),
@@ -269,7 +270,7 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 	}
 
 	// Run postgres migrations
-	err = env.migrate(ctx)
+	err = env.migrate()
 	if err != nil {
 		env.logger.WithError(err).Error("could not migrate postgres")
 		return err
@@ -369,27 +370,25 @@ func (env *IntegrationEnvironment) Teardown(ctx context.Context) {
 	}
 }
 
-func (env *IntegrationEnvironment) migrate(ctx context.Context) error {
-	// Set Database connection
-	opts, err := postgres.NewConfig(viper.GetViper()).PGOptions()
+func (env *IntegrationEnvironment) migrate() error {
+	pgCfg, err := flags.NewPGConfig(viper.GetViper()).ToPGOptionsV9()
 	if err != nil {
 		return err
 	}
 
-	db := env.pgmngr.Connect(ctx, opts)
-	env.logger.Debugf("initializing Database migrations...")
-	_, _, err = migrations.Run(db, "init")
+	pgDB := pg.Connect(pgCfg)
+
+	_, _, err = migrations.Run(pgDB, "init")
 	if err != nil {
 		return err
 	}
 
-	env.logger.Debugf("running Database migrations...")
-	_, _, err = migrations.Run(db, "up")
+	_, _, err = migrations.Run(pgDB, "up")
 	if err != nil {
 		return err
 	}
 
-	err = db.Close()
+	err = pgDB.Close()
 	if err != nil {
 		return err
 	}
@@ -405,6 +404,11 @@ func newAPI(ctx context.Context, topicCfg *sarama.KafkaTopicConfig) (*app.App, e
 		return nil, err
 	}
 
+	postgresClient, err := gopg.New("orchestrate.integration-tests.api", apiConfig.Postgres)
+	if err != nil {
+		return nil, err
+	}
+
 	authjwt.Init(ctx)
 	authkey.Init(ctx)
 	sarama.InitSyncProducer(ctx)
@@ -413,12 +417,11 @@ func newAPI(ctx context.Context, topicCfg *sarama.KafkaTopicConfig) (*app.App, e
 	interceptedHTTPClient := httputils.NewClient(httputils.NewDefaultConfig())
 	gock.InterceptClient(interceptedHTTPClient)
 
-	pgmngr := postgres.GetManager()
 	txSchedulerConfig := api.NewConfig(viper.GetViper())
 
 	return api.NewAPI(
 		txSchedulerConfig,
-		pgmngr,
+		postgresClient,
 		authjwt.GlobalChecker(), authkey.GlobalChecker(),
 		qkmClient,
 		apiConfig.QKM.StoreName,

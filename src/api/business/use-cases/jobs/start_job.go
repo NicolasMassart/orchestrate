@@ -4,16 +4,14 @@ import (
 	"context"
 	"time"
 
-	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
-	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
-	"github.com/consensys/orchestrate/src/api/metrics"
-	"github.com/consensys/orchestrate/src/entities"
-	"github.com/consensys/orchestrate/src/infra/database"
-
 	"github.com/Shopify/sarama"
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
+	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
+	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
+	"github.com/consensys/orchestrate/src/api/metrics"
 	"github.com/consensys/orchestrate/src/api/store"
+	"github.com/consensys/orchestrate/src/entities"
 	pkgsarama "github.com/consensys/orchestrate/src/infra/broker/sarama"
 )
 
@@ -73,10 +71,7 @@ func (uc *startJobUseCase) Execute(ctx context.Context, jobUUID string, userInfo
 		return errors.FromError(err).ExtendComponent(startJobComponent)
 	}
 
-	logger.WithField("partition", partition).
-		WithField("offset", offset).
-		Info("job started successfully")
-
+	logger.WithField("partition", partition).WithField("offset", offset).Info("job started successfully")
 	return nil
 }
 
@@ -90,18 +85,18 @@ func (uc *startJobUseCase) updateStatus(ctx context.Context, job *entities.Job, 
 		Message: msg,
 	}
 
-	err := database.ExecuteInDBTx(uc.db, func(tx database.Tx) error {
-		if der := tx.(store.Tx).Job().Update(ctx, job); der != nil {
+	err := uc.db.RunInTransaction(ctx, func(dbtx store.DB) error {
+		if der := dbtx.Job().Update(ctx, job); der != nil {
 			return der
 		}
 
-		if der := tx.(store.Tx).Log().Insert(ctx, jobLog, job.UUID); der != nil {
+		_, der := dbtx.Log().Insert(ctx, jobLog, job.UUID)
+		if der != nil {
 			return errors.FromError(der).ExtendComponent(startJobComponent)
 		}
 
 		return nil
 	})
-
 	if err != nil {
 		return err
 	}

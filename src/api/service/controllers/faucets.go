@@ -22,7 +22,6 @@ func NewFaucetsController(ucs usecases.FaucetUseCases) *FaucetsController {
 	return &FaucetsController{ucs: ucs}
 }
 
-// Add routes to router
 func (c *FaucetsController) Append(router *mux.Router) {
 	router.Methods(http.MethodGet).Path("/faucets").HandlerFunc(c.search)
 	router.Methods(http.MethodGet).Path("/faucets/{uuid}").HandlerFunc(c.getOne)

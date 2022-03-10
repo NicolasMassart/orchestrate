@@ -55,7 +55,7 @@ func TestStartNextJob_Execute(t *testing.T) {
 			Return(job, nil)
 		mockJobDA.EXPECT().FindOneByUUID(gomock.Any(), nextJob.UUID, userInfo.AllowedTenants, userInfo.Username, false).
 			Return(nextJob, nil)
-		mockTxDA.EXPECT().Update(gomock.Any(), nextJob.Transaction, nextJob.UUID).Return(nil)
+		mockTxDA.EXPECT().Update(gomock.Any(), nextJob.Transaction, nextJob.UUID).Return(nextJob.Transaction, nil)
 
 		mockStartJobUC.EXPECT().Execute(gomock.Any(), nextJob.UUID, userInfo)
 		err := usecase.Execute(ctx, job.UUID, userInfo)
@@ -67,7 +67,7 @@ func TestStartNextJob_Execute(t *testing.T) {
 		job := testdata.FakeJob()
 		nextJob := testdata.FakeJob()
 		enclaveKey := ethcommon.HexToHash("0x123")
-	
+
 		job.NextJobUUID = nextJob.UUID
 		job.Transaction.EnclaveKey = enclaveKey.Bytes()
 		job.Transaction.Gas = utils.ToPtr(uint64(11)).(*uint64)
@@ -84,8 +84,8 @@ func TestStartNextJob_Execute(t *testing.T) {
 		mockJobDA.EXPECT().FindOneByUUID(gomock.Any(), nextJob.UUID, userInfo.AllowedTenants, userInfo.Username, false).
 			Return(nextJob, nil)
 		nextJob.Transaction.Data = enclaveKey.Bytes()
-		nextJob.Transaction.Gas =  utils.ToPtr(uint64(11)).(*uint64)
-		mockTxDA.EXPECT().Update(gomock.Any(), nextJob.Transaction, nextJob.UUID).Return(nil)
+		nextJob.Transaction.Gas = utils.ToPtr(uint64(11)).(*uint64)
+		mockTxDA.EXPECT().Update(gomock.Any(), nextJob.Transaction, nextJob.UUID).Return(nextJob.Transaction, nil)
 
 		mockStartJobUC.EXPECT().Execute(gomock.Any(), nextJob.UUID, userInfo)
 		err := usecase.Execute(ctx, job.UUID, userInfo)

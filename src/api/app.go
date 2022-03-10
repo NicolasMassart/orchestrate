@@ -1,38 +1,35 @@
 package api
 
 import (
-	"context"
 	"reflect"
 	"time"
+
+	"github.com/consensys/orchestrate/src/infra/postgres"
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http/middleware/httpcache"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http/middleware/ratelimit"
 	"github.com/consensys/orchestrate/src/api/proxy"
 	"github.com/dgraph-io/ristretto"
 
+	postgresstore "github.com/consensys/orchestrate/src/api/store/postgres"
 	"github.com/consensys/orchestrate/src/infra/ethclient"
 
 	qkmclient "github.com/consensys/quorum-key-manager/pkg/client"
 
 	"github.com/Shopify/sarama"
-	pkgproxy "github.com/consensys/orchestrate/pkg/toolkit/app/http/handler/proxy"
-	"github.com/consensys/orchestrate/src/api/business/builder"
-	"github.com/consensys/orchestrate/src/api/metrics"
-	pkgsarama "github.com/consensys/orchestrate/src/infra/broker/sarama"
-	"github.com/consensys/orchestrate/src/infra/database"
-	"github.com/go-pg/pg/v9/orm"
-
 	"github.com/consensys/orchestrate/pkg/toolkit/app"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/auth"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http/config/dynamic"
+	pkgproxy "github.com/consensys/orchestrate/pkg/toolkit/app/http/handler/proxy"
+	"github.com/consensys/orchestrate/src/api/business/builder"
+	"github.com/consensys/orchestrate/src/api/metrics"
 	"github.com/consensys/orchestrate/src/api/service/controllers"
-	"github.com/consensys/orchestrate/src/api/store/multi"
-	"github.com/consensys/orchestrate/src/infra/database/postgres"
+	pkgsarama "github.com/consensys/orchestrate/src/infra/broker/sarama"
 )
 
 func NewAPI(
 	cfg *Config,
-	pgmngr postgres.Manager,
+	db postgres.Client,
 	jwt, key auth.Checker,
 	keyManagerClient qkmclient.KeyManagerClient,
 	qkmStoreID string,
@@ -40,12 +37,7 @@ func NewAPI(
 	syncProducer sarama.SyncProducer,
 	topicCfg *pkgsarama.KafkaTopicConfig,
 ) (*app.App, error) {
-	// Create Message agents
-	db, err := multi.Build(context.Background(), cfg.Store, pgmngr)
-	if err != nil {
-		return nil, err
-	}
-
+	// Metrics
 	var appMetrics metrics.TransactionSchedulerMetrics
 	if cfg.App.Metrics.IsActive(metrics.ModuleName) {
 		appMetrics = metrics.NewTransactionSchedulerMetrics()
@@ -53,7 +45,7 @@ func NewAPI(
 		appMetrics = metrics.NewTransactionSchedulerNopMetrics()
 	}
 
-	ucs := builder.NewUseCases(db, appMetrics, keyManagerClient, qkmStoreID, ec, syncProducer, topicCfg)
+	ucs := builder.NewUseCases(postgresstore.New(db), appMetrics, keyManagerClient, qkmStoreID, ec, syncProducer, topicCfg)
 
 	// Option of the API
 	apiHandlerOpt := app.HandlerOpt(reflect.TypeOf(&dynamic.API{}), controllers.NewBuilder(ucs, keyManagerClient, qkmStoreID))
@@ -107,9 +99,9 @@ func NewAPI(
 	)
 }
 
-func ReadinessOpt(db database.DB) app.Option {
+func ReadinessOpt(postgresClient postgres.Client) app.Option {
 	return func(ap *app.App) error {
-		ap.AddReadinessCheck("database", postgres.Checker(db.(orm.DB)))
+		ap.AddReadinessCheck("database", func() error { return postgresClient.Exec("SELECT 1") })
 		ap.AddReadinessCheck("kafka", pkgsarama.GlobalClientChecker())
 		return nil
 	}

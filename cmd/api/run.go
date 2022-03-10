@@ -3,6 +3,8 @@ package api
 import (
 	"os"
 
+	"github.com/consensys/orchestrate/cmd/flags"
+
 	"github.com/consensys/orchestrate/src/api"
 
 	"github.com/consensys/orchestrate/pkg/errors"
@@ -29,7 +31,7 @@ func newRunCommand() *cobra.Command {
 	}
 
 	// Transaction scheduler flags
-	api.Flags(runCmd.Flags())
+	flags.NewAPIFlags(runCmd.Flags())
 
 	return runCmd
 }

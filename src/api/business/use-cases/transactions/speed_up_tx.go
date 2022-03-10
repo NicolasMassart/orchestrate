@@ -7,22 +7,19 @@ import (
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
-	"github.com/consensys/orchestrate/src/api/store"
 	"github.com/consensys/orchestrate/src/entities"
 )
 
 const speedUpTxComponent = "use-cases.speed-up-tx"
 
 type speedUpTxUseCase struct {
-	db           store.DB
 	getTxUC      usecases.GetTxUseCase
 	retryJobTxUC usecases.RetryJobTxUseCase
 	logger       *log.Logger
 }
 
-func NewSpeedUpTxUseCase(db store.DB, getTxUC usecases.GetTxUseCase, retryJobTxUC usecases.RetryJobTxUseCase) usecases.SpeedUpTxUseCase {
+func NewSpeedUpTxUseCase(getTxUC usecases.GetTxUseCase, retryJobTxUC usecases.RetryJobTxUseCase) usecases.SpeedUpTxUseCase {
 	return &speedUpTxUseCase{
-		db:           db,
 		getTxUC:      getTxUC,
 		retryJobTxUC: retryJobTxUC,
 		logger:       log.NewLogger().SetComponent(speedUpTxComponent),

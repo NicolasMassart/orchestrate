@@ -31,7 +31,6 @@ func NewTransactionsController(ucs usecases.TransactionUseCases) *TransactionsCo
 	}
 }
 
-// Add routes to router
 func (c *TransactionsController) Append(router *mux.Router) {
 	router.Methods(http.MethodPost).Path("/transactions/send").
 		Handler(http.HandlerFunc(c.send))

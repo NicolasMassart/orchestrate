@@ -116,7 +116,7 @@ func (uc *createAccountUseCase) Execute(ctx context.Context, acc *entities.Accou
 	acc.TenantID = userInfo.TenantID
 	acc.OwnerID = userInfo.Username
 
-	err = uc.db.Account().Insert(ctx, acc)
+	acc, err = uc.db.Account().Insert(ctx, acc)
 	if err != nil {
 		return nil, errors.FromError(err).ExtendComponent(createAccountComponent)
 	}

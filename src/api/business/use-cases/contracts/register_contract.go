@@ -5,13 +5,13 @@ import (
 	"context"
 	"encoding/json"
 
+	ethabi "github.com/consensys/orchestrate/pkg/ethereum/abi"
+
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/store"
-	"github.com/consensys/orchestrate/src/api/store/parsers"
 	"github.com/consensys/orchestrate/src/entities"
-	"github.com/consensys/orchestrate/src/infra/database"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -51,45 +51,34 @@ func (uc *registerContractUseCase) Execute(ctx context.Context, contract *entiti
 		return errors.FromError(err).ExtendComponent(registerContractComponent)
 	}
 
-	err = database.ExecuteInDBTx(uc.db, func(tx database.Tx) error {
-		// @TODO Improve duplicate inserts when `DeployedBytecode` and `Name` and `Tag` already exists
-		dbtx := tx.(store.Tx)
-		if der := dbtx.Contract().Register(ctx, contract); der != nil {
-			logger.WithError(err).Error("failed to register contract")
-			return err
-		}
-
-		if len(events) == 0 {
-			return nil
-		}
-
-		if der := dbtx.ContractEvent().RegisterMultiple(ctx, events); der != nil {
-			logger.WithError(err).Error("failed to register contract events")
-			return der
-		}
-
-		return nil
-	})
-
+	// @TODO Improve duplicate inserts when `DeployedBytecode` and `Name` and `Tag` already exists
+	err = uc.db.Contract().Register(ctx, contract)
 	if err != nil {
 		return errors.FromError(err).ExtendComponent(registerContractComponent)
+	}
+
+	if len(events) > 0 {
+		err = uc.db.ContractEvent().RegisterMultiple(ctx, events)
+		if err != nil {
+			return errors.FromError(err).ExtendComponent(registerContractComponent)
+		}
 	}
 
 	logger.Info("contract registered successfully")
 	return nil
 }
 
-func getEvents(contractAbi *abi.ABI, deployedBytecode hexutil.Bytes, codeHash common.Hash, abiRaw string) ([]*entities.ContractEvent, error) {
-	eventJSONs, err := parsers.ParseEvents(abiRaw)
+func getEvents(contractAbi *abi.ABI, deployedBytecode hexutil.Bytes, codeHash common.Hash, abiRaw string) ([]entities.ContractEvent, error) {
+	eventJSONs, err := parseEvents(abiRaw)
 	if err != nil {
 		return nil, err
 	}
-	var events []*entities.ContractEvent
+	var events []entities.ContractEvent
 	// nolint
 	for _, e := range contractAbi.Events {
 		indexedCount := getIndexedCount(&e)
 		if deployedBytecode != nil {
-			events = append(events, &entities.ContractEvent{
+			events = append(events, entities.ContractEvent{
 				CodeHash:          codeHash.Bytes(),
 				SigHash:           e.ID.Bytes(),
 				IndexedInputCount: indexedCount,
@@ -118,4 +107,47 @@ func getIndexedCount(event *abi.Event) (indexedInputCount uint) {
 	}
 
 	return indexedInputCount
+}
+
+// TODO: Remove this function as parsing the events from the ABI should not be done on Orchestrate as we do not have control on how the events are represented in the ABI
+
+func parseEvents(data string) (map[string]string, error) {
+	var parsedFields []entities.RawABI
+
+	err := json.Unmarshal([]byte(data), &parsedFields)
+	if err != nil {
+		return nil, err
+	}
+
+	// Retrieve raw JSONs
+	normalizedJSON, err := json.Marshal(parsedFields)
+	if err != nil {
+		return nil, err
+	}
+
+	var rawFields []json.RawMessage
+	err = json.Unmarshal(normalizedJSON, &rawFields)
+	if err != nil {
+		return nil, err
+	}
+
+	events := make(map[string]string)
+	for i := 0; i < len(rawFields) && i < len(parsedFields); i++ {
+		fieldJSON, err := rawFields[i].MarshalJSON()
+		if err != nil {
+			return nil, err
+		}
+
+		if parsedFields[i].Type == "event" {
+			e := &ethabi.Event{}
+			err := json.Unmarshal(fieldJSON, e)
+			if err != nil {
+				return nil, err
+			}
+
+			events[e.Name+e.Sig()] = string(fieldJSON)
+		}
+	}
+
+	return events, nil
 }

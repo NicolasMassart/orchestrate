@@ -1,14 +1,15 @@
 package redigo
 
 import (
-	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
-	"github.com/gomodule/redigo/redis"
+	"github.com/consensys/orchestrate/src/infra/redis"
+	redigo "github.com/gomodule/redigo/redis"
 )
 
 type Client struct {
-	pool   *redis.Pool
-	logger *log.Logger
+	pool *redigo.Pool
 }
+
+var _ redis.Client = &Client{}
 
 func New(cfg *Config) (*Client, error) {
 	redisOptions, err := cfg.ToRedisOptions()
@@ -16,18 +17,15 @@ func New(cfg *Config) (*Client, error) {
 		return nil, err
 	}
 
-	pool := &redis.Pool{
+	pool := &redigo.Pool{
 		MaxIdle:     cfg.MaxIdle,
 		IdleTimeout: cfg.IdleTimeout,
-		Dial: func() (redis.Conn, error) {
-			return redis.Dial("tcp", cfg.URL(), redisOptions...)
+		Dial: func() (redigo.Conn, error) {
+			return redigo.Dial("tcp", cfg.URL(), redisOptions...)
 		},
 	}
 
-	return &Client{
-		pool:   pool,
-		logger: log.NewLogger().WithField("url", cfg.URL()),
-	}, nil
+	return &Client{pool: pool}, nil
 }
 
 func (nm *Client) LoadUint64(key string) (uint64, error) {
@@ -39,7 +37,7 @@ func (nm *Client) LoadUint64(key string) (uint64, error) {
 		return 0, parseRedisError(err)
 	}
 
-	value, err := redis.Uint64(reply, nil)
+	value, err := redigo.Uint64(reply, nil)
 	if err != nil {
 		return 0, parseRedisError(err)
 	}
@@ -97,7 +95,7 @@ func (nm *Client) Ping() error {
 	return nil
 }
 
-func closeConn(conn redis.Conn) {
+func closeConn(conn redigo.Conn) {
 	// There is nothing we can do if the connection fails to close
 	_ = conn.Close()
 }

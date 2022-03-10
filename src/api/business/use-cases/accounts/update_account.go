@@ -44,11 +44,11 @@ func (uc *updateAccountUseCase) Execute(ctx context.Context, acc *entities.Accou
 		curAcc.StoreID = acc.StoreID
 	}
 
-	err = uc.db.Account().Update(ctx, curAcc)
+	updatedAcc, err := uc.db.Account().Update(ctx, curAcc)
 	if err != nil {
 		return nil, errors.FromError(err).ExtendComponent(updateAccountComponent)
 	}
 
 	logger.Info("account updated successfully")
-	return curAcc, nil
+	return updatedAcc, nil
 }

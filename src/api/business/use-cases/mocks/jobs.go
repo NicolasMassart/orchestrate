@@ -7,9 +7,9 @@ package mocks
 import (
 	context "context"
 	multitenancy "github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
-	entities "github.com/consensys/orchestrate/src/entities"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	store "github.com/consensys/orchestrate/src/api/store"
+	entities "github.com/consensys/orchestrate/src/entities"
 	hexutil "github.com/ethereum/go-ethereum/common/hexutil"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
@@ -175,7 +175,7 @@ func (mr *MockCreateJobUseCaseMockRecorder) Execute(ctx, job, userInfo interface
 }
 
 // WithDBTransaction mocks base method
-func (m *MockCreateJobUseCase) WithDBTransaction(dbtx store.Tx) usecases.CreateJobUseCase {
+func (m *MockCreateJobUseCase) WithDBTransaction(dbtx store.DB) usecases.CreateJobUseCase {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "WithDBTransaction", dbtx)
 	ret0, _ := ret[0].(usecases.CreateJobUseCase)
@@ -414,7 +414,7 @@ func (mr *MockUpdateChildrenUseCaseMockRecorder) Execute(ctx, jobUUID, parentJob
 }
 
 // WithDBTransaction mocks base method
-func (m *MockUpdateChildrenUseCase) WithDBTransaction(dbtx store.Tx) usecases.UpdateChildrenUseCase {
+func (m *MockUpdateChildrenUseCase) WithDBTransaction(dbtx store.DB) usecases.UpdateChildrenUseCase {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "WithDBTransaction", dbtx)
 	ret0, _ := ret[0].(usecases.UpdateChildrenUseCase)

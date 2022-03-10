@@ -31,7 +31,6 @@ const (
 	providerRefreshIntervalEnv      = "TX_LISTENER_REFRESH_INTERVAL"
 )
 
-// sentryRefreshInterval register flags for API
 func ChainListenerFlags(f *pflag.FlagSet) {
 	log.Flags(f)
 	authkey.Flags(f)
@@ -40,7 +39,6 @@ func ChainListenerFlags(f *pflag.FlagSet) {
 	providerRefreshInterval(f)
 }
 
-// sentryRefreshInterval register flags for API
 func txListenerFlags(f *pflag.FlagSet) {
 	broker.KafkaProducerFlags(f)
 	broker.KafkaTopicTxDecoded(f)
@@ -48,7 +46,6 @@ func txListenerFlags(f *pflag.FlagSet) {
 	orchestrateclient.Flags(f)
 }
 
-// ProviderRefreshInterval register flag for refresh interval duration
 func providerRefreshInterval(f *pflag.FlagSet) {
 	desc := fmt.Sprintf(`Time interval for refreshing the internal state such as active chains, pending jobs and subscriptions
 Environment variable: %q`, providerRefreshIntervalEnv)

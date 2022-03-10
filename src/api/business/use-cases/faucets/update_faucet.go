@@ -13,13 +13,11 @@ import (
 
 const updateFaucetComponent = "use-cases.update-faucet"
 
-// updateFaucetUseCase is a use case to update a faucet
 type updateFaucetUseCase struct {
 	db     store.DB
 	logger *log.Logger
 }
 
-// NewUpdateJobUseCase creates a new UpdateFaucetUseCase
 func NewUpdateFaucetUseCase(db store.DB) usecases.UpdateFaucetUseCase {
 	return &updateFaucetUseCase{
 		db:     db,
@@ -27,13 +25,12 @@ func NewUpdateFaucetUseCase(db store.DB) usecases.UpdateFaucetUseCase {
 	}
 }
 
-// Execute updates a faucet
 func (uc *updateFaucetUseCase) Execute(ctx context.Context, faucet *entities.Faucet, userInfo *multitenancy.UserInfo) (*entities.Faucet, error) {
 	ctx = log.WithFields(ctx, log.Field("faucet", faucet.UUID))
 	logger := uc.logger.WithContext(ctx)
 	logger.Debug("updating faucet")
 
-	err := uc.db.Faucet().Update(ctx, faucet, userInfo.AllowedTenants)
+	_, err := uc.db.Faucet().Update(ctx, faucet, userInfo.AllowedTenants)
 	if err != nil {
 		return nil, errors.FromError(err).ExtendComponent(updateFaucetComponent)
 	}

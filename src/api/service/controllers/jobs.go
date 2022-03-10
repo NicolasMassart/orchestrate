@@ -27,7 +27,6 @@ func NewJobsController(useCases usecases.JobUseCases) *JobsController {
 	}
 }
 
-// Add routes to router
 func (c *JobsController) Append(router *mux.Router) {
 	router.Methods(http.MethodGet).Path("/jobs").HandlerFunc(c.search)
 	router.Methods(http.MethodPost).Path("/jobs").HandlerFunc(c.create)
@@ -67,8 +66,8 @@ func (c *JobsController) search(rw http.ResponseWriter, request *http.Request) {
 	}
 
 	response := []*api.JobResponse{}
-	for _, jb := range jobRes {
-		response = append(response, formatters.FormatJobResponse(jb))
+	for _, job := range jobRes {
+		response = append(response, formatters.FormatJobResponse(job))
 	}
 
 	_ = json.NewEncoder(rw).Encode(response)

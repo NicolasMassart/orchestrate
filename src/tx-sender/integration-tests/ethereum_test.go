@@ -1293,7 +1293,7 @@ func (s *txSenderEthereumTestSuite) TestZHealthCheck() {
 		gock.New(apiMetricsURL).Get("/live").Reply(http2.StatusOK)
 		defer gock.Off()
 
-		// Kill Kafka on first call so data is added in DB and status is CREATED but does not get updated to STARTED
+		// Kill Kafka on first call so data is added in Postgres and status is CREATED but does not get updated to STARTED
 		err = s.env.client.Stop(ctx, kafkaContainerID)
 		assert.NoError(t, err)
 

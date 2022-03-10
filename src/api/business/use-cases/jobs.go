@@ -11,9 +11,6 @@ import (
 
 //go:generate mockgen -source=jobs.go -destination=mocks/jobs.go -package=mocks
 
-/**
-Jobs Use Cases
-*/
 type JobUseCases interface {
 	CreateJob() CreateJobUseCase
 	GetJob() GetJobUseCase
@@ -26,7 +23,7 @@ type JobUseCases interface {
 
 type CreateJobUseCase interface {
 	Execute(ctx context.Context, job *entities.Job, userInfo *multitenancy.UserInfo) (*entities.Job, error)
-	WithDBTransaction(dbtx store.Tx) CreateJobUseCase
+	WithDBTransaction(dbtx store.DB) CreateJobUseCase
 }
 
 type GetJobUseCase interface {
@@ -51,7 +48,7 @@ type UpdateJobUseCase interface {
 
 type UpdateChildrenUseCase interface {
 	Execute(ctx context.Context, jobUUID, parentJobUUID string, nextStatus entities.JobStatus, userInfo *multitenancy.UserInfo) error
-	WithDBTransaction(dbtx store.Tx) UpdateChildrenUseCase
+	WithDBTransaction(dbtx store.DB) UpdateChildrenUseCase
 }
 
 type ResendJobTxUseCase interface {

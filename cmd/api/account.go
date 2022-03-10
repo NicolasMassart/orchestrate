@@ -5,19 +5,20 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/consensys/orchestrate/src/infra/postgres"
+	"github.com/consensys/orchestrate/src/infra/postgres/gopg"
+
 	"github.com/consensys/orchestrate/cmd/flags"
 	"github.com/consensys/orchestrate/src/infra/quorum-key-manager/http"
 
-	"github.com/consensys/orchestrate/src/infra/database/postgres"
 	qkm "github.com/consensys/quorum-key-manager/pkg/client"
-	"github.com/go-pg/pg/v9"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
 func newAccountCmd() *cobra.Command {
-	var db *pg.DB
+	var postgresClient postgres.Client
 	var qkmClient qkm.KeyManagerClient
 	var storeName string
 
@@ -25,14 +26,15 @@ func newAccountCmd() *cobra.Command {
 		Use:   "account",
 		Short: "Account management",
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			var err error
 			vipr := viper.GetViper()
 
 			// Set database connection
-			opts, err := postgres.NewConfig(vipr).PGOptions()
+			postgresConfig := flags.NewPGConfig(vipr)
+			postgresClient, err = gopg.New("orchestrate.accounts", postgresConfig)
 			if err != nil {
 				return err
 			}
-			db = pg.Connect(opts)
 
 			// Init QKM client
 			qkmConfig := flags.NewQKMConfig(vipr)
@@ -48,14 +50,14 @@ func newAccountCmd() *cobra.Command {
 	}
 
 	// Postgres flags
-	postgres.PGFlags(accountCmd.Flags())
+	flags.PGFlags(accountCmd.Flags())
 	flags.QKMFlags(accountCmd.Flags())
 
 	importCmd := &cobra.Command{
 		Use:   "import",
 		Short: "import accounts",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return importAccounts(cmd.Context(), db, qkmClient, storeName)
+			return importAccounts(cmd.Context(), postgresClient, qkmClient, storeName)
 		},
 	}
 	accountCmd.AddCommand(importCmd)
@@ -63,7 +65,7 @@ func newAccountCmd() *cobra.Command {
 	return accountCmd
 }
 
-func importAccounts(ctx context.Context, db *pg.DB, client qkm.KeyManagerClient, storeName string) error {
+func importAccounts(ctx context.Context, postgresClient postgres.Client, client qkm.KeyManagerClient, storeName string) error {
 	log.Debug("Loading accounts from Vault...")
 
 	accounts, err := client.ListEthAccounts(ctx, storeName, 0, 0)
@@ -92,7 +94,7 @@ func importAccounts(ctx context.Context, db *pg.DB, client qkm.KeyManagerClient,
 	}
 
 	if len(queryInsertItems) > 0 {
-		_, err = db.Exec("INSERT INTO accounts (tenant_id, address, public_key, compressed_public_key, attributes) VALUES " +
+		err = postgresClient.Exec("INSERT INTO accounts (tenant_id, address, public_key, compressed_public_key, attributes) VALUES " +
 			strings.Join(queryInsertItems, ", ") + " on conflict do nothing")
 		if err != nil {
 			log.WithError(err).Error("Could not import accounts")

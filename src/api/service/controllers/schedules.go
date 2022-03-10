@@ -25,7 +25,6 @@ func NewSchedulesController(useCases usecases.ScheduleUseCases) *SchedulesContro
 	}
 }
 
-// Add routes to router
 func (c *SchedulesController) Append(router *mux.Router) {
 	router.Methods(http.MethodPost).Path("/schedules").HandlerFunc(c.create)
 	router.Methods(http.MethodGet).Path("/schedules/{uuid}").HandlerFunc(c.getOne)

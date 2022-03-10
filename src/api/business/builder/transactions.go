@@ -25,7 +25,7 @@ func newTransactionUseCases(
 	getContractUC usecases.GetContractUseCase,
 ) *transactionUseCases {
 	getTransactionUC := transactions.NewGetTxUseCase(db, schedulesUCs.GetSchedule())
-	sendTxUC := transactions.NewSendTxUseCase(db, searchChainsUC, jobUCs.StartJob(), jobUCs.CreateJob(), getTransactionUC, 
+	sendTxUC := transactions.NewSendTxUseCase(db, searchChainsUC, jobUCs.StartJob(), jobUCs.CreateJob(), getTransactionUC,
 		getFaucetCandidateUC)
 
 	return &transactionUseCases{
@@ -34,8 +34,8 @@ func newTransactionUseCases(
 		sendTransaction:         sendTxUC,
 		getTransaction:          getTransactionUC,
 		searchTransactions:      transactions.NewSearchTransactionsUseCase(db, getTransactionUC),
-		speedUpTransactions:     transactions.NewSpeedUpTxUseCase(db, getTransactionUC, jobUCs.retryJobTx),
-		callOffTransactions:     transactions.NewCallOffTxUseCase(db, getTransactionUC, jobUCs.retryJobTx),
+		speedUpTransactions:     transactions.NewSpeedUpTxUseCase(getTransactionUC, jobUCs.retryJobTx),
+		callOffTransactions:     transactions.NewCallOffTxUseCase(getTransactionUC, jobUCs.retryJobTx),
 	}
 }
 

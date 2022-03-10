@@ -27,13 +27,11 @@ func TestRegisterContract_Execute(t *testing.T) {
 	ctx := context.Background()
 
 	mockDB := mocks.NewMockDB(ctrl)
-	mockDBTX := mocks.NewMockTx(ctrl)
 	contractAgent := mocks.NewMockContractAgent(ctrl)
 	contractEventAgent := mocks.NewMockContractEventAgent(ctrl)
 
-	mockDB.EXPECT().Begin().Return(mockDBTX, nil).AnyTimes()
-	mockDBTX.EXPECT().Contract().Return(contractAgent).AnyTimes()
-	mockDBTX.EXPECT().ContractEvent().Return(contractEventAgent).AnyTimes()
+	mockDB.EXPECT().Contract().Return(contractAgent).AnyTimes()
+	mockDB.EXPECT().ContractEvent().Return(contractEventAgent).AnyTimes()
 
 	usecase := NewRegisterContractUseCase(mockDB)
 
@@ -42,13 +40,11 @@ func TestRegisterContract_Execute(t *testing.T) {
 		contract := testdata.FakeContract()
 		contractAgent.EXPECT().Register(gomock.Any(), gomock.Any()).Return(nil)
 		contractEventAgent.EXPECT().RegisterMultiple(gomock.Any(), gomock.Any()).Return(nil)
-		mockDBTX.EXPECT().Commit().Return(nil)
 		err := usecase.Execute(ctx, contract)
 
 		assert.NoError(t, err)
 	})
 }
-
 
 //nolint
 var contractAddress = ethcommon.HexToAddress("0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18")

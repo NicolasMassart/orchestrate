@@ -27,7 +27,7 @@ func NewGetContractUseCase(agent store.ContractAgent) usecases.GetContractUseCas
 	}
 }
 
-// Execute gets a contract from DB
+// Execute gets a contract from Postgres
 func (uc *getContractUseCase) Execute(ctx context.Context, name, tag string) (*entities.Contract, error) {
 	ctx = log.WithFields(ctx, log.Field("contract_name", name), log.Field("contract_tag", name))
 	logger := uc.logger.WithContext(ctx)

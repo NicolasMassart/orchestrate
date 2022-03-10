@@ -12,12 +12,10 @@ import (
 	"github.com/consensys/orchestrate/src/api/metrics"
 	"github.com/consensys/orchestrate/src/api/store"
 	"github.com/consensys/orchestrate/src/entities"
-	"github.com/consensys/orchestrate/src/infra/database"
 )
 
 const updateJobComponent = "use-cases.update-job"
 
-// updateJobUseCase is a use case to create a new transaction job
 type updateJobUseCase struct {
 	db                    store.DB
 	updateChildrenUseCase usecases.UpdateChildrenUseCase
@@ -26,7 +24,6 @@ type updateJobUseCase struct {
 	logger                *log.Logger
 }
 
-// NewUpdateJobUseCase creates a new UpdateJobUseCase
 func NewUpdateJobUseCase(db store.DB, updateChildrenUseCase usecases.UpdateChildrenUseCase,
 	startJobUC usecases.StartNextJobUseCase, m metrics.TransactionSchedulerMetrics) usecases.UpdateJobUseCase {
 	return &updateJobUseCase{
@@ -38,7 +35,6 @@ func NewUpdateJobUseCase(db store.DB, updateChildrenUseCase usecases.UpdateChild
 	}
 }
 
-// Execute validates and creates a new transaction job
 func (uc *updateJobUseCase) Execute(ctx context.Context, nextJob *entities.Job, nextStatus entities.JobStatus,
 	logMessage string, userInfo *multitenancy.UserInfo) (*entities.Job, error) {
 	ctx = log.WithFields(ctx, log.Field("job", nextJob.UUID), log.Field("next_status", nextStatus))
@@ -57,7 +53,8 @@ func (uc *updateJobUseCase) Execute(ctx context.Context, nextJob *entities.Job, 
 	}
 
 	if nextJob.Transaction != nil {
-		if err = uc.db.Transaction().Update(ctx, nextJob.Transaction, nextJob.UUID); err != nil {
+		nextJob.Transaction, err = uc.db.Transaction().Update(ctx, nextJob.Transaction, nextJob.UUID)
+		if err != nil {
 			return nil, errors.FromError(err).ExtendComponent(updateJobComponent)
 		}
 	}
@@ -111,11 +108,11 @@ func (uc *updateJobUseCase) updateJob(ctx context.Context, job *entities.Job, jo
 	}
 
 	prevLogModel := job.Logs[len(job.Logs)-1]
-	err := database.ExecuteInDBTx(uc.db, func(tx database.Tx) error {
+	err := uc.db.RunInTransaction(ctx, func(dbtx store.DB) error {
 		// We should lock ONLY when there is children jobs
 		if parentJobUUID != "" {
 			logger.WithField("parent_job", parentJobUUID).Debug("lock parent job row for update")
-			if err := tx.(store.Tx).Job().LockOneByUUID(ctx, parentJobUUID); err != nil {
+			if err := dbtx.Job().LockOneByUUID(ctx, parentJobUUID); err != nil {
 				return err
 			}
 
@@ -134,7 +131,9 @@ func (uc *updateJobUseCase) updateJob(ctx context.Context, job *entities.Job, jo
 		}
 
 		if jobLog != nil {
-			if err := tx.(store.Tx).Log().Insert(ctx, jobLog, job.UUID); err != nil {
+			var err error
+			jobLog, err = dbtx.Log().Insert(ctx, jobLog, job.UUID)
+			if err != nil {
 				return err
 			}
 
@@ -144,15 +143,13 @@ func (uc *updateJobUseCase) updateJob(ctx context.Context, job *entities.Job, jo
 			}
 		}
 
-		if err := tx.(store.Tx).Job().Update(ctx, job); err != nil {
+		if err := dbtx.Job().Update(ctx, job); err != nil {
 			return err
 		}
 
 		// if we updated to MINED, we need to update the children and sibling jobs to NEVER_MINED
 		if parentJobUUID != "" && jobLog != nil && jobLog.Status == entities.StatusMined {
-			der := uc.updateChildrenUseCase.
-				WithDBTransaction(tx.(store.Tx)).
-				Execute(ctx, job.UUID, parentJobUUID, entities.StatusNeverMined, userInfo)
+			der := uc.updateChildrenUseCase.WithDBTransaction(dbtx).Execute(ctx, job.UUID, parentJobUUID, entities.StatusNeverMined, userInfo)
 			if der != nil {
 				return der
 			}

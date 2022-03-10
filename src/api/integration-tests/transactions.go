@@ -56,17 +56,11 @@ func (s *transactionsTestSuite) TestDeployContract() {
 		txRequest := testdata.FakeDeployContractRequest()
 		txRequest.Params.ContractName = contractReq.Name
 		txResponse, err := s.client.SendDeployTransaction(ctx, txRequest)
-		if err != nil {
-			assert.Fail(t, err.Error())
-			return
-		}
+		require.NoError(t, err)
 		assert.NotEmpty(t, txResponse.UUID)
 
 		txResponseGET, err := s.client.GetTxRequest(ctx, txResponse.UUID)
-		if err != nil {
-			assert.Fail(t, err.Error())
-			return
-		}
+		require.NoError(t, err)
 
 		job := txResponseGET.Jobs[0]
 
@@ -77,10 +71,7 @@ func (s *transactionsTestSuite) TestDeployContract() {
 		assert.Equal(t, entities.EthereumTransaction, job.Type)
 
 		evlp, err := s.env.consumer.WaitForEnvelope(job.ScheduleUUID, s.env.kafkaTopicConfig.Sender, waitForEnvelopeTimeOut)
-		if err != nil {
-			assert.Fail(t, err.Error())
-			return
-		}
+		require.NoError(t, err)
 		assert.Equal(t, job.ScheduleUUID, evlp.GetID())
 		assert.Equal(t, job.UUID, evlp.GetJobUUID())
 		assert.Equal(t, entities.JobTypeToEnvelopeType[entities.EthereumTransaction].String(), evlp.GetJobTypeString())
@@ -147,7 +138,7 @@ func (s *transactionsTestSuite) TestSendTransaction() {
 			controllers.IdempotencyKeyHeader: idempotencyKey,
 		})
 
-		// Kill Kafka on first call so data is added in DB and status is CREATED but does not get update it and fetch previous one
+		// Kill Kafka on first call so data is added in Postgres and status is CREATED but does not get update it and fetch previous one
 		err := s.env.client.Stop(rctx, kafkaContainerID)
 		if err != nil {
 			assert.Fail(t, err.Error())
@@ -322,26 +313,26 @@ func (s *transactionsTestSuite) TestSendRawTransaction() {
 
 // func (s *transactionsTestSuite) TestSendTransferTransaction() {
 // 	ctx := s.env.ctx
-// 
+//
 // 	s.T().Run("should send a transfer transaction successfully", func(t *testing.T) {
 // 		txRequest := testdata.FakeSendTransferTransactionRequest()
-// 
+//
 // 		txResponse, err := s.client.SendTransferTransaction(ctx, txRequest)
 // 		if err != nil {
 // 			assert.Fail(t, err.Error())
 // 			return
 // 		}
-// 
+//
 // 		assert.NotEmpty(t, txResponse.UUID)
-// 
+//
 // 		txResponseGET, err := s.client.GetTxRequest(ctx, txResponse.UUID)
 // 		if err != nil {
 // 			assert.Fail(t, err.Error())
 // 			return
 // 		}
-// 
+//
 // 		job := txResponseGET.Jobs[0]
-// 
+//
 // 		assert.NotEmpty(t, txResponseGET.UUID)
 // 		assert.NotEmpty(t, job.UUID)
 // 		assert.Equal(t, entities.StatusStarted, job.Status)
@@ -349,13 +340,13 @@ func (s *transactionsTestSuite) TestSendRawTransaction() {
 // 		assert.Equal(t, txRequest.Params.To.Hex(), job.Transaction.To.Hex())
 // 		assert.Equal(t, txRequest.Params.From.Hex(), job.Transaction.From.Hex())
 // 		assert.Equal(t, entities.EthereumTransaction, job.Type)
-// 
+//
 // 		evlp, err := s.env.consumer.WaitForEnvelope(job.ScheduleUUID, s.env.kafkaTopicConfig.Sender, waitForEnvelopeTimeOut)
 // 		if err != nil {
 // 			assert.Fail(t, err.Error())
 // 			return
 // 		}
-// 
+//
 // 		assert.Equal(t, job.ScheduleUUID, evlp.GetID())
 // 		assert.Equal(t, job.UUID, evlp.GetJobUUID())
 // 		assert.Equal(t, entities.JobTypeToEnvelopeType[entities.EthereumTransaction].String(), evlp.GetJobTypeString())

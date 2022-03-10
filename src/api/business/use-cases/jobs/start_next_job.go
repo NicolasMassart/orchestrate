@@ -79,7 +79,9 @@ func (uc *startNextJobUseCase) handleEEAMarkingTx(ctx context.Context, prevJob, 
 	}
 
 	job.Transaction.Data = prevJob.Transaction.Hash.Bytes()
-	return uc.db.Transaction().Update(ctx, job.Transaction, job.UUID)
+
+	_, err := uc.db.Transaction().Update(ctx, job.Transaction, job.UUID)
+	return err
 }
 
 func (uc *startNextJobUseCase) handleTesseraMarkingTx(ctx context.Context, prevJob, job *entities.Job) error {
@@ -98,5 +100,11 @@ func (uc *startNextJobUseCase) handleTesseraMarkingTx(ctx context.Context, prevJ
 		job.Transaction.Gas = prevJob.Transaction.Gas
 	}
 
-	return uc.db.Transaction().Update(ctx, job.Transaction, job.UUID)
+	var err error
+	job.Transaction, err = uc.db.Transaction().Update(ctx, job.Transaction, job.UUID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

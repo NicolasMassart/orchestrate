@@ -24,7 +24,7 @@ func NewGetCatalogUseCase(agent store.ContractAgent) usecases.GetContractsCatalo
 }
 
 // TODO: Modify to get all contracts and then only return necessary fields instead of getting only names
-// Execute gets all contract names from DB
+// Execute gets all contract names from Postgres
 func (uc *getCatalogUseCase) Execute(ctx context.Context) ([]string, error) {
 	names, err := uc.agent.ListNames(ctx)
 	if err != nil {

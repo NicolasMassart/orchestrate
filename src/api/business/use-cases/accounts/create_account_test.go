@@ -53,7 +53,7 @@ func TestCreateAccount_Execute(t *testing.T) {
 				http.TagIDAllowedUsername: userInfo.Username,
 			},
 		}).Return(acc, nil)
-		accountAgent.EXPECT().Insert(gomock.Any(), gomock.Any()).Return(nil)
+		accountAgent.EXPECT().Insert(gomock.Any(), gomock.Any()).Return(accEntity, nil)
 
 		resp, err := usecase.Execute(ctx, accEntity, nil, "", userInfo)
 
@@ -79,7 +79,7 @@ func TestCreateAccount_Execute(t *testing.T) {
 				http.TagIDAllowedUsername: userInfo.Username,
 			},
 		}).Return(acc, nil)
-		accountAgent.EXPECT().Insert(gomock.Any(), gomock.Any()).Return(nil)
+		accountAgent.EXPECT().Insert(gomock.Any(), gomock.Any()).Return(accEntity, nil)
 
 		resp, err := usecase.Execute(ctx, accEntity, privKey, "", userInfo)
 
@@ -105,7 +105,7 @@ func TestCreateAccount_Execute(t *testing.T) {
 				http.TagIDAllowedUsername: userInfo.Username,
 			},
 		}).Return(acc, nil)
-		accountAgent.EXPECT().Insert(gomock.Any(), gomock.Any()).Return(nil)
+		accountAgent.EXPECT().Insert(gomock.Any(), gomock.Any()).Return(accEntity, nil)
 
 		resp, err := usecase.Execute(ctx, accEntity, nil, chainName, userInfo)
 
@@ -221,7 +221,7 @@ func TestCreateAccount_Execute(t *testing.T) {
 				http.TagIDAllowedUsername: userInfo.Username,
 			},
 		}).Return(acc, nil)
-		accountAgent.EXPECT().Insert(gomock.Any(), gomock.Any()).Return(expectedErr)
+		accountAgent.EXPECT().Insert(gomock.Any(), gomock.Any()).Return(nil, expectedErr)
 
 		_, err := usecase.Execute(ctx, accEntity, nil, "", userInfo)
 
@@ -245,7 +245,7 @@ func TestCreateAccount_Execute(t *testing.T) {
 				http.TagIDAllowedUsername: userInfo.Username,
 			},
 		}).Return(acc, nil)
-		accountAgent.EXPECT().Insert(gomock.Any(), gomock.Any()).Return(nil)
+		accountAgent.EXPECT().Insert(gomock.Any(), gomock.Any()).Return(accEntity, nil)
 		mockFundAccountUC.EXPECT().Execute(gomock.Any(), gomock.Any(), chainName, userInfo).Return(expectedErr)
 		_, err := usecase.Execute(ctx, accEntity, nil, chainName, userInfo)
 

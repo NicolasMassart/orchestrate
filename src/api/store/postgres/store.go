@@ -1,72 +1,86 @@
 package postgres
 
 import (
-	"github.com/consensys/orchestrate/pkg/errors"
-	dataagents "github.com/consensys/orchestrate/src/api/store/postgres/data-agents"
-	"github.com/consensys/orchestrate/src/infra/database"
-	pg "github.com/consensys/orchestrate/src/infra/database/postgres"
+	"context"
+
+	"github.com/consensys/orchestrate/src/api/store"
+	"github.com/consensys/orchestrate/src/infra/postgres"
 )
 
-type PGDB struct {
-	pg.DB
-	*dataagents.PGAgents
+type PGStore struct {
+	tx            store.TransactionAgent
+	job           store.JobAgent
+	log           store.LogAgent
+	schedule      store.ScheduleAgent
+	txRequest     store.TransactionRequestAgent
+	account       store.AccountAgent
+	faucet        store.FaucetAgent
+	contractEvent store.ContractEventAgent
+	contract      store.ContractAgent
+	chain         store.ChainAgent
+	client        postgres.Client
 }
 
-type PGTX struct {
-	pg.Tx
-	*dataagents.PGAgents
-}
+var _ store.DB = &PGStore{}
 
-func NewPGDB(db pg.DB) *PGDB {
-	return &PGDB{
-		DB:       db,
-		PGAgents: dataagents.New(db),
+func New(client postgres.Client) *PGStore {
+	return &PGStore{
+		tx:            NewPGTransaction(client),
+		job:           NewPGJob(client),
+		log:           NewPGLog(client),
+		schedule:      NewPGSchedule(client),
+		txRequest:     NewPGTransactionRequest(client),
+		account:       NewPGAccount(client),
+		faucet:        NewPGFaucet(client),
+		contractEvent: NewPGContractEvent(client),
+		contract:      NewPGContract(client),
+		chain:         NewPGChain(client),
+		client:        client,
 	}
 }
 
-func (db *PGDB) Begin() (database.Tx, error) {
-	db.Transaction()
-	tx, err := db.DB.Begin()
-	if err != nil {
-		return nil, errors.DependencyFailureError("failed to start postgres DB transaction").AppendReason(err.Error())
-	}
-
-	return &PGTX{
-		Tx:       tx,
-		PGAgents: dataagents.New(tx),
-	}, nil
+func (s *PGStore) Job() store.JobAgent {
+	return s.job
 }
 
-func (pgTx *PGTX) Begin() (database.Tx, error) {
-	return &PGTX{
-		Tx:       pgTx.Tx,
-		PGAgents: pgTx.PGAgents,
-	}, nil
+func (s *PGStore) Log() store.LogAgent {
+	return s.log
 }
 
-func (pgTx *PGTX) Commit() error {
-	err := pgTx.Tx.Commit()
-	if err != nil {
-		return errors.DependencyFailureError("failed to commit postgres DB transaction").AppendReason(err.Error())
-	}
-
-	return nil
+func (s *PGStore) Schedule() store.ScheduleAgent {
+	return s.schedule
 }
 
-func (pgTx *PGTX) Close() error {
-	err := pgTx.Tx.Close()
-	if err != nil {
-		return errors.DependencyFailureError("failed to close postgres DB transaction").AppendReason(err.Error())
-	}
-
-	return nil
+func (s *PGStore) Transaction() store.TransactionAgent {
+	return s.tx
 }
 
-func (pgTx *PGTX) Rollback() error {
-	err := pgTx.Tx.Rollback()
-	if err != nil {
-		return errors.DependencyFailureError("failed to rollback postgres DB transaction").AppendReason(err.Error())
-	}
+func (s *PGStore) TransactionRequest() store.TransactionRequestAgent {
+	return s.txRequest
+}
 
-	return nil
+func (s *PGStore) Account() store.AccountAgent {
+	return s.account
+}
+
+func (s *PGStore) Faucet() store.FaucetAgent {
+	return s.faucet
+}
+
+func (s *PGStore) ContractEvent() store.ContractEventAgent {
+	return s.contractEvent
+}
+
+func (s *PGStore) Contract() store.ContractAgent {
+	return s.contract
+}
+
+func (s *PGStore) Chain() store.ChainAgent {
+	return s.chain
+}
+
+func (s *PGStore) RunInTransaction(ctx context.Context, persist func(a store.DB) error) error {
+	return s.client.RunInTransaction(ctx, func(dbTx postgres.Client) error {
+		return persist(New(dbTx))
+	})
 }

@@ -31,7 +31,7 @@ func NewUpdateChildrenUseCase(db store.DB) usecases.UpdateChildrenUseCase {
 	}
 }
 
-func (uc updateChildrenUseCase) WithDBTransaction(dbtx store.Tx) usecases.UpdateChildrenUseCase {
+func (uc updateChildrenUseCase) WithDBTransaction(dbtx store.DB) usecases.UpdateChildrenUseCase {
 	uc.db = dbtx
 	return &uc
 }
@@ -65,17 +65,17 @@ func (uc *updateChildrenUseCase) Execute(ctx context.Context, jobUUID, parentJob
 			continue
 		}
 
+		job.Status = nextStatus
+		if err = uc.db.Job().Update(ctx, job); err != nil {
+			return errors.FromError(err).ExtendComponent(updateChildrenComponent)
+		}
+
 		jobLog := &entities.Log{
 			Status:  nextStatus,
 			Message: fmt.Sprintf("sibling (or parent) job %s was mined instead", jobUUID),
 		}
-
-		job.Status = nextStatus
-		if err := uc.db.Job().Update(ctx, job); err != nil {
-			return errors.FromError(err).ExtendComponent(updateChildrenComponent)
-		}
-
-		if err := uc.db.Log().Insert(ctx, jobLog, job.UUID); err != nil {
+		_, err = uc.db.Log().Insert(ctx, jobLog, job.UUID)
+		if err != nil {
 			return errors.FromError(err).ExtendComponent(updateChildrenComponent)
 		}
 

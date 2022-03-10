@@ -25,7 +25,7 @@ func NewGetEventsUseCase(agent store.ContractEventAgent) usecases.GetContractEve
 	}
 }
 
-// Execute validates and registers a new contract in DB
+// Execute validates and registers a new contract in Postgres
 func (uc *getEventsUseCase) Execute(ctx context.Context, chainID string, address ethcommon.Address, sigHash hexutil.Bytes, indexedInputCount uint32) (abi string, eventsABI []string, err error) {
 	ctx = log.WithFields(ctx, log.Field("chain_id", chainID), log.Field("address", address))
 	logger := uc.logger.WithContext(ctx)

@@ -8,213 +8,10 @@ import (
 	context "context"
 	store "github.com/consensys/orchestrate/src/api/store"
 	entities "github.com/consensys/orchestrate/src/entities"
-	database "github.com/consensys/orchestrate/src/infra/database"
 	common "github.com/ethereum/go-ethereum/common"
-	hexutil "github.com/ethereum/go-ethereum/common/hexutil"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
-
-// MockStore is a mock of Store interface
-type MockStore struct {
-	ctrl     *gomock.Controller
-	recorder *MockStoreMockRecorder
-}
-
-// MockStoreMockRecorder is the mock recorder for MockStore
-type MockStoreMockRecorder struct {
-	mock *MockStore
-}
-
-// NewMockStore creates a new mock instance
-func NewMockStore(ctrl *gomock.Controller) *MockStore {
-	mock := &MockStore{ctrl: ctrl}
-	mock.recorder = &MockStoreMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockStore) EXPECT() *MockStoreMockRecorder {
-	return m.recorder
-}
-
-// Connect mocks base method
-func (m *MockStore) Connect(ctx context.Context, conf interface{}) (store.DB, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Connect", ctx, conf)
-	ret0, _ := ret[0].(store.DB)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Connect indicates an expected call of Connect
-func (mr *MockStoreMockRecorder) Connect(ctx, conf interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Connect", reflect.TypeOf((*MockStore)(nil).Connect), ctx, conf)
-}
-
-// MockAgents is a mock of Agents interface
-type MockAgents struct {
-	ctrl     *gomock.Controller
-	recorder *MockAgentsMockRecorder
-}
-
-// MockAgentsMockRecorder is the mock recorder for MockAgents
-type MockAgentsMockRecorder struct {
-	mock *MockAgents
-}
-
-// NewMockAgents creates a new mock instance
-func NewMockAgents(ctrl *gomock.Controller) *MockAgents {
-	mock := &MockAgents{ctrl: ctrl}
-	mock.recorder = &MockAgentsMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockAgents) EXPECT() *MockAgentsMockRecorder {
-	return m.recorder
-}
-
-// Schedule mocks base method
-func (m *MockAgents) Schedule() store.ScheduleAgent {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Schedule")
-	ret0, _ := ret[0].(store.ScheduleAgent)
-	return ret0
-}
-
-// Schedule indicates an expected call of Schedule
-func (mr *MockAgentsMockRecorder) Schedule() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Schedule", reflect.TypeOf((*MockAgents)(nil).Schedule))
-}
-
-// Job mocks base method
-func (m *MockAgents) Job() store.JobAgent {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Job")
-	ret0, _ := ret[0].(store.JobAgent)
-	return ret0
-}
-
-// Job indicates an expected call of Job
-func (mr *MockAgentsMockRecorder) Job() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Job", reflect.TypeOf((*MockAgents)(nil).Job))
-}
-
-// Log mocks base method
-func (m *MockAgents) Log() store.LogAgent {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Log")
-	ret0, _ := ret[0].(store.LogAgent)
-	return ret0
-}
-
-// Log indicates an expected call of Log
-func (mr *MockAgentsMockRecorder) Log() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Log", reflect.TypeOf((*MockAgents)(nil).Log))
-}
-
-// Transaction mocks base method
-func (m *MockAgents) Transaction() store.TransactionAgent {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Transaction")
-	ret0, _ := ret[0].(store.TransactionAgent)
-	return ret0
-}
-
-// Transaction indicates an expected call of Transaction
-func (mr *MockAgentsMockRecorder) Transaction() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Transaction", reflect.TypeOf((*MockAgents)(nil).Transaction))
-}
-
-// TransactionRequest mocks base method
-func (m *MockAgents) TransactionRequest() store.TransactionRequestAgent {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TransactionRequest")
-	ret0, _ := ret[0].(store.TransactionRequestAgent)
-	return ret0
-}
-
-// TransactionRequest indicates an expected call of TransactionRequest
-func (mr *MockAgentsMockRecorder) TransactionRequest() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransactionRequest", reflect.TypeOf((*MockAgents)(nil).TransactionRequest))
-}
-
-// Account mocks base method
-func (m *MockAgents) Account() store.AccountAgent {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Account")
-	ret0, _ := ret[0].(store.AccountAgent)
-	return ret0
-}
-
-// Account indicates an expected call of Account
-func (mr *MockAgentsMockRecorder) Account() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Account", reflect.TypeOf((*MockAgents)(nil).Account))
-}
-
-// Faucet mocks base method
-func (m *MockAgents) Faucet() store.FaucetAgent {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Faucet")
-	ret0, _ := ret[0].(store.FaucetAgent)
-	return ret0
-}
-
-// Faucet indicates an expected call of Faucet
-func (mr *MockAgentsMockRecorder) Faucet() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Faucet", reflect.TypeOf((*MockAgents)(nil).Faucet))
-}
-
-// ContractEvent mocks base method
-func (m *MockAgents) ContractEvent() store.ContractEventAgent {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ContractEvent")
-	ret0, _ := ret[0].(store.ContractEventAgent)
-	return ret0
-}
-
-// ContractEvent indicates an expected call of ContractEvent
-func (mr *MockAgentsMockRecorder) ContractEvent() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ContractEvent", reflect.TypeOf((*MockAgents)(nil).ContractEvent))
-}
-
-// Contract mocks base method
-func (m *MockAgents) Contract() store.ContractAgent {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Contract")
-	ret0, _ := ret[0].(store.ContractAgent)
-	return ret0
-}
-
-// Contract indicates an expected call of Contract
-func (mr *MockAgentsMockRecorder) Contract() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Contract", reflect.TypeOf((*MockAgents)(nil).Contract))
-}
-
-// Chain mocks base method
-func (m *MockAgents) Chain() store.ChainAgent {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Chain")
-	ret0, _ := ret[0].(store.ChainAgent)
-	return ret0
-}
-
-// Chain indicates an expected call of Chain
-func (mr *MockAgentsMockRecorder) Chain() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Chain", reflect.TypeOf((*MockAgents)(nil).Chain))
-}
 
 // MockDB is a mock of DB interface
 type MockDB struct {
@@ -237,21 +34,6 @@ func NewMockDB(ctrl *gomock.Controller) *MockDB {
 // EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockDB) EXPECT() *MockDBMockRecorder {
 	return m.recorder
-}
-
-// Begin mocks base method
-func (m *MockDB) Begin() (database.Tx, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Begin")
-	ret0, _ := ret[0].(database.Tx)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Begin indicates an expected call of Begin
-func (mr *MockDBMockRecorder) Begin() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Begin", reflect.TypeOf((*MockDB)(nil).Begin))
 }
 
 // Schedule mocks base method
@@ -394,224 +176,18 @@ func (mr *MockDBMockRecorder) Chain() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Chain", reflect.TypeOf((*MockDB)(nil).Chain))
 }
 
-// MockTx is a mock of Tx interface
-type MockTx struct {
-	ctrl     *gomock.Controller
-	recorder *MockTxMockRecorder
-}
-
-// MockTxMockRecorder is the mock recorder for MockTx
-type MockTxMockRecorder struct {
-	mock *MockTx
-}
-
-// NewMockTx creates a new mock instance
-func NewMockTx(ctrl *gomock.Controller) *MockTx {
-	mock := &MockTx{ctrl: ctrl}
-	mock.recorder = &MockTxMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockTx) EXPECT() *MockTxMockRecorder {
-	return m.recorder
-}
-
-// Begin mocks base method
-func (m *MockTx) Begin() (database.Tx, error) {
+// RunInTransaction mocks base method
+func (m *MockDB) RunInTransaction(ctx context.Context, persistFunc func(store.DB) error) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Begin")
-	ret0, _ := ret[0].(database.Tx)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Begin indicates an expected call of Begin
-func (mr *MockTxMockRecorder) Begin() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Begin", reflect.TypeOf((*MockTx)(nil).Begin))
-}
-
-// Commit mocks base method
-func (m *MockTx) Commit() error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Commit")
+	ret := m.ctrl.Call(m, "RunInTransaction", ctx, persistFunc)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// Commit indicates an expected call of Commit
-func (mr *MockTxMockRecorder) Commit() *gomock.Call {
+// RunInTransaction indicates an expected call of RunInTransaction
+func (mr *MockDBMockRecorder) RunInTransaction(ctx, persistFunc interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Commit", reflect.TypeOf((*MockTx)(nil).Commit))
-}
-
-// Rollback mocks base method
-func (m *MockTx) Rollback() error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Rollback")
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Rollback indicates an expected call of Rollback
-func (mr *MockTxMockRecorder) Rollback() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Rollback", reflect.TypeOf((*MockTx)(nil).Rollback))
-}
-
-// Close mocks base method
-func (m *MockTx) Close() error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Close")
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Close indicates an expected call of Close
-func (mr *MockTxMockRecorder) Close() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockTx)(nil).Close))
-}
-
-// Schedule mocks base method
-func (m *MockTx) Schedule() store.ScheduleAgent {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Schedule")
-	ret0, _ := ret[0].(store.ScheduleAgent)
-	return ret0
-}
-
-// Schedule indicates an expected call of Schedule
-func (mr *MockTxMockRecorder) Schedule() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Schedule", reflect.TypeOf((*MockTx)(nil).Schedule))
-}
-
-// Job mocks base method
-func (m *MockTx) Job() store.JobAgent {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Job")
-	ret0, _ := ret[0].(store.JobAgent)
-	return ret0
-}
-
-// Job indicates an expected call of Job
-func (mr *MockTxMockRecorder) Job() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Job", reflect.TypeOf((*MockTx)(nil).Job))
-}
-
-// Log mocks base method
-func (m *MockTx) Log() store.LogAgent {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Log")
-	ret0, _ := ret[0].(store.LogAgent)
-	return ret0
-}
-
-// Log indicates an expected call of Log
-func (mr *MockTxMockRecorder) Log() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Log", reflect.TypeOf((*MockTx)(nil).Log))
-}
-
-// Transaction mocks base method
-func (m *MockTx) Transaction() store.TransactionAgent {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Transaction")
-	ret0, _ := ret[0].(store.TransactionAgent)
-	return ret0
-}
-
-// Transaction indicates an expected call of Transaction
-func (mr *MockTxMockRecorder) Transaction() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Transaction", reflect.TypeOf((*MockTx)(nil).Transaction))
-}
-
-// TransactionRequest mocks base method
-func (m *MockTx) TransactionRequest() store.TransactionRequestAgent {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TransactionRequest")
-	ret0, _ := ret[0].(store.TransactionRequestAgent)
-	return ret0
-}
-
-// TransactionRequest indicates an expected call of TransactionRequest
-func (mr *MockTxMockRecorder) TransactionRequest() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransactionRequest", reflect.TypeOf((*MockTx)(nil).TransactionRequest))
-}
-
-// Account mocks base method
-func (m *MockTx) Account() store.AccountAgent {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Account")
-	ret0, _ := ret[0].(store.AccountAgent)
-	return ret0
-}
-
-// Account indicates an expected call of Account
-func (mr *MockTxMockRecorder) Account() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Account", reflect.TypeOf((*MockTx)(nil).Account))
-}
-
-// Faucet mocks base method
-func (m *MockTx) Faucet() store.FaucetAgent {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Faucet")
-	ret0, _ := ret[0].(store.FaucetAgent)
-	return ret0
-}
-
-// Faucet indicates an expected call of Faucet
-func (mr *MockTxMockRecorder) Faucet() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Faucet", reflect.TypeOf((*MockTx)(nil).Faucet))
-}
-
-// ContractEvent mocks base method
-func (m *MockTx) ContractEvent() store.ContractEventAgent {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ContractEvent")
-	ret0, _ := ret[0].(store.ContractEventAgent)
-	return ret0
-}
-
-// ContractEvent indicates an expected call of ContractEvent
-func (mr *MockTxMockRecorder) ContractEvent() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ContractEvent", reflect.TypeOf((*MockTx)(nil).ContractEvent))
-}
-
-// Contract mocks base method
-func (m *MockTx) Contract() store.ContractAgent {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Contract")
-	ret0, _ := ret[0].(store.ContractAgent)
-	return ret0
-}
-
-// Contract indicates an expected call of Contract
-func (mr *MockTxMockRecorder) Contract() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Contract", reflect.TypeOf((*MockTx)(nil).Contract))
-}
-
-// Chain mocks base method
-func (m *MockTx) Chain() store.ChainAgent {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Chain")
-	ret0, _ := ret[0].(store.ChainAgent)
-	return ret0
-}
-
-// Chain indicates an expected call of Chain
-func (mr *MockTxMockRecorder) Chain() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Chain", reflect.TypeOf((*MockTx)(nil).Chain))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunInTransaction", reflect.TypeOf((*MockDB)(nil).RunInTransaction), ctx, persistFunc)
 }
 
 // MockTransactionRequestAgent is a mock of TransactionRequestAgent interface
@@ -638,11 +214,12 @@ func (m *MockTransactionRequestAgent) EXPECT() *MockTransactionRequestAgentMockR
 }
 
 // Insert mocks base method
-func (m *MockTransactionRequestAgent) Insert(ctx context.Context, txRequest *entities.TxRequest, requestHash, scheduleUUID string) error {
+func (m *MockTransactionRequestAgent) Insert(ctx context.Context, txRequest *entities.TxRequest, requestHash, scheduleUUID string) (*entities.TxRequest, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Insert", ctx, txRequest, requestHash, scheduleUUID)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*entities.TxRequest)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Insert indicates an expected call of Insert
@@ -882,11 +459,12 @@ func (m *MockLogAgent) EXPECT() *MockLogAgentMockRecorder {
 }
 
 // Insert mocks base method
-func (m *MockLogAgent) Insert(ctx context.Context, log *entities.Log, jobUUID string) error {
+func (m *MockLogAgent) Insert(ctx context.Context, log *entities.Log, jobUUID string) (*entities.Log, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Insert", ctx, log, jobUUID)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*entities.Log)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Insert indicates an expected call of Insert
@@ -919,11 +497,12 @@ func (m *MockTransactionAgent) EXPECT() *MockTransactionAgentMockRecorder {
 }
 
 // Insert mocks base method
-func (m *MockTransactionAgent) Insert(ctx context.Context, tx *entities.ETHTransaction) error {
+func (m *MockTransactionAgent) Insert(ctx context.Context, tx *entities.ETHTransaction) (*entities.ETHTransaction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Insert", ctx, tx)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*entities.ETHTransaction)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Insert indicates an expected call of Insert
@@ -933,32 +512,18 @@ func (mr *MockTransactionAgentMockRecorder) Insert(ctx, tx interface{}) *gomock.
 }
 
 // Update mocks base method
-func (m *MockTransactionAgent) Update(ctx context.Context, tx *entities.ETHTransaction, jobUUID string) error {
+func (m *MockTransactionAgent) Update(ctx context.Context, tx *entities.ETHTransaction, jobUUID string) (*entities.ETHTransaction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", ctx, tx, jobUUID)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*entities.ETHTransaction)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Update indicates an expected call of Update
 func (mr *MockTransactionAgentMockRecorder) Update(ctx, tx, jobUUID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockTransactionAgent)(nil).Update), ctx, tx, jobUUID)
-}
-
-// FindOneByJobUUID mocks base method
-func (m *MockTransactionAgent) FindOneByJobUUID(ctx context.Context, jobUUID string) (*entities.ETHTransaction, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindOneByJobUUID", ctx, jobUUID)
-	ret0, _ := ret[0].(*entities.ETHTransaction)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// FindOneByJobUUID indicates an expected call of FindOneByJobUUID
-func (mr *MockTransactionAgentMockRecorder) FindOneByJobUUID(ctx, jobUUID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindOneByJobUUID", reflect.TypeOf((*MockTransactionAgent)(nil).FindOneByJobUUID), ctx, jobUUID)
 }
 
 // MockAccountAgent is a mock of AccountAgent interface
@@ -985,11 +550,12 @@ func (m *MockAccountAgent) EXPECT() *MockAccountAgentMockRecorder {
 }
 
 // Insert mocks base method
-func (m *MockAccountAgent) Insert(ctx context.Context, account *entities.Account) error {
+func (m *MockAccountAgent) Insert(ctx context.Context, account *entities.Account) (*entities.Account, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Insert", ctx, account)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*entities.Account)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Insert indicates an expected call of Insert
@@ -999,11 +565,12 @@ func (mr *MockAccountAgentMockRecorder) Insert(ctx, account interface{}) *gomock
 }
 
 // Update mocks base method
-func (m *MockAccountAgent) Update(ctx context.Context, account *entities.Account) error {
+func (m *MockAccountAgent) Update(ctx context.Context, account *entities.Account) (*entities.Account, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", ctx, account)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*entities.Account)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Update indicates an expected call of Update
@@ -1066,11 +633,12 @@ func (m *MockFaucetAgent) EXPECT() *MockFaucetAgentMockRecorder {
 }
 
 // Insert mocks base method
-func (m *MockFaucetAgent) Insert(ctx context.Context, faucet *entities.Faucet) error {
+func (m *MockFaucetAgent) Insert(ctx context.Context, faucet *entities.Faucet) (*entities.Faucet, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Insert", ctx, faucet)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*entities.Faucet)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Insert indicates an expected call of Insert
@@ -1080,11 +648,12 @@ func (mr *MockFaucetAgentMockRecorder) Insert(ctx, faucet interface{}) *gomock.C
 }
 
 // Update mocks base method
-func (m *MockFaucetAgent) Update(ctx context.Context, faucet *entities.Faucet, tenants []string) error {
+func (m *MockFaucetAgent) Update(ctx context.Context, faucet *entities.Faucet, tenants []string) (*entities.Faucet, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", ctx, faucet, tenants)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*entities.Faucet)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Update indicates an expected call of Update
@@ -1247,86 +816,6 @@ func (mr *MockChainAgentMockRecorder) Delete(ctx, chain, tenants interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockChainAgent)(nil).Delete), ctx, chain, tenants)
 }
 
-// MockPrivateTxManagerAgent is a mock of PrivateTxManagerAgent interface
-type MockPrivateTxManagerAgent struct {
-	ctrl     *gomock.Controller
-	recorder *MockPrivateTxManagerAgentMockRecorder
-}
-
-// MockPrivateTxManagerAgentMockRecorder is the mock recorder for MockPrivateTxManagerAgent
-type MockPrivateTxManagerAgentMockRecorder struct {
-	mock *MockPrivateTxManagerAgent
-}
-
-// NewMockPrivateTxManagerAgent creates a new mock instance
-func NewMockPrivateTxManagerAgent(ctrl *gomock.Controller) *MockPrivateTxManagerAgent {
-	mock := &MockPrivateTxManagerAgent{ctrl: ctrl}
-	mock.recorder = &MockPrivateTxManagerAgentMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockPrivateTxManagerAgent) EXPECT() *MockPrivateTxManagerAgentMockRecorder {
-	return m.recorder
-}
-
-// Insert mocks base method
-func (m *MockPrivateTxManagerAgent) Insert(ctx context.Context, privateTxManager *entities.PrivateTxManager) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Insert", ctx, privateTxManager)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Insert indicates an expected call of Insert
-func (mr *MockPrivateTxManagerAgentMockRecorder) Insert(ctx, privateTxManager interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockPrivateTxManagerAgent)(nil).Insert), ctx, privateTxManager)
-}
-
-// Update mocks base method
-func (m *MockPrivateTxManagerAgent) Update(ctx context.Context, privateTxManager *entities.PrivateTxManager) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", ctx, privateTxManager)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Update indicates an expected call of Update
-func (mr *MockPrivateTxManagerAgentMockRecorder) Update(ctx, privateTxManager interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockPrivateTxManagerAgent)(nil).Update), ctx, privateTxManager)
-}
-
-// Search mocks base method
-func (m *MockPrivateTxManagerAgent) Search(ctx context.Context, chainUUID string) ([]*entities.PrivateTxManager, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Search", ctx, chainUUID)
-	ret0, _ := ret[0].([]*entities.PrivateTxManager)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Search indicates an expected call of Search
-func (mr *MockPrivateTxManagerAgentMockRecorder) Search(ctx, chainUUID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockPrivateTxManagerAgent)(nil).Search), ctx, chainUUID)
-}
-
-// Delete mocks base method
-func (m *MockPrivateTxManagerAgent) Delete(ctx context.Context, privateTxManagerUUID string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", ctx, privateTxManagerUUID)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Delete indicates an expected call of Delete
-func (mr *MockPrivateTxManagerAgentMockRecorder) Delete(ctx, privateTxManagerUUID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockPrivateTxManagerAgent)(nil).Delete), ctx, privateTxManagerUUID)
-}
-
 // MockContractAgent is a mock of ContractAgent interface
 type MockContractAgent struct {
 	ctrl     *gomock.Controller
@@ -1365,7 +854,7 @@ func (mr *MockContractAgentMockRecorder) Register(ctx, contract interface{}) *go
 }
 
 // RegisterDeployment mocks base method
-func (m *MockContractAgent) RegisterDeployment(ctx context.Context, chainID string, address common.Address, codeHash hexutil.Bytes) error {
+func (m *MockContractAgent) RegisterDeployment(ctx context.Context, chainID string, address common.Address, codeHash []byte) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RegisterDeployment", ctx, chainID, address, codeHash)
 	ret0, _ := ret[0].(error)
@@ -1477,7 +966,7 @@ func (m *MockContractEventAgent) EXPECT() *MockContractEventAgentMockRecorder {
 }
 
 // RegisterMultiple mocks base method
-func (m *MockContractEventAgent) RegisterMultiple(ctx context.Context, events []*entities.ContractEvent) error {
+func (m *MockContractEventAgent) RegisterMultiple(ctx context.Context, events []entities.ContractEvent) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RegisterMultiple", ctx, events)
 	ret0, _ := ret[0].(error)

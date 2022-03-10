@@ -28,11 +28,6 @@ func NewCreateScheduleUseCase(db store.DB) usecases.CreateScheduleUseCase {
 	}
 }
 
-func (uc createScheduleUseCase) WithDBTransaction(dbtx store.Tx) usecases.CreateScheduleUseCase {
-	uc.db = dbtx
-	return &uc
-}
-
 // Execute validates and creates a new transaction schedule
 func (uc *createScheduleUseCase) Execute(ctx context.Context, schedule *entities.Schedule, userInfo *multitenancy.UserInfo) (*entities.Schedule, error) {
 	logger := uc.logger.WithContext(ctx)

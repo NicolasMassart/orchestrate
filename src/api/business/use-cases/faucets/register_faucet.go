@@ -50,7 +50,7 @@ func (uc *registerFaucetUseCase) Execute(ctx context.Context, faucet *entities.F
 	}
 
 	faucet.TenantID = userInfo.TenantID
-	err = uc.db.Faucet().Insert(ctx, faucet)
+	faucet, err = uc.db.Faucet().Insert(ctx, faucet)
 	if err != nil {
 		return nil, errors.FromError(err).ExtendComponent(registerFaucetComponent)
 	}

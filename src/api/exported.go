@@ -7,8 +7,8 @@ import (
 	authjwt "github.com/consensys/orchestrate/pkg/toolkit/app/auth/jwt"
 	authkey "github.com/consensys/orchestrate/pkg/toolkit/app/auth/key"
 	"github.com/consensys/orchestrate/src/infra/broker/sarama"
-	"github.com/consensys/orchestrate/src/infra/database/postgres"
 	ethclient "github.com/consensys/orchestrate/src/infra/ethclient/rpc"
+	"github.com/consensys/orchestrate/src/infra/postgres/gopg"
 	qkmhttp "github.com/consensys/orchestrate/src/infra/quorum-key-manager/http"
 	nonclient "github.com/consensys/orchestrate/src/infra/quorum-key-manager/non-client"
 	"github.com/consensys/quorum-key-manager/pkg/client"
@@ -25,16 +25,19 @@ func New(ctx context.Context) (*app.App, error) {
 		return nil, err
 	}
 
+	postgresClient, err := gopg.New("orchestrate.api", cfg.Postgres)
+	if err != nil {
+		return nil, err
+	}
+
 	authjwt.Init(ctx)
 	authkey.Init(ctx)
 	sarama.InitSyncProducer(ctx)
 	ethclient.Init(ctx)
 
-	pgmngr := postgres.GetManager()
-
 	return NewAPI(
 		cfg,
-		pgmngr,
+		postgresClient,
 		authjwt.GlobalChecker(),
 		authkey.GlobalChecker(),
 		qkmClient,

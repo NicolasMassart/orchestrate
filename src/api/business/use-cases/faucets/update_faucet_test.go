@@ -29,7 +29,7 @@ func TestUpdateFaucet_Execute(t *testing.T) {
 
 	faucet.TenantID = userInfo.TenantID
 	t.Run("should execute use case successfully", func(t *testing.T) {
-		faucetAgent.EXPECT().Update(gomock.Any(), faucet, userInfo.AllowedTenants).Return(nil)
+		faucetAgent.EXPECT().Update(gomock.Any(), faucet, userInfo.AllowedTenants).Return(faucet, nil)
 		faucetAgent.EXPECT().FindOneByUUID(gomock.Any(), faucet.UUID, userInfo.AllowedTenants).Return(faucet, nil)
 
 		resp, err := usecase.Execute(ctx, faucet, userInfo)
@@ -41,7 +41,7 @@ func TestUpdateFaucet_Execute(t *testing.T) {
 	t.Run("should fail with same error if update faucet fails", func(t *testing.T) {
 		expectedErr := errors.NotFoundError("error")
 
-		faucetAgent.EXPECT().Update(gomock.Any(), gomock.Any(), userInfo.AllowedTenants).Return(expectedErr)
+		faucetAgent.EXPECT().Update(gomock.Any(), gomock.Any(), userInfo.AllowedTenants).Return(nil, expectedErr)
 
 		resp, err := usecase.Execute(ctx, faucet, userInfo)
 

@@ -8,8 +8,8 @@ import (
 
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
-	"github.com/consensys/orchestrate/src/entities/testdata"
 	"github.com/consensys/orchestrate/src/api/store/mocks"
+	"github.com/consensys/orchestrate/src/entities/testdata"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
@@ -32,7 +32,7 @@ func TestUpdateAccount_Execute(t *testing.T) {
 
 		idenEntity.Attributes = idenEntity.Attributes
 		idenEntity.Alias = idenEntity.Alias
-		identityAgent.EXPECT().Update(gomock.Any(), idenEntity).Return(nil)
+		identityAgent.EXPECT().Update(gomock.Any(), idenEntity).Return(idenEntity, nil)
 		resp, err := usecase.Execute(ctx, idenEntity, userInfo)
 
 		assert.NoError(t, err)
@@ -47,7 +47,7 @@ func TestUpdateAccount_Execute(t *testing.T) {
 
 		identityAgent.EXPECT().FindOneByAddress(gomock.Any(), idenEntity.Address.Hex(), userInfo.AllowedTenants, userInfo.Username).Return(idenEntity, nil)
 
-		identityAgent.EXPECT().Update(gomock.Any(), idenEntity).Return(nil)
+		identityAgent.EXPECT().Update(gomock.Any(), idenEntity).Return(idenEntity, nil)
 		resp, err := usecase.Execute(ctx, idenEntity, userInfo)
 
 		assert.NoError(t, err)
@@ -69,7 +69,7 @@ func TestUpdateAccount_Execute(t *testing.T) {
 		idenEntity := testdata.FakeAccount()
 		identityAgent.EXPECT().FindOneByAddress(gomock.Any(), idenEntity.Address.Hex(), userInfo.AllowedTenants, userInfo.Username).Return(idenEntity, nil)
 
-		identityAgent.EXPECT().Update(gomock.Any(), gomock.Any()).Return(expectedErr)
+		identityAgent.EXPECT().Update(gomock.Any(), gomock.Any()).Return(nil, expectedErr)
 		_, err := usecase.Execute(ctx, idenEntity, userInfo)
 
 		assert.Equal(t, errors.FromError(expectedErr).ExtendComponent(updateAccountComponent), err)

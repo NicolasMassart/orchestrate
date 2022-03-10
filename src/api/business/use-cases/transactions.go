@@ -10,9 +10,6 @@ import (
 
 //go:generate mockgen -source=transactions.go -destination=mocks/transactions.go -package=mocks
 
-/**
-Transaction Use Cases
-*/
 type TransactionUseCases interface {
 	SendContractTransaction() SendContractTxUseCase
 	SendDeployTransaction() SendDeployTxUseCase

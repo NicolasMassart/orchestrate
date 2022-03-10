@@ -79,11 +79,11 @@ func TestRetryJobTx_Execute(t *testing.T) {
 			return nextJob, nil
 		})
 		startJobUC.EXPECT().Execute(gomock.Any(), nextJobUUID, userInfo)
-		
+
 		err := usecase.Execute(ctx, jobUUID, gasIncrement, nextJobTxData, userInfo)
 		assert.NoError(t, err)
 	})
-	
+
 	t.Run("should fail to execute if status is not pending", func(t *testing.T) {
 		job := testdata.FakeJob()
 		job.Transaction.TransactionType = entities.LegacyTxType
@@ -94,15 +94,15 @@ func TestRetryJobTx_Execute(t *testing.T) {
 		require.Error(t, err)
 		assert.True(t, errors.IsInvalidStateError(err))
 	})
-	
-	t.Run("should fail to execute it fails to get job from DB", func(t *testing.T) {
+
+	t.Run("should fail to execute it fails to get job from Postgres", func(t *testing.T) {
 		job := testdata.FakeJob()
 		expectedErr := fmt.Errorf("err")
 		mockJobDA.EXPECT().FindOneByUUID(gomock.Any(), job.UUID, userInfo.AllowedTenants, userInfo.Username, false).Return(nil, expectedErr)
 		err := usecase.Execute(ctx, job.UUID, 0.1, nil, userInfo)
 		require.Error(t, err)
 	})
-	
+
 	t.Run("should fail to execute it createJobUC fails", func(t *testing.T) {
 		job := testdata.FakeJob()
 		job.Status = entities.StatusPending

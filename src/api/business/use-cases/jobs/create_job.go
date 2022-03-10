@@ -12,12 +12,10 @@ import (
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/src/api/store"
-	"github.com/consensys/orchestrate/src/infra/database"
 )
 
 const createJobComponent = "use-cases.create-job"
 
-// createJobUseCase is a use case to create a new transaction job
 type createJobUseCase struct {
 	db             store.DB
 	getChainUC     usecases.GetChainUseCase
@@ -25,7 +23,6 @@ type createJobUseCase struct {
 	defaultStoreID string
 }
 
-// NewCreateJobUseCase creates a new CreateJobUseCase
 func NewCreateJobUseCase(db store.DB, getChainUC usecases.GetChainUseCase, qkmStoreID string) usecases.CreateJobUseCase {
 	return &createJobUseCase{
 		db:             db,
@@ -35,12 +32,11 @@ func NewCreateJobUseCase(db store.DB, getChainUC usecases.GetChainUseCase, qkmSt
 	}
 }
 
-func (uc createJobUseCase) WithDBTransaction(dbtx store.Tx) usecases.CreateJobUseCase {
+func (uc createJobUseCase) WithDBTransaction(dbtx store.DB) usecases.CreateJobUseCase {
 	uc.db = dbtx
 	return &uc
 }
 
-// Execute validates and creates a new transaction job
 func (uc *createJobUseCase) Execute(ctx context.Context, job *entities.Job, userInfo *multitenancy.UserInfo) (*entities.Job, error) {
 	ctx = log.WithFields(ctx, log.Field("chain", job.ChainUUID), log.Field("schedule", job.ScheduleUUID))
 	logger := uc.logger.WithContext(ctx)
@@ -73,20 +69,21 @@ func (uc *createJobUseCase) Execute(ctx context.Context, job *entities.Job, user
 		Status: entities.StatusCreated,
 	})
 
-	if err = uc.db.Transaction().Insert(ctx, job.Transaction); err != nil {
+	job.Transaction, err = uc.db.Transaction().Insert(ctx, job.Transaction)
+	if err != nil {
 		return nil, errors.FromError(err).ExtendComponent(createJobComponent)
 	}
 
-	err = database.ExecuteInDBTx(uc.db, func(tx database.Tx) error {
+	err = uc.db.RunInTransaction(ctx, func(dbtx store.DB) error {
 		// If it's a child job, only create it if parent status is PENDING
 		if job.InternalData.ParentJobUUID != "" {
 			parentJobUUID := job.InternalData.ParentJobUUID
 			logger.WithField("parent_job", parentJobUUID).Debug("lock parent job row for update")
-			if der := tx.(store.Tx).Job().LockOneByUUID(ctx, job.InternalData.ParentJobUUID); der != nil {
+			if der := dbtx.Job().LockOneByUUID(ctx, job.InternalData.ParentJobUUID); der != nil {
 				return der
 			}
 
-			parentJobModel, der := tx.(store.Tx).Job().FindOneByUUID(ctx, parentJobUUID, userInfo.AllowedTenants, userInfo.Username, false)
+			parentJobModel, der := dbtx.Job().FindOneByUUID(ctx, parentJobUUID, userInfo.AllowedTenants, userInfo.Username, false)
 			if der != nil {
 				return der
 			}
@@ -99,17 +96,18 @@ func (uc *createJobUseCase) Execute(ctx context.Context, job *entities.Job, user
 			}
 		}
 
-		if der := tx.(store.Tx).Job().Insert(ctx, job, job.ScheduleUUID, job.Transaction.UUID); der != nil {
+		der := dbtx.Job().Insert(ctx, job, job.ScheduleUUID, job.Transaction.UUID)
+		if der != nil {
 			return der
 		}
 
-		if der := tx.(store.Tx).Log().Insert(ctx, job.Logs[0], job.UUID); der != nil {
+		job.Logs[0], der = dbtx.Log().Insert(ctx, job.Logs[0], job.UUID)
+		if der != nil {
 			return der
 		}
 
 		return nil
 	})
-
 	if err != nil {
 		logger.WithError(err).Info("failed to create job")
 		return nil, errors.FromError(err).ExtendComponent(createJobComponent)
@@ -128,7 +126,7 @@ func (uc *createJobUseCase) getAccountStoreID(ctx context.Context, address *ethc
 	if err != nil {
 		return "", err
 	}
-	
+
 	if acc.StoreID == "" {
 		return uc.defaultStoreID, nil
 	}

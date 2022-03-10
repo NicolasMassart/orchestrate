@@ -11,6 +11,7 @@ import (
 	api "github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/api/service/types/testdata"
 	entitiestestdata "github.com/consensys/orchestrate/src/entities/testdata"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"gopkg.in/h2non/gock.v1"
 	"os"
@@ -23,16 +24,13 @@ type apiTestSuite struct {
 	env       *IntegrationEnvironment
 	client    client.OrchestrateClient
 	chainUUID string
-	err       error
 }
 
 func (s *apiTestSuite) SetupSuite() {
 	defer gock.Off()
 
-	s.err = integrationtest.StartEnvironment(s.env.ctx, s.env)
-	if s.err != nil {
-		s.Fail(s.err.Error())
-	}
+	err := integrationtest.StartEnvironment(s.env.ctx, s.env)
+	require.NoError(s.T(), err)
 	time.Sleep(1 * time.Second)
 
 	s.env.logger.Debug("setting up test accounts and chains")
@@ -50,40 +48,29 @@ func (s *apiTestSuite) SetupSuite() {
 			ExternalTxEnabled: false,
 		},
 	})
-	if err != nil {
-		s.Fail(err.Error())
-		return
-	}
-	s.err = err
+	require.NoError(s.T(), err)
 	s.chainUUID = chain.UUID
 
 	// We use this account in the tests
 	account := entitiestestdata.FakeAccount()
 	account.Address = testdata.FromAddress
-	_, s.err = s.client.ImportAccount(s.env.ctx, testdata.FakeImportAccountRequest())
-	if s.err != nil {
-		s.Fail(s.err.Error())
-	}
+	_, err = s.client.ImportAccount(s.env.ctx, testdata.FakeImportAccountRequest())
+	require.NoError(s.T(), err)
 
 	s.env.logger.Info("setup test suite has completed")
 }
 
 func (s *apiTestSuite) TearDownSuite() {
 	s.env.Teardown(context.Background())
-	if s.err != nil {
-		s.Fail(s.err.Error())
-	}
 }
 
 func TestAPI(t *testing.T) {
 	s := new(apiTestSuite)
 	ctx, cancel := context.WithCancel(context.Background())
 
-	s.env, s.err = NewIntegrationEnvironment(ctx)
-	if s.err != nil {
-		t.Errorf(s.err.Error())
-		return
-	}
+	env, err := NewIntegrationEnvironment(ctx)
+	require.NoError(t, err)
+	s.env = env
 
 	sig := utils.NewSignalListener(func(signal os.Signal) {
 		cancel()
@@ -94,11 +81,6 @@ func TestAPI(t *testing.T) {
 }
 
 func (s *apiTestSuite) TestAPI_Transactions() {
-	if s.err != nil {
-		s.env.logger.Warn("skipping test...")
-		return
-	}
-
 	testSuite := new(transactionsTestSuite)
 	testSuite.env = s.env
 	testSuite.client = s.client
@@ -106,11 +88,6 @@ func (s *apiTestSuite) TestAPI_Transactions() {
 }
 
 func (s *apiTestSuite) TestAPI_Accounts() {
-	if s.err != nil {
-		s.env.logger.Warn("skipping test...")
-		return
-	}
-
 	testSuite := new(accountsTestSuite)
 	testSuite.env = s.env
 	testSuite.client = s.client
@@ -119,11 +96,6 @@ func (s *apiTestSuite) TestAPI_Accounts() {
 }
 
 func (s *apiTestSuite) TestAPI_Jobs() {
-	if s.err != nil {
-		s.env.logger.Warn("skipping test...")
-		return
-	}
-
 	testSuite := new(jobsTestSuite)
 	testSuite.env = s.env
 	testSuite.client = s.client
@@ -132,11 +104,6 @@ func (s *apiTestSuite) TestAPI_Jobs() {
 }
 
 func (s *apiTestSuite) TestAPI_Schedules() {
-	if s.err != nil {
-		s.env.logger.Warn("skipping test...")
-		return
-	}
-
 	testSuite := new(schedulesTestSuite)
 	testSuite.env = s.env
 	testSuite.client = s.client
@@ -144,11 +111,6 @@ func (s *apiTestSuite) TestAPI_Schedules() {
 }
 
 func (s *apiTestSuite) TestAPI_Contracts() {
-	if s.err != nil {
-		s.env.logger.Warn("skipping test...")
-		return
-	}
-
 	testSuite := new(contractsTestSuite)
 	testSuite.env = s.env
 	testSuite.client = s.client
@@ -156,11 +118,6 @@ func (s *apiTestSuite) TestAPI_Contracts() {
 }
 
 func (s *apiTestSuite) TestAPI_Chains() {
-	if s.err != nil {
-		s.env.logger.Warn("skipping test...")
-		return
-	}
-
 	testSuite := new(chainsTestSuite)
 	testSuite.env = s.env
 	testSuite.client = s.client
@@ -168,11 +125,6 @@ func (s *apiTestSuite) TestAPI_Chains() {
 }
 
 func (s *apiTestSuite) TestAPI_Faucets() {
-	if s.err != nil {
-		s.env.logger.Warn("skipping test...")
-		return
-	}
-
 	testSuite := new(faucetsTestSuite)
 	testSuite.env = s.env
 	testSuite.client = s.client
@@ -180,11 +132,6 @@ func (s *apiTestSuite) TestAPI_Faucets() {
 }
 
 func (s *apiTestSuite) TestAPI_Proxy() {
-	if s.err != nil {
-		s.env.logger.Warn("skipping test...")
-		return
-	}
-
 	testSuite := new(proxyTestSuite)
 	testSuite.env = s.env
 	testSuite.client = s.client

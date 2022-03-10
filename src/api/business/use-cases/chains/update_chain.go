@@ -45,7 +45,6 @@ func (uc *updateChainUseCase) Execute(ctx context.Context, nextChain *entities.C
 		return nil, errors.FromError(err).ExtendComponent(updateChainComponent)
 	}
 
-	logger.WithField("block", chain.ListenerCurrentBlock).
-		Info("chain updated successfully")
+	logger.WithField("block", chain.ListenerCurrentBlock).Info("chain updated successfully")
 	return chain, nil
 }

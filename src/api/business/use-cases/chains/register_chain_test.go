@@ -33,7 +33,6 @@ func TestRegisterChain_Execute(t *testing.T) {
 	mockEthClient := mock.NewMockClient(ctrl)
 
 	mockDB.EXPECT().Chain().Return(chainAgent).AnyTimes()
-	mockDB.EXPECT().Chain().Return(chainAgent).AnyTimes()
 
 	userInfo := multitenancy.NewUserInfo("tenantOne", "username")
 

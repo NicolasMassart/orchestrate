@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/consensys/orchestrate/cmd/flags"
+	"github.com/consensys/orchestrate/src/infra/postgres/gopg"
+
 	"github.com/consensys/orchestrate/pkg/utils"
-	"github.com/consensys/orchestrate/src/infra/database/postgres"
 	dockercontainer "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/go-connections/nat"
-	"github.com/go-pg/pg/v9"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -84,8 +85,12 @@ func (g *Postgres) WaitForService(ctx context.Context, configuration interface{}
 	rctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	pgCfg, _ := postgres.NewConfig(viper.GetViper()).PGOptions()
-	db := pg.Connect(pgCfg)
+	pgCfg := flags.NewPGConfig(viper.GetViper())
+	db, err := gopg.New("orchestrate.integration-tests.api", pgCfg)
+	if err != nil {
+		return err
+	}
+
 	defer db.Close()
 
 	retryT := time.NewTicker(time.Second)
@@ -99,7 +104,7 @@ waitForServiceLoop:
 			cerr = rctx.Err()
 			break waitForServiceLoop
 		case <-retryT.C:
-			_, err := db.Exec("SELECT 1")
+			err = db.Exec("SELECT 1")
 			if err != nil {
 				log.WithContext(rctx).WithError(err).Warnf("waiting for PostgreSQL service to start")
 			} else {

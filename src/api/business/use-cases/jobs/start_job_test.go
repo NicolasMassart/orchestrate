@@ -31,7 +31,6 @@ func TestStartJob_Execute(t *testing.T) {
 
 	mockJobDA := mocks.NewMockJobAgent(ctrl)
 	mockLogDA := mocks.NewMockLogAgent(ctrl)
-	mockDBTX := mocks.NewMockTx(ctrl)
 	mockKafkaProducer := mocks2.NewSyncProducer(t, nil)
 	mockMetrics := mock.NewMockTransactionSchedulerMetrics(ctrl)
 
@@ -41,13 +40,11 @@ func TestStartJob_Execute(t *testing.T) {
 	mockMetrics.EXPECT().JobsLatencyHistogram().AnyTimes().Return(jobsLatencyHistogram)
 
 	mockDB := mocks.NewMockDB(ctrl)
-	mockDB.EXPECT().Begin().Return(mockDBTX, nil).AnyTimes()
-	mockDBTX.EXPECT().Close().Return(nil).AnyTimes()
 
 	mockDB.EXPECT().Job().Return(mockJobDA).AnyTimes()
 	mockDB.EXPECT().Job().Return(mockJobDA).AnyTimes()
-	mockDBTX.EXPECT().Log().Return(mockLogDA).AnyTimes()
-	mockDBTX.EXPECT().Job().Return(mockJobDA).AnyTimes()
+	mockDB.EXPECT().Log().Return(mockLogDA).AnyTimes()
+	mockDB.EXPECT().Job().Return(mockJobDA).AnyTimes()
 
 	userInfo := multitenancy.NewUserInfo("tenantOne", "username")
 	usecase := NewStartJobUseCase(mockDB, mockKafkaProducer, sarama.NewKafkaTopicConfig(viper.GetViper()), mockMetrics)
@@ -70,10 +67,8 @@ func TestStartJob_Execute(t *testing.T) {
 			assert.False(t, envelope.IsOneTimeKeySignature())
 			return nil
 		})
+		mockDB.EXPECT().RunInTransaction(gomock.Any(), gomock.Any()).Return(nil)
 
-		mockJobDA.EXPECT().Update(gomock.Any(), job).Return(nil)
-		mockLogDA.EXPECT().Insert(gomock.Any(), gomock.Any(), job.UUID).Return(nil)
-		mockDBTX.EXPECT().Commit().Return(nil)
 		err := usecase.Execute(ctx, job.UUID, userInfo)
 
 		assert.NoError(t, err)
@@ -84,7 +79,7 @@ func TestStartJob_Execute(t *testing.T) {
 		job.InternalData = &entities.InternalData{
 			OneTimeKey: true,
 		}
-	
+
 		mockJobDA.EXPECT().FindOneByUUID(gomock.Any(), job.UUID, userInfo.AllowedTenants, userInfo.Username, false).Return(job, nil)
 		mockKafkaProducer.ExpectSendMessageWithCheckerFunctionAndSucceed(func(val []byte) error {
 			txEnvelope := &tx.TxEnvelope{}
@@ -96,50 +91,47 @@ func TestStartJob_Execute(t *testing.T) {
 			if err != nil {
 				return err
 			}
-	
+
 			assert.Equal(t, envelope.GetJobUUID(), job.UUID)
 			assert.True(t, envelope.IsOneTimeKeySignature())
 			return nil
 		})
-	
-		mockJobDA.EXPECT().Update(gomock.Any(), gomock.Any()).Return(nil)
-		mockLogDA.EXPECT().Insert(gomock.Any(), gomock.Any(), job.UUID).Return(nil)
-		mockDBTX.EXPECT().Commit().Return(nil)
+		mockDB.EXPECT().RunInTransaction(gomock.Any(), gomock.Any()).Return(nil)
+
 		err := usecase.Execute(ctx, job.UUID, userInfo)
-	
+
 		assert.NoError(t, err)
 	})
-	
+
 	t.Run("should fail with same error if FindOne fails", func(t *testing.T) {
 		job := testdata.FakeJob()
 		expectedErr := errors.NotFoundError("error")
-	
+
 		mockJobDA.EXPECT().FindOneByUUID(gomock.Any(), job.UUID, userInfo.AllowedTenants, userInfo.Username, false).Return(nil, expectedErr)
-	
+
 		err := usecase.Execute(ctx, job.UUID, userInfo)
 		assert.Equal(t, errors.FromError(expectedErr).ExtendComponent(startJobComponent), err)
 	})
-	
-	t.Run("should fail with same error if Insert log fails", func(t *testing.T) {
+
+	t.Run("should fail with same error if RunInTransaction fails", func(t *testing.T) {
 		job := testdata.FakeJob()
 		expectedErr := errors.PostgresConnectionError("error")
-	
+
 		mockJobDA.EXPECT().FindOneByUUID(gomock.Any(), job.UUID, userInfo.AllowedTenants, userInfo.Username, false).Return(job, nil)
-		mockJobDA.EXPECT().Update(gomock.Any(), gomock.Any()).Return(nil)
-		mockLogDA.EXPECT().Insert(gomock.Any(), gomock.Any(), job.UUID).Return(expectedErr)
-		mockDBTX.EXPECT().Rollback().Return(nil)
+		mockDB.EXPECT().RunInTransaction(gomock.Any(), gomock.Any()).Return(expectedErr)
+
 		err := usecase.Execute(ctx, job.UUID, userInfo)
 		assert.Equal(t, errors.FromError(expectedErr).ExtendComponent(startJobComponent), err)
 	})
-	
+
 	t.Run("should fail with KafkaConnectionError if Produce fails", func(t *testing.T) {
 		job := testdata.FakeJob()
-	
+
 		mockJobDA.EXPECT().FindOneByUUID(gomock.Any(), job.UUID, userInfo.AllowedTenants, userInfo.Username, false).Return(job, nil)
-		mockJobDA.EXPECT().Update(gomock.Any(), gomock.Any()).Return(nil).Times(2)
-		mockLogDA.EXPECT().Insert(gomock.Any(), gomock.Any(), job.UUID).Return(nil).Times(2)
-		mockDBTX.EXPECT().Commit().Return(nil).Times(2)
+		mockDB.EXPECT().RunInTransaction(gomock.Any(), gomock.Any()).Return(nil)
 		mockKafkaProducer.ExpectSendMessageAndFail(fmt.Errorf("error"))
+		mockDB.EXPECT().RunInTransaction(gomock.Any(), gomock.Any()).Return(nil)
+
 		err := usecase.Execute(ctx, job.UUID, userInfo)
 		assert.True(t, errors.IsKafkaConnectionError(err))
 	})

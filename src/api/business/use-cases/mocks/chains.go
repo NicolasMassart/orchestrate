@@ -7,8 +7,8 @@ package mocks
 import (
 	context "context"
 	multitenancy "github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
-	entities "github.com/consensys/orchestrate/src/entities"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
+	entities "github.com/consensys/orchestrate/src/entities"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
