@@ -40,19 +40,33 @@ func (uc *registerFaucetUseCase) Execute(ctx context.Context, faucet *entities.F
 		TenantID: userInfo.TenantID,
 	}, userInfo)
 	if err != nil {
-		return nil, errors.FromError(err).ExtendComponent(registerFaucetComponent)
+		return nil, err
 	}
 
 	if len(faucetsRetrieved) > 0 {
 		errMessage := "faucet with same name already exists"
 		logger.Error(errMessage)
-		return nil, errors.AlreadyExistsError(errMessage).ExtendComponent(registerFaucetComponent)
+		return nil, errors.AlreadyExistsError(errMessage)
+	}
+
+	_, err = uc.db.Chain().FindOneByUUID(ctx, faucet.ChainRule, userInfo.AllowedTenants, userInfo.Username)
+	if errors.IsNotFoundError(err) {
+		return nil, errors.InvalidParameterError("cannot find linked chain")
+	} else if err != nil {
+		return nil, err
+	}
+
+	_, err = uc.db.Account().FindOneByAddress(ctx, faucet.CreditorAccount.String(), userInfo.AllowedTenants, userInfo.Username)
+	if errors.IsNotFoundError(err) {
+		return nil, errors.InvalidParameterError("cannot find creditor account")
+	} else if err != nil {
+		return nil, err
 	}
 
 	faucet.TenantID = userInfo.TenantID
 	faucet, err = uc.db.Faucet().Insert(ctx, faucet)
 	if err != nil {
-		return nil, errors.FromError(err).ExtendComponent(registerFaucetComponent)
+		return nil, err
 	}
 
 	logger.WithField("faucet_uuid", faucet.UUID).Info("faucet registered successfully")

@@ -11,6 +11,7 @@ import (
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http/config/dynamic"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http/httputil"
+	"github.com/consensys/orchestrate/src/infra/ethclient/utils"
 	"github.com/traefik/traefik/v2/pkg/log"
 	"golang.org/x/time/rate"
 )
@@ -58,17 +59,6 @@ func New(limiter *CooldownRateLimiter, cfg *dynamic.RateLimit) *RateLimit {
 	}
 }
 
-type JSONRpcResponse struct {
-	Version string        `json:"jsonrpc,omitempty"`
-	Error   *JSONRpcError `json:"error,omitempty"`
-}
-
-type JSONRpcError struct {
-	Code    int             `json:"code"`
-	Message string          `json:"message"`
-	Data    json.RawMessage `json:"data,omitempty"`
-}
-
 func (rl *RateLimit) Handler(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		rl.ServeHTTP(rw, req, h)
@@ -104,7 +94,7 @@ func (rl *RateLimit) ServeHTTP(rw http.ResponseWriter, req *http.Request, next h
 
 		// We first try to decode response body
 		decoder := json.NewDecoder(rwinterceptor.Interceptor().(io.Reader))
-		resp := &JSONRpcResponse{}
+		resp := &utils.JSONRpcMessage{}
 		err := decoder.Decode(resp)
 		if err == nil && resp.Error != nil {
 			limit, delay = infura429ErrorLimit(resp.Error.Data)

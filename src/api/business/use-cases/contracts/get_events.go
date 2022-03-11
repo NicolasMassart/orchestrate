@@ -31,10 +31,9 @@ func (uc *getEventsUseCase) Execute(ctx context.Context, chainID string, address
 	logger := uc.logger.WithContext(ctx)
 
 	contractEvent, err := uc.agent.FindOneByAccountAndSigHash(ctx, chainID, address.Hex(), sigHash.String(), indexedInputCount)
-	if err != nil && !errors.IsNotFoundError(err) {
+	if err != nil {
 		return "", nil, errors.FromError(err).ExtendComponent(getEventsComponent)
 	}
-
 	if contractEvent != nil {
 		logger.Debug("events were fetched successfully")
 		return contractEvent.ABI, nil, nil
@@ -43,6 +42,9 @@ func (uc *getEventsUseCase) Execute(ctx context.Context, chainID string, address
 	defaultEventModels, err := uc.agent.FindDefaultBySigHash(ctx, sigHash.String(), indexedInputCount)
 	if err != nil {
 		return "", nil, errors.FromError(err).ExtendComponent(getEventsComponent)
+	}
+	if defaultEventModels == nil {
+		return "", nil, errors.NotFoundError("default contract event not found")
 	}
 
 	for _, e := range defaultEventModels {

@@ -26,22 +26,23 @@ func (t *Retry429Transport) RoundTrip(req *http.Request) (*http.Response, error)
 			return resp, err
 		}
 
-		if resp.StatusCode == http.StatusTooManyRequests {
-			retryAfter, _ := strconv.ParseInt(
-				resp.Header.Get("Retry-After"),
-				10, 64,
-			)
-
-			if retryAfter > 0 {
-				select {
-				case <-time.After(time.Duration(1000000000 * retryAfter)):
-					continue
-				case <-req.Context().Done():
-					return nil, req.Context().Err()
-				}
-			}
+		if resp.StatusCode != http.StatusTooManyRequests {
+			return resp, nil
 		}
 
-		return resp, nil
+		// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After
+		retryAfter, _ := strconv.ParseInt(
+			resp.Header.Get("Retry-After"),
+			10, 64,
+		)
+
+		if retryAfter > 0 {
+			select {
+			case <-time.After(time.Second * time.Duration(retryAfter)):
+				continue
+			case <-req.Context().Done():
+				return nil, req.Context().Err()
+			}
+		}
 	}
 }

@@ -74,7 +74,10 @@ func (agent *PGContractEvent) FindDefaultBySigHash(ctx context.Context, sighash 
 		Where("indexed_input_count = ?", indexedInputCount).
 		Order("abi DESC").
 		Select()
-	if err != nil && !errors.IsNotFoundError(err) {
+	if err != nil {
+		if errors.IsNotFoundError(err) {
+			return nil, nil
+		}
 		errMessage := "failed to find default contract events by signature hash"
 		agent.logger.WithContext(ctx).WithError(err).Error(errMessage)
 		return nil, errors.FromError(err).SetMessage(errMessage)

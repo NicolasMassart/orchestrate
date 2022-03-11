@@ -4,6 +4,10 @@ package integrationtests
 
 import (
 	"context"
+	"os"
+	"testing"
+	"time"
+
 	integrationtest "github.com/consensys/orchestrate/pkg/integration-test"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http"
@@ -14,9 +18,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"gopkg.in/h2non/gock.v1"
-	"os"
-	"testing"
-	"time"
 )
 
 type apiTestSuite struct {

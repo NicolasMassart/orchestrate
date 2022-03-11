@@ -8,8 +8,10 @@ import (
 
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
+	"github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/api/service/types/testdata"
 	"github.com/consensys/orchestrate/src/entities"
+	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -17,8 +19,25 @@ import (
 
 type faucetsTestSuite struct {
 	suite.Suite
-	client client.OrchestrateClient
-	env    *IntegrationEnvironment
+	client  client.OrchestrateClient
+	env     *IntegrationEnvironment
+	chain   *types.ChainResponse
+	account *types.AccountResponse
+}
+
+func (s *faucetsTestSuite) SetupSuite() {
+	ctx := s.env.ctx
+
+	chainReq := testdata.FakeRegisterChainRequest()
+	chainReq.URLs = []string{s.env.blockchainNodeURL}
+	chainReq.PrivateTxManagerURL = ""
+
+	var err error
+	s.chain, err = s.client.RegisterChain(ctx, chainReq)
+	require.NoError(s.T(), err)
+
+	s.account, err = s.client.CreateAccount(ctx, &types.CreateAccountRequest{})
+	require.NoError(s.T(), err)
 }
 
 func (s *faucetsTestSuite) TestRegister() {
@@ -26,6 +45,8 @@ func (s *faucetsTestSuite) TestRegister() {
 
 	s.T().Run("should register faucet successfully", func(t *testing.T) {
 		req := testdata.FakeRegisterFaucetRequest()
+		req.ChainRule = s.chain.UUID
+		req.CreditorAccount = ethcommon.HexToAddress(s.account.Address)
 
 		resp, err := s.client.RegisterFaucet(ctx, req)
 		require.NoError(t, err)
@@ -44,8 +65,28 @@ func (s *faucetsTestSuite) TestRegister() {
 		assert.NoError(t, err)
 	})
 
+	s.T().Run("should fail to register faucet with BadRequest if account does not exists", func(t *testing.T) {
+		req := testdata.FakeRegisterFaucetRequest()
+		req.ChainRule = s.chain.UUID
+
+		_, err := s.client.RegisterFaucet(ctx, req)
+		require.Error(t, err)
+		assert.True(t, errors.IsInvalidParameterError(err))
+	})
+
+	s.T().Run("should fail to register faucet with BadRequest if account does not exists", func(t *testing.T) {
+		req := testdata.FakeRegisterFaucetRequest()
+		req.CreditorAccount = ethcommon.HexToAddress(s.account.Address)
+
+		_, err := s.client.RegisterFaucet(ctx, req)
+		require.Error(t, err)
+		assert.True(t, errors.IsInvalidParameterError(err))
+	})
+
 	s.T().Run("should fail to register faucet with same name and tenant", func(t *testing.T) {
 		req := testdata.FakeRegisterFaucetRequest()
+		req.ChainRule = s.chain.UUID
+		req.CreditorAccount = ethcommon.HexToAddress(s.account.Address)
 
 		resp, err := s.client.RegisterFaucet(ctx, req)
 		require.NoError(t, err)
@@ -59,6 +100,8 @@ func (s *faucetsTestSuite) TestRegister() {
 
 	s.T().Run("should fail to register faucet if postgres is down", func(t *testing.T) {
 		req := testdata.FakeRegisterFaucetRequest()
+		req.ChainRule = s.chain.UUID
+		req.CreditorAccount = ethcommon.HexToAddress(s.account.Address)
 
 		err := s.env.client.Stop(ctx, postgresContainerID)
 		assert.NoError(t, err)
@@ -74,6 +117,8 @@ func (s *faucetsTestSuite) TestRegister() {
 func (s *faucetsTestSuite) TestSearch() {
 	ctx := s.env.ctx
 	req := testdata.FakeRegisterFaucetRequest()
+	req.ChainRule = s.chain.UUID
+	req.CreditorAccount = ethcommon.HexToAddress(s.account.Address)
 	faucet, err := s.client.RegisterFaucet(ctx, req)
 	require.NoError(s.T(), err)
 
@@ -104,6 +149,8 @@ func (s *faucetsTestSuite) TestSearch() {
 func (s *faucetsTestSuite) TestGetOne() {
 	ctx := s.env.ctx
 	req := testdata.FakeRegisterFaucetRequest()
+	req.ChainRule = s.chain.UUID
+	req.CreditorAccount = ethcommon.HexToAddress(s.account.Address)
 	faucet, err := s.client.RegisterFaucet(ctx, req)
 	require.NoError(s.T(), err)
 
@@ -120,27 +167,50 @@ func (s *faucetsTestSuite) TestGetOne() {
 func (s *faucetsTestSuite) TestUpdate() {
 	ctx := s.env.ctx
 	req := testdata.FakeRegisterFaucetRequest()
+	req.ChainRule = s.chain.UUID
+	req.CreditorAccount = ethcommon.HexToAddress(s.account.Address)
 	faucet, err := s.client.RegisterFaucet(ctx, req)
 	require.NoError(s.T(), err)
+	
+	defer func() {
+		err = s.client.DeleteFaucet(ctx, faucet.UUID)
+		assert.NoError(s.T(), err)
+	}()
 
 	s.T().Run("should update faucet successfully", func(t *testing.T) {
-		req := testdata.FakeUpdateFaucetRequest()
+		req2 := testdata.FakeUpdateFaucetRequest()
+		req2.CreditorAccount = &req.CreditorAccount
+		req2.ChainRule = req.ChainRule
 
-		resp, err := s.client.UpdateFaucet(ctx, faucet.UUID, req)
+		resp, err := s.client.UpdateFaucet(ctx, faucet.UUID, req2)
 		require.NoError(t, err)
 
-		assert.Equal(t, req.CreditorAccount.String(), resp.CreditorAccount)
-		assert.Equal(t, req.ChainRule, resp.ChainRule)
-		assert.Equal(t, req.MaxBalance.String(), resp.MaxBalance)
-		assert.Equal(t, req.Amount.String(), resp.Amount)
-		assert.Equal(t, req.Name, resp.Name)
-		assert.Equal(t, req.Cooldown, resp.Cooldown)
+		assert.Equal(t, req2.CreditorAccount.String(), resp.CreditorAccount)
+		assert.Equal(t, req2.ChainRule, resp.ChainRule)
+		assert.Equal(t, req2.MaxBalance.String(), resp.MaxBalance)
+		assert.Equal(t, req2.Amount.String(), resp.Amount)
+		assert.Equal(t, req2.Name, resp.Name)
+		assert.Equal(t, req2.Cooldown, resp.Cooldown)
 		assert.NotEmpty(t, resp.UUID)
-		assert.NotEmpty(t, resp.CreatedAt)
-		assert.NotEmpty(t, resp.UpdatedAt)
+		assert.True(t, resp.UpdatedAt.After(resp.CreatedAt))
+	})
+	
+	s.T().Run("should fail to update faucet if chain does not exists", func(t *testing.T) {
+		req2 := testdata.FakeUpdateFaucetRequest()
+		req2.CreditorAccount = &req.CreditorAccount
 
-		err = s.client.DeleteFaucet(ctx, resp.UUID)
-		assert.NoError(t, err)
+		_, err = s.client.UpdateFaucet(ctx, faucet.UUID, req2)
+		require.Error(t, err)
+		assert.True(t, errors.IsInvalidParameterError(err))
+	})
+	
+	s.T().Run("should fail to update faucet if account does not exists", func(t *testing.T) {
+		req2 := testdata.FakeUpdateFaucetRequest()
+		req2.ChainRule = req.ChainRule
+
+		_, err = s.client.UpdateFaucet(ctx, faucet.UUID, req2)
+		require.Error(t, err)
+		assert.True(t, errors.IsInvalidParameterError(err))
 	})
 }
 

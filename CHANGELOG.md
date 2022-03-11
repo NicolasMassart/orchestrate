@@ -5,6 +5,11 @@
 * New available endpoint `/transaction/{TX_UUID}/speed-up` to retry transaction with a defined gas increment.
 * New available endpoint `/transaction/{TX_UUID}/call-off` resend a transaction with same nonce,empty data and 10% more gas than previous job.
 
+## v21.12.3 (WIP)
+### 🛠 Bug fixes
+* Migrated faucet DB table to use TEXT for every VARCHAR column.
+* Validate existence of `creditorAccount` and `chainRule` before creating a new Faucet
+
 ## v21.12.2 (2022-02-16)
 ### 🛠 Bug fixes
 * Fixed Chain Proxy issues caused by additional header being added to the forwarded request.  

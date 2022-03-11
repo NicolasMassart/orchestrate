@@ -5,12 +5,13 @@ import (
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	api "github.com/consensys/orchestrate/src/api/service/types"
+	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/gofrs/uuid"
 )
 
 func FakeRegisterChainRequest() *api.RegisterChainRequest {
 	return &api.RegisterChainRequest{
-		Name: "mainnet",
+		Name: "chain-"+common.RandString(5),
 		URLs: []string{"http://chain:8545"},
 		Listener: api.RegisterListenerRequest{
 			FromBlock:         "latest",
@@ -18,20 +19,20 @@ func FakeRegisterChainRequest() *api.RegisterChainRequest {
 		},
 		PrivateTxManagerURL: "http://tessera-eea:8545",
 		Labels: map[string]string{
-			"label1": "val1",
-			"label2": "val2",
+			"label1": common.RandString(5),
+			"label2": common.RandString(5),
 		},
 	}
 }
 
 func FakeUpdateChainRequest() *api.UpdateChainRequest {
 	return &api.UpdateChainRequest{
-		Name: "mainnet",
+		Name: "chain-"+common.RandString(5),
 		Listener: &api.UpdateListenerRequest{
 			CurrentBlock: 55,
 		},
 		Labels: map[string]string{
-			"label3": "val3",
+			"label3": common.RandString(5),
 		},
 	}
 }

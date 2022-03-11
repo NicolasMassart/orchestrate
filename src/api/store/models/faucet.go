@@ -23,17 +23,18 @@ type Faucet struct {
 	UpdatedAt       time.Time `pg:"default:now()"`
 }
 
-func NewFaucet(faucet *entities.Faucet) *Faucet {
+func NewFaucet(f *entities.Faucet) *Faucet {
 	return &Faucet{
-		UUID:            faucet.UUID,
-		Name:            faucet.Name,
-		TenantID:        faucet.TenantID,
-		ChainRule:       faucet.ChainRule,
-		CreditorAccount: faucet.CreditorAccount.Hex(),
-		MaxBalance:      faucet.MaxBalance.ToInt().String(),
-		Amount:          faucet.Amount.ToInt().String(),
-		Cooldown:        faucet.Cooldown,
-		CreatedAt:       faucet.CreatedAt,
+		UUID:            f.UUID,
+		Name:            f.Name,
+		TenantID:        f.TenantID,
+		ChainRule:       f.ChainRule,
+		CreditorAccount: f.CreditorAccount.Hex(),
+		MaxBalance:      f.MaxBalance.ToInt().String(),
+		Amount:          f.Amount.ToInt().String(),
+		Cooldown:        f.Cooldown,
+		CreatedAt:       f.CreatedAt,
+		UpdatedAt:       f.UpdatedAt,
 	}
 }
 
@@ -46,17 +47,17 @@ func NewFaucets(faucets []*Faucet) []*entities.Faucet {
 	return res
 }
 
-func (faucet *Faucet) ToEntity() *entities.Faucet {
+func (f *Faucet) ToEntity() *entities.Faucet {
 	return &entities.Faucet{
-		UUID:            faucet.UUID,
-		Name:            faucet.Name,
-		TenantID:        faucet.TenantID,
-		ChainRule:       faucet.ChainRule,
-		CreditorAccount: ethcommon.HexToAddress(faucet.CreditorAccount),
-		MaxBalance:      *utils.StringBigIntToHex(faucet.MaxBalance),
-		Amount:          *utils.StringBigIntToHex(faucet.Amount),
-		Cooldown:        faucet.Cooldown,
-		CreatedAt:       faucet.CreatedAt,
-		UpdatedAt:       faucet.UpdatedAt,
+		UUID:            f.UUID,
+		Name:            f.Name,
+		TenantID:        f.TenantID,
+		ChainRule:       f.ChainRule,
+		CreditorAccount: ethcommon.HexToAddress(f.CreditorAccount),
+		MaxBalance:      *utils.StringBigIntToHex(f.MaxBalance),
+		Amount:          *utils.StringBigIntToHex(f.Amount),
+		Cooldown:        f.Cooldown,
+		CreatedAt:       f.CreatedAt,
+		UpdatedAt:       f.UpdatedAt,
 	}
 }

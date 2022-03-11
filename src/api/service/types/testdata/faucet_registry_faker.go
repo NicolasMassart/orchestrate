@@ -4,16 +4,17 @@ import (
 	"math/big"
 
 	api "github.com/consensys/orchestrate/src/api/service/types"
-	ethcommon "github.com/ethereum/go-ethereum/common"
+	"github.com/consensys/orchestrate/src/entities/testdata"
+	"github.com/consensys/quorum-key-manager/pkg/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/gofrs/uuid"
 )
 
 func FakeRegisterFaucetRequest() *api.RegisterFaucetRequest {
 	return &api.RegisterFaucetRequest{
-		Name:            "faucet-mainnet",
+		Name:            "faucet-chain-" + common.RandString(5),
 		ChainRule:       uuid.Must(uuid.NewV4()).String(),
-		CreditorAccount: ethcommon.HexToAddress("0x6230592812dE2E256D1512504c3E8A3C49975f07"),
+		CreditorAccount: *testdata.FakeAddress(),
 		MaxBalance:      hexutil.Big(*big.NewInt(6000000)),
 		Amount:          hexutil.Big(*big.NewInt(100)),
 		Cooldown:        "10s",
@@ -22,9 +23,9 @@ func FakeRegisterFaucetRequest() *api.RegisterFaucetRequest {
 
 func FakeUpdateFaucetRequest() *api.UpdateFaucetRequest {
 	return &api.UpdateFaucetRequest{
-		Name:            "faucet-mainnet",
+		Name:            "faucet-chain-"+ common.RandString(5),
 		ChainRule:       uuid.Must(uuid.NewV4()).String(),
-		CreditorAccount: ethcommon.HexToAddress("0x6230592812dE2E256D1512504c3E8A3C49975f07"),
+		CreditorAccount: testdata.FakeAddress(),
 		MaxBalance:      hexutil.Big(*big.NewInt(6000000)),
 		Amount:          hexutil.Big(*big.NewInt(100)),
 		Cooldown:        "10s",

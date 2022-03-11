@@ -34,7 +34,9 @@ func NewClient(cfg *Config) *http.Client {
 		middlewares = append(middlewares, transport.NewXAPIKeyHeadersTransport(cfg.XAPIKey))
 	}
 
-	middlewares = append(middlewares, transport.NewRetry429Transport())
+	if cfg.RetryAfterEnabled {
+		middlewares = append(middlewares, transport.NewRetry429Transport())
+	}
 
 	t := &http.Transport{
 		Proxy:                 http.ProxyFromEnvironment,

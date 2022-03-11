@@ -422,7 +422,8 @@ func newAPI(ctx context.Context, topicCfg *sarama.KafkaTopicConfig) (*app.App, e
 	return api.NewAPI(
 		txSchedulerConfig,
 		postgresClient,
-		authjwt.GlobalChecker(), authkey.GlobalChecker(),
+		authjwt.GlobalChecker(),
+		authkey.GlobalChecker(),
 		qkmClient,
 		apiConfig.QKM.StoreName,
 		ethclient.GlobalClient(),

@@ -198,7 +198,8 @@ func (uc *sendTxUsecase) insertNewTxRequest(
 }
 
 // Execute validates, creates and starts a new transaction for pre funding users account
-func (uc *sendTxUsecase) startFaucetJob(ctx context.Context, account *ethcommon.Address, scheduleUUID string, chain *entities.Chain, userInfo *multitenancy.UserInfo) (*entities.Job, error) {
+func (uc *sendTxUsecase) startFaucetJob(ctx context.Context, account *ethcommon.Address, scheduleUUID string,
+	chain *entities.Chain, userInfo *multitenancy.UserInfo) (*entities.Job, error) {
 	if account == nil {
 		return nil, nil
 	}
@@ -227,7 +228,7 @@ func (uc *sendTxUsecase) startFaucetJob(ctx context.Context, account *ethcommon.
 			Value: &faucet.Amount,
 		},
 	}
-	fctJob, err := uc.createJobUC.Execute(ctx, txJob, userInfo)
+	fctJob, err := uc.createJobUC.Execute(ctx, txJob, multitenancy.NewInternalAdminUser())
 	if err != nil {
 		return nil, err
 	}

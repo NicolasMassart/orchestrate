@@ -21,15 +21,20 @@ func FormatRegisterFaucetRequest(request *types.RegisterFaucetRequest) *entities
 }
 
 func FormatUpdateFaucetRequest(request *types.UpdateFaucetRequest, uuid string) *entities.Faucet {
-	return &entities.Faucet{
-		UUID:            uuid,
-		Name:            request.Name,
-		ChainRule:       request.ChainRule,
-		CreditorAccount: request.CreditorAccount,
-		MaxBalance:      request.MaxBalance,
-		Amount:          request.Amount,
-		Cooldown:        request.Cooldown,
+	faucet := &entities.Faucet{
+		UUID:       uuid,
+		Name:       request.Name,
+		ChainRule:  request.ChainRule,
+		MaxBalance: request.MaxBalance,
+		Amount:     request.Amount,
+		Cooldown:   request.Cooldown,
 	}
+
+	if request.CreditorAccount != nil {
+		faucet.CreditorAccount = *request.CreditorAccount
+	}
+
+	return faucet
 }
 
 func FormatFaucetResponse(faucet *entities.Faucet) *types.FaucetResponse {

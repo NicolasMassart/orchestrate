@@ -99,12 +99,12 @@ func (agent *PGJob) FindOneByUUID(ctx context.Context, jobUUID string, tenants [
 		Select()
 	if err != nil {
 		if errors.IsNotFoundError(err) {
-			return nil, nil
+			return nil, errors.FromError(err).SetMessage("job not found by uuid")
 		}
 
-		errMessage := "failed to find job by uuid"
-		agent.logger.WithContext(ctx).WithError(err).Error(errMessage)
-		return nil, errors.FromError(err).SetMessage(errMessage)
+		errMsg := "failed to find job by uuid"
+		agent.logger.WithContext(ctx).WithError(err).Error(errMsg)
+		return nil, errors.FromError(err).SetMessage(errMsg)
 	}
 
 	return job.ToEntity(), nil

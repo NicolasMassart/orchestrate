@@ -21,6 +21,7 @@ type Config struct {
 	InsecureSkipVerify    bool
 	MultiTenancy          bool
 	AuthHeaderForward     bool
+	RetryAfterEnabled     bool
 }
 
 func NewDefaultConfig() *Config {
@@ -33,6 +34,7 @@ func NewDefaultConfig() *Config {
 		KeepAlive:             30 * time.Second,
 		AuthHeaderForward:     true,
 		InsecureSkipVerify:    false,
+		RetryAfterEnabled:     true,
 	}
 }
 

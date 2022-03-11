@@ -35,7 +35,6 @@ type CooldownRateLimiter struct {
 
 func NewCooldownRateLimiter(limits []float64, cooldown time.Duration) *CooldownRateLimiter {
 	rl := &CooldownRateLimiter{
-
 		cooldown:        cooldown,
 		mux:             &sync.Mutex{},
 		firstUpdateOnce: &sync.Once{},

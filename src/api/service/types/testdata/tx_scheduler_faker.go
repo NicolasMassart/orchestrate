@@ -58,7 +58,7 @@ func FakeDeployContractRequest() *types.DeployContractRequest {
 	}
 }
 
-func FakeSendTesseraRequest() *types.SendTransactionRequest {
+func FakeSendGoQuorumRequest() *types.SendTransactionRequest {
 	return &types.SendTransactionRequest{
 		ChainName: "ganache",
 		Params: types.TransactionParams{

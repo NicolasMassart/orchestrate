@@ -2,9 +2,6 @@ package multitenancy
 
 import (
 	"context"
-
-	authutils "github.com/consensys/orchestrate/pkg/toolkit/app/auth/utils"
-	"github.com/consensys/orchestrate/pkg/types/tx"
 )
 
 type multitenancyCtxKey string
@@ -23,11 +20,4 @@ func UserInfoValue(ctx context.Context) *UserInfo {
 		return nil
 	}
 	return userInfo
-}
-
-func NewContextFromEnvelope(ctx context.Context, envelope *tx.Envelope) context.Context {
-	return WithUserInfo(ctx, NewUserInfo(
-		envelope.GetHeadersValue(authutils.TenantIDHeader),
-		envelope.GetHeadersValue(authutils.UsernameHeader),
-	))
 }

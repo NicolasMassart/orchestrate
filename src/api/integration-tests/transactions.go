@@ -353,11 +353,11 @@ func (s *transactionsTestSuite) TestSendRawTransaction() {
 // 	})
 // }
 
-func (s *transactionsTestSuite) TestSendTesseraTransaction() {
+func (s *transactionsTestSuite) TestSendGoQuorumTransaction() {
 	ctx := s.env.ctx
 
-	s.T().Run("should send a tessera transaction successfully", func(t *testing.T) {
-		txRequest := testdata.FakeSendTesseraRequest()
+	s.T().Run("should send a go-quorum transaction successfully", func(t *testing.T) {
+		txRequest := testdata.FakeSendGoQuorumRequest()
 		txRequest.Params.ContractTag = s.contract.Tag
 		txRequest.Params.ContractName = s.contract.Name
 

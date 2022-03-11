@@ -183,7 +183,6 @@ func (q Query) whereAllowedTenants(field string, tenants []string) postgres.Quer
 	if len(tenants) == 0 || utils.ContainsString(tenants, multitenancy.WildcardTenant) {
 		return &q
 	}
-
 	return q.Where(fmt.Sprintf("%s IN (?)", field), pg.In(tenants))
 }
 

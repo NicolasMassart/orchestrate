@@ -42,8 +42,9 @@ func TestPendingJobs_Execute(t *testing.T) {
 
 		retrySessionState.EXPECT().Add(gomock.Any(), parentJob.UUID, parentJob)
 		apiClient.EXPECT().SearchJob(gomock.Any(), gomock.Any()).Return([]*api.JobResponse{}, nil)
-		sendRetryJobUseCase.EXPECT().Execute(gomock.Any(), parentJob, parentJob.UUID, 0).Return(childJob.UUID, nil)
-		sendRetryJobUseCase.EXPECT().Execute(gomock.Any(), parentJob, childJob.UUID, 1).Return("", nil)
+		prevCall := sendRetryJobUseCase.EXPECT().Execute(gomock.Any(), parentJob, parentJob.UUID, 0).Return(childJob.UUID, nil)
+		sendRetryJobUseCase.EXPECT().Execute(gomock.Any(), parentJob, childJob.UUID, 1).After(prevCall).
+			Return("", nil)
 		retrySessionState.EXPECT().Remove(gomock.Any(), parentJob.UUID)
 		
 		err := usecase.StartSession(ctx, parentJob)
@@ -60,8 +61,9 @@ func TestPendingJobs_Execute(t *testing.T) {
 
 		retrySessionState.EXPECT().Add(gomock.Any(), parentJob.UUID, parentJob)
 		apiClient.EXPECT().SearchJob(gomock.Any(), gomock.Any()).Return([]*api.JobResponse{}, nil)
-		sendRetryJobUseCase.EXPECT().Execute(gomock.Any(), parentJob, parentJob.UUID, 0).Return(childJob.UUID, nil)
-		sendRetryJobUseCase.EXPECT().Execute(gomock.Any(), parentJob, childJob.UUID, 1).Return("", nil)
+		prevCall := sendRetryJobUseCase.EXPECT().Execute(gomock.Any(), parentJob, parentJob.UUID, 0).Return(childJob.UUID, nil)
+		sendRetryJobUseCase.EXPECT().Execute(gomock.Any(), parentJob, childJob.UUID, 1).After(prevCall).
+			Return("", nil)
 		retrySessionState.EXPECT().ListByChainUUID(gomock.Any(), parentJob.ChainUUID).Return([]string{parentJob.UUID}, nil)
 		retrySessionState.EXPECT().Remove(gomock.Any(), parentJob.UUID)
 		

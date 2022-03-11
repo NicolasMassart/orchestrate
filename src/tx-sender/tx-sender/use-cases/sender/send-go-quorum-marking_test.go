@@ -23,7 +23,7 @@ import (
 	"github.com/golang/mock/gomock"
 )
 
-func TestSendTesseraMarking_Execute(t *testing.T) {
+func TestSendGoQuorumMarking_Execute(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 

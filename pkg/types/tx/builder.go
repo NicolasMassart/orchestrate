@@ -105,13 +105,11 @@ func (e *Envelope) IsEthSendRawTransaction() bool {
 	return e.JobType == JobType_ETH_RAW_TX
 }
 
-// IsEthSendTesseraMarkingTransaction for Quorum Constellation
-func (e *Envelope) IsEthSendTesseraMarkingTransaction() bool {
+func (e *Envelope) IsEthSendGoQuorumMarkingTransaction() bool {
 	return e.JobType == JobType_GO_QUORUM_MARKING_TX
 }
 
-// IsEthSendTesseraPrivateTransaction for Quorum Tessera
-func (e *Envelope) IsEthSendTesseraPrivateTransaction() bool {
+func (e *Envelope) IsEthSendGoQuorumPrivateTransaction() bool {
 	return e.JobType == JobType_GO_QUORUM_PRIVATE_TX
 }
 

@@ -142,7 +142,8 @@ func (c *FaucetsController) update(rw http.ResponseWriter, request *http.Request
 	}
 
 	uuid := mux.Vars(request)["uuid"]
-	faucet, err := c.ucs.UpdateFaucet().Execute(ctx, formatters.FormatUpdateFaucetRequest(faucetRequest, uuid), multitenancy.UserInfoValue(ctx))
+	faucet, err := c.ucs.UpdateFaucet().Execute(ctx, formatters.FormatUpdateFaucetRequest(faucetRequest, uuid),
+		multitenancy.UserInfoValue(ctx))
 	if err != nil {
 		httputil.WriteHTTPErrorResponse(rw, err)
 		return

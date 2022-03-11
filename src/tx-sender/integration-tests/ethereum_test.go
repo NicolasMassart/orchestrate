@@ -251,6 +251,48 @@ func (s *txSenderEthereumTestSuite) TestPublic() {
 		err = waitTimeout(wg, waitForEnvelopeTimeOut)
 		assert.NoError(t, err)
 	})
+	
+	s.T().Run("should retry on QKM client if 429 and end up failing if another error happens", func(t *testing.T) {
+		defer gock.Off()
+		wg := &multierror.Group{}
+
+		envelope := fakeEnvelope()
+
+		gock.New(keyManagerURL).
+			Get(fmt.Sprintf("/stores/%s/ethereum/%s", qkmStoreName, envelope.GetFromString())).
+			Reply(http2.StatusTooManyRequests).JSON(&types.EthAccountResponse{
+		})
+		
+		gock.New(keyManagerURL).
+			Get(fmt.Sprintf("/stores/%s/ethereum/%s", qkmStoreName, envelope.GetFromString())).
+			Reply(http2.StatusBadRequest).JSON(&types.EthAccountResponse{
+		})
+
+		gock.New(apiURL).
+			Patch(fmt.Sprintf("/jobs/%s", envelope.GetJobUUID())).
+			AddMatcher(txStatusUpdateMatcher(wg, entities.StatusFailed, "", "", "")).
+			Reply(http2.StatusOK).JSON(&api.JobResponse{})
+
+		err := s.sendEnvelope(envelope.TxEnvelopeAsRequest())
+		if err != nil {
+			assert.Fail(t, err.Error())
+			return
+		}
+
+		retrievedEnvelope, err := s.env.consumer.WaitForEnvelope(envelope.GetID(), s.env.srvConfig.RecoverTopic,
+			waitForEnvelopeTimeOut)
+		if err != nil {
+			assert.Fail(t, err.Error())
+			return
+		}
+
+		err = waitTimeout(wg, waitForEnvelopeTimeOut)
+		assert.NoError(t, err)
+
+		assert.Equal(t, envelope.GetID(), retrievedEnvelope.GetID())
+		assert.NotEmpty(t, retrievedEnvelope.GetErrors()[0].Code)
+		assert.NotEmpty(t, retrievedEnvelope.GetErrors()[0].Message)
+	})
 
 	s.T().Run("should send envelope to tx-recover if key-manager fails to sign", func(t *testing.T) {
 		defer gock.Off()

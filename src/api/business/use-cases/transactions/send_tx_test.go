@@ -401,7 +401,7 @@ func successfulTestExecution(s *sendTxSuite, txRequest *entities.TxRequest, with
 		faucet := testdata.FakeFaucet()
 		s.GetFaucetCandidate.EXPECT().Execute(gomock.Any(), *from, chains[0], s.userInfo).Return(faucet, nil)
 
-		s.CreateJobUC.EXPECT().Execute(gomock.Any(), gomock.Any(), s.userInfo).
+		s.CreateJobUC.EXPECT().Execute(gomock.Any(), gomock.Any(), multitenancy.NewInternalAdminUser()).
 			DoAndReturn(func(ctx context.Context, jobEntity *entities.Job, userInfo *multitenancy.UserInfo) (*entities.Job, error) {
 				if jobEntity.Transaction.From.String() != faucet.CreditorAccount.String() {
 					return nil, fmt.Errorf("invalid from account. Got %s, expected %s", jobEntity.Transaction.From, faucet.CreditorAccount)
