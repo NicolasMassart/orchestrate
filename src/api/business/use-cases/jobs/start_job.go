@@ -71,7 +71,10 @@ func (uc *startJobUseCase) Execute(ctx context.Context, jobUUID string, userInfo
 		return errors.FromError(err).ExtendComponent(startJobComponent)
 	}
 
-	logger.WithField("partition", partition).WithField("offset", offset).Info("job started successfully")
+	logger.WithField("schedule", job.ScheduleUUID).
+		WithField("partition", partition).
+		WithField("offset", offset).
+		Info("job started successfully")
 	return nil
 }
 

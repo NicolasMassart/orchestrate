@@ -398,10 +398,11 @@ func successfulTestExecution(s *sendTxSuite, txRequest *entities.TxRequest, with
 
 	// We flag this "special" scenario as faucet funding tx flow
 	if withFaucet {
+		internalAdminUser := multitenancy.NewInternalAdminUser()
+		internalAdminUser.TenantID = s.userInfo.TenantID
 		faucet := testdata.FakeFaucet()
 		s.GetFaucetCandidate.EXPECT().Execute(gomock.Any(), *from, chains[0], s.userInfo).Return(faucet, nil)
-
-		s.CreateJobUC.EXPECT().Execute(gomock.Any(), gomock.Any(), multitenancy.NewInternalAdminUser()).
+		s.CreateJobUC.EXPECT().Execute(gomock.Any(), gomock.Any(), internalAdminUser).
 			DoAndReturn(func(ctx context.Context, jobEntity *entities.Job, userInfo *multitenancy.UserInfo) (*entities.Job, error) {
 				if jobEntity.Transaction.From.String() != faucet.CreditorAccount.String() {
 					return nil, fmt.Errorf("invalid from account. Got %s, expected %s", jobEntity.Transaction.From, faucet.CreditorAccount)
@@ -410,7 +411,7 @@ func successfulTestExecution(s *sendTxSuite, txRequest *entities.TxRequest, with
 				jobEntity.UUID = faucet.UUID
 				return jobEntity, nil
 			})
-		s.StartJobUC.EXPECT().Execute(gomock.Any(), faucet.UUID, s.userInfo).Return(nil)
+		s.StartJobUC.EXPECT().Execute(gomock.Any(), faucet.UUID, internalAdminUser).Return(nil)
 	} else {
 		s.GetFaucetCandidate.EXPECT().Execute(gomock.Any(), *from, chains[0], s.userInfo).Return(nil, faucetNotFoundErr)
 	}

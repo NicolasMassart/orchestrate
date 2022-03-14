@@ -28,7 +28,7 @@ func Loader(txctx *engine.TxContext) {
 	case viper.GetString(broker.TxDecodedViperKey), viper.GetString(broker.TxRecoverViperKey):
 		loadTxResponse(txctx)
 	default:
-		loadTxRequest(txctx)
+		loadTxEnvelope(txctx)
 	}
 
 	if txctx.Envelope != nil {
@@ -54,24 +54,6 @@ func loadTxEnvelope(txctx *engine.TxContext) {
 	if err != nil {
 		e := txctx.AbortWithError(err).ExtendComponent(component)
 		txctx.Logger.WithError(e).Errorf("loader: invalid tx envelope")
-		return
-	}
-
-	txctx.Envelope = envelope
-}
-
-func loadTxRequest(txctx *engine.TxContext) {
-	txRequest := &tx.TxRequest{}
-	err := encoding.Unmarshal(txctx.In.(*broker.Msg), txRequest)
-	if err != nil {
-		loadTxEnvelope(txctx)
-		return
-	}
-	txctx.Logger.Tracef("loader: tx request loaded: %v", txRequest)
-
-	envelope, err := txRequest.Envelope()
-	if err != nil {
-		loadTxEnvelope(txctx)
 		return
 	}
 
