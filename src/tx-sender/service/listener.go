@@ -6,6 +6,7 @@ import (
 
 	"github.com/cenkalti/backoff/v4"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
+	authutils "github.com/consensys/orchestrate/pkg/toolkit/app/auth/utils"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/src/entities"
 	utils2 "github.com/consensys/orchestrate/src/tx-sender/tx-sender/utils"
@@ -108,15 +109,17 @@ func (listener *MessageListener) consumeClaimLoop(ctx context.Context, session s
 
 			jlogger := logger.WithField("job", evlp.GetJobUUID()).WithField("schedule", evlp.GetScheduleUUID())
 			job := entities.NewJobFromEnvelope(evlp)
-			err = listener.processEnvelope(log.With(ctx, jlogger), evlp, job)
+			newCtx := authutils.WithAuthorization(log.With(ctx, jlogger), evlp.Headers[authutils.AuthorizationHeader])
+
+			err = listener.processEnvelope(newCtx, evlp, job)
 
 			switch {
 			// If job exceeded number of retries, we must Notify, Update job to FAILED and Continue
 			case err != nil && errors.IsConnectionError(err):
 				txResponse := evlp.AppendError(errors.FromError(err)).TxResponse()
-				serr := listener.sendEnvelope(ctx, evlp.ID, txResponse, listener.recoverTopic, evlp.PartitionKey())
+				serr := listener.sendEnvelope(newCtx, evlp.ID, txResponse, listener.recoverTopic, evlp.PartitionKey())
 				if serr == nil {
-					serr = utils2.UpdateJobStatus(ctx, listener.jobClient, job,
+					serr = utils2.UpdateJobStatus(newCtx, listener.jobClient, job,
 						entities.StatusFailed, err.Error(), nil)
 				}
 
@@ -125,7 +128,7 @@ func (listener *MessageListener) consumeClaimLoop(ctx context.Context, session s
 					return serr
 				}
 			case err != nil:
-				curJob, serr := listener.jobClient.GetJob(ctx, job.UUID)
+				curJob, serr := listener.jobClient.GetJob(newCtx, job.UUID)
 				// IMPORTANT: Jobs can be updated in parallel to NEVER_MINED, MINED or FAILED, so that we should
 				// warning and ignore it in case job is in a final status
 				if serr == nil && entities.IsFinalJobStatus(curJob.Status) {

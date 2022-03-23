@@ -63,7 +63,7 @@ func (uc *startJobUseCase) Execute(ctx context.Context, jobUUID string, userInfo
 		return errors.FromError(err).ExtendComponent(startJobComponent)
 	}
 
-	partition, offset, err := SendJobMessage(job, uc.kafkaProducer, uc.topicsCfg.Sender)
+	partition, offset, err := SendJobMessage(job, uc.kafkaProducer, uc.topicsCfg.Sender, userInfo)
 	if err != nil {
 		errMsg := "failed to send job message"
 		_ = uc.updateStatus(ctx, job, entities.StatusFailed, errMsg)
