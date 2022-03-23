@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	client2 "github.com/consensys/quorum-key-manager/pkg/client"
+
 	"github.com/cenkalti/backoff/v4"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	authutils "github.com/consensys/orchestrate/pkg/toolkit/app/auth/utils"
@@ -109,7 +111,10 @@ func (listener *MessageListener) consumeClaimLoop(ctx context.Context, session s
 
 			jlogger := logger.WithField("job", evlp.GetJobUUID()).WithField("schedule", evlp.GetScheduleUUID())
 			job := entities.NewJobFromEnvelope(evlp)
-			newCtx := authutils.WithAuthorization(log.With(ctx, jlogger), evlp.Headers[authutils.AuthorizationHeader])
+			newCtx := log.With(ctx, jlogger)
+			if evlp.Headers[authutils.AuthorizationHeader] != "" {
+				newCtx = appendAuthHeader(newCtx, evlp.Headers[authutils.AuthorizationHeader])
+			}
 
 			err = listener.processEnvelope(newCtx, evlp, job)
 
@@ -278,4 +283,10 @@ func resetEnvelopeTx(req *tx.Envelope) {
 	req.Nonce = nil
 	req.TxHash = nil
 	req.Raw = nil
+}
+
+func appendAuthHeader(ctx context.Context, authHeader string) context.Context {
+	return context.WithValue(ctx, client2.RequestHeaderKey, map[string]string{
+		authutils.AuthorizationHeader: authHeader,
+	})
 }
