@@ -79,6 +79,7 @@ Feature: Transaction Scheduler Jobs
     When I send "PATCH" request to "{{global.api}}/jobs/{{txOneJobUUID}}" with json:
       """
       {
+        "status": "CREATED",
         "transaction": {
           "from": "{{account1}}",
           "to": "{{to2}}",
@@ -99,7 +100,7 @@ Feature: Transaction Scheduler Jobs
     When I send "GET" request to "{{global.api}}/jobs/{{txOneJobUUID}}"
     Then the response code should be 200
     And Response should have the following fields
-      | status | logs[0].status | logs[1].status | logs[2].status | logs[3].status |
+      | status | logs[0].status | logs[2].status | logs[3].status | logs[4].status |
       | MINED  | CREATED        | STARTED        | PENDING        | MINED          |
 
   @besu

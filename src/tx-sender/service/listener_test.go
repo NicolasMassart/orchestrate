@@ -21,8 +21,6 @@ import (
 	usecases "github.com/consensys/orchestrate/src/tx-sender/tx-sender/use-cases"
 	"github.com/consensys/orchestrate/src/tx-sender/tx-sender/use-cases/mocks"
 	"github.com/gofrs/uuid"
-	"github.com/stretchr/testify/require"
-
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -33,7 +31,6 @@ const errMsgExceedTime = "exceeded waiting time"
 type messageListenerCtrlTestSuite struct {
 	suite.Suite
 	listener            *MessageListener
-	producer            *mock.MockSyncProducer
 	sendETHUC           *mocks.MockSendETHTxUseCase
 	sendETHRawUC        *mocks.MockSendETHRawTxUseCase
 	sendEEAPrivateUC    *mocks.MockSendEEAPrivateTxUseCase
@@ -89,10 +86,9 @@ func (s *messageListenerCtrlTestSuite) SetupTest() {
 	s.senderTopic = "sender-topic"
 	s.recoverTopic = "recover-topic"
 	s.consumerGroup = "kafka-consumer-group"
-	s.producer = mock.NewMockSyncProducer()
 
 	bckoff := backoff.WithMaxRetries(backoff.NewConstantBackOff(time.Millisecond*100), 2)
-	s.listener = NewMessageListener(s, s.apiClient, s.producer, s.recoverTopic, s.senderTopic, bckoff)
+	s.listener = NewMessageListener(s, s.apiClient, s.recoverTopic, s.senderTopic, bckoff)
 }
 
 func (s *messageListenerCtrlTestSuite) TestMessageListener_PublicEthereum() {
@@ -102,7 +98,6 @@ func (s *messageListenerCtrlTestSuite) TestMessageListener_PublicEthereum() {
 	consumerClaim := mock.NewConsumerGroupClaim(s.senderTopic, 0, 0)
 
 	defer func() {
-		s.producer.Clean()
 		_ = s.listener.Cleanup(session)
 	}()
 
@@ -130,7 +125,6 @@ func (s *messageListenerCtrlTestSuite) TestMessageListener_PublicEthereum() {
 			t.Error(errMsgExceedTime)
 		case rjob := <-cjob:
 			assert.Equal(t, rjob.UUID, envelope.GetJobUUID())
-			assert.Nil(t, s.producer.LastMessage())
 		}
 	})
 
@@ -155,7 +149,6 @@ func (s *messageListenerCtrlTestSuite) TestMessageListener_PublicEthereum() {
 			t.Error(errMsgExceedTime)
 		case rjob := <-cjob:
 			assert.Equal(t, rjob.UUID, envelope.GetJobUUID())
-			assert.Nil(t, s.producer.LastMessage())
 		}
 	})
 
@@ -180,7 +173,6 @@ func (s *messageListenerCtrlTestSuite) TestMessageListener_PublicEthereum() {
 			t.Error(errMsgExceedTime)
 		case rjob := <-cjob:
 			assert.Equal(t, rjob.UUID, envelope.GetJobUUID())
-			assert.Nil(t, s.producer.LastMessage())
 		}
 	})
 
@@ -205,7 +197,6 @@ func (s *messageListenerCtrlTestSuite) TestMessageListener_PublicEthereum() {
 			t.Error(errMsgExceedTime)
 		case rjob := <-cjob:
 			assert.Equal(t, rjob.UUID, envelope.GetJobUUID())
-			assert.Nil(t, s.producer.LastMessage())
 		}
 	})
 
@@ -230,7 +221,6 @@ func (s *messageListenerCtrlTestSuite) TestMessageListener_PublicEthereum() {
 			t.Error(errMsgExceedTime)
 		case rjob := <-cjob:
 			assert.Equal(t, rjob.UUID, envelope.GetJobUUID())
-			assert.Nil(t, s.producer.LastMessage())
 		}
 	})
 }
@@ -242,7 +232,6 @@ func (s *messageListenerCtrlTestSuite) TestMessageListener_PublicEthereum_Errors
 	consumerClaim := mock.NewConsumerGroupClaim(s.senderTopic, 0, 0)
 
 	defer func() {
-		s.producer.Clean()
 		_ = s.listener.Cleanup(session)
 	}()
 
@@ -251,10 +240,6 @@ func (s *messageListenerCtrlTestSuite) TestMessageListener_PublicEthereum_Errors
 	}()
 
 	s.T().Run("should update transaction and send message to tx-recover if sending fails", func(t *testing.T) {
-		defer func() {
-			s.producer.Clean()
-		}()
-
 		expectedErr := errors.InternalError("error")
 		evlp := fakeEnvelope(s.tenantID)
 		_ = evlp.SetJobType(tx.JobType_ETH_TX)
@@ -282,8 +267,6 @@ func (s *messageListenerCtrlTestSuite) TestMessageListener_PublicEthereum_Errors
 		case rjob := <-cjob:
 			time.Sleep(time.Millisecond * 500) // Wait for receipt to be sent
 			assert.Equal(t, evlp.GetJobUUID(), rjob.UUID)
-			require.NotNil(t, s.producer.LastMessage())
-			assert.Equal(t, s.recoverTopic, s.producer.LastMessage().Topic)
 		}
 	})
 
@@ -318,7 +301,6 @@ func (s *messageListenerCtrlTestSuite) TestMessageListener_PublicEthereum_Errors
 			t.Error(errMsgExceedTime)
 		case rjob := <-cjob:
 			assert.Equal(t, evlp.GetJobUUID(), rjob.UUID)
-			require.Nil(t, s.producer.LastMessage())
 		}
 	})
 }

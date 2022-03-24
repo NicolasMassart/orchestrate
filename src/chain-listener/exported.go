@@ -8,7 +8,6 @@ import (
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http"
 	"github.com/consensys/orchestrate/pkg/utils"
 	listenermetrics "github.com/consensys/orchestrate/src/chain-listener/chain-listener/metrics"
-	pkgsarama "github.com/consensys/orchestrate/src/infra/broker/sarama"
 	"github.com/consensys/orchestrate/src/infra/ethclient/rpc"
 	"github.com/spf13/viper"
 )
@@ -18,7 +17,6 @@ func New(ctx context.Context, cfg *Config) (*Service, error) {
 	viper.Set(utils.RetryMaxIntervalViperKey, 30*time.Second)
 	viper.Set(utils.RetryMaxElapsedTimeViperKey, 1*time.Hour)
 	rpc.Init(ctx)
-	pkgsarama.InitSyncProducer(ctx)
 
 	apiClient := orchestrateclient.NewHTTPClient(http.NewClient(cfg.HTTPClient), cfg.API)
 
@@ -32,7 +30,6 @@ func New(ctx context.Context, cfg *Config) (*Service, error) {
 	return NewChainListener(
 		cfg,
 		apiClient,
-		pkgsarama.GlobalSyncProducer(),
 		rpc.GlobalClient(),
 		listenerMetrics,
 	)

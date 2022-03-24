@@ -8,9 +8,7 @@ import (
 )
 
 type PGStore struct {
-	tx            store.TransactionAgent
 	job           store.JobAgent
-	log           store.LogAgent
 	schedule      store.ScheduleAgent
 	txRequest     store.TransactionRequestAgent
 	account       store.AccountAgent
@@ -25,9 +23,7 @@ var _ store.DB = &PGStore{}
 
 func New(client postgres.Client) *PGStore {
 	return &PGStore{
-		tx:            NewPGTransaction(client),
 		job:           NewPGJob(client),
-		log:           NewPGLog(client),
 		schedule:      NewPGSchedule(client),
 		txRequest:     NewPGTransactionRequest(client),
 		account:       NewPGAccount(client),
@@ -43,16 +39,8 @@ func (s *PGStore) Job() store.JobAgent {
 	return s.job
 }
 
-func (s *PGStore) Log() store.LogAgent {
-	return s.log
-}
-
 func (s *PGStore) Schedule() store.ScheduleAgent {
 	return s.schedule
-}
-
-func (s *PGStore) Transaction() store.TransactionAgent {
-	return s.tx
 }
 
 func (s *PGStore) TransactionRequest() store.TransactionRequestAgent {

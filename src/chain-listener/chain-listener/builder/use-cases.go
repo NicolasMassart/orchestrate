@@ -1,7 +1,6 @@
 package builder
 
 import (
-	"github.com/Shopify/sarama"
 	orchestrateclient "github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	usecases "github.com/consensys/orchestrate/src/chain-listener/chain-listener/use-cases"
@@ -37,19 +36,15 @@ func (b *Builder) DeleteChainUseCase() usecases.DeleteChainUseCase {
 }
 
 func NewEventUseCases(apiClient orchestrateclient.OrchestrateClient,
-	saramaCli sarama.SyncProducer,
 	ethClient ethclient.MultiClient,
-	txDecodedTopic string,
 	logger *log.Logger,
 ) *Builder {
 	chainInMemory := in_memory.NewChainInMemory()
 	pendingJobInMemory := in_memory.NewPendingJobInMemory()
 	retrySessionInMemory := in_memory.NewRetrySessionInMemory()
 
-	sendNotificationUC := tx_listener.SendNotificationUseCase(apiClient, saramaCli,
-		txDecodedTopic, logger)
 	registerDeployedContractUC := tx_listener.RegisterDeployedContractUseCase(apiClient, ethClient, chainInMemory, logger)
-	updateJobStatusUC := tx_listener.NotifyMinedJobUseCase(apiClient, ethClient, sendNotificationUC,
+	updateJobStatusUC := tx_listener.NotifyMinedJobUseCase(apiClient, ethClient,
 		registerDeployedContractUC, chainInMemory, logger)
 	updateChainHeadUC := tx_listener.UpdateChainHeadUseCase(apiClient, logger)
 	retrySessionJobUC := tx_sentry.RetrySessionJobUseCase(apiClient, logger)

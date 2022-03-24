@@ -36,7 +36,8 @@ func NewUseCases(
 	faucetUseCases := newFaucetUseCases(db)
 	getFaucetCandidateUC := faucets.NewGetFaucetCandidateUseCase(faucetUseCases.SearchFaucets(), ec)
 	scheduleUseCases := newScheduleUseCases(db)
-	jobUseCases := newJobUseCases(db, appMetrics, producer, topicsCfg, chainUseCases.GetChain(), qkmStoreID)
+	jobUseCases := newJobUseCases(db, appMetrics, producer, topicsCfg, chainUseCases.GetChain(), 
+		contractUseCases.SearchContract(), contractUseCases.DecodeLog(), qkmStoreID)
 	transactionUseCases := newTransactionUseCases(db, chainUseCases.SearchChains(), getFaucetCandidateUC, 
 		scheduleUseCases, jobUseCases, contractUseCases.GetContract())
 	accountUseCases := newAccountUseCases(db, keyManagerClient, chainUseCases.SearchChains(), 

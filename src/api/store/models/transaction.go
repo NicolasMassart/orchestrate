@@ -39,7 +39,6 @@ type Transaction struct {
 
 func NewTransaction(tx *entities.ETHTransaction) *Transaction {
 	return &Transaction{
-		UUID:           tx.UUID,
 		Hash:           utils.StringerToString(tx.Hash),
 		Sender:         utils.StringerToString(tx.From),
 		Recipient:      utils.StringerToString(tx.To),
@@ -66,7 +65,6 @@ func NewTransaction(tx *entities.ETHTransaction) *Transaction {
 
 func (tx *Transaction) ToEntity() *entities.ETHTransaction {
 	return &entities.ETHTransaction{
-		UUID:            tx.UUID,
 		Hash:            utils.StringToEthHash(tx.Hash),
 		From:            utils.ToEthAddr(tx.Sender),
 		To:              utils.ToEthAddr(tx.Recipient),

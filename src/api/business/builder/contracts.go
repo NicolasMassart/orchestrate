@@ -7,23 +7,26 @@ import (
 )
 
 type contractUseCases struct {
-	GetContractsCatalogUC      usecases.GetContractsCatalogUseCase
+	getContractsCatalogUC      usecases.GetContractsCatalogUseCase
 	getContractEvents          usecases.GetContractEventsUseCase
 	getContractTags            usecases.GetContractTagsUseCase
 	registerContractDeployment usecases.RegisterContractDeploymentUseCase
 	registerContractUC         usecases.RegisterContractUseCase
 	getContractUC              usecases.GetContractUseCase
 	searchContractUC           usecases.SearchContractUseCase
+	decodeLogUC                usecases.DecodeEventLogUseCase
 }
 
 func newContractUseCases(db store.DB) *contractUseCases {
 	getContractUC := contracts.NewGetContractUseCase(db.Contract())
-
+	getContractEventUC := contracts.NewGetEventsUseCase(db.ContractEvent())
+	
 	return &contractUseCases{
 		registerContractUC:         contracts.NewRegisterContractUseCase(db),
 		getContractUC:              getContractUC,
-		GetContractsCatalogUC:      contracts.NewGetCatalogUseCase(db.Contract()),
-		getContractEvents:          contracts.NewGetEventsUseCase(db.ContractEvent()),
+		getContractsCatalogUC:      contracts.NewGetCatalogUseCase(db.Contract()),
+		decodeLogUC:                contracts.NewDecodeEventLogUseCase(getContractEventUC),
+		getContractEvents:          getContractEventUC,
 		getContractTags:            contracts.NewGetTagsUseCase(db.Contract()),
 		registerContractDeployment: contracts.NewRegisterDeploymentUseCase(db.Contract()),
 		searchContractUC:           contracts.NewSearchContractUseCase(db.Contract()),
@@ -39,7 +42,7 @@ func (u *contractUseCases) RegisterContract() usecases.RegisterContractUseCase {
 }
 
 func (u *contractUseCases) GetContractsCatalog() usecases.GetContractsCatalogUseCase {
-	return u.GetContractsCatalogUC
+	return u.getContractsCatalogUC
 }
 
 func (u *contractUseCases) GetContractEvents() usecases.GetContractEventsUseCase {
@@ -56,4 +59,8 @@ func (u *contractUseCases) SetContractCodeHash() usecases.RegisterContractDeploy
 
 func (u *contractUseCases) SearchContract() usecases.SearchContractUseCase {
 	return u.searchContractUC
+}
+
+func (u *contractUseCases) DecodeLog() usecases.DecodeEventLogUseCase {
+	return u.decodeLogUC
 }

@@ -22,10 +22,6 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-const (
-	waitForEnvelopeTimeOut = 3 * time.Second
-)
-
 // transactionsTestSuite is a test suite for Transaction Scheduler Transactions controller
 type transactionsTestSuite struct {
 	suite.Suite
@@ -159,9 +155,7 @@ func (s *transactionsTestSuite) TestSendTransaction() {
 			assert.Fail(t, err.Error())
 			return
 		}
-		job := txResponse.Jobs[0]
 		assert.Equal(t, idempotencyKey, txResponse.IdempotencyKey)
-		assert.Equal(t, entities.StatusFailed, job.Status)
 	})
 
 	s.T().Run("should fail if payload is invalid", func(t *testing.T) {

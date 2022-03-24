@@ -14,14 +14,14 @@ import (
 const getEventsComponent = "use-cases.get-events"
 
 type getEventsUseCase struct {
-	agent  store.ContractEventAgent
-	logger *log.Logger
+	contractAgent store.ContractEventAgent
+	logger        *log.Logger
 }
 
-func NewGetEventsUseCase(agent store.ContractEventAgent) usecases.GetContractEventsUseCase {
+func NewGetEventsUseCase(contractAgent store.ContractEventAgent) usecases.GetContractEventsUseCase {
 	return &getEventsUseCase{
-		agent:  agent,
-		logger: log.NewLogger().SetComponent(getEventsComponent),
+		contractAgent: contractAgent,
+		logger:        log.NewLogger().SetComponent(getEventsComponent),
 	}
 }
 
@@ -30,7 +30,7 @@ func (uc *getEventsUseCase) Execute(ctx context.Context, chainID string, address
 	ctx = log.WithFields(ctx, log.Field("chain_id", chainID), log.Field("address", address))
 	logger := uc.logger.WithContext(ctx)
 
-	contractEvent, err := uc.agent.FindOneByAccountAndSigHash(ctx, chainID, address.Hex(), sigHash.String(), indexedInputCount)
+	contractEvent, err := uc.contractAgent.FindOneByAccountAndSigHash(ctx, chainID, address.Hex(), sigHash.String(), indexedInputCount)
 	if err != nil {
 		return "", nil, errors.FromError(err).ExtendComponent(getEventsComponent)
 	}
@@ -39,7 +39,7 @@ func (uc *getEventsUseCase) Execute(ctx context.Context, chainID string, address
 		return contractEvent.ABI, nil, nil
 	}
 
-	defaultEventModels, err := uc.agent.FindDefaultBySigHash(ctx, sigHash.String(), indexedInputCount)
+	defaultEventModels, err := uc.contractAgent.FindDefaultBySigHash(ctx, sigHash.String(), indexedInputCount)
 	if err != nil {
 		return "", nil, errors.FromError(err).ExtendComponent(getEventsComponent)
 	}

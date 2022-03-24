@@ -32,11 +32,6 @@ func NewCreateJobUseCase(db store.DB, getChainUC usecases.GetChainUseCase, qkmSt
 	}
 }
 
-func (uc createJobUseCase) WithDBTransaction(dbtx store.DB) usecases.CreateJobUseCase {
-	uc.db = dbtx
-	return &uc
-}
-
 func (uc *createJobUseCase) Execute(ctx context.Context, job *entities.Job, userInfo *multitenancy.UserInfo) (*entities.Job, error) {
 	ctx = log.WithFields(ctx, log.Field("chain", job.ChainUUID), log.Field("schedule", job.ScheduleUUID))
 	logger := uc.logger.WithContext(ctx)
@@ -65,51 +60,12 @@ func (uc *createJobUseCase) Execute(ctx context.Context, job *entities.Job, user
 	job.TenantID = userInfo.TenantID
 	job.OwnerID = userInfo.Username
 	job.Status = entities.StatusCreated
-	job.Logs = append(job.Logs, &entities.Log{
+	jobLog := &entities.Log{
 		Status: entities.StatusCreated,
-	})
-
-	job.Transaction, err = uc.db.Transaction().Insert(ctx, job.Transaction)
-	if err != nil {
-		return nil, errors.FromError(err).ExtendComponent(createJobComponent)
 	}
 
-	err = uc.db.RunInTransaction(ctx, func(dbtx store.DB) error {
-		// If it's a child job, only create it if parent status is PENDING
-		if job.InternalData.ParentJobUUID != "" {
-			parentJobUUID := job.InternalData.ParentJobUUID
-			logger.WithField("parent_job", parentJobUUID).Debug("lock parent job row for update")
-			if der := dbtx.Job().LockOneByUUID(ctx, job.InternalData.ParentJobUUID); der != nil {
-				return der
-			}
-
-			parentJobModel, der := dbtx.Job().FindOneByUUID(ctx, parentJobUUID, userInfo.AllowedTenants, userInfo.Username, false)
-			if der != nil {
-				return der
-			}
-
-			if parentJobModel.Status != entities.StatusPending {
-				errMessage := "cannot create a child job in a finalized schedule"
-				logger.WithField("parent_job", parentJobUUID).
-					WithField("parent_status", parentJobModel.Status).Error(errMessage)
-				return errors.InvalidStateError(errMessage)
-			}
-		}
-
-		der := dbtx.Job().Insert(ctx, job, job.ScheduleUUID, job.Transaction.UUID)
-		if der != nil {
-			return der
-		}
-
-		job.Logs[0], der = dbtx.Log().Insert(ctx, job.Logs[0], job.UUID)
-		if der != nil {
-			return der
-		}
-
-		return nil
-	})
+	err = uc.db.Job().Insert(ctx, job, jobLog)
 	if err != nil {
-		logger.WithError(err).Info("failed to create job")
 		return nil, errors.FromError(err).ExtendComponent(createJobComponent)
 	}
 

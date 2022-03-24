@@ -26,7 +26,7 @@ func NewRegisterDeploymentUseCase(agent store.ContractAgent) usecases.RegisterCo
 }
 
 func (uc *registerDeploymentUseCase) Execute(ctx context.Context, chainID string, address ethcommon.Address, codeHash hexutil.Bytes) error {
-	ctx = log.WithFields(ctx, log.Field("chain_id", chainID), log.Field("address", chainID))
+	ctx = log.WithFields(ctx, log.Field("chain_id", chainID), log.Field("address", address.String()))
 	logger := uc.logger.WithContext(ctx)
 	logger.Debug("registering contract deployment hash is starting ...")
 

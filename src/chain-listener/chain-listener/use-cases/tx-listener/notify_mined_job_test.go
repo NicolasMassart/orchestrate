@@ -28,7 +28,6 @@ func TestNotifyMinedJob_Execute(t *testing.T) {
 
 	apiClient := mock.NewMockOrchestrateClient(ctrl)
 	ethClient := mock2.NewMockMultiClient(ctrl)
-	sendNotification := mocks.NewMockSendNotification(ctrl)
 	registerDeployedContract := mocks.NewMockRegisterDeployedContract(ctrl)
 	chainState := storemocks.NewMockChain(ctrl)
 	logger := log.NewLogger()
@@ -38,7 +37,7 @@ func TestNotifyMinedJob_Execute(t *testing.T) {
 	expectedErr := fmt.Errorf("expected_err")
 	
 	chain := testdata.FakeChain()
-	usecase := NotifyMinedJobUseCase(apiClient, ethClient, sendNotification, registerDeployedContract, chainState, logger)
+	usecase := NotifyMinedJobUseCase(apiClient, ethClient, registerDeployedContract, chainState, logger)
 
 	t.Run("should handle mined job successfully", func(t *testing.T) {
 		job := testdata.FakeJob()
@@ -47,34 +46,13 @@ func TestNotifyMinedJob_Execute(t *testing.T) {
 		receipt.ContractAddress = testdata.FakeAddress().String()
 		
 		ethClient.EXPECT().TransactionReceipt(gomock.Any(), proxyURL, *job.Transaction.Hash).Return(receipt, nil)
-		chainState.EXPECT().Get(gomock.Any(), job.ChainUUID).Return(chain, nil)
-		apiClient.EXPECT().GetContractEvents(gomock.Any(), receipt.Logs[0].Address, chain.ChainID.String(), gomock.Any()).
-			Return(&types.GetContractEventsBySignHashResponse{}, nil)
 		
 		registerDeployedContract.EXPECT().Execute(gomock.Any(), job).Return(nil)
 		apiClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, gomock.Any()).Return(&types.JobResponse{}, nil)
-		sendNotification.EXPECT().Execute(gomock.Any(), job).Return(nil)
 		
 		err := usecase.Execute(ctx, job)
 
 		assert.NoError(t, err)
-	})
-	
-	t.Run("should fail to handle mined job if notifies fails", func(t *testing.T) {
-		job := testdata.FakeJob()
-		job.ChainUUID = chain.UUID
-		receipt := testdata2.FakeReceipt()
-		receipt.Logs = nil
-		
-		ethClient.EXPECT().TransactionReceipt(gomock.Any(), proxyURL, *job.Transaction.Hash).Return(receipt, nil)
-		chainState.EXPECT().Get(gomock.Any(), job.ChainUUID).Return(chain, nil)
-		apiClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, gomock.Any()).Return(&types.JobResponse{}, nil)
-		sendNotification.EXPECT().Execute(gomock.Any(), job).Return(expectedErr)
-		
-		err := usecase.Execute(ctx, job)
-
-		assert.Error(t, err)
-		assert.Equal(t, expectedErr, err)
 	})
 	
 	t.Run("should fail to handle mined job if update status fails", func(t *testing.T) {
@@ -83,9 +61,6 @@ func TestNotifyMinedJob_Execute(t *testing.T) {
 		receipt := testdata2.FakeReceipt()
 		
 		ethClient.EXPECT().TransactionReceipt(gomock.Any(), proxyURL, *job.Transaction.Hash).Return(receipt, nil)
-		chainState.EXPECT().Get(gomock.Any(), job.ChainUUID).Return(chain, nil)
-		apiClient.EXPECT().GetContractEvents(gomock.Any(), receipt.Logs[0].Address, chain.ChainID.String(), gomock.Any()).
-			Return(&types.GetContractEventsBySignHashResponse{}, nil)
 		
 		apiClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, gomock.Any()).Return(&types.JobResponse{}, expectedErr)
 		

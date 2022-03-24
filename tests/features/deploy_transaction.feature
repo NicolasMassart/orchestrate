@@ -280,8 +280,8 @@ Feature: Deploy contracts
       | jobOTKUUID | jobs[0].uuid |
     Then Envelopes should be in topic "tx.recover"
     And Envelopes should have the following fields
-      | Errors.0.Message                                        |
-      | code: -32003 - message: Intrinsic gas exceeds gas limit |
+      | Errors.0.Message |
+      | ~                |
     When I send "GET" request to "{{global.api}}/jobs/{{jobOTKUUID}}"
     Then the response code should be 200
     And Response should have the following fields

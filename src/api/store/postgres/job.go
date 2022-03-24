@@ -30,52 +30,103 @@ func NewPGJob(client postgres.Client) *PGJob {
 	}
 }
 
-func (agent *PGJob) Insert(ctx context.Context, job *entities.Job, scheduleUUID, txUUID string) error {
-	model := models.NewJob(job)
-	if model.UUID == "" {
-		model.UUID = uuid.Must(uuid.NewV4()).String()
+func (agent *PGJob) Insert(ctx context.Context, job *entities.Job, jobLog *entities.Log) error {
+	jobModel := models.NewJob(job)
+	if jobModel.UUID == "" {
+		jobModel.UUID = uuid.Must(uuid.NewV4()).String()
 	}
-	model.CreatedAt = time.Now().UTC()
-	model.UpdatedAt = model.CreatedAt
+	jobModel.CreatedAt = time.Now().UTC()
+	jobModel.UpdatedAt = jobModel.CreatedAt
 
-	scheduleID, err := getScheduleIDByUUID(ctx, agent.client, agent.logger, scheduleUUID)
+	scheduleID, err := getScheduleIDByUUID(ctx, agent.client, job.ScheduleUUID, agent.logger)
 	if err != nil {
 		return err
 	}
-	model.ScheduleID = &scheduleID
 
-	tx := &models.Transaction{}
-	err = agent.client.ModelContext(ctx, tx).Column("id").Where("uuid = ?", txUUID).Select()
+	err = agent.client.RunInTransaction(ctx, func(dbtx postgres.Client) error {
+		jobModel.ScheduleID = &scheduleID
+
+		txModel := models.NewTransaction(job.Transaction)
+		txModel.UUID = uuid.Must(uuid.NewV4()).String()
+		txModel.CreatedAt = jobModel.CreatedAt
+		txModel.UpdatedAt = jobModel.CreatedAt
+		err = agent.client.ModelContext(ctx, txModel).Insert()
+		if err != nil {
+			return err
+		}
+		jobModel.TransactionID = &txModel.ID
+
+		err = agent.client.ModelContext(ctx, jobModel).Insert()
+		if err != nil {
+			return err
+		}
+
+		jobLogModel := models.NewLog(jobLog)
+		jobLogModel.JobID = &jobModel.ID
+		jobLogModel.UUID = uuid.Must(uuid.NewV4()).String()
+		jobLogModel.CreatedAt = jobModel.CreatedAt
+		err = dbtx.ModelContext(ctx, jobLogModel).Insert()
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
 	if err != nil {
-		errMsg := "failed to find transaction by uuid"
+		errMsg := "failed to insert job"
 		agent.logger.WithContext(ctx).WithError(err).Error(errMsg)
 		return errors.FromError(err).SetMessage(errMsg)
 	}
-	model.TransactionID = &tx.ID
 
-	err = agent.client.ModelContext(ctx, model).Insert()
-	if err != nil {
-		errMessage := "failed to insert job"
-		agent.logger.WithContext(ctx).WithError(err).Error(errMessage)
-		return errors.FromError(err).SetMessage(errMessage)
-	}
-
-	utils.CopyPtr(model.ToEntity(), job)
+	utils.CopyPtr(jobModel.ToEntity(), job)
 	return nil
 }
 
-func (agent *PGJob) Update(ctx context.Context, job *entities.Job) error {
-	model := models.NewJob(job)
-	model.UpdatedAt = time.Now().UTC()
-
-	err := agent.client.ModelContext(ctx, model).Where("uuid = ?", job.UUID).Update()
+func (agent *PGJob) Update(ctx context.Context, job *entities.Job, jobLog *entities.Log) error {
+	curJobModel, err := getJobModelUUID(ctx, agent.client, job.UUID, agent.logger)
 	if err != nil {
-		errMessage := "failed to update job"
-		agent.logger.WithContext(ctx).WithError(err).Error(errMessage)
-		return errors.FromError(err).SetMessage(errMessage)
+		return err
 	}
 
-	utils.CopyPtr(model.ToEntity(), job)
+	jobModel := models.NewJob(job)
+	jobModel.UpdatedAt = time.Now().UTC()
+
+	err = agent.client.RunInTransaction(ctx, func(dbtx postgres.Client) error {
+		err = agent.client.ModelContext(ctx, jobModel).Where("id = ?", curJobModel.ID).Update()
+		if err != nil {
+			return err
+		}
+
+		if jobLog != nil {
+			jobLogModel := models.NewLog(jobLog)
+			jobLogModel.JobID = &curJobModel.ID
+			jobLogModel.UUID = uuid.Must(uuid.NewV4()).String()
+			jobLogModel.CreatedAt = jobModel.UpdatedAt
+			err = dbtx.ModelContext(ctx, jobLogModel).Insert()
+			if err != nil {
+				return err
+			}
+		}
+
+		if job.Transaction != nil {
+			jobTxModel := models.NewTransaction(job.Transaction)
+			jobTxModel.UpdatedAt = jobModel.UpdatedAt
+			err = dbtx.ModelContext(ctx, jobTxModel).Where("id = ?", *curJobModel.TransactionID).Update()
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		errMsg := "failed to update job"
+		agent.logger.WithContext(ctx).WithError(err).Error(errMsg)
+		return errors.FromError(err).SetMessage(errMsg)
+	}
+
 	return nil
 }
 
@@ -110,22 +161,28 @@ func (agent *PGJob) FindOneByUUID(ctx context.Context, jobUUID string, tenants [
 	return job.ToEntity(), nil
 }
 
-func (agent *PGJob) LockOneByUUID(ctx context.Context, jobUUID string) error {
-	err := agent.client.ModelContext(ctx, &models.Job{}).
-		Where("job.uuid = ?", jobUUID).
-		For("UPDATE").
-		Select()
-	if err != nil {
-		if errors.IsNotFoundError(err) {
-			return nil
-		}
+func (agent *PGJob) GetSiblingJobs(ctx context.Context, parentJobUUID string, tenants []string, ownerID string) ([]*entities.Job, error) {
+	var jobs []*models.Job
 
-		errMessage := "failed to lock job by uuid"
+	q := agent.client.ModelContext(ctx, &jobs).Relation("Schedule")
+
+	q = q.Where(fmt.Sprintf("(%s) OR (%s)",
+		"job.internal_data @> '{\"parentJobUUID\": \"?\"}'",
+		"job.uuid = '?'",
+	), pg.Safe(parentJobUUID), pg.Safe(parentJobUUID))
+
+	err := q.WhereAllowedTenants("schedule.tenant_id", tenants).
+		Order("id ASC").
+		WhereAllowedOwner("schedule.owner_id", ownerID).
+		Select()
+
+	if err != nil {
+		errMessage := "failed to find sibling jobs"
 		agent.logger.WithError(err).Error(errMessage)
-		return errors.FromError(err).SetMessage(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
 
-	return nil
+	return models.NewJobs(jobs), nil
 }
 
 func (agent *PGJob) Search(ctx context.Context, filters *entities.JobFilters, tenants []string, ownerID string) ([]*entities.Job, error) {
@@ -177,4 +234,16 @@ func (agent *PGJob) Search(ctx context.Context, filters *entities.JobFilters, te
 	}
 
 	return models.NewJobs(jobs), nil
+}
+
+func getJobModelUUID(ctx context.Context, client postgres.Client, jobUUID string, logger *log.Logger) (*models.Job, error) {
+	model := &models.Job{}
+	err := client.ModelContext(ctx, model).Where("uuid = ?", jobUUID).Select()
+	if err != nil {
+		errMsg := "failed to retrieve job model"
+		logger.WithContext(ctx).WithError(err).Error(errMsg)
+		return nil, errors.FromError(err).SetMessage(errMsg)
+	}
+
+	return model, nil
 }

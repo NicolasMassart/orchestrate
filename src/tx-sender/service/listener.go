@@ -40,7 +40,6 @@ type MessageListener struct {
 
 func NewMessageListener(useCases usecases.UseCases,
 	jobClient client.JobClient,
-	producer sarama.SyncProducer,
 	recoverTopic, crafterTopic string,
 	bck backoff.BackOff,
 ) *MessageListener {
@@ -48,7 +47,6 @@ func NewMessageListener(useCases usecases.UseCases,
 		useCases:     useCases,
 		recoverTopic: recoverTopic,
 		crafterTopic: crafterTopic,
-		producer:     producer,
 		retryBackOff: bck,
 		jobClient:    jobClient,
 		logger:       log.NewLogger().SetComponent(messageListenerComponent),
@@ -170,10 +168,6 @@ func (listener *MessageListener) processEnvelope(ctx context.Context, evlp *tx.E
 
 			var serr error
 			switch {
-			// Never retry on children jobs
-			case job.InternalData.ParentJobUUID != "":
-				serr = utils2.UpdateJobStatus(ctx, listener.jobClient, job,
-					entities.StatusFailed, err.Error(), nil)
 			// Retry over same message
 			case errors.IsInvalidNonceWarning(err):
 				resetEnvelopeTx(evlp)
@@ -182,14 +176,12 @@ func (listener *MessageListener) processEnvelope(ctx context.Context, evlp *tx.E
 				if serr == nil {
 					return err
 				}
-			// In case of other kind of errors...
+			case errors.IsKnownTransactionError(err):
+				// Ignore
+				return nil
 			default:
-				txResponse := evlp.AppendError(errors.FromError(err)).TxResponse()
-				serr = listener.sendEnvelope(ctx, evlp.ID, txResponse, listener.recoverTopic, evlp.PartitionKey())
-				if serr == nil {
-					serr = utils2.UpdateJobStatus(ctx, listener.jobClient, job,
-						entities.StatusFailed, err.Error(), nil)
-				}
+				serr = utils2.UpdateJobStatus(ctx, listener.jobClient, job,
+					entities.StatusFailed, err.Error(), nil)
 			}
 
 			switch {
@@ -274,7 +266,7 @@ func (listener *MessageListener) sendEnvelope(ctx context.Context, msgID string,
 
 	logger.WithField("partition", partition).
 		WithField("offset", offset).
-		Info("envelope successfully sent")
+		Debug("envelope successfully sent")
 
 	return nil
 }

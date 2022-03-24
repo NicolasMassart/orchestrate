@@ -87,7 +87,7 @@ func (agent *PGSchedule) FindAll(ctx context.Context, tenants []string, ownerID 
 	return models.NewSchedules(schedules), nil
 }
 
-func getScheduleIDByUUID(ctx context.Context, client postgres.Client, logger *log.Logger, scheduleUUID string) (int, error) {
+func getScheduleIDByUUID(ctx context.Context, client postgres.Client, scheduleUUID string, logger *log.Logger) (int, error) {
 	model := &models.Schedule{}
 	err := client.ModelContext(ctx, model).Column("id").Where("uuid = ?", scheduleUUID).Select()
 	if err != nil {

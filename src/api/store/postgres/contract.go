@@ -140,6 +140,9 @@ LIMIT 1
 	err := agent.client.QueryOneContext(ctx, qContract, query, address)
 	if err != nil {
 		errMessage := "could not find contract by address"
+		if errors.IsNotFoundError(err) {
+			return nil, errors.FromError(err).SetMessage(errMessage)
+		}
 		agent.logger.WithContext(ctx).WithError(err).Error(errMessage)
 		return nil, errors.FromError(err).SetMessage(errMessage)
 	}
@@ -156,8 +159,12 @@ func (agent *PGContract) FindOneByNameAndTag(ctx context.Context, name, tag stri
 		Where("LOWER(t.name) = LOWER(?)", tag).
 		Where("LOWER(registry.name) = LOWER(?)", name).
 		SelectOne()
+
 	if err != nil {
 		errMessage := "could not find contract by name and tag"
+		if errors.IsNotFoundError(err) {
+			return nil, errors.FromError(err).SetMessage(errMessage)
+		}
 		agent.logger.WithContext(ctx).WithError(err).Error(errMessage)
 		return nil, errors.FromError(err).SetMessage(errMessage)
 	}

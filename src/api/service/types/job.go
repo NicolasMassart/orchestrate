@@ -3,6 +3,7 @@ package types
 import (
 	"time"
 
+	"github.com/consensys/orchestrate/pkg/types/ethereum"
 	"github.com/consensys/orchestrate/src/entities"
 	infra "github.com/consensys/orchestrate/src/infra/api"
 )
@@ -22,6 +23,7 @@ type UpdateJobRequest struct {
 	Labels      map[string]string      `json:"labels,omitempty"` // List of custom labels.
 	Annotations *Annotations           `json:"annotations,omitempty"`
 	Transaction *ETHTransactionRequest `json:"transaction,omitempty"`
+	Receipt     *ethereum.Receipt      `json:"receipt,omitempty"`
 	Status      entities.JobStatus     `json:"status,omitempty" validate:"isJobStatus" example:"MINED"` // Status of the job.
 	Message     string                 `json:"message,omitempty" example:"Update message"`              // Update message.
 }

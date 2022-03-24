@@ -64,34 +64,6 @@ func (mr *MockDBMockRecorder) Job() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Job", reflect.TypeOf((*MockDB)(nil).Job))
 }
 
-// Log mocks base method
-func (m *MockDB) Log() store.LogAgent {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Log")
-	ret0, _ := ret[0].(store.LogAgent)
-	return ret0
-}
-
-// Log indicates an expected call of Log
-func (mr *MockDBMockRecorder) Log() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Log", reflect.TypeOf((*MockDB)(nil).Log))
-}
-
-// Transaction mocks base method
-func (m *MockDB) Transaction() store.TransactionAgent {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Transaction")
-	ret0, _ := ret[0].(store.TransactionAgent)
-	return ret0
-}
-
-// Transaction indicates an expected call of Transaction
-func (mr *MockDBMockRecorder) Transaction() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Transaction", reflect.TypeOf((*MockDB)(nil).Transaction))
-}
-
 // TransactionRequest mocks base method
 func (m *MockDB) TransactionRequest() store.TransactionRequestAgent {
 	m.ctrl.T.Helper()
@@ -364,31 +336,31 @@ func (m *MockJobAgent) EXPECT() *MockJobAgentMockRecorder {
 }
 
 // Insert mocks base method
-func (m *MockJobAgent) Insert(ctx context.Context, job *entities.Job, scheduleUUID, txUUID string) error {
+func (m *MockJobAgent) Insert(ctx context.Context, job *entities.Job, log *entities.Log) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Insert", ctx, job, scheduleUUID, txUUID)
+	ret := m.ctrl.Call(m, "Insert", ctx, job, log)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Insert indicates an expected call of Insert
-func (mr *MockJobAgentMockRecorder) Insert(ctx, job, scheduleUUID, txUUID interface{}) *gomock.Call {
+func (mr *MockJobAgentMockRecorder) Insert(ctx, job, log interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockJobAgent)(nil).Insert), ctx, job, scheduleUUID, txUUID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockJobAgent)(nil).Insert), ctx, job, log)
 }
 
 // Update mocks base method
-func (m *MockJobAgent) Update(ctx context.Context, job *entities.Job) error {
+func (m *MockJobAgent) Update(ctx context.Context, job *entities.Job, log *entities.Log) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", ctx, job)
+	ret := m.ctrl.Call(m, "Update", ctx, job, log)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Update indicates an expected call of Update
-func (mr *MockJobAgentMockRecorder) Update(ctx, job interface{}) *gomock.Call {
+func (mr *MockJobAgentMockRecorder) Update(ctx, job, log interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockJobAgent)(nil).Update), ctx, job)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockJobAgent)(nil).Update), ctx, job, log)
 }
 
 // FindOneByUUID mocks base method
@@ -406,20 +378,6 @@ func (mr *MockJobAgentMockRecorder) FindOneByUUID(ctx, uuid, tenants, ownerID, w
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindOneByUUID", reflect.TypeOf((*MockJobAgent)(nil).FindOneByUUID), ctx, uuid, tenants, ownerID, withLogs)
 }
 
-// LockOneByUUID mocks base method
-func (m *MockJobAgent) LockOneByUUID(ctx context.Context, uuid string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LockOneByUUID", ctx, uuid)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// LockOneByUUID indicates an expected call of LockOneByUUID
-func (mr *MockJobAgentMockRecorder) LockOneByUUID(ctx, uuid interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LockOneByUUID", reflect.TypeOf((*MockJobAgent)(nil).LockOneByUUID), ctx, uuid)
-}
-
 // Search mocks base method
 func (m *MockJobAgent) Search(ctx context.Context, filters *entities.JobFilters, tenants []string, ownerID string) ([]*entities.Job, error) {
 	m.ctrl.T.Helper()
@@ -435,95 +393,19 @@ func (mr *MockJobAgentMockRecorder) Search(ctx, filters, tenants, ownerID interf
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockJobAgent)(nil).Search), ctx, filters, tenants, ownerID)
 }
 
-// MockLogAgent is a mock of LogAgent interface
-type MockLogAgent struct {
-	ctrl     *gomock.Controller
-	recorder *MockLogAgentMockRecorder
-}
-
-// MockLogAgentMockRecorder is the mock recorder for MockLogAgent
-type MockLogAgentMockRecorder struct {
-	mock *MockLogAgent
-}
-
-// NewMockLogAgent creates a new mock instance
-func NewMockLogAgent(ctrl *gomock.Controller) *MockLogAgent {
-	mock := &MockLogAgent{ctrl: ctrl}
-	mock.recorder = &MockLogAgentMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockLogAgent) EXPECT() *MockLogAgentMockRecorder {
-	return m.recorder
-}
-
-// Insert mocks base method
-func (m *MockLogAgent) Insert(ctx context.Context, log *entities.Log, jobUUID string) (*entities.Log, error) {
+// GetSiblingJobs mocks base method
+func (m *MockJobAgent) GetSiblingJobs(ctx context.Context, parentJobUUID string, tenants []string, ownerID string) ([]*entities.Job, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Insert", ctx, log, jobUUID)
-	ret0, _ := ret[0].(*entities.Log)
+	ret := m.ctrl.Call(m, "GetSiblingJobs", ctx, parentJobUUID, tenants, ownerID)
+	ret0, _ := ret[0].([]*entities.Job)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Insert indicates an expected call of Insert
-func (mr *MockLogAgentMockRecorder) Insert(ctx, log, jobUUID interface{}) *gomock.Call {
+// GetSiblingJobs indicates an expected call of GetSiblingJobs
+func (mr *MockJobAgentMockRecorder) GetSiblingJobs(ctx, parentJobUUID, tenants, ownerID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockLogAgent)(nil).Insert), ctx, log, jobUUID)
-}
-
-// MockTransactionAgent is a mock of TransactionAgent interface
-type MockTransactionAgent struct {
-	ctrl     *gomock.Controller
-	recorder *MockTransactionAgentMockRecorder
-}
-
-// MockTransactionAgentMockRecorder is the mock recorder for MockTransactionAgent
-type MockTransactionAgentMockRecorder struct {
-	mock *MockTransactionAgent
-}
-
-// NewMockTransactionAgent creates a new mock instance
-func NewMockTransactionAgent(ctrl *gomock.Controller) *MockTransactionAgent {
-	mock := &MockTransactionAgent{ctrl: ctrl}
-	mock.recorder = &MockTransactionAgentMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockTransactionAgent) EXPECT() *MockTransactionAgentMockRecorder {
-	return m.recorder
-}
-
-// Insert mocks base method
-func (m *MockTransactionAgent) Insert(ctx context.Context, tx *entities.ETHTransaction) (*entities.ETHTransaction, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Insert", ctx, tx)
-	ret0, _ := ret[0].(*entities.ETHTransaction)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Insert indicates an expected call of Insert
-func (mr *MockTransactionAgentMockRecorder) Insert(ctx, tx interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockTransactionAgent)(nil).Insert), ctx, tx)
-}
-
-// Update mocks base method
-func (m *MockTransactionAgent) Update(ctx context.Context, tx *entities.ETHTransaction, jobUUID string) (*entities.ETHTransaction, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", ctx, tx, jobUUID)
-	ret0, _ := ret[0].(*entities.ETHTransaction)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Update indicates an expected call of Update
-func (mr *MockTransactionAgentMockRecorder) Update(ctx, tx, jobUUID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockTransactionAgent)(nil).Update), ctx, tx, jobUUID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSiblingJobs", reflect.TypeOf((*MockJobAgent)(nil).GetSiblingJobs), ctx, parentJobUUID, tenants, ownerID)
 }
 
 // MockAccountAgent is a mock of AccountAgent interface

@@ -46,7 +46,7 @@ func (c Client) RunInTransaction(ctx context.Context, persist func(client postgr
 	// CheckPermission whether we already are in a tx or not to allow for nested DB transactions
 	dbtx, isTx := c.db.(*pg.Tx)
 	if isTx {
-		return dbtx.RunInTransaction(ctx, persistFunc)
+		return persistFunc(dbtx)
 	}
 
 	return c.db.(*pg.DB).RunInTransaction(ctx, persistFunc)

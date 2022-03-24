@@ -54,7 +54,6 @@ func (uc *retryJobTxUseCase) Execute(ctx context.Context, jobUUID string, gasInc
 	job.UUID = ""
 	job.InternalData.ParentJobUUID = jobUUID
 	job.Transaction.Data = txData
-	job.Transaction.UUID = ""
 	increment := int64(math.Trunc((gasIncrement + 1.0) * 100))
 	if job.Transaction.TransactionType == entities.LegacyTxType {
 		gasPrice := job.Transaction.GasPrice.ToInt()

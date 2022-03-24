@@ -61,7 +61,8 @@ func FormatJobCreateRequest(request *types.CreateJobRequest) *entities.Job {
 
 func FormatJobUpdateRequest(request *types.UpdateJobRequest) *entities.Job {
 	job := &entities.Job{
-		Labels: request.Labels,
+		Labels:  request.Labels,
+		Receipt: request.Receipt,
 	}
 
 	if request.Transaction != nil {

@@ -12,10 +12,6 @@ type NotifyMinedJob interface {
 	Execute(ctx context.Context, job *entities.Job) error
 }
 
-type SendNotification interface {
-	Execute(ctx context.Context, job *entities.Job) error
-}
-
 type RegisterDeployedContract interface {
 	Execute(ctx context.Context, job *entities.Job) error
 }

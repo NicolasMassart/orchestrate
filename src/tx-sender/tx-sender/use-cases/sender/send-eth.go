@@ -86,6 +86,7 @@ func (uc *sendETHTxUseCase) Execute(ctx context.Context, job *entities.Job) erro
 		if err2 := uc.nonceChecker.CleanNonce(ctx, job, err); err2 != nil {
 			return errors.FromError(err2).ExtendComponent(sendETHTxComponent)
 		}
+
 		return errors.FromError(err).ExtendComponent(sendETHTxComponent)
 	}
 

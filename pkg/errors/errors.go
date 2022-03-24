@@ -51,9 +51,10 @@ const (
 	InvalidParameter          = Data + 4<<8  // Invalid parameter provided (subclass 424XX)
 
 	// Ethereum error (class BEXXX)
-	Ethereum        uint64 = 11<<16 + 14<<12
-	NonceTooLow            = Ethereum + 1
-	InvalidNonceErr        = Ethereum + 2
+	Ethereum            uint64 = 11<<16 + 14<<12
+	NonceTooLow                = Ethereum + 1
+	InvalidNonceErr            = Ethereum + 2
+	KnownTransactionErr        = Ethereum + 3
 
 	// Cryptographic operation error (class C0XXX)
 	CryptoOperation               uint64 = 12 << 16
@@ -330,9 +331,17 @@ func NonceTooLowError(format string, a ...interface{}) *ierror.Error {
 	return Errorf(NonceTooLow, format, a...)
 }
 
+func KnownTransactionError(format string, a ...interface{}) *ierror.Error {
+	return Errorf(KnownTransactionErr, format, a...)
+}
+
 // CryptoOperationError is raised when failing a cryptographic operation
 func CryptoOperationError(format string, a ...interface{}) *ierror.Error {
 	return Errorf(CryptoOperation, format, a...)
+}
+
+func IsKnownTransactionError(err error) bool {
+	return isErrorClass(FromError(err).GetCode(), KnownTransactionErr)
 }
 
 // IsCryptoOperationError indicate whether an error is a cryptographic operation error

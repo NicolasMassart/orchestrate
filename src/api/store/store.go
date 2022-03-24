@@ -12,8 +12,6 @@ import (
 type DB interface {
 	Schedule() ScheduleAgent
 	Job() JobAgent
-	Log() LogAgent
-	Transaction() TransactionAgent
 	TransactionRequest() TransactionRequestAgent
 	Account() AccountAgent
 	Faucet() FaucetAgent
@@ -37,20 +35,11 @@ type ScheduleAgent interface {
 }
 
 type JobAgent interface {
-	Insert(ctx context.Context, job *entities.Job, scheduleUUID, txUUID string) error
-	Update(ctx context.Context, job *entities.Job) error
+	Insert(ctx context.Context, job *entities.Job, log *entities.Log) error
+	Update(ctx context.Context, job *entities.Job, log *entities.Log) error
 	FindOneByUUID(ctx context.Context, uuid string, tenants []string, ownerID string, withLogs bool) (*entities.Job, error)
-	LockOneByUUID(ctx context.Context, uuid string) error
 	Search(ctx context.Context, filters *entities.JobFilters, tenants []string, ownerID string) ([]*entities.Job, error)
-}
-
-type LogAgent interface {
-	Insert(ctx context.Context, log *entities.Log, jobUUID string) (*entities.Log, error)
-}
-
-type TransactionAgent interface {
-	Insert(ctx context.Context, tx *entities.ETHTransaction) (*entities.ETHTransaction, error)
-	Update(ctx context.Context, tx *entities.ETHTransaction, jobUUID string) (*entities.ETHTransaction, error)
+	GetSiblingJobs(ctx context.Context, parentJobUUID string, tenants []string, ownerID string) ([]*entities.Job, error)
 }
 
 type AccountAgent interface {

@@ -29,30 +29,25 @@ func TestStartJob_Execute(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockJobDA := mocks.NewMockJobAgent(ctrl)
-	mockLogDA := mocks.NewMockLogAgent(ctrl)
-	mockKafkaProducer := mocks2.NewSyncProducer(t, nil)
-	mockMetrics := mock.NewMockTransactionSchedulerMetrics(ctrl)
+	jobDA := mocks.NewMockJobAgent(ctrl)
+	kafkaProducer := mocks2.NewSyncProducer(t, nil)
+	metrics := mock.NewMockTransactionSchedulerMetrics(ctrl)
 
 	jobsLatencyHistogram := mock2.NewMockHistogram(ctrl)
 	jobsLatencyHistogram.EXPECT().With(gomock.Any()).AnyTimes().Return(jobsLatencyHistogram)
 	jobsLatencyHistogram.EXPECT().Observe(gomock.Any()).AnyTimes()
-	mockMetrics.EXPECT().JobsLatencyHistogram().AnyTimes().Return(jobsLatencyHistogram)
+	metrics.EXPECT().JobsLatencyHistogram().AnyTimes().Return(jobsLatencyHistogram)
 
-	mockDB := mocks.NewMockDB(ctrl)
-
-	mockDB.EXPECT().Job().Return(mockJobDA).AnyTimes()
-	mockDB.EXPECT().Job().Return(mockJobDA).AnyTimes()
-	mockDB.EXPECT().Log().Return(mockLogDA).AnyTimes()
-	mockDB.EXPECT().Job().Return(mockJobDA).AnyTimes()
+	db := mocks.NewMockDB(ctrl)
+	db.EXPECT().Job().Return(jobDA).AnyTimes()
 
 	userInfo := multitenancy.NewUserInfo("tenantOne", "username")
-	usecase := NewStartJobUseCase(mockDB, mockKafkaProducer, sarama.NewKafkaTopicConfig(viper.GetViper()), mockMetrics)
+	usecase := NewStartJobUseCase(db, kafkaProducer, sarama.NewKafkaTopicConfig(viper.GetViper()), metrics)
 
 	t.Run("should execute use case successfully", func(t *testing.T) {
 		job := testdata.FakeJob()
-		mockJobDA.EXPECT().FindOneByUUID(gomock.Any(), job.UUID, userInfo.AllowedTenants, userInfo.Username, false).Return(job, nil)
-		mockKafkaProducer.ExpectSendMessageWithCheckerFunctionAndSucceed(func(val []byte) error {
+		jobDA.EXPECT().FindOneByUUID(gomock.Any(), job.UUID, userInfo.AllowedTenants, userInfo.Username, false).Return(job, nil)
+		kafkaProducer.ExpectSendMessageWithCheckerFunctionAndSucceed(func(val []byte) error {
 			txEnvelope := &tx.TxEnvelope{}
 			err := encoding.Unmarshal(val, txEnvelope)
 			if err != nil {
@@ -67,7 +62,12 @@ func TestStartJob_Execute(t *testing.T) {
 			assert.False(t, envelope.IsOneTimeKeySignature())
 			return nil
 		})
-		mockDB.EXPECT().RunInTransaction(gomock.Any(), gomock.Any()).Return(nil)
+		jobDA.EXPECT().Update(gomock.Any(), gomock.Any(), gomock.Any()).
+			DoAndReturn(func(ctx context.Context, job *entities.Job, log *entities.Log) error {
+				assert.Equal(t, job.Status, entities.StatusStarted)
+				assert.Equal(t, log.Status, entities.StatusStarted)
+				return nil
+			})
 
 		err := usecase.Execute(ctx, job.UUID, userInfo)
 
@@ -80,8 +80,8 @@ func TestStartJob_Execute(t *testing.T) {
 			OneTimeKey: true,
 		}
 
-		mockJobDA.EXPECT().FindOneByUUID(gomock.Any(), job.UUID, userInfo.AllowedTenants, userInfo.Username, false).Return(job, nil)
-		mockKafkaProducer.ExpectSendMessageWithCheckerFunctionAndSucceed(func(val []byte) error {
+		jobDA.EXPECT().FindOneByUUID(gomock.Any(), job.UUID, userInfo.AllowedTenants, userInfo.Username, false).Return(job, nil)
+		kafkaProducer.ExpectSendMessageWithCheckerFunctionAndSucceed(func(val []byte) error {
 			txEnvelope := &tx.TxEnvelope{}
 			err := encoding.Unmarshal(val, txEnvelope)
 			if err != nil {
@@ -96,7 +96,12 @@ func TestStartJob_Execute(t *testing.T) {
 			assert.True(t, envelope.IsOneTimeKeySignature())
 			return nil
 		})
-		mockDB.EXPECT().RunInTransaction(gomock.Any(), gomock.Any()).Return(nil)
+		jobDA.EXPECT().Update(gomock.Any(), gomock.Any(), gomock.Any()).
+			DoAndReturn(func(ctx context.Context, job *entities.Job, log *entities.Log) error {
+				assert.Equal(t, job.Status, entities.StatusStarted)
+				assert.Equal(t, log.Status, entities.StatusStarted)
+				return nil
+			})
 
 		err := usecase.Execute(ctx, job.UUID, userInfo)
 
@@ -107,7 +112,7 @@ func TestStartJob_Execute(t *testing.T) {
 		job := testdata.FakeJob()
 		expectedErr := errors.NotFoundError("error")
 
-		mockJobDA.EXPECT().FindOneByUUID(gomock.Any(), job.UUID, userInfo.AllowedTenants, userInfo.Username, false).Return(nil, expectedErr)
+		jobDA.EXPECT().FindOneByUUID(gomock.Any(), job.UUID, userInfo.AllowedTenants, userInfo.Username, false).Return(nil, expectedErr)
 
 		err := usecase.Execute(ctx, job.UUID, userInfo)
 		assert.Equal(t, errors.FromError(expectedErr).ExtendComponent(startJobComponent), err)
@@ -117,8 +122,8 @@ func TestStartJob_Execute(t *testing.T) {
 		job := testdata.FakeJob()
 		expectedErr := errors.PostgresConnectionError("error")
 
-		mockJobDA.EXPECT().FindOneByUUID(gomock.Any(), job.UUID, userInfo.AllowedTenants, userInfo.Username, false).Return(job, nil)
-		mockDB.EXPECT().RunInTransaction(gomock.Any(), gomock.Any()).Return(expectedErr)
+		jobDA.EXPECT().FindOneByUUID(gomock.Any(), job.UUID, userInfo.AllowedTenants, userInfo.Username, false).Return(job, nil)
+		jobDA.EXPECT().Update(gomock.Any(), gomock.Any(), gomock.Any()).Return(expectedErr)
 
 		err := usecase.Execute(ctx, job.UUID, userInfo)
 		assert.Equal(t, errors.FromError(expectedErr).ExtendComponent(startJobComponent), err)
@@ -127,10 +132,9 @@ func TestStartJob_Execute(t *testing.T) {
 	t.Run("should fail with KafkaConnectionError if Produce fails", func(t *testing.T) {
 		job := testdata.FakeJob()
 
-		mockJobDA.EXPECT().FindOneByUUID(gomock.Any(), job.UUID, userInfo.AllowedTenants, userInfo.Username, false).Return(job, nil)
-		mockDB.EXPECT().RunInTransaction(gomock.Any(), gomock.Any()).Return(nil)
-		mockKafkaProducer.ExpectSendMessageAndFail(fmt.Errorf("error"))
-		mockDB.EXPECT().RunInTransaction(gomock.Any(), gomock.Any()).Return(nil)
+		jobDA.EXPECT().FindOneByUUID(gomock.Any(), job.UUID, userInfo.AllowedTenants, userInfo.Username, false).Return(job, nil)
+		jobDA.EXPECT().Update(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+		kafkaProducer.ExpectSendMessageAndFail(fmt.Errorf("error"))
 
 		err := usecase.Execute(ctx, job.UUID, userInfo)
 		assert.True(t, errors.IsKafkaConnectionError(err))

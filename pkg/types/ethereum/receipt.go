@@ -5,11 +5,32 @@ import (
 	"encoding/json"
 	"errors"
 
+	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
+
+type internalReceipt struct {
+	PostState         *hexutil.Bytes     `json:"root"`
+	Status            *hexutil.Uint64    `json:"status"`
+	CumulativeGasUsed *hexutil.Uint64    `json:"cumulativeGasUsed" gencodec:"required"`
+	EffectiveGasPrice *hexutil.Big       `json:"effectiveGasPrice,omitempty"`
+	Bloom             *ethtypes.Bloom    `json:"logsBloom"         gencodec:"required"`
+	Logs              []*ethtypes.Log    `json:"logs"              gencodec:"required"`
+	TxHash            *ethcommon.Hash    `json:"transactionHash" gencodec:"required"`
+	ContractAddress   *ethcommon.Address `json:"contractAddress"`
+	GasUsed           *hexutil.Uint64    `json:"gasUsed" gencodec:"required"`
+	BlockHash         *ethcommon.Hash    `json:"blockHash,omitempty"`
+	BlockNumber       *hexutil.Uint64    `json:"blockNumber,omitempty"`
+	TransactionIndex  *hexutil.Uint      `json:"transactionIndex"`
+	RevertReason      string             `json:"revertReason"`
+	Output            string             `json:"output"`
+	PrivateFrom       string             `json:"privateFrom"`
+	PrivateFor        []string           `json:"privateFor"`
+	PrivacyGroupID    string             `json:"privacyGroupId"`
+}
 
 // SetBlockNumber set block hash
 func (r *Receipt) SetBlockNumber(number uint64) *Receipt {
@@ -35,28 +56,6 @@ func (r *Receipt) SetTxIndex(idx uint64) *Receipt {
 	return r
 }
 
-// FromGethLog creates a new log from a Geth log
-func FromGethLog(log *ethtypes.Log) *Log {
-	// Format topics
-	var topics []string
-	for _, topic := range log.Topics {
-		topics = append(topics, topic.String())
-	}
-
-	return &Log{
-		Address:     log.Address.String(),
-		Topics:      topics,
-		Data:        hexutil.Encode(log.Data),
-		DecodedData: make(map[string]string),
-		BlockNumber: log.BlockNumber,
-		TxHash:      log.TxHash.String(),
-		TxIndex:     uint64(log.TxIndex),
-		BlockHash:   log.BlockHash.String(),
-		Index:       uint64(log.Index),
-		Removed:     log.Removed,
-	}
-}
-
 func (r *Receipt) GetContractAddr() ethcommon.Address {
 	return ethcommon.HexToAddress(r.GetContractAddress())
 }
@@ -66,23 +65,40 @@ func (r *Receipt) GetTxHashPtr() *ethcommon.Hash {
 	return &hash
 }
 
+func (r *Receipt) MarshalJSON() ([]byte, error) {
+	var dec = &internalReceipt{
+		Status:            utils.Uint64ToHex(r.Status),
+		CumulativeGasUsed: utils.Uint64ToHex(r.CumulativeGasUsed),
+		EffectiveGasPrice: utils.StringBigIntToHex(r.EffectiveGasPrice),
+		Bloom:             utils.ToPtr(ethtypes.BytesToBloom(hexutil.MustDecode(r.Bloom))).(*ethtypes.Bloom),
+		TxHash:            utils.ToPtr(ethcommon.HexToHash(r.TxHash)).(*ethcommon.Hash),
+		Logs:              []*ethtypes.Log{},
+		ContractAddress:   utils.ToPtr(ethcommon.HexToAddress(r.ContractAddress)).(*ethcommon.Address),
+		GasUsed:           utils.Uint64ToHex(r.GasUsed),
+		BlockHash:         utils.ToPtr(ethcommon.HexToHash(r.BlockHash)).(*ethcommon.Hash),
+		BlockNumber:       utils.Uint64ToHex(r.BlockNumber),
+		TransactionIndex:  utils.UintToHex(uint(r.TxIndex)),
+		PrivateFrom:       r.PrivateFrom,
+		PrivateFor:        r.PrivateFor,
+		PrivacyGroupID:    r.PrivacyGroupId,
+		RevertReason:      r.RevertReason,
+		Output:            r.Output,
+	}
+
+	if r.PostState != "" {
+		dec.PostState = utils.ToPtr(hexutil.MustDecode(r.PostState)).(*hexutil.Bytes)
+	}
+
+	for _, log := range r.Logs {
+		dec.Logs = append(dec.Logs, ToGethLog(log))
+	}
+
+	return json.Marshal(dec)
+}
+
 // UnmarshalJSON unmarshal from JSON.
 func (r *Receipt) UnmarshalJSON(input []byte) error {
-	var dec struct {
-		PostState         *hexutil.Bytes     `json:"root"`
-		Status            *hexutil.Uint64    `json:"status"`
-		CumulativeGasUsed *hexutil.Uint64    `json:"cumulativeGasUsed" gencodec:"required"`
-		EffectiveGasPrice *hexutil.Big       `json:"effectiveGasPrice,omitempty"`
-		Bloom             *ethtypes.Bloom    `json:"logsBloom"         gencodec:"required"`
-		Logs              []*ethtypes.Log    `json:"logs"              gencodec:"required"`
-		TxHash            *ethcommon.Hash    `json:"transactionHash" gencodec:"required"`
-		ContractAddress   *ethcommon.Address `json:"contractAddress"`
-		GasUsed           *hexutil.Uint64    `json:"gasUsed" gencodec:"required"`
-		BlockHash         *ethcommon.Hash    `json:"blockHash,omitempty"`
-		BlockNumber       *hexutil.Uint64    `json:"blockNumber,omitempty"`
-		TransactionIndex  *hexutil.Uint      `json:"transactionIndex"`
-		RevertReason      string             `json:"revertReason"`
-	}
+	var dec = &internalReceipt{}
 	if err := json.Unmarshal(input, &dec); err != nil {
 		return err
 	}
@@ -135,13 +151,62 @@ func (r *Receipt) UnmarshalJSON(input []byte) error {
 		r.TxIndex = uint64(*dec.TransactionIndex)
 	}
 
+	r.Output = dec.Output
+	r.PrivateFrom = dec.PrivateFrom
+	r.PrivateFor = dec.PrivateFor
+	r.PrivacyGroupId = dec.PrivacyGroupID
+
 	if dec.RevertReason != "" {
 		message, err := unpackRevertReason(ethcommon.FromHex(dec.RevertReason))
 		if err == nil {
 			r.RevertReason = message
 		}
 	}
+
 	return nil
+}
+
+// FromGethLog creates a new log from a Geth log
+func ToGethLog(log *Log) *ethtypes.Log {
+	// Format topics
+	topics := []ethcommon.Hash{}
+	for _, topic := range log.Topics {
+		topics = append(topics, ethcommon.HexToHash(topic))
+	}
+
+	return &ethtypes.Log{
+		Address:     ethcommon.HexToAddress(log.Address),
+		Topics:      topics,
+		Data:        hexutil.MustDecode(log.Data),
+		BlockNumber: log.BlockNumber,
+		TxHash:      ethcommon.HexToHash(log.TxHash),
+		TxIndex:     uint(log.TxIndex),
+		BlockHash:   ethcommon.HexToHash(log.BlockHash),
+		Index:       uint(log.Index),
+		Removed:     log.Removed,
+	}
+}
+
+// FromGethLog creates a new log from a Geth log
+func FromGethLog(log *ethtypes.Log) *Log {
+	// Format topics
+	var topics []string
+	for _, topic := range log.Topics {
+		topics = append(topics, topic.String())
+	}
+
+	return &Log{
+		Address:     log.Address.String(),
+		Topics:      topics,
+		Data:        hexutil.Encode(log.Data),
+		DecodedData: make(map[string]string),
+		BlockNumber: log.BlockNumber,
+		TxHash:      log.TxHash.String(),
+		TxIndex:     uint64(log.TxIndex),
+		BlockHash:   log.BlockHash.String(),
+		Index:       uint64(log.Index),
+		Removed:     log.Removed,
+	}
 }
 
 var (

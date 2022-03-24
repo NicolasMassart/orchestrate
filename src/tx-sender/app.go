@@ -34,7 +34,6 @@ type txSenderDaemon struct {
 	ec               ethclient.MultiClient
 	nonceManager     nonce.Manager
 	consumerGroup    []sarama.ConsumerGroup
-	producer         sarama.SyncProducer
 	config           *Config
 	logger           *log.Logger
 	cancel           context.CancelFunc
@@ -43,7 +42,6 @@ type txSenderDaemon struct {
 func NewTxSender(
 	config *Config,
 	consumerGroup []sarama.ConsumerGroup,
-	producer sarama.SyncProducer,
 	keyManagerClient keymanager.KeyManagerClient,
 	apiClient api.OrchestrateClient,
 	ec ethclient.MultiClient,
@@ -67,7 +65,6 @@ func NewTxSender(
 		keyManagerClient: keyManagerClient,
 		jobClient:        apiClient,
 		consumerGroup:    consumerGroup,
-		producer:         producer,
 		config:           config,
 		ec:               ec,
 		nonceManager:     nm,
@@ -86,7 +83,7 @@ func (d *txSenderDaemon) Run(ctx context.Context) error {
 	useCases := builder.NewUseCases(d.jobClient, d.keyManagerClient, d.ec, d.nonceManager, d.config.ProxyURL)
 
 	// Create service layer listener
-	listener := service.NewMessageListener(useCases, d.jobClient, d.producer, d.config.RecoverTopic, d.config.SenderTopic,
+	listener := service.NewMessageListener(useCases, d.jobClient, d.config.RecoverTopic, d.config.SenderTopic,
 		d.config.BckOff)
 
 	ctx, d.cancel = context.WithCancel(ctx)

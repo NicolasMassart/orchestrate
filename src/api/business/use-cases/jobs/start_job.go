@@ -47,64 +47,34 @@ func (uc *startJobUseCase) Execute(ctx context.Context, jobUUID string, userInfo
 	logger := uc.logger.WithContext(ctx).WithField("job", jobUUID)
 	logger.Debug("starting job")
 
-	job, err := uc.db.Job().FindOneByUUID(ctx, jobUUID, userInfo.AllowedTenants, userInfo.Username, false)
+	curJob, err := uc.db.Job().FindOneByUUID(ctx, jobUUID, userInfo.AllowedTenants, userInfo.Username, false)
 	if err != nil {
 		return errors.FromError(err).ExtendComponent(startJobComponent)
 	}
 
-	if !canUpdateStatus(entities.StatusStarted, job.Status) {
-		errMessage := "cannot start job at the current status"
-		logger.WithField("status", job.Status).WithField("next_status", entities.StatusStarted).Error(errMessage)
-		return errors.InvalidStateError(errMessage)
+	prevJobUpdateAt := curJob.UpdatedAt
+	nextJob := &entities.Job{
+		UUID:   jobUUID,
+		Status: entities.StatusStarted,
 	}
-
-	err = uc.updateStatus(ctx, job, entities.StatusStarted, "")
-	if err != nil {
-		return errors.FromError(err).ExtendComponent(startJobComponent)
-	}
-
-	partition, offset, err := SendJobMessage(job, uc.kafkaProducer, uc.topicsCfg.Sender, userInfo)
-	if err != nil {
-		errMsg := "failed to send job message"
-		_ = uc.updateStatus(ctx, job, entities.StatusFailed, errMsg)
-		logger.WithError(err).Error(errMsg)
-		return errors.FromError(err).ExtendComponent(startJobComponent)
-	}
-
-	logger.WithField("schedule", job.ScheduleUUID).
-		WithField("partition", partition).
-		WithField("offset", offset).
-		Info("job started successfully")
-	return nil
-}
-
-func (uc *startJobUseCase) updateStatus(ctx context.Context, job *entities.Job, status entities.JobStatus, msg string) error {
-	prevUpdatedAt := job.UpdatedAt
-	prevStatus := job.Status
-
-	job.Status = status
 	jobLog := &entities.Log{
-		Status:  status,
-		Message: msg,
+		Status: entities.StatusStarted,
 	}
 
-	err := uc.db.RunInTransaction(ctx, func(dbtx store.DB) error {
-		if der := dbtx.Job().Update(ctx, job); der != nil {
-			return der
-		}
-
-		_, der := dbtx.Log().Insert(ctx, jobLog, job.UUID)
-		if der != nil {
-			return errors.FromError(der).ExtendComponent(startJobComponent)
-		}
-
-		return nil
-	})
+	err = uc.db.Job().Update(ctx, nextJob, jobLog)
 	if err != nil {
 		return err
 	}
 
-	uc.addMetrics(job.UpdatedAt.Sub(prevUpdatedAt), prevStatus, status, job.ChainUUID)
+	uc.addMetrics(time.Since(prevJobUpdateAt), curJob.Status, jobLog.Status, curJob.ChainUUID)
+
+	err = sendEnvelope(uc.kafkaProducer, uc.topicsCfg.Sender, curJob)
+	if err != nil {
+		logger.WithError(err).Error("failed to send start job envelope")
+		return err
+	}
+
+	logger.Info("job started successfully")
 	return nil
 }
 

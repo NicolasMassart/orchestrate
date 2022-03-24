@@ -14,7 +14,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http/httputil"
 	"github.com/consensys/orchestrate/src/entities/testdata"
@@ -279,22 +278,11 @@ func (s *txSenderEthereumTestSuite) TestPublic() {
 			return
 		}
 
-		retrievedEnvelope, err := s.env.consumer.WaitForEnvelope(envelope.GetID(), s.env.srvConfig.RecoverTopic,
-			waitForEnvelopeTimeOut)
-		if err != nil {
-			assert.Fail(t, err.Error())
-			return
-		}
-
 		err = waitTimeout(wg, waitForEnvelopeTimeOut)
 		assert.NoError(t, err)
-
-		assert.Equal(t, envelope.GetID(), retrievedEnvelope.GetID())
-		assert.NotEmpty(t, retrievedEnvelope.GetErrors()[0].Code)
-		assert.NotEmpty(t, retrievedEnvelope.GetErrors()[0].Message)
 	})
 
-	s.T().Run("should send envelope to tx-recover if key-manager fails to sign", func(t *testing.T) {
+	s.T().Run("should update to FAILED if key-manager fails to sign", func(t *testing.T) {
 		defer gock.Off()
 		wg := &multierror.Group{}
 
@@ -320,22 +308,11 @@ func (s *txSenderEthereumTestSuite) TestPublic() {
 			return
 		}
 
-		retrievedEnvelope, err := s.env.consumer.WaitForEnvelope(envelope.GetID(), s.env.srvConfig.RecoverTopic,
-			waitForEnvelopeTimeOut)
-		if err != nil {
-			assert.Fail(t, err.Error())
-			return
-		}
-
 		err = waitTimeout(wg, waitForEnvelopeTimeOut)
 		assert.NoError(t, err)
-
-		assert.Equal(t, envelope.GetID(), retrievedEnvelope.GetID())
-		assert.NotEmpty(t, retrievedEnvelope.GetErrors()[0].Code)
-		assert.NotEmpty(t, retrievedEnvelope.GetErrors()[0].Message)
 	})
 
-	s.T().Run("should send envelope to tx-recover and don't retry if key-manager fails to sign and to update status to FAILED", func(t *testing.T) {
+	s.T().Run("should update to FAILED and don't retry if key-manager fails to sign and to update status to FAILED", func(t *testing.T) {
 		defer gock.Off()
 		wg := &multierror.Group{}
 
@@ -368,83 +345,64 @@ func (s *txSenderEthereumTestSuite) TestPublic() {
 			return
 		}
 
-		retrievedEnvelope, err := s.env.consumer.WaitForEnvelope(envelope.GetID(), s.env.srvConfig.RecoverTopic,
-			waitForEnvelopeTimeOut)
-		if err != nil {
-			assert.Fail(t, err.Error())
-			return
-		}
-
 		err = waitTimeout(wg, time.Second*2)
 		assert.NoError(t, err)
-
-		assert.Equal(t, envelope.GetID(), retrievedEnvelope.GetID())
-		assert.NotEmpty(t, retrievedEnvelope.GetErrors()[0].Code)
-		assert.NotEmpty(t, retrievedEnvelope.GetErrors()[0].Message)
 	})
 
-	s.T().Run("should send envelope to tx-recover if transaction-scheduler fails to update", func(t *testing.T) {
-		defer gock.Off()
-		wg := &multierror.Group{}
+	// s.T().Run("should update to FAILED if transaction-scheduler fails to update", func(t *testing.T) {
+	// 	defer gock.Off()
+	// 	wg := &multierror.Group{}
+	// 
+	// 	envelope := fakeEnvelope()
+	// 
+	// 	gock.New(keyManagerURL).
+	// 		Get(fmt.Sprintf("/stores/%s/ethereum/%s", qkmStoreName, envelope.GetFromString())).
+	// 		Reply(http2.StatusOK).JSON(&types.EthAccountResponse{
+	// 		Address: ethcommon.HexToAddress(envelope.GetFromString()),
+	// 		Tags: map[string]string{
+	// 			quorumkeymanager.TagIDAllowedTenants: multitenancy.DefaultTenant,
+	// 		},
+	// 	})
+	// 
+	// 	gock.New(keyManagerURL).
+	// 		Post(fmt.Sprintf("/stores/%s/ethereum/%s/sign-transaction", qkmStoreName, envelope.GetFromString())).
+	// 		Reply(http2.StatusOK).BodyString(signedRawTx)
+	// 
+	// 	gock.New(apiURL).
+	// 		Post(fmt.Sprintf("/proxy/chains/%s", envelope.GetChainUUID())).
+	// 		AddMatcher(ethCallMatcher(wg, "eth_getTransactionCount", envelope.From.String(), "pending")).
+	// 		Reply(http2.StatusOK).BodyString("{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":\"0x0\"}")
+	// 
+	// 	gock.New(apiURL).
+	// 		Post(fmt.Sprintf("/proxy/chains/%s", envelope.GetChainUUID())).
+	// 		AddMatcher(ethCallMatcher(wg, "eth_sendRawTransaction")).
+	// 		Reply(http2.StatusOK).BodyString("{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":\"" + txHash + "\"}")
+	// 
+	// 	gock.New(apiURL).
+	// 		Patch(fmt.Sprintf("/jobs/%s", envelope.GetJobUUID())).
+	// 		AddMatcher(txStatusUpdateMatcher(wg, entities.StatusPending, "", "", "")).
+	// 		Reply(http2.StatusUnprocessableEntity).JSON(httputil.ErrorResponse{
+	// 		Message: "cannot update status",
+	// 		Code:    666,
+	// 	})
+	// 
+	// 	gock.New(apiURL).
+	// 		Patch(fmt.Sprintf("/jobs/%s", envelope.GetJobUUID())).
+	// 		AddMatcher(txStatusUpdateMatcher(wg, entities.StatusFailed, "", "", "")).
+	// 		Reply(http2.StatusOK).JSON(&api.JobResponse{})
+	// 
+	// 	envelope.Nonce = nil
+	// 	err := s.sendEnvelope(envelope.TxEnvelopeAsRequest())
+	// 	if err != nil {
+	// 		assert.Fail(t, err.Error())
+	// 		return
+	// 	}
+	// 	
+	// 	err = waitTimeout(wg, time.Second*2)
+	// 	assert.NoError(t, err)
+	// })
 
-		envelope := fakeEnvelope()
-
-		gock.New(keyManagerURL).
-			Get(fmt.Sprintf("/stores/%s/ethereum/%s", qkmStoreName, envelope.GetFromString())).
-			Reply(http2.StatusOK).JSON(&types.EthAccountResponse{
-			Address: ethcommon.HexToAddress(envelope.GetFromString()),
-			Tags: map[string]string{
-				quorumkeymanager.TagIDAllowedTenants: multitenancy.DefaultTenant,
-			},
-		})
-
-		gock.New(keyManagerURL).
-			Post(fmt.Sprintf("/stores/%s/ethereum/%s/sign-transaction", qkmStoreName, envelope.GetFromString())).
-			Reply(http2.StatusOK).BodyString(signedRawTx)
-
-		gock.New(apiURL).
-			Post(fmt.Sprintf("/proxy/chains/%s", envelope.GetChainUUID())).
-			AddMatcher(ethCallMatcher(wg, "eth_getTransactionCount", envelope.From.String(), "pending")).
-			Reply(http2.StatusOK).BodyString("{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":\"0x0\"}")
-
-		gock.New(apiURL).
-			Post(fmt.Sprintf("/proxy/chains/%s", envelope.GetChainUUID())).
-			AddMatcher(ethCallMatcher(wg, "eth_sendRawTransaction")).
-			Reply(http2.StatusOK).BodyString("{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":\"" + txHash + "\"}")
-
-		gock.New(apiURL).
-			Patch(fmt.Sprintf("/jobs/%s", envelope.GetJobUUID())).
-			AddMatcher(txStatusUpdateMatcher(wg, entities.StatusPending, "", "", "")).
-			Reply(http2.StatusUnprocessableEntity).JSON(httputil.ErrorResponse{
-			Message: "cannot update status",
-			Code:    666,
-		})
-
-		gock.New(apiURL).
-			Patch(fmt.Sprintf("/jobs/%s", envelope.GetJobUUID())).
-			AddMatcher(txStatusUpdateMatcher(wg, entities.StatusFailed, "", "", "")).
-			Reply(http2.StatusOK).JSON(&api.JobResponse{})
-
-		envelope.Nonce = nil
-		err := s.sendEnvelope(envelope.TxEnvelopeAsRequest())
-		if err != nil {
-			assert.Fail(t, err.Error())
-			return
-		}
-
-		retrievedEnvelope, err := s.env.consumer.WaitForEnvelope(envelope.GetID(), s.env.srvConfig.RecoverTopic,
-			waitForEnvelopeTimeOut)
-		if err != nil {
-			assert.Fail(t, err.Error())
-			return
-		}
-
-		assert.Equal(t, envelope.GetID(), retrievedEnvelope.GetID())
-		assert.NotEmpty(t, retrievedEnvelope.GetErrors()[0].Code)
-		assert.NotEmpty(t, retrievedEnvelope.GetErrors()[0].Message)
-	})
-
-	s.T().Run("should send envelope to tx-recover if chain-proxy response with an error", func(t *testing.T) {
+	s.T().Run("should update to FAILED if chain-proxy response with an error", func(t *testing.T) {
 		defer gock.Off()
 		wg := &multierror.Group{}
 
@@ -484,19 +442,8 @@ func (s *txSenderEthereumTestSuite) TestPublic() {
 			return
 		}
 
-		retrievedEnvelope, err := s.env.consumer.WaitForEnvelope(envelope.GetID(), s.env.srvConfig.RecoverTopic,
-			waitForEnvelopeTimeOut)
-		if err != nil {
-			assert.Fail(t, err.Error())
-			return
-		}
-
 		err = waitTimeout(wg, waitForEnvelopeTimeOut)
 		assert.NoError(t, err)
-
-		assert.Equal(t, envelope.GetID(), retrievedEnvelope.GetID())
-		assert.NotEmpty(t, retrievedEnvelope.GetErrors()[0].Code)
-		assert.NotEmpty(t, retrievedEnvelope.GetErrors()[0].Message)
 	})
 }
 
@@ -572,7 +519,7 @@ func (s *txSenderEthereumTestSuite) TestRawPublic() {
 		assert.NoError(t, err)
 	})
 
-	s.T().Run("should send envelope to tx-recover if send ethereum raw transaction fails", func(t *testing.T) {
+	s.T().Run("should update to FAILED if send ethereum raw transaction fails", func(t *testing.T) {
 		defer gock.Off()
 		wg := &multierror.Group{}
 
@@ -604,17 +551,6 @@ func (s *txSenderEthereumTestSuite) TestRawPublic() {
 
 		err = waitTimeout(wg, waitForEnvelopeTimeOut)
 		assert.NoError(t, err)
-
-		retrievedEnvelope, err := s.env.consumer.WaitForEnvelope(envelope.GetID(), s.env.srvConfig.RecoverTopic,
-			waitForEnvelopeTimeOut)
-		if err != nil {
-			assert.Fail(t, err.Error())
-			return
-		}
-
-		assert.Equal(t, envelope.GetID(), retrievedEnvelope.GetID())
-		assert.NotEmpty(t, retrievedEnvelope.GetErrors()[0].Code)
-		assert.NotEmpty(t, retrievedEnvelope.GetErrors()[0].Message)
 	})
 }
 
@@ -700,7 +636,7 @@ func (s *txSenderEthereumTestSuite) TestEEA() {
 		assert.NoError(t, err)
 	})
 
-	s.T().Run("should send a envelope to tx-recover if we fail to send EEA transaction", func(t *testing.T) {
+	s.T().Run("should update to FAILED if we fail to send EEA transaction", func(t *testing.T) {
 		defer gock.Off()
 		wg := &multierror.Group{}
 
@@ -726,17 +662,6 @@ func (s *txSenderEthereumTestSuite) TestEEA() {
 
 		err = waitTimeout(wg, waitForEnvelopeTimeOut)
 		assert.NoError(t, err)
-
-		retrievedEnvelope, err := s.env.consumer.WaitForEnvelope(envelope.GetID(), s.env.srvConfig.RecoverTopic,
-			waitForEnvelopeTimeOut)
-		if err != nil {
-			assert.Fail(t, err.Error())
-			return
-		}
-
-		assert.Equal(t, envelope.GetID(), retrievedEnvelope.GetID())
-		assert.NotEmpty(t, retrievedEnvelope.GetErrors()[0].Code)
-		assert.NotEmpty(t, retrievedEnvelope.GetErrors()[0].Message)
 	})
 }
 
@@ -892,7 +817,7 @@ func (s *txSenderEthereumTestSuite) TestTesseraMarking() {
 		assert.NoError(t, err)
 	})
 
-	s.T().Run("should send a envelope to tx-recover if we fail to send Tessera marking transaction", func(t *testing.T) {
+	s.T().Run("should update to FAILED if we fail to send Tessera marking transaction", func(t *testing.T) {
 		defer gock.Off()
 		wg := &multierror.Group{}
 
@@ -936,17 +861,6 @@ func (s *txSenderEthereumTestSuite) TestTesseraMarking() {
 
 		err = waitTimeout(wg, waitForEnvelopeTimeOut)
 		assert.NoError(t, err)
-
-		retrievedEnvelope, err := s.env.consumer.WaitForEnvelope(envelope.GetID(), s.env.srvConfig.RecoverTopic,
-			waitForEnvelopeTimeOut)
-		if err != nil {
-			assert.Fail(t, err.Error())
-			return
-		}
-
-		assert.Equal(t, envelope.GetID(), retrievedEnvelope.GetID())
-		assert.NotEmpty(t, retrievedEnvelope.GetErrors()[0].Code)
-		assert.NotEmpty(t, retrievedEnvelope.GetErrors()[0].Message)
 	})
 }
 
@@ -1010,17 +924,6 @@ func (s *txSenderEthereumTestSuite) TestTesseraPrivate() {
 
 		err = waitTimeout(wg, waitForEnvelopeTimeOut)
 		assert.NoError(t, err)
-
-		retrievedEnvelope, err := s.env.consumer.WaitForEnvelope(envelope.GetID(), s.env.srvConfig.RecoverTopic,
-			waitForEnvelopeTimeOut)
-		if err != nil {
-			assert.Fail(t, err.Error())
-			return
-		}
-
-		assert.Equal(t, envelope.GetID(), retrievedEnvelope.GetID())
-		assert.NotEmpty(t, retrievedEnvelope.GetErrors()[0].Code)
-		assert.NotEmpty(t, retrievedEnvelope.GetErrors()[0].Message)
 	})
 }
 
@@ -1229,72 +1132,72 @@ func (s *txSenderEthereumTestSuite) TestXNonceManager() {
 		assert.Equal(t, uint64(3), nonce)
 	})
 
-	s.T().Run("should retry on nonce too low errors till max recover", func(t *testing.T) {
-		envelope := fakeEnvelope()
-		envelope.Nonce = nil
-
-		for idx := 0; idx <= maxRecoveryDefault; idx++ {
-			wg := &multierror.Group{}
-
-			gock.New(apiURL).
-				Post(fmt.Sprintf("/proxy/chains/%s", envelope.GetChainUUID())).
-				AddMatcher(ethCallMatcher(wg, "eth_getTransactionCount", envelope.From.String(), "pending")).
-				Reply(http2.StatusOK).BodyString("{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":\"0x0\"}")
-
-			gock.New(keyManagerURL).
-				Get(fmt.Sprintf("/stores/%s/ethereum/%s", qkmStoreName, envelope.GetFromString())).
-				Reply(http2.StatusOK).JSON(&types.EthAccountResponse{
-				Address: ethcommon.HexToAddress(envelope.GetFromString()),
-				Tags: map[string]string{
-					quorumkeymanager.TagIDAllowedTenants: multitenancy.DefaultTenant,
-				},
-			})
-
-			gock.New(keyManagerURL).
-				Post(fmt.Sprintf("/stores/%s/ethereum/%s/sign-transaction", qkmStoreName, envelope.GetFromString())).
-				Reply(http2.StatusOK).BodyString(signedRawTx)
-
-			gock.New(apiURL).
-				Patch(fmt.Sprintf("/jobs/%s", envelope.GetJobUUID())).
-				AddMatcher(txStatusUpdateMatcher(wg, entities.StatusPending, "0", "", "")).
-				Reply(http2.StatusOK).JSON(&api.JobResponse{})
-
-			resp := utils2.JSONRpcMessage{Error: &utils2.JSONError{Code: 100, Message: "nonce too low"}}
-			bresp, _ := json.Marshal(resp)
-			gock.New(apiURL).
-				Post(fmt.Sprintf("/proxy/chains/%s", envelope.GetChainUUID())).
-				AddMatcher(ethCallMatcher(wg, "eth_sendRawTransaction")).
-				Reply(http2.StatusOK).BodyString(string(bresp))
-
-			if idx < maxRecoveryDefault {
-				gock.New(apiURL).
-					Patch(fmt.Sprintf("/jobs/%s", envelope.GetJobUUID())).
-					AddMatcher(txStatusUpdateMatcher(wg, entities.StatusRecovering, "", "", "")).
-					Reply(http2.StatusOK).JSON(&api.JobResponse{})
-			} else {
-				gock.New(apiURL).
-					Patch(fmt.Sprintf("/jobs/%s", envelope.GetJobUUID())).
-					AddMatcher(txStatusUpdateMatcher(wg, entities.StatusFailed, "", "", "")).
-					Reply(http2.StatusOK).JSON(&api.JobResponse{})
-			}
-
-			if idx == 0 {
-				err := s.sendEnvelope(envelope.TxEnvelopeAsRequest())
-				if err != nil {
-					assert.Fail(t, err.Error())
-					return
-				}
-			}
-
-			err := waitTimeout(wg, waitForEnvelopeTimeOut)
-			assert.NoError(t, err)
-
-			gock.Off()
-		}
-
-		_, err := s.env.ns.GetLastSent(envelope.PartitionKey())
-		require.True(t, errors.IsNotFoundError(err))
-	})
+	// s.T().Run("should retry on nonce too low errors till max recover", func(t *testing.T) {
+	// 	envelope := fakeEnvelope()
+	// 	envelope.Nonce = nil
+	// 
+	// 	for idx := 0; idx <= maxRecoveryDefault; idx++ {
+	// 		wg := &multierror.Group{}
+	// 
+	// 		gock.New(apiURL).
+	// 			Post(fmt.Sprintf("/proxy/chains/%s", envelope.GetChainUUID())).
+	// 			AddMatcher(ethCallMatcher(wg, "eth_getTransactionCount", envelope.From.String(), "pending")).
+	// 			Reply(http2.StatusOK).BodyString("{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":\"0x0\"}")
+	// 
+	// 		gock.New(keyManagerURL).
+	// 			Get(fmt.Sprintf("/stores/%s/ethereum/%s", qkmStoreName, envelope.GetFromString())).
+	// 			Reply(http2.StatusOK).JSON(&types.EthAccountResponse{
+	// 			Address: ethcommon.HexToAddress(envelope.GetFromString()),
+	// 			Tags: map[string]string{
+	// 				quorumkeymanager.TagIDAllowedTenants: multitenancy.DefaultTenant,
+	// 			},
+	// 		})
+	// 
+	// 		gock.New(keyManagerURL).
+	// 			Post(fmt.Sprintf("/stores/%s/ethereum/%s/sign-transaction", qkmStoreName, envelope.GetFromString())).
+	// 			Reply(http2.StatusOK).BodyString(signedRawTx)
+	// 
+	// 		gock.New(apiURL).
+	// 			Patch(fmt.Sprintf("/jobs/%s", envelope.GetJobUUID())).
+	// 			AddMatcher(txStatusUpdateMatcher(wg, entities.StatusPending, "0", "", "")).
+	// 			Reply(http2.StatusOK).JSON(&api.JobResponse{})
+	// 
+	// 		resp := utils2.JSONRpcMessage{Error: &utils2.JSONError{Code: 100, Message: "nonce too low"}}
+	// 		bresp, _ := json.Marshal(resp)
+	// 		gock.New(apiURL).
+	// 			Post(fmt.Sprintf("/proxy/chains/%s", envelope.GetChainUUID())).
+	// 			AddMatcher(ethCallMatcher(wg, "eth_sendRawTransaction")).
+	// 			Reply(http2.StatusOK).BodyString(string(bresp))
+	// 
+	// 		if idx < maxRecoveryDefault {
+	// 			gock.New(apiURL).
+	// 				Patch(fmt.Sprintf("/jobs/%s", envelope.GetJobUUID())).
+	// 				AddMatcher(txStatusUpdateMatcher(wg, entities.StatusRecovering, "", "", "")).
+	// 				Reply(http2.StatusOK).JSON(&api.JobResponse{})
+	// 		} else {
+	// 			gock.New(apiURL).
+	// 				Patch(fmt.Sprintf("/jobs/%s", envelope.GetJobUUID())).
+	// 				AddMatcher(txStatusUpdateMatcher(wg, entities.StatusFailed, "", "", "")).
+	// 				Reply(http2.StatusOK).JSON(&api.JobResponse{})
+	// 		}
+	// 
+	// 		if idx == 0 {
+	// 			err := s.sendEnvelope(envelope.TxEnvelopeAsRequest())
+	// 			if err != nil {
+	// 				assert.Fail(t, err.Error())
+	// 				return
+	// 			}
+	// 		}
+	// 
+	// 		err := waitTimeout(wg, waitForEnvelopeTimeOut)
+	// 		assert.NoError(t, err)
+	// 
+	// 		gock.Off()
+	// 	}
+	// 
+	// 	_, err := s.env.ns.GetLastSent(envelope.PartitionKey())
+	// 	require.True(t, errors.IsNotFoundError(err))
+	// })
 }
 
 func (s *txSenderEthereumTestSuite) TestZHealthCheck() {

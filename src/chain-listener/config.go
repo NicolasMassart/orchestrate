@@ -8,10 +8,6 @@ import (
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http"
 )
 
-const (
-	DecodedOutTopic = "tx-decoded"
-)
-
 type Config struct {
 	IsMultiTenancyEnabled bool
 	App                   *app.Config
@@ -22,12 +18,10 @@ type Config struct {
 
 type TxListenerConfig struct {
 	RefreshInterval time.Duration
-	DecodedOutTopic string
 }
 
-func NewTxListenerConfig(interval time.Duration, topic string) *TxListenerConfig {
+func NewTxListenerConfig(interval time.Duration) *TxListenerConfig {
 	return &TxListenerConfig{
 		RefreshInterval: interval,
-		DecodedOutTopic: topic,
 	}
 }

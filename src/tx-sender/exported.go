@@ -53,7 +53,6 @@ func New(ctx context.Context) (*app.App, error) {
 	return NewTxSender(
 		cfg,
 		consumerGroups,
-		sarama.GlobalSyncProducer(),
 		qkmClient,
 		orchestrateClient.GlobalClient(),
 		ethclient.GlobalClient(),

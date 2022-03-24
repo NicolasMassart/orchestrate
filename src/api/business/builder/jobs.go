@@ -2,11 +2,12 @@ package builder
 
 import (
 	"github.com/Shopify/sarama"
-	pkgsarama "github.com/consensys/orchestrate/src/infra/broker/sarama"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/business/use-cases/jobs"
+	"github.com/consensys/orchestrate/src/api/business/use-cases/notifications"
 	"github.com/consensys/orchestrate/src/api/metrics"
 	"github.com/consensys/orchestrate/src/api/store"
+	pkgsarama "github.com/consensys/orchestrate/src/infra/broker/sarama"
 )
 
 type jobUseCases struct {
@@ -25,10 +26,13 @@ func newJobUseCases(
 	producer sarama.SyncProducer,
 	topicsCfg *pkgsarama.KafkaTopicConfig,
 	getChainUC usecases.GetChainUseCase,
+	searchContractUC usecases.SearchContractUseCase,
+	decodeLogUC usecases.DecodeEventLogUseCase,
 	qkmStoreID string,
 ) *jobUseCases {
+	notifyMinedJobUC := notifications.NewNotifyMinedJobUseCase(db, searchContractUC, decodeLogUC, producer, topicsCfg)
+	notifyFailedJobUC := notifications.NewNotifyFailedJobUseCase(db, producer, topicsCfg)
 	startJobUC := jobs.NewStartJobUseCase(db, producer, topicsCfg, appMetrics)
-	updateChildrenUC := jobs.NewUpdateChildrenUseCase(db)
 	startNextJobUC := jobs.NewStartNextJobUseCase(db, startJobUC)
 	createJobUC := jobs.NewCreateJobUseCase(db, getChainUC, qkmStoreID)
 
@@ -36,7 +40,7 @@ func newJobUseCases(
 		createJob:   createJobUC,
 		getJob:      jobs.NewGetJobUseCase(db),
 		searchJobs:  jobs.NewSearchJobsUseCase(db),
-		updateJob:   jobs.NewUpdateJobUseCase(db, updateChildrenUC, startNextJobUC, appMetrics),
+		updateJob:   jobs.NewUpdateJobUseCase(db, startNextJobUC, notifyMinedJobUC, notifyFailedJobUC, appMetrics),
 		startJob:    startJobUC,
 		resendJobTx: jobs.NewResendJobTxUseCase(db, producer, topicsCfg),
 		retryJobTx:  jobs.NewRetryJobTxUseCase(db, createJobUC, startJobUC),

@@ -3,6 +3,7 @@ package usecases
 import (
 	"context"
 
+	"github.com/consensys/orchestrate/pkg/types/ethereum"
 	"github.com/consensys/orchestrate/src/entities"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -46,4 +47,8 @@ type RegisterContractUseCase interface {
 
 type RegisterContractDeploymentUseCase interface {
 	Execute(ctx context.Context, chainID string, address ethcommon.Address, codeHash hexutil.Bytes) error
+}
+
+type DecodeEventLogUseCase interface {
+	Execute(ctx context.Context, chainID string, eventLog *ethereum.Log) (*ethereum.Log, error)
 }

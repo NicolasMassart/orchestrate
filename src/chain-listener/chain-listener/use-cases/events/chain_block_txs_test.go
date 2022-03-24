@@ -88,20 +88,11 @@ func TestChainBlock_Execute(t *testing.T) {
 	})
 
 	t.Run("should fail if stop retry session fails", func(t *testing.T) {
-		jobOne := testdata.FakeJob()
 		txHashes := []*ethcommon.Hash{testdata.FakeTxHash()}
 
-		pendingJobStore.EXPECT().GetByTxHash(gomock.Any(), chain.UUID, txHashes[0]).Return(jobOne, nil)
-		
-		notifyMinedJobUC.EXPECT().Execute(gomock.Any(), jobOne).Return(nil)
-		
-		pendingJobStore.EXPECT().Remove(gomock.Any(), jobOne.UUID).Return(nil)
-		
 		sessIDOne := "sessIDOne"
 		retrySessionsStore.EXPECT().GetByTxHash(gomock.Any(), chain.UUID, txHashes[0]).Return(sessIDOne, nil)
 		retryJobSessionManager.EXPECT().StopSession(gomock.Any(), sessIDOne).Return(expectedErr)
-
-		updateChainHeadUC.EXPECT().Execute(gomock.Any(), chain.UUID, chain.ListenerCurrentBlock).Return(nil)
 
 		err := usecase.Execute(ctx, chain.UUID, chain.ListenerCurrentBlock, txHashes)
 
@@ -113,26 +104,16 @@ func TestChainBlock_Execute(t *testing.T) {
 		jobOne := testdata.FakeJob()
 		txHashes := []*ethcommon.Hash{testdata.FakeTxHash()}
 
-		pendingJobStore.EXPECT().GetByTxHash(gomock.Any(), chain.UUID, txHashes[0]).Return(jobOne, nil)
+		sessIDOne := "sessIDOne"
+		retrySessionsStore.EXPECT().GetByTxHash(gomock.Any(), chain.UUID, txHashes[0]).Return(sessIDOne, nil)
+		retryJobSessionManager.EXPECT().StopSession(gomock.Any(), sessIDOne).Return(nil)
 		
+		pendingJobStore.EXPECT().GetByTxHash(gomock.Any(), chain.UUID, txHashes[0]).Return(jobOne, nil)
 		notifyMinedJobUC.EXPECT().Execute(gomock.Any(), jobOne).Return(expectedErr)
 		
 		err := usecase.Execute(ctx, chain.UUID, chain.ListenerCurrentBlock, txHashes)
 
 		require.Error(t, err)
 		assert.Equal(t, expectedErr, err)
-	})
-	
-	t.Run("should not fail if there is not pending job", func(t *testing.T) {
-		txHashes := []*ethcommon.Hash{testdata.FakeTxHash()}
-
-		pendingJobStore.EXPECT().GetByTxHash(gomock.Any(), chain.UUID, txHashes[0]).Return(nil, errors.NotFoundError(""))
-		
-		sessIDOne := "sessIDOne"
-		retrySessionsStore.EXPECT().GetByTxHash(gomock.Any(), chain.UUID, txHashes[0]).Return(sessIDOne, errors.NotFoundError(""))
-
-		err := usecase.Execute(ctx, chain.UUID, chain.ListenerCurrentBlock, txHashes)
-
-		assert.NoError(t, err)
 	})
 }

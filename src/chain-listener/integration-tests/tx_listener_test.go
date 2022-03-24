@@ -3,7 +3,6 @@
 package integrationtests
 
 import (
-	"fmt"
 	http2 "net/http"
 	"testing"
 	"time"
@@ -11,8 +10,9 @@ import (
 	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/consensys/orchestrate/src/api/service/formatters"
 	types2 "github.com/consensys/orchestrate/src/api/service/types"
+	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/entities/testdata"
-	"github.com/consensys/orchestrate/src/infra/ethclient/types"
+	infra "github.com/consensys/orchestrate/src/infra/api"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/stretchr/testify/assert"
@@ -38,12 +38,19 @@ func (s *txListenerTestSuite) TestNotifyMinedTx() {
 	chain := testdata.FakeChain()
 	chain.UUID = ganacheChainUUID
 
+	respWaitingTime := s.env.chain.ListenerBackOffDuration + time.Second
 	s.T().Run("should get pending job and wait for mined transaction successfully", func(t *testing.T) {
 		job := testdata.FakeJob()
 		job.ChainUUID = s.env.chain.UUID
 		job.Transaction.Hash = utils.ToPtr(ethcommon.HexToHash(accOneTxHashOne)).(*ethcommon.Hash)
 
+		isExpectedCall := make(chan bool, 1)
 		gock.New(apiURL).
+			AddMatcher(statusJobUpdateMatcher(isExpectedCall, respWaitingTime, func(req *types2.UpdateJobRequest) error {
+				assert.Equal(t, entities.StatusMined, req.Status)
+				assert.Equal(t, accOneTxHashOne, req.Receipt.TxHash)
+				return nil
+			})).
 			Patch("/jobs/" + job.UUID).
 			Reply(http2.StatusOK).JSON(formatters.FormatJobResponse(job))
 
@@ -55,16 +62,7 @@ func (s *txListenerTestSuite) TestNotifyMinedTx() {
 
 		assert.Equal(t, hash.String(), job.Transaction.Hash.String())
 
-		time.Sleep(s.env.chain.ListenerBackOffDuration + time.Second)
-
-		evlp, err := s.env.consumer.WaitForEnvelope(job.ScheduleUUID, s.env.cfg.ChainListenerConfig.DecodedOutTopic,
-			waitForEnvelopeTimeOut)
-		if err != nil {
-			assert.Fail(t, err.Error())
-			return
-		}
-
-		assert.Equal(t, evlp.GetJobUUID(), job.UUID)
+		assert.True(t, <-isExpectedCall)
 	})
 
 	s.T().Run("should get pending job and fetch available receipt right away successfully", func(t *testing.T) {
@@ -72,8 +70,14 @@ func (s *txListenerTestSuite) TestNotifyMinedTx() {
 		job.ChainUUID = s.env.chain.UUID
 		job.Transaction.Hash = utils.ToPtr(ethcommon.HexToHash(accOneTxHashTwo)).(*ethcommon.Hash)
 
+		isExpectedCall := make(chan bool, 1)
 		gock.New(apiURL).
 			Patch("/jobs/" + job.UUID).
+			AddMatcher(statusJobUpdateMatcher(isExpectedCall, respWaitingTime, func(req *types2.UpdateJobRequest) error {
+				assert.Equal(t, entities.StatusMined, req.Status)
+				assert.Equal(t, accOneTxHashTwo, req.Receipt.TxHash)
+				return nil
+			})).
 			Reply(http2.StatusOK).JSON(formatters.FormatJobResponse(job))
 
 		hash, err := s.env.ethClient.SendRawTransaction(ctx, s.env.blockchainNodeURL, hexutil.MustDecode(accOneRawTxTwo))
@@ -81,71 +85,27 @@ func (s *txListenerTestSuite) TestNotifyMinedTx() {
 
 		assert.Equal(t, hash.String(), job.Transaction.Hash.String())
 
-		time.Sleep(s.env.chain.ListenerBackOffDuration + time.Second)
-
 		err = s.env.ucs.PendingJobUseCase().Execute(ctx, job)
+
 		require.NoError(t, err)
+		assert.True(t, <-isExpectedCall)
+	})
+}
 
-		time.Sleep(time.Second)
+func statusJobUpdateMatcher(c chan bool, waiting time.Duration, cb func(req *types2.UpdateJobRequest) error) gock.MatchFunc {
+	go func() {
+		time.Sleep(waiting)
+		c <- false
+	}()
 
-		evlp, err := s.env.consumer.WaitForEnvelope(job.ScheduleUUID, s.env.cfg.ChainListenerConfig.DecodedOutTopic,
-			waitForEnvelopeTimeOut)
+	return func(rw *http2.Request, req *gock.Request) (bool, error) {
+		c <- true
+		jobRequest := &types2.UpdateJobRequest{}
+		err := infra.UnmarshalBody(rw.Body, jobRequest)
 		if err != nil {
-			assert.Fail(t, err.Error())
-			return
+			return false, err
 		}
 
-		assert.Equal(t, evlp.GetJobUUID(), job.UUID)
-	})
-
-	s.T().Run("should get pending job, fetch receipt and register contract successfully", func(t *testing.T) {
-		job := testdata.FakeJob()
-		job.ChainUUID = s.env.chain.UUID
-
-		contractName := "Counter"
-		contractTag := "latest"
-		
-		gock.New(apiURL).
-			Patch("/jobs/" + job.UUID).
-			Reply(http2.StatusOK).JSON(formatters.FormatJobResponse(job))
-
-		hash, err := s.env.ethClient.SendTransaction(ctx, s.env.blockchainNodeURL, &types.SendTxArgs{
-			From: ethcommon.HexToAddress("0xdbb881a51CD4023E4400CEF3ef73046743f08da3"),
-			Data: hexutil.MustDecode("0x608060405234801561001057600080fd5b5061023c806100206000396000f3fe608060405234801561001057600080fd5b506004361061002b5760003560e01c80637cf5dab014610030575b600080fd5b61004a600480360381019061004591906100db565b61004c565b005b8060008082825461005d9190610137565b925050819055507f38ac789ed44572701765277c4d0970f2db1c1a571ed39e84358095ae4eaa542033826040516100959291906101dd565b60405180910390a150565b600080fd5b6000819050919050565b6100b8816100a5565b81146100c357600080fd5b50565b6000813590506100d5816100af565b92915050565b6000602082840312156100f1576100f06100a0565b5b60006100ff848285016100c6565b91505092915050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b6000610142826100a5565b915061014d836100a5565b9250827fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0382111561018257610181610108565b5b828201905092915050565b600073ffffffffffffffffffffffffffffffffffffffff82169050919050565b60006101b88261018d565b9050919050565b6101c8816101ad565b82525050565b6101d7816100a5565b82525050565b60006040820190506101f260008301856101bf565b6101ff60208301846101ce565b939250505056fea264697066735822122072834524b3ee30e2b953db63515fc66272b7245946cfc2523dcc3e81b659ac6464736f6c63430008090033"),
-		})
-		require.NoError(t, err)
-		job.Transaction.Hash = &hash
-
-		time.Sleep(time.Second)
-		
-		receipt, err := s.env.ethClient.TransactionReceipt(ctx, s.env.blockchainNodeURL, hash)
-		require.NoError(t, err)
-		
-		gock.New(apiURL).
-			Post(fmt.Sprintf("contracts/accounts/%s/%s", s.env.chain.ChainID, receipt.ContractAddress)).
-			Reply(http2.StatusOK).JSON(formatters.FormatJobResponse(job))
-		
-		gock.New(apiURL).
-			Get("contracts/search").
-			Reply(http2.StatusOK).JSON(&types2.ContractResponse{
-				Name: contractName,
-				Tag: contractTag,
-		})
-		
-		err = s.env.ucs.PendingJobUseCase().Execute(ctx, job)
-		require.NoError(t, err)
-
-		time.Sleep(s.env.chain.ListenerBackOffDuration + time.Second)
-
-		evlp, err := s.env.consumer.WaitForEnvelope(job.ScheduleUUID, s.env.cfg.ChainListenerConfig.DecodedOutTopic,
-			waitForEnvelopeTimeOut)
-		if err != nil {
-			assert.Fail(t, err.Error())
-			return
-		}
-
-		assert.Equal(t, evlp.GetJobUUID(), job.UUID)
-		assert.Equal(t, evlp.GetContractName(), contractName)
-		assert.Equal(t, evlp.GetContractTag(), contractTag)
-	})
+		return true, cb(jobRequest)
+	}
 }

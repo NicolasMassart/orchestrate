@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
-	"github.com/consensys/orchestrate/src/api/store"
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
@@ -23,7 +22,6 @@ type JobUseCases interface {
 
 type CreateJobUseCase interface {
 	Execute(ctx context.Context, job *entities.Job, userInfo *multitenancy.UserInfo) (*entities.Job, error)
-	WithDBTransaction(dbtx store.DB) CreateJobUseCase
 }
 
 type GetJobUseCase interface {
@@ -46,9 +44,8 @@ type UpdateJobUseCase interface {
 	Execute(ctx context.Context, jobEntity *entities.Job, nextStatus entities.JobStatus, logMessage string, userInfo *multitenancy.UserInfo) (*entities.Job, error)
 }
 
-type UpdateChildrenUseCase interface {
-	Execute(ctx context.Context, jobUUID, parentJobUUID string, nextStatus entities.JobStatus, userInfo *multitenancy.UserInfo) error
-	WithDBTransaction(dbtx store.DB) UpdateChildrenUseCase
+type UpdateJobStatusUseCase interface {
+	Execute(ctx context.Context, job *entities.Job, nextStatus entities.JobStatus, msg string) error
 }
 
 type ResendJobTxUseCase interface {

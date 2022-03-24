@@ -196,6 +196,9 @@ func (ec *Client) processEthError(err *utils.JSONError) error {
 	if strings.Contains(err.Message, "nonce too low") || strings.Contains(err.Message, "Nonce too low") || strings.Contains(err.Message, "Incorrect nonce") {
 		return errors.NonceTooLowError("code: %d - message: %s", err.Code, err.Message)
 	}
+	if strings.Contains(err.Message, "known transaction") || strings.Contains(err.Message, "Known transaction") {
+		return errors.KnownTransactionError("code: %d - message: %s", err.Code, err.Message)
+	}
 	return errors.EthereumError("code: %d - message: %s", err.Code, err.Message)
 }
 

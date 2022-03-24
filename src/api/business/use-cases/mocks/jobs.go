@@ -8,7 +8,6 @@ import (
 	context "context"
 	multitenancy "github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
-	store "github.com/consensys/orchestrate/src/api/store"
 	entities "github.com/consensys/orchestrate/src/entities"
 	hexutil "github.com/ethereum/go-ethereum/common/hexutil"
 	gomock "github.com/golang/mock/gomock"
@@ -172,20 +171,6 @@ func (m *MockCreateJobUseCase) Execute(ctx context.Context, job *entities.Job, u
 func (mr *MockCreateJobUseCaseMockRecorder) Execute(ctx, job, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockCreateJobUseCase)(nil).Execute), ctx, job, userInfo)
-}
-
-// WithDBTransaction mocks base method
-func (m *MockCreateJobUseCase) WithDBTransaction(dbtx store.DB) usecases.CreateJobUseCase {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "WithDBTransaction", dbtx)
-	ret0, _ := ret[0].(usecases.CreateJobUseCase)
-	return ret0
-}
-
-// WithDBTransaction indicates an expected call of WithDBTransaction
-func (mr *MockCreateJobUseCaseMockRecorder) WithDBTransaction(dbtx interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithDBTransaction", reflect.TypeOf((*MockCreateJobUseCase)(nil).WithDBTransaction), dbtx)
 }
 
 // MockGetJobUseCase is a mock of GetJobUseCase interface
@@ -376,55 +361,41 @@ func (mr *MockUpdateJobUseCaseMockRecorder) Execute(ctx, jobEntity, nextStatus, 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockUpdateJobUseCase)(nil).Execute), ctx, jobEntity, nextStatus, logMessage, userInfo)
 }
 
-// MockUpdateChildrenUseCase is a mock of UpdateChildrenUseCase interface
-type MockUpdateChildrenUseCase struct {
+// MockUpdateJobStatusUseCase is a mock of UpdateJobStatusUseCase interface
+type MockUpdateJobStatusUseCase struct {
 	ctrl     *gomock.Controller
-	recorder *MockUpdateChildrenUseCaseMockRecorder
+	recorder *MockUpdateJobStatusUseCaseMockRecorder
 }
 
-// MockUpdateChildrenUseCaseMockRecorder is the mock recorder for MockUpdateChildrenUseCase
-type MockUpdateChildrenUseCaseMockRecorder struct {
-	mock *MockUpdateChildrenUseCase
+// MockUpdateJobStatusUseCaseMockRecorder is the mock recorder for MockUpdateJobStatusUseCase
+type MockUpdateJobStatusUseCaseMockRecorder struct {
+	mock *MockUpdateJobStatusUseCase
 }
 
-// NewMockUpdateChildrenUseCase creates a new mock instance
-func NewMockUpdateChildrenUseCase(ctrl *gomock.Controller) *MockUpdateChildrenUseCase {
-	mock := &MockUpdateChildrenUseCase{ctrl: ctrl}
-	mock.recorder = &MockUpdateChildrenUseCaseMockRecorder{mock}
+// NewMockUpdateJobStatusUseCase creates a new mock instance
+func NewMockUpdateJobStatusUseCase(ctrl *gomock.Controller) *MockUpdateJobStatusUseCase {
+	mock := &MockUpdateJobStatusUseCase{ctrl: ctrl}
+	mock.recorder = &MockUpdateJobStatusUseCaseMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockUpdateChildrenUseCase) EXPECT() *MockUpdateChildrenUseCaseMockRecorder {
+func (m *MockUpdateJobStatusUseCase) EXPECT() *MockUpdateJobStatusUseCaseMockRecorder {
 	return m.recorder
 }
 
 // Execute mocks base method
-func (m *MockUpdateChildrenUseCase) Execute(ctx context.Context, jobUUID, parentJobUUID string, nextStatus entities.JobStatus, userInfo *multitenancy.UserInfo) error {
+func (m *MockUpdateJobStatusUseCase) Execute(ctx context.Context, job *entities.Job, nextStatus entities.JobStatus, msg string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Execute", ctx, jobUUID, parentJobUUID, nextStatus, userInfo)
+	ret := m.ctrl.Call(m, "Execute", ctx, job, nextStatus, msg)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Execute indicates an expected call of Execute
-func (mr *MockUpdateChildrenUseCaseMockRecorder) Execute(ctx, jobUUID, parentJobUUID, nextStatus, userInfo interface{}) *gomock.Call {
+func (mr *MockUpdateJobStatusUseCaseMockRecorder) Execute(ctx, job, nextStatus, msg interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockUpdateChildrenUseCase)(nil).Execute), ctx, jobUUID, parentJobUUID, nextStatus, userInfo)
-}
-
-// WithDBTransaction mocks base method
-func (m *MockUpdateChildrenUseCase) WithDBTransaction(dbtx store.DB) usecases.UpdateChildrenUseCase {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "WithDBTransaction", dbtx)
-	ret0, _ := ret[0].(usecases.UpdateChildrenUseCase)
-	return ret0
-}
-
-// WithDBTransaction indicates an expected call of WithDBTransaction
-func (mr *MockUpdateChildrenUseCaseMockRecorder) WithDBTransaction(dbtx interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithDBTransaction", reflect.TypeOf((*MockUpdateChildrenUseCase)(nil).WithDBTransaction), dbtx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockUpdateJobStatusUseCase)(nil).Execute), ctx, job, nextStatus, msg)
 }
 
 // MockResendJobTxUseCase is a mock of ResendJobTxUseCase interface
@@ -499,4 +470,41 @@ func (m *MockRetryJobTxUseCase) Execute(ctx context.Context, jobUUID string, gas
 func (mr *MockRetryJobTxUseCaseMockRecorder) Execute(ctx, jobUUID, gasIncrement, data, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockRetryJobTxUseCase)(nil).Execute), ctx, jobUUID, gasIncrement, data, userInfo)
+}
+
+// MockNotifyJobUpdateUseCase is a mock of NotifyJobUpdateUseCase interface
+type MockNotifyJobUpdateUseCase struct {
+	ctrl     *gomock.Controller
+	recorder *MockNotifyJobUpdateUseCaseMockRecorder
+}
+
+// MockNotifyJobUpdateUseCaseMockRecorder is the mock recorder for MockNotifyJobUpdateUseCase
+type MockNotifyJobUpdateUseCaseMockRecorder struct {
+	mock *MockNotifyJobUpdateUseCase
+}
+
+// NewMockNotifyJobUpdateUseCase creates a new mock instance
+func NewMockNotifyJobUpdateUseCase(ctrl *gomock.Controller) *MockNotifyJobUpdateUseCase {
+	mock := &MockNotifyJobUpdateUseCase{ctrl: ctrl}
+	mock.recorder = &MockNotifyJobUpdateUseCaseMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockNotifyJobUpdateUseCase) EXPECT() *MockNotifyJobUpdateUseCaseMockRecorder {
+	return m.recorder
+}
+
+// Execute mocks base method
+func (m *MockNotifyJobUpdateUseCase) Execute(ctx context.Context, job *entities.Job, errMsg error) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Execute", ctx, job, errMsg)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Execute indicates an expected call of Execute
+func (mr *MockNotifyJobUpdateUseCaseMockRecorder) Execute(ctx, job, errMsg interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockNotifyJobUpdateUseCase)(nil).Execute), ctx, job, errMsg)
 }

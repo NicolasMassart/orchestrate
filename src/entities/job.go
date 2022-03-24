@@ -4,6 +4,7 @@ import (
 	"time"
 
 	authutils "github.com/consensys/orchestrate/pkg/toolkit/app/auth/utils"
+	ierror "github.com/consensys/orchestrate/pkg/types/error"
 	"github.com/consensys/orchestrate/pkg/types/ethereum"
 	"github.com/consensys/orchestrate/pkg/types/tx"
 	"github.com/consensys/orchestrate/pkg/utils"
@@ -60,31 +61,6 @@ type Job struct {
 	UpdatedAt    time.Time
 }
 
-func (job *Job) TxResponse() *tx.TxResponse {
-	return &tx.TxResponse{
-		Id:            job.ScheduleUUID,
-		JobUUID:       job.UUID,
-		ContextLabels: job.Labels,
-		Transaction: &ethereum.Transaction{
-			From:       utils.StringerToString(job.Transaction.From),
-			Nonce:      utils.ValueToString(job.Transaction.Nonce),
-			To:         utils.StringerToString(job.Transaction.To),
-			Value:      utils.StringerToString(job.Transaction.Value),
-			Gas:        utils.ValueToString(job.Transaction.Gas),
-			GasPrice:   utils.StringerToString(job.Transaction.GasPrice),
-			GasFeeCap:  utils.StringerToString(job.Transaction.GasFeeCap),
-			GasTipCap:  utils.StringerToString(job.Transaction.GasTipCap),
-			Data:       utils.StringerToString(job.Transaction.Data),
-			Raw:        utils.StringerToString(job.Transaction.Raw),
-			TxHash:     utils.StringerToString(job.Transaction.Hash),
-			AccessList: ConvertFromAccessList(job.Transaction.AccessList),
-			TxType:     string(job.Transaction.TransactionType),
-		},
-		Receipt: job.Receipt,
-		Chain:   job.ChainUUID,
-	}
-}
-
 func IsFinalJobStatus(status JobStatus) bool {
 	return status == StatusMined ||
 		status == StatusFailed ||
@@ -108,7 +84,7 @@ func (job *Job) ShouldBeRetried() bool {
 	return true
 }
 
-func (job *Job) TxEnvelope(headers map[string]string) *tx.TxEnvelope {
+func (job *Job) TxRequestEnvelope(headers map[string]string) *tx.TxEnvelope {
 	contextLabels := job.Labels
 	if contextLabels == nil {
 		contextLabels = map[string]string{}
@@ -177,6 +153,32 @@ func (job *Job) TxEnvelope(headers map[string]string) *tx.TxEnvelope {
 	}
 
 	return txEnvelope
+}
+
+func (job *Job) TxResponse(errs ...*ierror.Error) *tx.TxResponse {
+	return &tx.TxResponse{
+		Id:            job.ScheduleUUID,
+		JobUUID:       job.UUID,
+		ContextLabels: job.Labels,
+		Transaction: &ethereum.Transaction{
+			From:       utils.StringerToString(job.Transaction.From),
+			Nonce:      utils.ValueToString(job.Transaction.Nonce),
+			To:         utils.StringerToString(job.Transaction.To),
+			Value:      utils.StringerToString(job.Transaction.Value),
+			Gas:        utils.ValueToString(job.Transaction.Gas),
+			GasPrice:   utils.StringerToString(job.Transaction.GasPrice),
+			GasFeeCap:  utils.StringerToString(job.Transaction.GasFeeCap),
+			GasTipCap:  utils.StringerToString(job.Transaction.GasTipCap),
+			Data:       utils.StringerToString(job.Transaction.Data),
+			Raw:        utils.StringerToString(job.Transaction.Raw),
+			TxHash:     utils.StringerToString(job.Transaction.Hash),
+			AccessList: ConvertFromAccessList(job.Transaction.AccessList),
+			TxType:     string(job.Transaction.TransactionType),
+		},
+		Receipt: job.Receipt,
+		Chain:   job.ChainUUID,
+		Errors:  errs,
+	}
 }
 
 func NewJobFromEnvelope(envelope *tx.Envelope) *Job {

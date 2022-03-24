@@ -39,7 +39,9 @@ func (uc *searchContractUseCase) Execute(ctx context.Context, codehash hexutil.B
 	}
 
 	if err != nil {
-		uc.logger.WithError(err).Error("no contract found")
+		if errors.IsNotFoundError(err) {
+			return nil, nil
+		}
 		return nil, errors.FromError(err).ExtendComponent(searchContractComponent)
 	}
 

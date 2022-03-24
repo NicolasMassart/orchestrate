@@ -48,43 +48,6 @@ func (mr *MockNotifyMinedJobMockRecorder) Execute(ctx, job interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockNotifyMinedJob)(nil).Execute), ctx, job)
 }
 
-// MockSendNotification is a mock of SendNotification interface
-type MockSendNotification struct {
-	ctrl     *gomock.Controller
-	recorder *MockSendNotificationMockRecorder
-}
-
-// MockSendNotificationMockRecorder is the mock recorder for MockSendNotification
-type MockSendNotificationMockRecorder struct {
-	mock *MockSendNotification
-}
-
-// NewMockSendNotification creates a new mock instance
-func NewMockSendNotification(ctrl *gomock.Controller) *MockSendNotification {
-	mock := &MockSendNotification{ctrl: ctrl}
-	mock.recorder = &MockSendNotificationMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockSendNotification) EXPECT() *MockSendNotificationMockRecorder {
-	return m.recorder
-}
-
-// Execute mocks base method
-func (m *MockSendNotification) Execute(ctx context.Context, job *entities.Job) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Execute", ctx, job)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Execute indicates an expected call of Execute
-func (mr *MockSendNotificationMockRecorder) Execute(ctx, job interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockSendNotification)(nil).Execute), ctx, job)
-}
-
 // MockRegisterDeployedContract is a mock of RegisterDeployedContract interface
 type MockRegisterDeployedContract struct {
 	ctrl     *gomock.Controller

@@ -30,7 +30,6 @@ const (
 )
 
 type ETHTransaction struct {
-	UUID            string
 	Hash            *ethcommon.Hash
 	From            *ethcommon.Address
 	To              *ethcommon.Address

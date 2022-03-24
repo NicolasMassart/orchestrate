@@ -14,7 +14,6 @@ import (
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	tcpmetrics "github.com/consensys/orchestrate/pkg/toolkit/tcp/metrics"
 	chainlistener "github.com/consensys/orchestrate/src/chain-listener"
-	broker "github.com/consensys/orchestrate/src/infra/broker/sarama"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
@@ -40,8 +39,6 @@ func ChainListenerFlags(f *pflag.FlagSet) {
 }
 
 func txListenerFlags(f *pflag.FlagSet) {
-	broker.KafkaProducerFlags(f)
-	broker.KafkaTopicTxDecoded(f)
 	app.MetricFlags(f)
 	orchestrateclient.Flags(f)
 }
@@ -60,8 +57,7 @@ func NewChainListenerConfig(vipr *viper.Viper) *chainlistener.Config {
 	httpClientCfg.XAPIKey = vipr.GetString(authkey.APIKeyViperKey)
 
 	chainListenerCfg := chainlistener.NewTxListenerConfig(
-		vipr.GetDuration(providerRefreshIntervalViperKey),
-		vipr.GetString(broker.TxDecodedViperKey))
+		vipr.GetDuration(providerRefreshIntervalViperKey))
 
 	return &chainlistener.Config{
 		IsMultiTenancyEnabled: viper.GetBool(multitenancy.EnabledViperKey),

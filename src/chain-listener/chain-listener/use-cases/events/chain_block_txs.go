@@ -44,11 +44,10 @@ func (uc *chainBlockTxsUC) Execute(ctx context.Context, chainUUID string, blockN
 
 	// @TODO Run in parallel
 	for _, txHash := range txHashes {
-		if err := uc.handlePendingJob(ctx, chainUUID, txHash); err != nil {
+		if err := uc.handleRetrySessionJob(ctx, chainUUID, txHash); err != nil {
 			return err
 		}
-
-		if err := uc.handleRetrySessionJob(ctx, chainUUID, txHash); err != nil {
+		if err := uc.handlePendingJob(ctx, chainUUID, txHash); err != nil {
 			return err
 		}
 	}

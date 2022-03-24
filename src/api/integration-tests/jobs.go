@@ -4,6 +4,7 @@ package integrationtests
 
 import (
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
+	testdata2 "github.com/consensys/orchestrate/pkg/types/ethereum/testdata"
 	api "github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/stretchr/testify/require"
@@ -111,7 +112,7 @@ func (s *jobsTestSuite) TestGet() {
 		assert.Equal(t, req.Type, job.Type)
 		assert.Equal(t, req.ScheduleUUID, job.ScheduleUUID)
 	})
-	
+
 	s.T().Run("should fail with DependencyFailure if postgres is down", func(t *testing.T) {
 		err := s.env.client.Stop(ctx, postgresContainerID)
 		require.NoError(t, err)
@@ -144,10 +145,8 @@ func (s *jobsTestSuite) TestStart() {
 		err = s.client.StartJob(ctx, job.UUID)
 		require.NoError(t, err)
 		evlp, err := s.env.consumer.WaitForEnvelope(job.ScheduleUUID, s.env.kafkaTopicConfig.Sender, waitForEnvelopeTimeOut)
-		if err != nil {
-			assert.Fail(t, err.Error())
-			return
-		}
+		require.NoError(s.T(), err)
+
 		assert.Equal(t, evlp.GetJobUUID(), job.UUID)
 
 		jobRetrieved, err := s.client.GetJob(ctx, job.UUID)
@@ -171,13 +170,66 @@ func (s *jobsTestSuite) TestStart() {
 		err = s.client.StartJob(ctx, job.UUID)
 		require.NoError(t, err)
 		evlp, err := s.env.consumer.WaitForEnvelope(job.ScheduleUUID, s.env.kafkaTopicConfig.Sender, waitForEnvelopeTimeOut)
-		if err != nil {
-			assert.Fail(t, err.Error())
-			return
-		}
+		require.NoError(s.T(), err)
+
 		assert.Equal(t, evlp.GetJobUUID(), job.UUID)
+	})
+}
+
+func (s *jobsTestSuite) TestUpdate() {
+	ctx := s.env.ctx
+	schedule, err := s.client.CreateSchedule(ctx, &api.CreateScheduleRequest{})
+	require.NoError(s.T(), err)
+
+	s.T().Run("should update job to MINED and notify", func(t *testing.T) {
+		req := testdata.FakeCreateJobRequest()
+		req.ScheduleUUID = schedule.UUID
+		req.ChainUUID = s.chainUUID
+		req.Transaction.From = nil
+		job, err := s.client.CreateJob(ctx, req)
+		require.NoError(s.T(), err)
 
 		err = s.client.StartJob(ctx, job.UUID)
-		assert.True(t, errors.IsInvalidStateError(err))
+		require.NoError(s.T(), err)
+		evlp, err := s.env.consumer.WaitForEnvelope(job.ScheduleUUID, s.env.kafkaTopicConfig.Sender, waitForEnvelopeTimeOut)
+		require.NoError(s.T(), err)
+		
+		assert.Equal(s.T(), evlp.GetJobUUID(), job.UUID)
+
+		receipt := testdata2.FakeReceipt()
+		_, err = s.client.UpdateJob(ctx, job.UUID, &api.UpdateJobRequest{
+			Status:  entities.StatusMined,
+			Receipt: receipt,
+		})
+		require.NoError(s.T(), err)
+		evlp, err = s.env.consumer.WaitForEnvelope(job.ScheduleUUID, s.env.kafkaTopicConfig.Decoded, waitForEnvelopeTimeOut)
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), evlp.GetJobUUID(), job.UUID)
+		assert.Equal(s.T(), evlp.GetReceipt().TxHash, receipt.TxHash)
+	})
+	
+	s.T().Run("should update job to FAILED and notify", func(t *testing.T) {
+		req := testdata.FakeCreateJobRequest()
+		req.ScheduleUUID = schedule.UUID
+		req.ChainUUID = s.chainUUID
+		req.Transaction.From = nil
+		job, err := s.client.CreateJob(ctx, req)
+		require.NoError(s.T(), err)
+
+		err = s.client.StartJob(ctx, job.UUID)
+		require.NoError(s.T(), err)
+		evlp, err := s.env.consumer.WaitForEnvelope(job.ScheduleUUID, s.env.kafkaTopicConfig.Sender, waitForEnvelopeTimeOut)
+		require.NoError(s.T(), err)
+		
+		assert.Equal(s.T(), evlp.GetJobUUID(), job.UUID)
+
+		_, err = s.client.UpdateJob(ctx, job.UUID, &api.UpdateJobRequest{
+			Status:  entities.StatusFailed,
+		})
+
+		require.NoError(s.T(), err)
+		evlp, err = s.env.consumer.WaitForEnvelope(job.ScheduleUUID, s.env.kafkaTopicConfig.Recover, waitForEnvelopeTimeOut)
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), evlp.GetJobUUID(), job.UUID)
 	})
 }

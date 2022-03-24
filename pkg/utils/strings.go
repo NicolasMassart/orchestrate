@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"reflect"
+	"strconv"
 
 	ethcommon "github.com/ethereum/go-ethereum/common"
 )
@@ -46,4 +47,28 @@ func ToEthAddr(s string) *ethcommon.Address {
 
 	add := ethcommon.HexToAddress(s)
 	return &add
+}
+
+func StringToUint64(v string) *uint64 {
+	if v == "" {
+		return nil
+	}
+
+	if vi, err := strconv.ParseUint(v, 10, 64); err == nil {
+		return &vi
+	}
+
+	return nil
+}
+
+func StringerToString(v fmt.Stringer) string {
+	switch reflect.TypeOf(v).Kind() {
+	case reflect.Ptr, reflect.Map, reflect.Array, reflect.Chan, reflect.Slice:
+		// use of IsNil method
+		if reflect.ValueOf(v).IsNil() {
+			return ""
+		}
+	}
+
+	return v.String()
 }

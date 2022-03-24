@@ -15,3 +15,4 @@ func TestShortString(t *testing.T) {
 		t.Errorf("ShortString was incorrect")
 	}
 }
+

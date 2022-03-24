@@ -1,25 +1,10 @@
 package utils
 
 import (
-	"fmt"
 	"math/big"
-	"reflect"
-	"strconv"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
-
-func StringerToString(v fmt.Stringer) string {
-	switch reflect.TypeOf(v).Kind() {
-	case reflect.Ptr, reflect.Map, reflect.Array, reflect.Chan, reflect.Slice:
-		// use of IsNil method
-		if reflect.ValueOf(v).IsNil() {
-			return ""
-		}
-	}
-
-	return v.String()
-}
 
 func IsHexString(s string) bool {
 	_, err := hexutil.Decode(s)
@@ -70,14 +55,10 @@ func HexToBigIntString(v *hexutil.Big) string {
 	return v.ToInt().String()
 }
 
-func StringToUint64(v string) *uint64 {
-	if v == "" {
-		return nil
-	}
+func Uint64ToHex(v uint64) *hexutil.Uint64 {
+	return ToPtr(hexutil.Uint64(v)).(*hexutil.Uint64)
+}
 
-	if vi, err := strconv.ParseUint(v, 10, 64); err == nil {
-		return &vi
-	}
-
-	return nil
+func UintToHex(v uint) *hexutil.Uint {
+	return ToPtr(hexutil.Uint(v)).(*hexutil.Uint)
 }

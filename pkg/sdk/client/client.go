@@ -99,5 +99,5 @@ type ContractClient interface {
 	GetContractsCatalog(ctx context.Context) ([]string, error)
 	GetContractTags(ctx context.Context, name string) ([]string, error)
 	SetContractAddressCodeHash(ctx context.Context, address, chainID string, req *types.SetContractCodeHashRequest) error
-	GetContractEvents(ctx context.Context, address, chainID string, req *types.GetContractEventsRequest) (*types.GetContractEventsBySignHashResponse, error)
+	GetContractEvents(ctx context.Context, address, chainUUID string, req *types.GetContractEventsRequest) (*types.GetContractEventsBySignHashResponse, error)
 }

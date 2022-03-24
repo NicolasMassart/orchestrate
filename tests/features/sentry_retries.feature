@@ -214,8 +214,8 @@ Feature: Send transactions using tx-sentry
     When I send "GET" request to "{{global.api}}/schedules/{{scheduleUUID}}"
     Then the response code should be 200
     And Response should have the following fields
-      | jobs[0].status | jobs[1].status | jobs[2].status | jobs[3].status |
-      | NEVER_MINED    | NEVER_MINED    | NEVER_MINED    | MINED          |
+      | jobs[0].status | jobs[1].status | jobs[2].status | jobs[3].status | jobs[4].status |
+      | NEVER_MINED    | NEVER_MINED    | NEVER_MINED    | NEVER_MINED    | MINED          |
 
   Scenario: Send transaction using retry policy with zero gas increment to retry limit
     Given I register the following alias

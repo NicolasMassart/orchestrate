@@ -10,6 +10,7 @@ func FakeReceipt() *proto.Receipt {
 	return &proto.Receipt{
 		TxHash:      testdata.FakeTxHash().String(),
 		BlockHash:   testdata.FakeHash().String(),
+		Bloom:       testdata.FakeHash().String(),
 		TxIndex:     uint64(common.RandInt(100)),
 		BlockNumber: uint64(common.RandInt(100)),
 		Status:      1,

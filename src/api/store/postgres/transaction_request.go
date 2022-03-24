@@ -36,7 +36,7 @@ func (agent *PGTransactionRequest) Insert(ctx context.Context, txRequest *entiti
 
 	model := models.NewTxRequest(txRequest, requestHash)
 
-	scheduleID, err := getScheduleIDByUUID(ctx, agent.client, agent.logger, scheduleUUID)
+	scheduleID, err := getScheduleIDByUUID(ctx, agent.client, scheduleUUID, agent.logger)
 	if err != nil {
 		return nil, err
 	}

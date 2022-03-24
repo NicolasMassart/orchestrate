@@ -51,6 +51,9 @@ const networkName = "api"
 const qkmDefaultStoreID = "orchestrate-eth"
 const hashicorpMountPath = "orchestrate"
 
+// nolint
+const waitForEnvelopeTimeOut = 5 * time.Second
+
 var envPGHostPort string
 var envQKMPGHostPort string
 var envKafkaHostPort string
@@ -286,7 +289,7 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 
 	// Start Kafka consumer
 	env.consumer, err = integrationtest.NewKafkaTestConsumer(ctx, "api-integration-listener-group", sarama.GlobalClient(),
-		[]string{env.kafkaTopicConfig.Sender})
+		[]string{env.kafkaTopicConfig.Sender, env.kafkaTopicConfig.Decoded, env.kafkaTopicConfig.Recover})
 	if err != nil {
 		env.logger.WithError(err).Error("could initialize Kafka")
 		return err

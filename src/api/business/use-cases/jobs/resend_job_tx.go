@@ -3,15 +3,14 @@ package jobs
 import (
 	"context"
 
+	"github.com/Shopify/sarama"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
-	"github.com/consensys/orchestrate/src/entities"
+	pkgsarama "github.com/consensys/orchestrate/src/infra/broker/sarama"
 
-	"github.com/Shopify/sarama"
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/src/api/store"
-	pkgsarama "github.com/consensys/orchestrate/src/infra/broker/sarama"
 )
 
 const resendJobTxComponent = "use-cases.resend-job-tx"
@@ -44,18 +43,12 @@ func (uc *resendJobTxUseCase) Execute(ctx context.Context, jobUUID string, userI
 	}
 
 	job.InternalData.ParentJobUUID = jobUUID
-	if job.Status != entities.StatusPending {
-		errMessage := "cannot resend job transaction at the current status"
-		logger.WithField("status", job.Status).Error(errMessage)
-		return errors.InvalidStateError(errMessage)
-	}
-
-	partition, offset, err := SendJobMessage(job, uc.kafkaProducer, uc.topicsCfg.Sender, userInfo)
+	err = sendEnvelope(uc.kafkaProducer, uc.topicsCfg.Sender, job)
 	if err != nil {
-		logger.WithError(err).Error("failed to send job message")
-		return errors.FromError(err).ExtendComponent(resendJobTxComponent)
+		logger.WithError(err).Error("failed to send resend job envelope")
+		return err
 	}
 
-	logger.WithField("partition", partition).WithField("offset", offset).Info("job resend successfully")
+	logger.Info("transaction resent successfully")
 	return nil
 }
