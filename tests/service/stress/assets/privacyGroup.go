@@ -20,7 +20,7 @@ func CreatePrivateGroup(ctx context.Context, ec ethclient.EEAClient, chainURL st
 	logger := log.FromContext(ctx).WithField("url", chainURL)
 	logger.Debug("creating new privacy group")
 
-	size := utils.RandIntRange(1, len(otherNodeAddress))
+	size := len(otherNodeAddress)
 	nMyselfNode := utils.RandInt(len(myselfNodeAddress))
 	nodes := append(otherNodeAddress[0:size], myselfNodeAddress[nMyselfNode])
 

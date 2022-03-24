@@ -104,6 +104,7 @@ func (uc *createAccountUseCase) Execute(ctx context.Context, acc *entities.Accou
 			},
 		})
 	}
+
 	if err != nil {
 		errMsg := "failed to import/create ethereum account"
 		logger.WithError(err).Error(errMsg)

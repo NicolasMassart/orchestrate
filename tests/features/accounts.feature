@@ -44,7 +44,7 @@ Feature: Account management
     When I send "PATCH" request to "{{global.api}}/accounts/{{importedAddr}}" with json:
   """
 {
-    "alias": "{{generateAccID2}}", 
+    "alias": "{{generateAccID2}}",
     "attributes": {
     	"new_attribute": "{{scenarioID}}"
     }
