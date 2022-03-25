@@ -40,7 +40,7 @@ func FakeContractResponse() *api.ContractResponse {
 		Name:             c.Name,
 		Tag:              c.Tag,
 		ABI:              c.RawABI,
-		Bytecode:         c.Bytecode.String(),
-		DeployedBytecode: c.DeployedBytecode.String(),
+		Bytecode:         c.Bytecode,
+		DeployedBytecode: c.DeployedBytecode,
 	}
 }

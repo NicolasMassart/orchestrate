@@ -4,6 +4,7 @@ package contracts
 
 import (
 	"context"
+	"github.com/consensys/orchestrate/pkg/errors"
 	"sort"
 	"strings"
 	"testing"
@@ -36,9 +37,24 @@ func TestRegisterContract_Execute(t *testing.T) {
 	usecase := NewRegisterContractUseCase(mockDB)
 
 	//@TODO Add more advance test flows
-	t.Run("should execute use case successfully", func(t *testing.T) {
+	t.Run("should execute use case successfully by registering new contract", func(t *testing.T) {
 		contract := testdata.FakeContract()
+
+		contractAgent.EXPECT().FindOneByNameAndTag(gomock.Any(), contract.Name, contract.Tag).Return(nil, errors.NotFoundError("not found"))
 		contractAgent.EXPECT().Register(gomock.Any(), gomock.Any()).Return(nil)
+
+		contractEventAgent.EXPECT().RegisterMultiple(gomock.Any(), gomock.Any()).Return(nil)
+		err := usecase.Execute(ctx, contract)
+
+		assert.NoError(t, err)
+	})
+
+	t.Run("should execute use case successfully by updating existing contract", func(t *testing.T) {
+		contract := testdata.FakeContract()
+
+		contractAgent.EXPECT().FindOneByNameAndTag(gomock.Any(), contract.Name, contract.Tag).Return(contract, nil)
+		contractAgent.EXPECT().Update(gomock.Any(), gomock.Any()).Return(nil)
+
 		contractEventAgent.EXPECT().RegisterMultiple(gomock.Any(), gomock.Any()).Return(nil)
 		err := usecase.Execute(ctx, contract)
 

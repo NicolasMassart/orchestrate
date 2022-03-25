@@ -45,7 +45,7 @@ func (c *JobsController) Append(router *mux.Router) {
 // @Security     JWTAuth
 // @Param        tx_hashes   query     []string                                                                                                                                                              false  "List of transaction hashes"  collectionFormat(csv)
 // @Param        chain_uuid  query     string                                                                                                                                                                false  "Chain UUID"
-// @Success      200         {array}   api.JobResponse{annotations=api.Annotations{gasPricePolicy=api.GasPriceParams{retryPolicy=api.RetryParams}},transaction=entities.ETHTransaction,logs=[]entities.Log}  "List of Jobs found"
+// @Success      200         {array}   api.JobResponse  "List of Jobs found"
 // @Failure      400         {object}  httputil.ErrorResponse                                                                                                                                                "Invalid filter in the request"
 // @Failure      500         {object}  httputil.ErrorResponse                                                                                                                                                "Internal server error"
 // @Router       /jobs [get]
@@ -80,7 +80,7 @@ func (c *JobsController) search(rw http.ResponseWriter, request *http.Request) {
 // @Produce      json
 // @Security     ApiKeyAuth
 // @Security     JWTAuth
-// @Param        request  body      api.CreateJobRequest{annotations=api.Annotations{gasPricePolicy=api.GasPriceParams{retryPolicy=api.RetryParams}},transaction=entities.ETHTransaction}  true  "Job creation request"
+// @Param        request  body      api.CreateJobRequest  true  "Job creation request"
 // @Success      200      {object}  api.JobResponse                                                                                                                                        "Created Job"
 // @Failure      400      {object}  httputil.ErrorResponse                                                                                                                                 "Invalid request"
 // @Failure      422      {object}  httputil.ErrorResponse                                                                                                                                 "Unprocessable parameters were sent"
@@ -119,7 +119,7 @@ func (c *JobsController) create(rw http.ResponseWriter, request *http.Request) {
 // @Security     ApiKeyAuth
 // @Security     JWTAuth
 // @Param        uuid  path      string                                                                                                        true  "UUID of the job"
-// @Success      200   {object}  api.JobResponse{annotations=api.Annotations{gasPricePolicy=api.GasPriceParams{retryPolicy=api.RetryParams}}}  "Job found"
+// @Success      200   {object}  api.JobResponse  "Job found"
 // @Failure      404   {object}  httputil.ErrorResponse                                                                                        "Job not found"
 // @Failure      500   {object}  httputil.ErrorResponse                                                                                        "Internal server error"
 // @Router       /jobs/{uuid} [get]
@@ -196,7 +196,7 @@ func (c *JobsController) resend(rw http.ResponseWriter, request *http.Request) {
 // @Produce      json
 // @Security     ApiKeyAuth
 // @Security     JWTAuth
-// @Param        request  body      api.UpdateJobRequest{annotations=api.Annotations{gasPricePolicy=api.GasPriceParams{retryPolicy=api.RetryParams}},transaction=entities.ETHTransaction}  true  "Job update request"
+// @Param        request  body      api.UpdateJobRequest  true  "Job update request"
 // @Success      200      {object}  api.JobResponse                                                                                                                                        "Job found"
 // @Failure      400      {object}  httputil.ErrorResponse                                                                                                                                 "Invalid request"
 // @Failure      404      {object}  httputil.ErrorResponse                                                                                                                                 "Job not found"

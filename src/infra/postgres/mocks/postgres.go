@@ -142,6 +142,20 @@ func (m *MockQuery) EXPECT() *MockQueryMockRecorder {
 	return m.recorder
 }
 
+// WherePK mocks base method
+func (m *MockQuery) WherePK() postgres.Query {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WherePK")
+	ret0, _ := ret[0].(postgres.Query)
+	return ret0
+}
+
+// WherePK indicates an expected call of WherePK
+func (mr *MockQueryMockRecorder) WherePK() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WherePK", reflect.TypeOf((*MockQuery)(nil).WherePK))
+}
+
 // Where mocks base method
 func (m *MockQuery) Where(condition string, params ...interface{}) postgres.Query {
 	m.ctrl.T.Helper()
@@ -399,6 +413,20 @@ func (m *MockQuery) Update() error {
 func (mr *MockQueryMockRecorder) Update() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockQuery)(nil).Update))
+}
+
+// UpdateNotZero mocks base method
+func (m *MockQuery) UpdateNotZero() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateNotZero")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateNotZero indicates an expected call of UpdateNotZero
+func (mr *MockQueryMockRecorder) UpdateNotZero() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateNotZero", reflect.TypeOf((*MockQuery)(nil).UpdateNotZero))
 }
 
 // Select mocks base method

@@ -7,17 +7,12 @@ import (
 )
 
 type Artifact struct {
-	tableName struct{} `pg:"artifacts"` // nolint:unused,structcheck // reason
-
-	// UUID technical identifier
-	ID int
-
-	// Artifact data
-	ABI              string `pg:"alias:abi"`
+	tableName        struct{} `pg:"artifacts"` // nolint:unused,structcheck // reason
+	ID               int
+	ABI              string
 	Bytecode         string
 	DeployedBytecode string
-	// Codehash stored on the Ethereum account. Correspond to the hash of the deployedBytecode
-	Codehash string
+	Codehash         string // hash of the deployedBytecode
 }
 
 func NewArtifact(contract *entities.Contract) *Artifact {

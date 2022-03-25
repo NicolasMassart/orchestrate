@@ -13,7 +13,6 @@ const DefaultTagValue = "latest"
 type Contract struct {
 	Name             string
 	Tag              string
-	Registry         string
 	ABI              abi.ABI
 	RawABI           string
 	Bytecode         hexutil.Bytes

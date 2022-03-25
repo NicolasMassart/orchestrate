@@ -15,6 +15,7 @@ type Client interface {
 }
 
 type Query interface {
+	WherePK() Query
 	Where(condition string, params ...interface{}) Query
 	WhereAllowedOwner(ownerIDLabel, ownerID string) Query
 	WhereAllowedTenants(tenantIDLabel string, tenants []string) Query
@@ -30,6 +31,7 @@ type Query interface {
 	For(s string, params ...interface{}) Query
 	Insert() error
 	Update() error
+	UpdateNotZero() error
 	Select() error
 	SelectOne() error
 	SelectOrInsert() error

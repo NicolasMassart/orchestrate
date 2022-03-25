@@ -98,7 +98,7 @@ func (agent *PGFaucet) Update(ctx context.Context, faucet *entities.Faucet, tena
 	err := agent.client.ModelContext(ctx, model).
 		Where("uuid = ?", faucet.UUID).
 		WhereAllowedTenants("", tenants).
-		Update()
+		UpdateNotZero()
 	if err != nil {
 		errMessage := "failed to update faucet"
 		agent.logger.WithContext(ctx).WithError(err).Error(errMessage)

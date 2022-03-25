@@ -22,6 +22,12 @@ func NewQuery(pgQuery *orm.Query) *Query {
 	return &Query{pgQuery: pgQuery}
 }
 
+func (q Query) WherePK() postgres.Query {
+	q.pgQuery = q.pgQuery.WherePK()
+
+	return &q
+}
+
 func (q Query) Where(condition string, params ...interface{}) postgres.Query {
 	q.pgQuery = q.pgQuery.Where(condition, params...)
 
@@ -109,8 +115,17 @@ func (q *Query) Insert() error {
 	return nil
 }
 
-func (q *Query) Update() error {
+func (q *Query) UpdateNotZero() error {
 	_, err := q.pgQuery.UpdateNotZero()
+	if err != nil {
+		return parseErrorResponse(err)
+	}
+
+	return nil
+}
+
+func (q *Query) Update() error {
+	_, err := q.pgQuery.Update()
 	if err != nil {
 		return parseErrorResponse(err)
 	}

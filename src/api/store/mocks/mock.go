@@ -735,6 +735,20 @@ func (mr *MockContractAgentMockRecorder) Register(ctx, contract interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockContractAgent)(nil).Register), ctx, contract)
 }
 
+// Update mocks base method
+func (m *MockContractAgent) Update(ctx context.Context, contract *entities.Contract) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update", ctx, contract)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Update indicates an expected call of Update
+func (mr *MockContractAgentMockRecorder) Update(ctx, contract interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockContractAgent)(nil).Update), ctx, contract)
+}
+
 // RegisterDeployment mocks base method
 func (m *MockContractAgent) RegisterDeployment(ctx context.Context, chainID string, address common.Address, codeHash []byte) error {
 	m.ctrl.T.Helper()

@@ -55,7 +55,7 @@ func (agent *PGAccount) Update(ctx context.Context, account *entities.Account) (
 		q = q.Where("owner_id = ?", account.OwnerID)
 	}
 
-	err := q.Update()
+	err := q.UpdateNotZero()
 	if err != nil {
 		errMsg := "failed to update account"
 		agent.logger.WithContext(ctx).WithError(err).Error(errMsg)

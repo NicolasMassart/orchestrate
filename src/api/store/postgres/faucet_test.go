@@ -115,7 +115,7 @@ func (s *pgFaucetTestSuite) TestUpdate() {
 		})
 		mockQuery.EXPECT().Where("uuid = ?", fakeFaucet.UUID).Return(mockQuery)
 		mockQuery.EXPECT().WhereAllowedTenants("", tenants).Return(mockQuery)
-		mockQuery.EXPECT().Update().Return(nil)
+		mockQuery.EXPECT().UpdateNotZero().Return(nil)
 
 		faucet, err := s.dataAgent.Update(ctx, fakeFaucet, tenants)
 		require.NoError(t, err)
@@ -131,14 +131,14 @@ func (s *pgFaucetTestSuite) TestUpdate() {
 		assert.Equal(t, fakeFaucet.Cooldown, faucet.Cooldown)
 	})
 
-	s.T().Run("should fail with same error if Update fails", func(t *testing.T) {
+	s.T().Run("should fail with same error if UpdateNotZero fails", func(t *testing.T) {
 		expectedErr := errors.PostgresConnectionError("error")
 		mockQuery := mocks.NewMockQuery(ctrl)
 
 		s.mockPGClient.EXPECT().ModelContext(ctx, gomock.Any()).Return(mockQuery)
 		mockQuery.EXPECT().Where("uuid = ?", gomock.Any()).Return(mockQuery)
 		mockQuery.EXPECT().WhereAllowedTenants("", tenants).Return(mockQuery)
-		mockQuery.EXPECT().Update().Return(expectedErr)
+		mockQuery.EXPECT().UpdateNotZero().Return(expectedErr)
 
 		account, err := s.dataAgent.Update(ctx, testdata.FakeFaucet(), tenants)
 		assert.Nil(t, account)

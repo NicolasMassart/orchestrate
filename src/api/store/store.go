@@ -68,6 +68,7 @@ type ChainAgent interface {
 
 type ContractAgent interface {
 	Register(ctx context.Context, contract *entities.Contract) error
+	Update(ctx context.Context, contract *entities.Contract) error
 	RegisterDeployment(ctx context.Context, chainID string, address ethcommon.Address, codeHash []byte) error
 	FindOneByNameAndTag(ctx context.Context, name, tag string) (*entities.Contract, error)
 	FindOneByCodeHash(ctx context.Context, codeHash string) (*entities.Contract, error)

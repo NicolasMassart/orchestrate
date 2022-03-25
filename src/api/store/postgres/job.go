@@ -93,7 +93,7 @@ func (agent *PGJob) Update(ctx context.Context, job *entities.Job, jobLog *entit
 	jobModel.UpdatedAt = time.Now().UTC()
 
 	err = agent.client.RunInTransaction(ctx, func(dbtx postgres.Client) error {
-		err = agent.client.ModelContext(ctx, jobModel).Where("id = ?", curJobModel.ID).Update()
+		err = agent.client.ModelContext(ctx, jobModel).Where("id = ?", curJobModel.ID).UpdateNotZero()
 		if err != nil {
 			return err
 		}
@@ -112,7 +112,7 @@ func (agent *PGJob) Update(ctx context.Context, job *entities.Job, jobLog *entit
 		if job.Transaction != nil {
 			jobTxModel := models.NewTransaction(job.Transaction)
 			jobTxModel.UpdatedAt = jobModel.UpdatedAt
-			err = dbtx.ModelContext(ctx, jobTxModel).Where("id = ?", *curJobModel.TransactionID).Update()
+			err = dbtx.ModelContext(ctx, jobTxModel).Where("id = ?", *curJobModel.TransactionID).UpdateNotZero()
 			if err != nil {
 				return err
 			}

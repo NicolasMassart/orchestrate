@@ -54,7 +54,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/api.AccountResponse"
+                                "$ref": "#/definitions/types.AccountResponse"
                             }
                         }
                     },
@@ -105,7 +105,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.CreateAccountRequest"
+                            "$ref": "#/definitions/types.CreateAccountRequest"
                         }
                     }
                 ],
@@ -113,7 +113,7 @@
                     "200": {
                         "description": "Account object",
                         "schema": {
-                            "$ref": "#/definitions/api.AccountResponse"
+                            "$ref": "#/definitions/types.AccountResponse"
                         }
                     },
                     "400": {
@@ -165,7 +165,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.ImportAccountRequest"
+                            "$ref": "#/definitions/types.ImportAccountRequest"
                         }
                     }
                 ],
@@ -173,7 +173,7 @@
                     "200": {
                         "description": "Account object",
                         "schema": {
-                            "$ref": "#/definitions/api.AccountResponse"
+                            "$ref": "#/definitions/types.AccountResponse"
                         }
                     },
                     "400": {
@@ -344,7 +344,7 @@
                     "200": {
                         "description": "Account found",
                         "schema": {
-                            "$ref": "#/definitions/api.AccountResponse"
+                            "$ref": "#/definitions/types.AccountResponse"
                         }
                     },
                     "401": {
@@ -394,7 +394,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.UpdateAccountRequest"
+                            "$ref": "#/definitions/types.UpdateAccountRequest"
                         }
                     },
                     {
@@ -409,7 +409,7 @@
                     "200": {
                         "description": "Account found",
                         "schema": {
-                            "$ref": "#/definitions/api.AccountResponse"
+                            "$ref": "#/definitions/types.AccountResponse"
                         }
                     },
                     "400": {
@@ -467,7 +467,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.SignMessageRequest"
+                            "$ref": "#/definitions/types.SignMessageRequest"
                         }
                     },
                     {
@@ -532,7 +532,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.SignTypedDataRequest"
+                            "$ref": "#/definitions/github.com_consensys_orchestrate_src_api_service_types.SignTypedDataRequest"
                         }
                     },
                     {
@@ -608,7 +608,7 @@
                             "items": {
                                 "allOf": [
                                     {
-                                        "$ref": "#/definitions/api.ChainResponse"
+                                        "$ref": "#/definitions/types.ChainResponse"
                                     },
                                     {
                                         "type": "object",
@@ -664,16 +664,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/api.RegisterChainRequest"
+                                    "$ref": "#/definitions/types.RegisterChainRequest"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "listener": {
-                                            "$ref": "#/definitions/api.RegisterListenerRequest"
-                                        },
-                                        "privateTxManager": {
-                                            "$ref": "#/definitions/api.PrivateTxManagerRequest"
+                                            "$ref": "#/definitions/types.RegisterListenerRequest"
                                         }
                                     }
                                 }
@@ -687,7 +684,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/api.ChainResponse"
+                                    "$ref": "#/definitions/types.ChainResponse"
                                 },
                                 {
                                     "type": "object",
@@ -745,19 +742,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/api.ChainResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "privateTxManager": {
-                                            "$ref": "#/definitions/entities.PrivateTxManager"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/types.ChainResponse"
                         }
                     },
                     "400": {
@@ -864,16 +849,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/api.UpdateChainRequest"
+                                    "$ref": "#/definitions/types.UpdateChainRequest"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "listener": {
-                                            "$ref": "#/definitions/api.UpdateListenerRequest"
-                                        },
-                                        "privateTxManager": {
-                                            "$ref": "#/definitions/api.PrivateTxManagerRequest"
+                                            "$ref": "#/definitions/types.UpdateListenerRequest"
                                         }
                                     }
                                 }
@@ -885,19 +867,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/api.ChainResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "privateTxManager": {
-                                            "$ref": "#/definitions/entities.PrivateTxManager"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/types.ChainResponse"
                         }
                     },
                     "400": {
@@ -984,7 +954,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.RegisterContractRequest"
+                            "$ref": "#/definitions/types.RegisterContractRequest"
                         }
                     }
                 ],
@@ -994,7 +964,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/api.ContractResponse"
+                                    "$ref": "#/definitions/types.ContractResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1065,7 +1035,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.SetContractCodeHashRequest"
+                            "$ref": "#/definitions/types.SetContractCodeHashRequest"
                         }
                     },
                     {
@@ -1153,7 +1123,7 @@
                     "200": {
                         "description": "List of events",
                         "schema": {
-                            "$ref": "#/definitions/api.GetContractEventsBySignHashResponse"
+                            "$ref": "#/definitions/types.GetContractEventsBySignHashResponse"
                         }
                     },
                     "400": {
@@ -1218,7 +1188,7 @@
                     "200": {
                         "description": "Contract object",
                         "schema": {
-                            "$ref": "#/definitions/api.ContractResponse"
+                            "$ref": "#/definitions/types.ContractResponse"
                         }
                     },
                     "400": {
@@ -1325,7 +1295,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/api.ContractResponse"
+                                    "$ref": "#/definitions/types.ContractResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1388,7 +1358,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/api.FaucetResponse"
+                                "$ref": "#/definitions/types.FaucetResponse"
                             }
                         }
                     },
@@ -1432,7 +1402,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.RegisterFaucetRequest"
+                            "$ref": "#/definitions/types.RegisterFaucetRequest"
                         }
                     }
                 ],
@@ -1440,7 +1410,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api.FaucetResponse"
+                            "$ref": "#/definitions/types.FaucetResponse"
                         }
                     },
                     "400": {
@@ -1486,7 +1456,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api.FaucetResponse"
+                            "$ref": "#/definitions/types.FaucetResponse"
                         }
                     },
                     "404": {
@@ -1582,7 +1552,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.UpdateFaucetRequest"
+                            "$ref": "#/definitions/types.UpdateFaucetRequest"
                         }
                     }
                 ],
@@ -1590,7 +1560,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api.FaucetResponse"
+                            "$ref": "#/definitions/types.FaucetResponse"
                         }
                     },
                     "400": {
@@ -1665,52 +1635,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "allOf": [
-                                    {
-                                        "$ref": "#/definitions/api.JobResponse"
-                                    },
-                                    {
-                                        "type": "object",
-                                        "properties": {
-                                            "annotations": {
-                                                "allOf": [
-                                                    {
-                                                        "$ref": "#/definitions/api.Annotations"
-                                                    },
-                                                    {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "gasPricePolicy": {
-                                                                "allOf": [
-                                                                    {
-                                                                        "$ref": "#/definitions/api.GasPriceParams"
-                                                                    },
-                                                                    {
-                                                                        "type": "object",
-                                                                        "properties": {
-                                                                            "retryPolicy": {
-                                                                                "$ref": "#/definitions/api.RetryParams"
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                ]
-                                                            }
-                                                        }
-                                                    }
-                                                ]
-                                            },
-                                            "logs": {
-                                                "type": "array",
-                                                "items": {
-                                                    "$ref": "#/definitions/entities.Log"
-                                                }
-                                            },
-                                            "transaction": {
-                                                "$ref": "#/definitions/entities.ETHTransaction"
-                                            }
-                                        }
-                                    }
-                                ]
+                                "$ref": "#/definitions/types.JobResponse"
                             }
                         }
                     },
@@ -1755,46 +1680,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/api.CreateJobRequest"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "annotations": {
-                                            "allOf": [
-                                                {
-                                                    "$ref": "#/definitions/api.Annotations"
-                                                },
-                                                {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "gasPricePolicy": {
-                                                            "allOf": [
-                                                                {
-                                                                    "$ref": "#/definitions/api.GasPriceParams"
-                                                                },
-                                                                {
-                                                                    "type": "object",
-                                                                    "properties": {
-                                                                        "retryPolicy": {
-                                                                            "$ref": "#/definitions/api.RetryParams"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            ]
-                                                        }
-                                                    }
-                                                }
-                                            ]
-                                        },
-                                        "transaction": {
-                                            "$ref": "#/definitions/entities.ETHTransaction"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/types.CreateJobRequest"
                         }
                     }
                 ],
@@ -1802,7 +1688,7 @@
                     "200": {
                         "description": "Created Job",
                         "schema": {
-                            "$ref": "#/definitions/api.JobResponse"
+                            "$ref": "#/definitions/types.JobResponse"
                         }
                     },
                     "400": {
@@ -1857,43 +1743,7 @@
                     "200": {
                         "description": "Job found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/api.JobResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "annotations": {
-                                            "allOf": [
-                                                {
-                                                    "$ref": "#/definitions/api.Annotations"
-                                                },
-                                                {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "gasPricePolicy": {
-                                                            "allOf": [
-                                                                {
-                                                                    "$ref": "#/definitions/api.GasPriceParams"
-                                                                },
-                                                                {
-                                                                    "type": "object",
-                                                                    "properties": {
-                                                                        "retryPolicy": {
-                                                                            "$ref": "#/definitions/api.RetryParams"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            ]
-                                                        }
-                                                    }
-                                                }
-                                            ]
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/types.JobResponse"
                         }
                     },
                     "404": {
@@ -1937,46 +1787,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/api.UpdateJobRequest"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "annotations": {
-                                            "allOf": [
-                                                {
-                                                    "$ref": "#/definitions/api.Annotations"
-                                                },
-                                                {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "gasPricePolicy": {
-                                                            "allOf": [
-                                                                {
-                                                                    "$ref": "#/definitions/api.GasPriceParams"
-                                                                },
-                                                                {
-                                                                    "type": "object",
-                                                                    "properties": {
-                                                                        "retryPolicy": {
-                                                                            "$ref": "#/definitions/api.RetryParams"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            ]
-                                                        }
-                                                    }
-                                                }
-                                            ]
-                                        },
-                                        "transaction": {
-                                            "$ref": "#/definitions/entities.ETHTransaction"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/types.UpdateJobRequest"
                         }
                     }
                 ],
@@ -1984,7 +1795,7 @@
                     "200": {
                         "description": "Job found",
                         "schema": {
-                            "$ref": "#/definitions/api.JobResponse"
+                            "$ref": "#/definitions/types.JobResponse"
                         }
                     },
                     "400": {
@@ -2130,7 +1941,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/api.ScheduleResponse"
+                                "$ref": "#/definitions/types.ScheduleResponse"
                             }
                         }
                     },
@@ -2169,7 +1980,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.CreateScheduleRequest"
+                            "$ref": "#/definitions/types.CreateScheduleRequest"
                         }
                     }
                 ],
@@ -2179,7 +1990,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/api.ScheduleResponse"
+                                    "$ref": "#/definitions/types.ScheduleResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2187,7 +1998,7 @@
                                         "jobs": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/api.JobResponse"
+                                                "$ref": "#/definitions/types.JobResponse"
                                             }
                                         }
                                     }
@@ -2247,7 +2058,7 @@
                     "200": {
                         "description": "Schedule found",
                         "schema": {
-                            "$ref": "#/definitions/api.ScheduleResponse"
+                            "$ref": "#/definitions/types.ScheduleResponse"
                         }
                     },
                     "404": {
@@ -2304,7 +2115,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/api.TransactionResponse"
+                                "$ref": "#/definitions/types.TransactionResponse"
                             }
                         }
                     },
@@ -2353,7 +2164,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/api.DeployContractRequest"
+                                    "$ref": "#/definitions/types.DeployContractRequest"
                                 },
                                 {
                                     "type": "object",
@@ -2361,7 +2172,7 @@
                                         "params": {
                                             "allOf": [
                                                 {
-                                                    "$ref": "#/definitions/api.DeployContractParams"
+                                                    "$ref": "#/definitions/types.DeployContractParams"
                                                 },
                                                 {
                                                     "type": "object",
@@ -2369,13 +2180,13 @@
                                                         "gasPricePolicy": {
                                                             "allOf": [
                                                                 {
-                                                                    "$ref": "#/definitions/api.GasPriceParams"
+                                                                    "$ref": "#/definitions/types.GasPriceParams"
                                                                 },
                                                                 {
                                                                     "type": "object",
                                                                     "properties": {
                                                                         "retryPolicy": {
-                                                                            "$ref": "#/definitions/api.RetryParams"
+                                                                            "$ref": "#/definitions/types.RetryParams"
                                                                         }
                                                                     }
                                                                 }
@@ -2395,7 +2206,7 @@
                     "202": {
                         "description": "Created deployment transaction request",
                         "schema": {
-                            "$ref": "#/definitions/api.TransactionResponse"
+                            "$ref": "#/definitions/types.TransactionResponse"
                         }
                     },
                     "400": {
@@ -2455,7 +2266,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/api.SendTransactionRequest"
+                                    "$ref": "#/definitions/types.SendTransactionRequest"
                                 },
                                 {
                                     "type": "object",
@@ -2463,7 +2274,7 @@
                                         "params": {
                                             "allOf": [
                                                 {
-                                                    "$ref": "#/definitions/api.TransactionParams"
+                                                    "$ref": "#/definitions/types.TransactionParams"
                                                 },
                                                 {
                                                     "type": "object",
@@ -2471,13 +2282,13 @@
                                                         "gasPricePolicy": {
                                                             "allOf": [
                                                                 {
-                                                                    "$ref": "#/definitions/api.GasPriceParams"
+                                                                    "$ref": "#/definitions/types.GasPriceParams"
                                                                 },
                                                                 {
                                                                     "type": "object",
                                                                     "properties": {
                                                                         "retryPolicy": {
-                                                                            "$ref": "#/definitions/api.RetryParams"
+                                                                            "$ref": "#/definitions/types.RetryParams"
                                                                         }
                                                                     }
                                                                 }
@@ -2497,7 +2308,7 @@
                     "202": {
                         "description": "Created contract transaction request",
                         "schema": {
-                            "$ref": "#/definitions/api.TransactionResponse"
+                            "$ref": "#/definitions/types.TransactionResponse"
                         }
                     },
                     "400": {
@@ -2557,7 +2368,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/api.RawTransactionRequest"
+                                    "$ref": "#/definitions/types.RawTransactionRequest"
                                 },
                                 {
                                     "type": "object",
@@ -2565,13 +2376,13 @@
                                         "params": {
                                             "allOf": [
                                                 {
-                                                    "$ref": "#/definitions/api.RawTransactionParams"
+                                                    "$ref": "#/definitions/types.RawTransactionParams"
                                                 },
                                                 {
                                                     "type": "object",
                                                     "properties": {
                                                         "retryPolicy": {
-                                                            "$ref": "#/definitions/api.IntervalRetryParams"
+                                                            "$ref": "#/definitions/types.IntervalRetryParams"
                                                         }
                                                     }
                                                 }
@@ -2587,7 +2398,7 @@
                     "202": {
                         "description": "Created raw transaction request",
                         "schema": {
-                            "$ref": "#/definitions/api.TransactionResponse"
+                            "$ref": "#/definitions/types.TransactionResponse"
                         }
                     },
                     "400": {
@@ -2647,7 +2458,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/api.TransferRequest"
+                                    "$ref": "#/definitions/types.TransferRequest"
                                 },
                                 {
                                     "type": "object",
@@ -2655,7 +2466,7 @@
                                         "params": {
                                             "allOf": [
                                                 {
-                                                    "$ref": "#/definitions/api.TransferParams"
+                                                    "$ref": "#/definitions/types.TransferParams"
                                                 },
                                                 {
                                                     "type": "object",
@@ -2663,13 +2474,13 @@
                                                         "gasPricePolicy": {
                                                             "allOf": [
                                                                 {
-                                                                    "$ref": "#/definitions/api.GasPriceParams"
+                                                                    "$ref": "#/definitions/types.GasPriceParams"
                                                                 },
                                                                 {
                                                                     "type": "object",
                                                                     "properties": {
                                                                         "retryPolicy": {
-                                                                            "$ref": "#/definitions/api.RetryParams"
+                                                                            "$ref": "#/definitions/types.RetryParams"
                                                                         }
                                                                     }
                                                                 }
@@ -2689,7 +2500,7 @@
                     "202": {
                         "description": "Created transfer transaction request",
                         "schema": {
-                            "$ref": "#/definitions/api.TransactionResponse"
+                            "$ref": "#/definitions/types.TransactionResponse"
                         }
                     },
                     "400": {
@@ -2750,7 +2561,7 @@
                     "200": {
                         "description": "Transaction request found",
                         "schema": {
-                            "$ref": "#/definitions/api.TransactionResponse"
+                            "$ref": "#/definitions/types.TransactionResponse"
                         }
                     },
                     "404": {
@@ -2778,7 +2589,7 @@
                         "JWTAuth": []
                     }
                 ],
-                "description": "Call of transaction  by sending empty data transaction with same nonce and additional 10% more gas",
+                "description": "Call of transaction by sending empty data transaction with same nonce and additional 10% more gas",
                 "produces": [
                     "application/json"
                 ],
@@ -2840,7 +2651,7 @@
                     {
                         "type": "number",
                         "description": "gas price increment percentage, default value is 0.05 (5%)",
-                        "name": "increment",
+                        "name": "boost",
                         "in": "query"
                     }
                 ],
@@ -2862,58 +2673,366 @@
         }
     },
     "definitions": {
-        "api.AccountResponse": {
+        "entities.ABIComponent": {
+            "type": "object",
+            "properties": {
+                "abi": {
+                    "type": "string"
+                },
+                "signature": {
+                    "type": "string"
+                }
+            }
+        },
+        "entities.Log": {
+            "type": "object",
+            "properties": {
+                "at": {
+                    "type": "string",
+                    "example": "2020-07-09T12:35:42.115395Z"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Log message"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "entities.PrivateTxManager": {
+            "type": "object",
+            "properties": {
+                "chainUUID": {
+                    "description": "UUID of the registered chain.",
+                    "type": "string"
+                },
+                "createdAt": {
+                    "description": "Date and time that the private transaction manager was registered with the chain.",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Currently supports `Tessera` and `EEA`.",
+                    "type": "string"
+                },
+                "url": {
+                    "description": "Transaction manager endpoint.",
+                    "type": "string"
+                },
+                "uuid": {
+                    "description": "UUID of the private transaction manager.",
+                    "type": "string"
+                }
+            }
+        },
+        "ethereum.Log": {
             "type": "object",
             "properties": {
                 "address": {
+                    "description": "DATA (20 Bytes) - Address from which log originated\ne.g 0xAf84242d70aE9D268E2bE3616ED497BA28A7b62C",
+                    "type": "string"
+                },
+                "block_hash": {
+                    "description": "DATA (32 Bytes) - Hash of the block where this transaction was in.\ne.g. 0x656c34545f90a730a19008c0e7a7cd4fb3895064b48d6d69761bd5abad681056",
+                    "type": "string"
+                },
+                "block_number": {
+                    "description": "QUANTITY - Block number where this transaction was in",
+                    "type": "integer"
+                },
+                "data": {
+                    "description": "DATA - Non-indexed arguments of the log",
+                    "type": "string"
+                },
+                "decoded_data": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "event": {
+                    "description": "Log decoded data",
+                    "type": "string"
+                },
+                "index": {
+                    "description": "QUANTITY - Integer of the log index position in the block",
+                    "type": "integer"
+                },
+                "removed": {
+                    "description": "Removed field is true if this log was reverted due to a chain reorganisation.",
+                    "type": "boolean"
+                },
+                "topics": {
+                    "description": "Array of DATA (32 Bytes) - Array of 0 to 4 indexed log arguments\ne.g. 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "tx_hash": {
+                    "description": "DATA (32 Bytes) - Hash of the transaction.\ne.g. 0x3b198bfd5d2907285af009e9ae84a0ecd63677110d89d7e030251acb87f6487e",
+                    "type": "string"
+                },
+                "tx_index": {
+                    "description": "QUANTITY - Integer of the transactions index position in the block.",
+                    "type": "integer"
+                }
+            }
+        },
+        "ethereum.Receipt": {
+            "type": "object",
+            "properties": {
+                "block_hash": {
+                    "description": "HASH (32 Bytes) - Hash of the block where this transaction was in.\ne.g. 0x656c34545f90a730a19008c0e7a7cd4fb3895064b48d6d69761bd5abad681056",
+                    "type": "string"
+                },
+                "block_number": {
+                    "description": "QUANTITY - Block number where this transaction was in.",
+                    "type": "integer"
+                },
+                "bloom": {
+                    "description": "DATA (256 Bytes) - Bloom filter of logs/events generated by contracts during transaction execution.",
+                    "type": "string"
+                },
+                "contract_address": {
+                    "description": "DATA (20 Bytes) - The contract address created, if the transaction was a contract creation\ne.g 0xAf84242d70aE9D268E2bE3616ED497BA28A7b62C",
+                    "type": "string"
+                },
+                "contract_name": {
+                    "type": "string"
+                },
+                "contract_tag": {
+                    "type": "string"
+                },
+                "cumulative_gas_used": {
+                    "description": "QUANTITY - The total amount of gas used when this transaction was executed in the block.",
+                    "type": "integer"
+                },
+                "effective_gas_price": {
+                    "description": "Equal to the actual gas price paid for inclusion",
+                    "type": "string"
+                },
+                "gas_used": {
+                    "description": "QUANTITY - The amount of gas used by this specific transaction alone.",
+                    "type": "integer"
+                },
+                "logs": {
+                    "description": "Array - Array of log objects, which this transaction generated.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ethereum.Log"
+                    }
+                },
+                "output": {
+                    "description": "DATA - RLP-encoded return value of a contract call for EEA Priv Tx\nProvisional till we migrate to TransactionManager Jobs",
+                    "type": "string"
+                },
+                "post_state": {
+                    "description": "DATA (32 Bytes) - State root hash after executing transaction\ne.g. 0x656c34545f90a730a19008c0e7a7cd4fb3895064b48d6d69761bd5abad681056",
+                    "type": "string"
+                },
+                "privacyGroupId": {
+                    "description": "DATA (32 bytes) - EEA public keys or privacy group ID of the recipients.\ne.g Ko2bVqD+nNlNYL5EE7y3IdOnviftjiizpjRt+HTuFBs=",
+                    "type": "string"
+                },
+                "privateFor": {
+                    "description": "e.g [Ko2bVqD+nNlNYL5EE7y3IdOnviftjiizpjRt+HTuFBs=]",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "privateFrom": {
+                    "description": "DATA (32 bytes) - EEA public key of the sender.\ne.g A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=",
+                    "type": "string"
+                },
+                "revert_reason": {
+                    "description": "DATA - Revert reason if the transaction failed",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "QUANTITY - 0 indicates transaction failure , 1 indicates transaction success.",
+                    "type": "integer"
+                },
+                "tx_hash": {
+                    "description": "HASH (32 Bytes) - Hash of the transaction.\ne.g 0x3b198bfd5d2907285af009e9ae84a0ecd63677110d89d7e030251acb87f6487e",
+                    "type": "string"
+                },
+                "tx_index": {
+                    "description": "QUANTITY - Integer of the transactions index position in the block.",
+                    "type": "integer"
+                }
+            }
+        },
+        "github.com_consensys_orchestrate_src_api_service_types.SignTypedDataRequest": {
+            "type": "object",
+            "required": [
+                "domainSeparator",
+                "message",
+                "messageType",
+                "types"
+            ],
+            "properties": {
+                "domainSeparator": {
+                    "$ref": "#/definitions/types.DomainSeparator"
+                },
+                "message": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "messageType": {
+                    "type": "string",
+                    "example": "Mail"
+                },
+                "storeID": {
+                    "description": "ID of the Quorum Key Manager store containing the account.",
+                    "type": "string",
+                    "example": "qkmStoreID"
+                },
+                "types": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/definitions/types.Type"
+                        }
+                    }
+                }
+            }
+        },
+        "github.com_consensys_quorum-key-manager_src_stores_api_types.SignTypedDataRequest": {
+            "type": "object",
+            "required": [
+                "domainSeparator",
+                "message",
+                "messageType",
+                "types"
+            ],
+            "properties": {
+                "domainSeparator": {
+                    "$ref": "#/definitions/types.DomainSeparator"
+                },
+                "message": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "messageType": {
+                    "type": "string",
+                    "example": "Mail"
+                },
+                "types": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/definitions/types.Type"
+                        }
+                    }
+                }
+            }
+        },
+        "httputil.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 24000
+                },
+                "message": {
+                    "type": "string",
+                    "example": "error message"
+                }
+            }
+        },
+        "types.ABIComponentResponse": {
+            "type": "object",
+            "properties": {
+                "abi": {
+                    "type": "string",
+                    "example": "[{anonymous: false, inputs: [{indexed: false, name: account, type: address}, name: MinterAdded, type: event}]}]"
+                },
+                "signature": {
+                    "type": "string",
+                    "example": "transfer(address,uint256)"
+                }
+            }
+        },
+        "types.AccessTupleResponse": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "storageKeys": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "types.AccountResponse": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "description": "Address of the account.",
                     "type": "string",
                     "example": "0x1abae27a0cbfb02945720425d3b80c7e09728534"
                 },
                 "alias": {
+                    "description": "Alias of the account.",
                     "type": "string",
                     "example": "personal-account"
                 },
                 "attributes": {
+                    "description": "Additional information attached to the account.",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
                     }
                 },
                 "compressedPublicKey": {
+                    "description": "Compressed public key of the account.",
                     "type": "string",
                     "example": "0x048e66b3e549818ea2cb354fb70749f6c8de8fa484f7530fc447"
                 },
                 "createdAt": {
+                    "description": "Date and time at which the account was created.",
                     "type": "string",
                     "example": "2020-07-09T12:35:42.115395Z"
                 },
                 "ownerID": {
+                    "description": "ID of the account owner.",
                     "type": "string",
                     "example": "foo"
                 },
                 "publicKey": {
+                    "description": "Public key of the account.",
                     "type": "string",
                     "example": "0x048e66b3e549818ea2cb354fb70749f6c8de8fa484f7530fc447d5fe80a1c424e4f5ae648d648c980ae7095d1efad87161d83886ca4b6c498ac22a93da5099014a"
                 },
                 "storeID": {
+                    "description": "ID of the Quorum Key Manager store containing the account.",
                     "type": "string",
                     "example": "myQKMStoreID"
                 },
                 "tenantID": {
+                    "description": "ID of the tenant executing the API.",
                     "type": "string",
                     "example": "tenantFoo"
                 },
                 "updatedAt": {
+                    "description": "Date and time at which the account details were updated.",
                     "type": "string",
                     "example": "2020-07-09T12:35:42.115395Z"
                 }
             }
         },
-        "api.Annotations": {
+        "types.Annotations": {
             "type": "object",
             "properties": {
                 "gasPricePolicy": {
-                    "$ref": "#/definitions/api.GasPriceParams"
+                    "$ref": "#/definitions/types.GasPriceParams"
                 },
                 "hasBeenRetried": {
                     "type": "boolean",
@@ -2925,7 +3044,7 @@
                 }
             }
         },
-        "api.ChainResponse": {
+        "types.ChainResponse": {
             "type": "object",
             "properties": {
                 "chainID": {
@@ -2980,8 +3099,10 @@
                     "type": "string",
                     "example": "foo"
                 },
-                "privateTxManager": {
-                    "$ref": "#/definitions/entities.PrivateTxManager"
+                "privateTxManagerURL": {
+                    "description": "Private tx manager required by go-quorum for sending private txs",
+                    "type": "string",
+                    "example": "http://go-quorum/tessera:9000"
                 },
                 "tenantID": {
                     "description": "ID of the tenant executing the API.",
@@ -3010,74 +3131,82 @@
                 }
             }
         },
-        "api.ContractResponse": {
+        "types.ContractResponse": {
             "type": "object",
             "properties": {
                 "abi": {
+                    "description": "ABI of the contract.",
                     "type": "string",
                     "example": "[{anonymous: false, inputs: [{indexed: false, name: account, type: address}, name: MinterAdded, type: event}]}]"
                 },
                 "bytecode": {
+                    "description": "Bytecode of the contract.",
                     "type": "string",
                     "example": "0x6080604052348015600f57600080f..."
                 },
                 "constructor": {
-                    "$ref": "#/definitions/entities.ABIComponent"
+                    "description": "Contract constructor.",
+                    "$ref": "#/definitions/types.ABIComponentResponse"
                 },
                 "deployedBytecode": {
+                    "description": "Deployed bytecode of the contract.",
                     "type": "string",
                     "example": "0x6080604052348015600f57600080f..."
                 },
                 "events": {
+                    "description": "List of contract events.",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/entities.ABIComponent"
+                        "$ref": "#/definitions/types.ABIComponentResponse"
                     }
                 },
                 "methods": {
+                    "description": "List of contract methods.",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/entities.ABIComponent"
+                        "$ref": "#/definitions/types.ABIComponentResponse"
                     }
                 },
                 "name": {
+                    "description": "Name of the contract.",
                     "type": "string",
                     "example": "ERC20"
                 },
-                "registry": {
-                    "type": "string",
-                    "example": "registry.consensys.net/orchestrate"
-                },
                 "tag": {
+                    "description": "URL of the contract's registry.",
                     "type": "string",
                     "example": "v1.0.0"
                 }
             }
         },
-        "api.CreateAccountRequest": {
+        "types.CreateAccountRequest": {
             "type": "object",
             "properties": {
                 "alias": {
+                    "description": "Alias of the account.",
                     "type": "string",
                     "example": "personal-account"
                 },
                 "attributes": {
+                    "description": "Additional information attached to the account.",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
                     }
                 },
                 "chain": {
+                    "description": "Name of the chain. This value should match the chain name defined in the chain creation.",
                     "type": "string",
                     "example": "besu"
                 },
                 "storeID": {
+                    "description": "ID of the Quorum Key Manager store containing the account.",
                     "type": "string",
                     "example": "qkmStoreID"
                 }
             }
         },
-        "api.CreateJobRequest": {
+        "types.CreateJobRequest": {
             "type": "object",
             "required": [
                 "chainUUID",
@@ -3087,84 +3216,98 @@
             ],
             "properties": {
                 "annotations": {
-                    "$ref": "#/definitions/api.Annotations"
+                    "$ref": "#/definitions/types.Annotations"
                 },
                 "chainUUID": {
+                    "description": "UUID of the chain on which to create the job.",
                     "type": "string",
                     "example": "b4374e6f-b28a-4bad-b4fe-bda36eaf849c"
                 },
                 "labels": {
+                    "description": "List of custom labels.",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
                     }
                 },
                 "nextJobUUID": {
+                    "description": "UUID of the next job.",
                     "type": "string",
                     "example": "b4374e6f-b28a-4bad-b4fe-bda36eaf849c"
                 },
                 "parentJobUUID": {
+                    "description": "UUID of the parent job.",
                     "type": "string",
                     "example": "b4374e6f-b28a-4bad-b4fe-bda36eaf849c"
                 },
                 "scheduleUUID": {
+                    "description": "UUID of the schedule on which to create the job.",
                     "type": "string",
                     "example": "b4374e6f-b28a-4bad-b4fe-bda36eaf849c"
                 },
                 "transaction": {
-                    "$ref": "#/definitions/entities.ETHTransaction"
+                    "$ref": "#/definitions/types.ETHTransactionRequest"
                 },
                 "type": {
+                    "description": "Type of job.",
                     "type": "string",
                     "example": "eth://ethereum/transaction"
                 }
             }
         },
-        "api.CreateScheduleRequest": {
+        "types.CreateScheduleRequest": {
             "type": "object"
         },
-        "api.DeployContractParams": {
+        "types.DeployContractParams": {
             "type": "object",
             "required": [
                 "contractName"
             ],
             "properties": {
                 "accessList": {
+                    "description": "Optional list of addresses and storage keys the transaction plans to access.",
                     "type": "array",
                     "items": {
                         "type": "object"
                     }
                 },
                 "args": {
+                    "description": "Contract arguments.",
                     "type": "array",
                     "items": {
                         "type": "object"
                     }
                 },
                 "contractName": {
+                    "description": "Name of the contract.",
                     "type": "string",
                     "example": "MyContract"
                 },
                 "contractTag": {
+                    "description": "Optional tag attached to the contract.",
                     "type": "string",
                     "example": "v1.1.0"
                 },
                 "from": {
+                    "description": "Address of the sender.",
                     "type": "string",
                     "example": "0x1abae27a0cbfb02945720425d3b80c7e09728534"
                 },
                 "gas": {
+                    "description": "Gas provided by the sender.",
                     "type": "integer",
                     "example": 300000
                 },
                 "gasPrice": {
+                    "description": "If sending a non-[EIP1559 transaction](https://besu.hyperledger.org/en/stable/Concepts/Transactions/Transaction-Types/#eip1559-transactions), the gas price, in Wei, provided by the sender.",
                     "type": "string",
                     "example": "0x5208"
                 },
                 "gasPricePolicy": {
-                    "$ref": "#/definitions/api.GasPriceParams"
+                    "$ref": "#/definitions/types.GasPriceParams"
                 },
                 "mandatoryFor": {
+                    "description": "When sending a private transaction with [mandatory party protection](https://consensys.net/docs/goquorum/en/stable/concepts/privacy/privacy-enhancements/#mandatory-party-protection), a list of the recipients' public keys.",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -3175,26 +3318,32 @@
                     ]
                 },
                 "maxFeePerGas": {
+                    "description": "If sending an [EIP1559 transaction](https://besu.hyperledger.org/en/stable/Concepts/Transactions/Transaction-Types/#eip1559-transactions), the maximum total fee, in Wei, the sender is willing to pay per gas.",
                     "type": "string",
                     "example": "0x4c4b40"
                 },
                 "maxPriorityFeePerGas": {
+                    "description": "If sending an [EIP1559 transaction](https://besu.hyperledger.org/en/stable/Concepts/Transactions/Transaction-Types/#eip1559-transactions), the maximum fee, in Wei, the sender is willing to pay per gas above the base fee.",
                     "type": "string",
                     "example": "0x59682f00"
                 },
                 "oneTimeKey": {
+                    "description": "Indicates if the transaction is a One Time Key transaction.",
                     "type": "boolean",
                     "example": true
                 },
                 "privacyFlag": {
+                    "description": "Set to 0 for standard privacy (default), 1 for [counter-party protection](https://consensys.net/docs/goquorum/en/stable/concepts/privacy/privacy-enhancements/#counter-party-protection), 2 for [mandatory party protection](https://consensys.net/docs/goquorum/en/stable/concepts/privacy/privacy-enhancements/#mandatory-party-protection), and 3 for [private state validation](https://consensys.net/docs/goquorum/en/latest/concepts/privacy/privacy-enhancements/#private-state-validation).",
                     "type": "integer",
                     "example": 0
                 },
                 "privacyGroupId": {
+                    "description": "When sending a private transaction, the privacy group ID of the recipients. Not used with `PrivateFor`.",
                     "type": "string",
                     "example": "A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="
                 },
                 "privateFor": {
+                    "description": "When sending a private transaction, a list of the recipients' public keys. Not used with `PrivacyGroupID`.",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -3205,14 +3354,17 @@
                     ]
                 },
                 "privateFrom": {
+                    "description": "When sending a private transaction, the sender's public key.",
                     "type": "string",
                     "example": "A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="
                 },
                 "protocol": {
+                    "description": "Currently supports `Tessera` and `EEA`.",
                     "type": "string",
-                    "example": "GoQuorum"
+                    "example": "Tessera"
                 },
                 "transactionType": {
+                    "description": "`dynamic_fee` for a post-London fork transaction, `legacy` for a pre-London fork transaction.",
                     "type": "string",
                     "enum": [
                         "legacy",
@@ -3221,12 +3373,13 @@
                     "example": "dynamic_fee"
                 },
                 "value": {
+                    "description": "Value transferred, in Wei.",
                     "type": "string",
                     "example": "0x59682f00"
                 }
             }
         },
-        "api.DeployContractRequest": {
+        "types.DeployContractRequest": {
             "type": "object",
             "required": [
                 "chain",
@@ -3234,880 +3387,53 @@
             ],
             "properties": {
                 "chain": {
+                    "description": "Name of the chain on which to deploy the contract.",
                     "type": "string",
                     "example": "myChain"
                 },
                 "labels": {
+                    "description": "List of custom labels.",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
                     }
                 },
                 "params": {
-                    "$ref": "#/definitions/api.DeployContractParams"
+                    "$ref": "#/definitions/types.DeployContractParams"
                 }
             }
         },
-        "api.FaucetResponse": {
+        "types.DomainSeparator": {
             "type": "object",
             "required": [
-                "amount",
-                "cooldown",
-                "maxBalance",
-                "name"
+                "chainID",
+                "name",
+                "version"
             ],
             "properties": {
-                "amount": {
-                    "type": "string",
-                    "example": "0xD529AE9E860000"
+                "chainID": {
+                    "type": "integer",
+                    "example": 1
                 },
-                "chainRule": {
+                "name": {
                     "type": "string",
-                    "example": "mainnet"
+                    "example": "MyDApp"
                 },
-                "cooldown": {
+                "salt": {
                     "type": "string",
-                    "example": "10s"
+                    "example": "some-random-string"
                 },
-                "createdAt": {
-                    "type": "string",
-                    "example": "2020-07-09T12:35:42.115395Z"
-                },
-                "creditorAccount": {
+                "verifyingContract": {
                     "type": "string",
                     "example": "0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"
                 },
-                "maxBalance": {
-                    "type": "string",
-                    "example": "0x16345785D8A0000"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "faucet-mainnet"
-                },
-                "tenantID": {
-                    "type": "string",
-                    "example": "foo"
-                },
-                "updatedAt": {
-                    "type": "string",
-                    "example": "2020-07-09T12:35:42.115395Z"
-                },
-                "uuid": {
-                    "type": "string",
-                    "example": "b4374e6f-b28a-4bad-b4fe-bda36eaf849c"
-                }
-            }
-        },
-        "api.GasPriceParams": {
-            "type": "object",
-            "properties": {
-                "priority": {
-                    "type": "string",
-                    "example": "very-high"
-                },
-                "retryPolicy": {
-                    "$ref": "#/definitions/api.RetryParams"
-                }
-            }
-        },
-        "api.GetContractEventsBySignHashResponse": {
-            "type": "object",
-            "properties": {
-                "defaultEvents": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "example": [
-                        "[{anonymous:false",
-                        "inputs:[{indexed:true",
-                        "name:from",
-                        "type:address}",
-                        "{indexed:true",
-                        "name:to",
-                        "type:address}",
-                        "{indexed:false",
-                        "name:value",
-                        "type:uint256}]",
-                        "name:Transfer",
-                        "type:event}",
-                        "..."
-                    ]
-                },
-                "event": {
-                    "type": "string",
-                    "example": "{anonymous:false,inputs:[{indexed:true,name:from,type:address},{indexed:true,name:to,type:address},{indexed:false,name:value,type:uint256}],name:Transfer,type:event}"
-                }
-            }
-        },
-        "api.ImportAccountRequest": {
-            "type": "object",
-            "required": [
-                "privateKey"
-            ],
-            "properties": {
-                "alias": {
-                    "type": "string",
-                    "example": "personal-account"
-                },
-                "attributes": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "chain": {
-                    "type": "string",
-                    "example": "quorum"
-                },
-                "privateKey": {
-                    "type": "string",
-                    "example": "0x66232652FDFFD802B7252A456DBD8F3ECC0352BBDE76C23B40AFE8AEBD714E2D"
-                },
-                "storeID": {
-                    "type": "string",
-                    "example": "qkmStoreID"
-                }
-            }
-        },
-        "api.IntervalRetryParams": {
-            "type": "object",
-            "properties": {
-                "interval": {
-                    "type": "string",
-                    "example": "2m"
-                }
-            }
-        },
-        "api.JobResponse": {
-            "type": "object",
-            "properties": {
-                "annotations": {
-                    "$ref": "#/definitions/api.Annotations"
-                },
-                "chainUUID": {
-                    "type": "string",
-                    "example": "b4374e6f-b28a-4bad-b4fe-bda36eaf849c"
-                },
-                "createdAt": {
-                    "type": "string",
-                    "example": "2020-07-09T12:35:42.115395Z"
-                },
-                "labels": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "logs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/entities.Log"
-                    }
-                },
-                "nextJobUUID": {
-                    "type": "string",
-                    "example": "b4374e6f-b28a-4bad-b4fe-bda36eaf849c"
-                },
-                "ownerID": {
-                    "type": "string",
-                    "example": "foo"
-                },
-                "parentJobUUID": {
-                    "type": "string",
-                    "example": "b4374e6f-b28a-4bad-b4fe-bda36eaf849c"
-                },
-                "scheduleUUID": {
-                    "type": "string",
-                    "example": "b4374e6f-b28a-4bad-b4fe-bda36eaf849c"
-                },
-                "status": {
-                    "type": "string",
-                    "example": "MINED"
-                },
-                "tenantID": {
-                    "type": "string",
-                    "example": "foo"
-                },
-                "transaction": {
-                    "$ref": "#/definitions/entities.ETHTransaction"
-                },
-                "type": {
-                    "type": "string",
-                    "example": "eth://ethereum/transaction"
-                },
-                "updatedAt": {
-                    "type": "string",
-                    "example": "2020-07-09T12:35:42.115395Z"
-                },
-                "uuid": {
-                    "type": "string",
-                    "example": "b4374e6f-b28a-4bad-b4fe-bda36eaf849c"
-                }
-            }
-        },
-        "api.PrivateTxManagerRequest": {
-            "type": "object",
-            "required": [
-                "type",
-                "url"
-            ],
-            "properties": {
-                "type": {
-                    "description": "Currently supports `Tessera` and `EEA``.",
-                    "type": "string",
-                    "example": "GoQuorum"
-                },
-                "url": {
-                    "description": "Transaction manager endpoint.",
-                    "type": "string",
-                    "example": "http://tessera:3000"
-                }
-            }
-        },
-        "api.RawTransactionParams": {
-            "type": "object",
-            "required": [
-                "raw"
-            ],
-            "properties": {
-                "raw": {
-                    "type": "string",
-                    "example": "0xfe378324abcde723"
-                },
-                "retryPolicy": {
-                    "$ref": "#/definitions/api.IntervalRetryParams"
-                }
-            }
-        },
-        "api.RawTransactionRequest": {
-            "type": "object",
-            "required": [
-                "chain",
-                "params"
-            ],
-            "properties": {
-                "chain": {
-                    "type": "string",
-                    "example": "myChain"
-                },
-                "labels": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "params": {
-                    "$ref": "#/definitions/api.RawTransactionParams"
-                }
-            }
-        },
-        "api.RegisterChainRequest": {
-            "type": "object",
-            "required": [
-                "name",
-                "urls"
-            ],
-            "properties": {
-                "labels": {
-                    "description": "List of custom labels. Useful for adding custom information to the chain.",
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "listener": {
-                    "$ref": "#/definitions/api.RegisterListenerRequest"
-                },
-                "name": {
-                    "description": "Name of the chain. Must be unique.",
-                    "type": "string",
-                    "example": "mainnet"
-                },
-                "privateTxManager": {
-                    "$ref": "#/definitions/api.PrivateTxManagerRequest"
-                },
-                "urls": {
-                    "description": "List of URLs of Ethereum nodes to connect to.",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "example": [
-                        "https://mainnet.infura.io/v3/a73136601e6f4924a0baa4ed880b535e"
-                    ]
-                }
-            }
-        },
-        "api.RegisterContractRequest": {
-            "type": "object",
-            "required": [
-                "abi",
-                "name"
-            ],
-            "properties": {
-                "abi": {
-                    "type": "object"
-                },
-                "bytecode": {
-                    "type": "string",
-                    "example": "0x6080604052348015600f57600080f"
-                },
-                "deployedBytecode": {
-                    "type": "string",
-                    "example": "0x6080604052348015600f57600080f"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "ERC20"
-                },
-                "tag": {
+                "version": {
                     "type": "string",
                     "example": "v1.0.0"
                 }
             }
         },
-        "api.RegisterFaucetRequest": {
-            "type": "object",
-            "required": [
-                "amount",
-                "chainRule",
-                "cooldown",
-                "creditorAccount",
-                "maxBalance",
-                "name"
-            ],
-            "properties": {
-                "amount": {
-                    "type": "string",
-                    "example": "0xF4240"
-                },
-                "chainRule": {
-                    "type": "string",
-                    "example": "mainnet"
-                },
-                "cooldown": {
-                    "type": "string",
-                    "example": "10s"
-                },
-                "creditorAccount": {
-                    "type": "string",
-                    "example": "0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"
-                },
-                "maxBalance": {
-                    "type": "string",
-                    "example": "0x254582f40"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "faucet-mainnet"
-                }
-            }
-        },
-        "api.RegisterListenerRequest": {
-            "type": "object",
-            "properties": {
-                "backOffDuration": {
-                    "description": "Time to wait before trying to fetch a new mined block (for example `1s` or `1m`, default is `5s`).",
-                    "type": "string",
-                    "example": "1s"
-                },
-                "depth": {
-                    "description": "Block depth after which the Transaction Listener considers a block final and processes it (default 0).",
-                    "type": "integer",
-                    "example": 0
-                },
-                "externalTxEnabled": {
-                    "description": "Whether to listen to external transactions not crafted by Orchestrate (default `false`).",
-                    "type": "boolean",
-                    "example": false
-                },
-                "fromBlock": {
-                    "description": "Block from which the Transaction Listener should start processing transactions (default `latest`).",
-                    "type": "string",
-                    "example": "latest"
-                }
-            }
-        },
-        "api.RetryParams": {
-            "type": "object",
-            "properties": {
-                "increment": {
-                    "type": "number",
-                    "example": 0.05
-                },
-                "interval": {
-                    "type": "string",
-                    "example": "2m"
-                },
-                "limit": {
-                    "type": "number",
-                    "example": 0.5
-                }
-            }
-        },
-        "api.ScheduleResponse": {
-            "type": "object",
-            "properties": {
-                "createdAt": {
-                    "type": "string",
-                    "example": "2020-07-09T12:35:42.115395Z"
-                },
-                "jobs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/api.JobResponse"
-                    }
-                },
-                "ownerID": {
-                    "type": "string",
-                    "example": "foo"
-                },
-                "tenantID": {
-                    "type": "string",
-                    "example": "tenant_id"
-                },
-                "uuid": {
-                    "type": "string",
-                    "example": "b4374e6f-b28a-4bad-b4fe-bda36eaf849c"
-                }
-            }
-        },
-        "api.SendTransactionRequest": {
-            "type": "object",
-            "required": [
-                "chain",
-                "params"
-            ],
-            "properties": {
-                "chain": {
-                    "type": "string",
-                    "example": "myChain"
-                },
-                "labels": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "params": {
-                    "$ref": "#/definitions/api.TransactionParams"
-                }
-            }
-        },
-        "api.SetContractCodeHashRequest": {
-            "type": "object",
-            "required": [
-                "code_hash"
-            ],
-            "properties": {
-                "code_hash": {
-                    "type": "string",
-                    "example": "0x6080604052348015600f57600080f"
-                }
-            }
-        },
-        "api.SignMessageRequest": {
-            "type": "object",
-            "required": [
-                "message"
-            ],
-            "properties": {
-                "message": {
-                    "type": "string",
-                    "example": "0xfeade..."
-                },
-                "storeID": {
-                    "type": "string",
-                    "example": "qkmStoreID"
-                }
-            }
-        },
-        "api.SignTypedDataRequest": {
-            "type": "object",
-            "required": [
-                "domainSeparator",
-                "message",
-                "messageType",
-                "types"
-            ],
-            "properties": {
-                "domainSeparator": {
-                    "$ref": "#/definitions/types.DomainSeparator"
-                },
-                "message": {
-                    "type": "object",
-                    "additionalProperties": true
-                },
-                "messageType": {
-                    "type": "string",
-                    "example": "Mail"
-                },
-                "storeID": {
-                    "type": "string",
-                    "example": "qkmStoreID"
-                },
-                "types": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/types.Type"
-                        }
-                    }
-                }
-            }
-        },
-        "api.TransactionParams": {
-            "type": "object",
-            "required": [
-                "contractName",
-                "methodSignature",
-                "to"
-            ],
-            "properties": {
-                "accessList": {
-                    "type": "array",
-                    "items": {
-                        "type": "object"
-                    }
-                },
-                "args": {
-                    "type": "array",
-                    "items": {
-                        "type": "object"
-                    }
-                },
-                "contractName": {
-                    "type": "string",
-                    "example": "MyContract"
-                },
-                "contractTag": {
-                    "type": "string",
-                    "example": "v1.1.0"
-                },
-                "from": {
-                    "type": "string",
-                    "example": "0x1abae27a0cbfb02945720425d3b80c7e097285534"
-                },
-                "gas": {
-                    "type": "integer",
-                    "example": 50000
-                },
-                "gasPrice": {
-                    "type": "string",
-                    "example": "0xAB208"
-                },
-                "gasPricePolicy": {
-                    "$ref": "#/definitions/api.GasPriceParams"
-                },
-                "mandatoryFor": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "example": [
-                        "[A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=",
-                        "B1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=]"
-                    ]
-                },
-                "maxFeePerGas": {
-                    "type": "string",
-                    "example": "0x4c4b40"
-                },
-                "maxPriorityFeePerGas": {
-                    "type": "string",
-                    "example": "0x59682f00"
-                },
-                "methodSignature": {
-                    "type": "string",
-                    "example": "transfer(address,uint256)"
-                },
-                "oneTimeKey": {
-                    "type": "boolean",
-                    "example": true
-                },
-                "privacyFlag": {
-                    "type": "integer",
-                    "example": 0
-                },
-                "privacyGroupId": {
-                    "type": "string",
-                    "example": "A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="
-                },
-                "privateFor": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "example": [
-                        "[A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=",
-                        "B1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=]"
-                    ]
-                },
-                "privateFrom": {
-                    "type": "string",
-                    "example": "A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="
-                },
-                "protocol": {
-                    "type": "string",
-                    "example": "GoQuorum"
-                },
-                "to": {
-                    "type": "string",
-                    "example": "0x1abae27a0cbfb02945720425d3b80c7e09728534"
-                },
-                "transactionType": {
-                    "type": "string",
-                    "enum": [
-                        "legacy",
-                        "dynamic_fee"
-                    ],
-                    "example": "dynamic_fee"
-                },
-                "value": {
-                    "type": "string",
-                    "example": "0x44300E0"
-                }
-            }
-        },
-        "api.TransactionResponse": {
-            "type": "object",
-            "properties": {
-                "chain": {
-                    "type": "string",
-                    "example": "myChain"
-                },
-                "createdAt": {
-                    "type": "string",
-                    "example": "2020-07-09T12:35:42.115395Z"
-                },
-                "idempotencyKey": {
-                    "type": "string",
-                    "example": "myIdempotencyKey"
-                },
-                "jobs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/api.JobResponse"
-                    }
-                },
-                "params": {
-                    "$ref": "#/definitions/entities.ETHTransactionParams"
-                },
-                "uuid": {
-                    "type": "string",
-                    "example": "b4374e6f-b28a-4bad-b4fe-bda36eaf849c"
-                }
-            }
-        },
-        "api.TransferParams": {
-            "type": "object",
-            "required": [
-                "from",
-                "to",
-                "value"
-            ],
-            "properties": {
-                "accessList": {
-                    "type": "array",
-                    "items": {
-                        "type": "object"
-                    }
-                },
-                "from": {
-                    "type": "string",
-                    "example": "0x1abae27a0cbfb02945720425d3b80c7e09728534"
-                },
-                "gas": {
-                    "type": "integer",
-                    "example": 21000
-                },
-                "gasPrice": {
-                    "type": "string",
-                    "example": "0x5208"
-                },
-                "gasPricePolicy": {
-                    "$ref": "#/definitions/api.GasPriceParams"
-                },
-                "maxFeePerGas": {
-                    "type": "string",
-                    "example": "0x4c4b40"
-                },
-                "maxPriorityFeePerGas": {
-                    "type": "string",
-                    "example": "0x59682f00"
-                },
-                "to": {
-                    "type": "string",
-                    "example": "0x1abae27a0cbfb02945720425d3b80c7e09728534"
-                },
-                "transactionType": {
-                    "type": "string",
-                    "enum": [
-                        "legacy",
-                        "dynamic_fee"
-                    ],
-                    "example": "dynamic_fee"
-                },
-                "value": {
-                    "type": "string",
-                    "example": "0x59682f00"
-                }
-            }
-        },
-        "api.TransferRequest": {
-            "type": "object",
-            "required": [
-                "chain",
-                "params"
-            ],
-            "properties": {
-                "chain": {
-                    "type": "string",
-                    "example": "myChain"
-                },
-                "labels": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "params": {
-                    "$ref": "#/definitions/api.TransferParams"
-                }
-            }
-        },
-        "api.UpdateAccountRequest": {
-            "type": "object",
-            "properties": {
-                "alias": {
-                    "type": "string",
-                    "example": "personal-account"
-                },
-                "attributes": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "storeID": {
-                    "type": "string",
-                    "example": "qkmStoreID"
-                }
-            }
-        },
-        "api.UpdateChainRequest": {
-            "type": "object",
-            "properties": {
-                "labels": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "listener": {
-                    "$ref": "#/definitions/api.UpdateListenerRequest"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "mainnet"
-                },
-                "privateTxManager": {
-                    "$ref": "#/definitions/api.PrivateTxManagerRequest"
-                }
-            }
-        },
-        "api.UpdateFaucetRequest": {
-            "type": "object",
-            "properties": {
-                "amount": {
-                    "type": "string",
-                    "example": "0x254582f40"
-                },
-                "chainRule": {
-                    "type": "string",
-                    "example": "mainnet"
-                },
-                "cooldown": {
-                    "type": "string",
-                    "example": "10s"
-                },
-                "creditorAccount": {
-                    "type": "string",
-                    "example": "0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"
-                },
-                "maxBalance": {
-                    "type": "string",
-                    "example": "0x254582f40"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "faucet-mainnet"
-                }
-            }
-        },
-        "api.UpdateJobRequest": {
-            "type": "object",
-            "properties": {
-                "annotations": {
-                    "$ref": "#/definitions/api.Annotations"
-                },
-                "labels": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Update message"
-                },
-                "status": {
-                    "type": "string",
-                    "example": "MINED"
-                },
-                "transaction": {
-                    "$ref": "#/definitions/entities.ETHTransaction"
-                }
-            }
-        },
-        "api.UpdateListenerRequest": {
-            "type": "object",
-            "properties": {
-                "backOffDuration": {
-                    "type": "string",
-                    "example": "1s"
-                },
-                "currentBlock": {
-                    "type": "integer",
-                    "example": 1
-                },
-                "depth": {
-                    "type": "integer",
-                    "example": 0
-                },
-                "externalTxEnabled": {
-                    "type": "boolean",
-                    "example": false
-                }
-            }
-        },
-        "entities.ABIComponent": {
-            "type": "object",
-            "properties": {
-                "abi": {
-                    "type": "string",
-                    "example": "[{anonymous: false, inputs: [{indexed: false, name: account, type: address}, name: MinterAdded, type: event}]}]"
-                },
-                "signature": {
-                    "type": "string",
-                    "example": "transfer(address,uint256)"
-                }
-            }
-        },
-        "entities.ETHTransaction": {
+        "types.ETHTransactionRequest": {
             "type": "object",
             "properties": {
                 "accessList": {
@@ -4115,10 +3441,6 @@
                     "items": {
                         "type": "object"
                     }
-                },
-                "createdAt": {
-                    "type": "string",
-                    "example": "2020-07-09T12:35:42.115395Z"
                 },
                 "data": {
                     "type": "string",
@@ -4126,7 +3448,7 @@
                 },
                 "enclaveKey": {
                     "type": "string",
-                    "example": "0xd41551c714c8ec769d2edad9adc250ae955d263da161bf59142b7500eea6715eadc250ae955d263da161bf59142b7500eea6715e"
+                    "example": "0xfe378324abcde723"
                 },
                 "from": {
                     "type": "string",
@@ -4204,52 +3526,658 @@
                     ],
                     "example": "dynamic_fee"
                 },
-                "updatedAt": {
-                    "type": "string",
-                    "example": "2020-07-09T12:35:42.115395Z"
-                },
                 "value": {
                     "type": "string",
                     "example": "0x59682f00"
                 }
             }
         },
-        "entities.ETHTransactionParams": {
+        "types.ETHTransactionResponse": {
             "type": "object",
             "properties": {
                 "accessList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.AccessTupleResponse"
+                    }
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "data": {
+                    "type": "string"
+                },
+                "enclaveKey": {
+                    "type": "string"
+                },
+                "from": {
+                    "type": "string"
+                },
+                "gas": {
+                    "type": "integer"
+                },
+                "gasPrice": {
+                    "type": "string"
+                },
+                "hash": {
+                    "type": "string"
+                },
+                "mandatoryFor": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "maxFeePerGas": {
+                    "type": "string"
+                },
+                "maxPriorityFeePerGas": {
+                    "type": "string"
+                },
+                "nonce": {
+                    "type": "integer"
+                },
+                "privacyFlag": {
+                    "type": "integer"
+                },
+                "privacyGroupId": {
+                    "type": "string"
+                },
+                "privateFor": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "privateFrom": {
+                    "type": "string"
+                },
+                "raw": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "string"
+                },
+                "transactionType": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "types.FaucetResponse": {
+            "type": "object",
+            "required": [
+                "amount",
+                "cooldown",
+                "maxBalance",
+                "name"
+            ],
+            "properties": {
+                "amount": {
+                    "description": "Amount, in Wei, sent to the beneficiary on each funding transaction.",
+                    "type": "string",
+                    "example": "0xD529AE9E860000"
+                },
+                "chainRule": {
+                    "description": "Name of the chain on which the faucet is registered.",
+                    "type": "string",
+                    "example": "mainnet"
+                },
+                "cooldown": {
+                    "description": "Waiting time in between two funding transactions to the same beneficiary.",
+                    "type": "string",
+                    "example": "10s"
+                },
+                "createdAt": {
+                    "description": "Date and time at which the faucet was registered.",
+                    "type": "string",
+                    "example": "2020-07-09T12:35:42.115395Z"
+                },
+                "creditorAccount": {
+                    "description": "Address of the faucet creditor's account.",
+                    "type": "string",
+                    "example": "0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"
+                },
+                "maxBalance": {
+                    "description": "Expected maximum balance of beneficiary. It won't fund past this value.",
+                    "type": "string",
+                    "example": "0x16345785D8A0000"
+                },
+                "name": {
+                    "description": "Name of the faucet.",
+                    "type": "string",
+                    "example": "faucet-mainnet"
+                },
+                "tenantID": {
+                    "description": "ID of the tenant executing the API.",
+                    "type": "string",
+                    "example": "foo"
+                },
+                "updatedAt": {
+                    "description": "Date and time at which the faucet details were updated.",
+                    "type": "string",
+                    "example": "2020-07-09T12:35:42.115395Z"
+                },
+                "uuid": {
+                    "description": "UUID of the faucet.",
+                    "type": "string",
+                    "example": "b4374e6f-b28a-4bad-b4fe-bda36eaf849c"
+                }
+            }
+        },
+        "types.GasPriceParams": {
+            "type": "object",
+            "properties": {
+                "priority": {
+                    "description": "Intended transaction velocity, default is `medium`. Transaction gas is adjusted depending on the velocity to optimize the mining time on user request.",
+                    "type": "string",
+                    "example": "very-high"
+                },
+                "retryPolicy": {
+                    "$ref": "#/definitions/types.RetryParams"
+                }
+            }
+        },
+        "types.GetContractEventsBySignHashResponse": {
+            "type": "object",
+            "properties": {
+                "defaultEvents": {
+                    "description": "Default contract event names.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "[{anonymous:false",
+                        "inputs:[{indexed:true",
+                        "name:from",
+                        "type:address}",
+                        "{indexed:true",
+                        "name:to",
+                        "type:address}",
+                        "{indexed:false",
+                        "name:value",
+                        "type:uint256}]",
+                        "name:Transfer",
+                        "type:event}",
+                        "..."
+                    ]
+                },
+                "event": {
+                    "description": "Contract event name.",
+                    "type": "string",
+                    "example": "{anonymous:false,inputs:[{indexed:true,name:from,type:address},{indexed:true,name:to,type:address},{indexed:false,name:value,type:uint256}],name:Transfer,type:event}"
+                }
+            }
+        },
+        "types.ImportAccountRequest": {
+            "type": "object",
+            "required": [
+                "privateKey"
+            ],
+            "properties": {
+                "alias": {
+                    "description": "Alias of the account.",
+                    "type": "string",
+                    "example": "personal-account"
+                },
+                "attributes": {
+                    "description": "Additional information attached to the account.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "chain": {
+                    "description": "Name of the chain. This value should match the chain name defined in the chain creation.",
+                    "type": "string",
+                    "example": "quorum"
+                },
+                "privateKey": {
+                    "description": "Private key of the account.",
+                    "type": "string",
+                    "example": "0x66232652FDFFD802B7252A456DBD8F3ECC0352BBDE76C23B40AFE8AEBD714E2D"
+                },
+                "storeID": {
+                    "description": "ID of the Quorum Key Manager store containing the account.",
+                    "type": "string",
+                    "example": "qkmStoreID"
+                }
+            }
+        },
+        "types.IntervalRetryParams": {
+            "type": "object",
+            "properties": {
+                "interval": {
+                    "description": "Interval between different transaction retries.",
+                    "type": "string",
+                    "example": "2m"
+                }
+            }
+        },
+        "types.JobResponse": {
+            "type": "object",
+            "properties": {
+                "annotations": {
+                    "$ref": "#/definitions/types.Annotations"
+                },
+                "chainUUID": {
+                    "description": "UUID of the chain on which the job was created.",
+                    "type": "string",
+                    "example": "b4374e6f-b28a-4bad-b4fe-bda36eaf849c"
+                },
+                "createdAt": {
+                    "description": "Date and time at which the job was created.",
+                    "type": "string",
+                    "example": "2020-07-09T12:35:42.115395Z"
+                },
+                "labels": {
+                    "description": "List of custom labels.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "logs": {
+                    "description": "List of logs.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entities.Log"
+                    }
+                },
+                "nextJobUUID": {
+                    "description": "UUID of the next job.",
+                    "type": "string",
+                    "example": "b4374e6f-b28a-4bad-b4fe-bda36eaf849c"
+                },
+                "ownerID": {
+                    "description": "ID of the job owner.",
+                    "type": "string",
+                    "example": "foo"
+                },
+                "parentJobUUID": {
+                    "description": "UUID of the parent job.",
+                    "type": "string",
+                    "example": "b4374e6f-b28a-4bad-b4fe-bda36eaf849c"
+                },
+                "scheduleUUID": {
+                    "description": "UUID of the schedule on which the job was created.",
+                    "type": "string",
+                    "example": "b4374e6f-b28a-4bad-b4fe-bda36eaf849c"
+                },
+                "status": {
+                    "description": "Status of the job.",
+                    "type": "string",
+                    "example": "MINED"
+                },
+                "tenantID": {
+                    "description": "ID of the tenant executing the API.",
+                    "type": "string",
+                    "example": "foo"
+                },
+                "transaction": {
+                    "$ref": "#/definitions/types.ETHTransactionResponse"
+                },
+                "type": {
+                    "description": "Type of job.",
+                    "type": "string",
+                    "example": "eth://ethereum/transaction"
+                },
+                "updatedAt": {
+                    "description": "Date and time at which the job details were updated.",
+                    "type": "string",
+                    "example": "2020-07-09T12:35:42.115395Z"
+                },
+                "uuid": {
+                    "description": "UUID of the job.",
+                    "type": "string",
+                    "example": "b4374e6f-b28a-4bad-b4fe-bda36eaf849c"
+                }
+            }
+        },
+        "types.RawTransactionParams": {
+            "type": "object",
+            "required": [
+                "raw"
+            ],
+            "properties": {
+                "raw": {
+                    "description": "Transaction raw data.",
+                    "type": "string",
+                    "example": "0xfe378324abcde723"
+                },
+                "retryPolicy": {
+                    "$ref": "#/definitions/types.IntervalRetryParams"
+                }
+            }
+        },
+        "types.RawTransactionRequest": {
+            "type": "object",
+            "required": [
+                "chain",
+                "params"
+            ],
+            "properties": {
+                "chain": {
+                    "description": "Name of the chain on which to send the transaction.",
+                    "type": "string",
+                    "example": "myChain"
+                },
+                "labels": {
+                    "description": "List of custom labels.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "params": {
+                    "$ref": "#/definitions/types.RawTransactionParams"
+                }
+            }
+        },
+        "types.RegisterChainRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "urls"
+            ],
+            "properties": {
+                "labels": {
+                    "description": "List of custom labels. Useful for adding custom information to the chain.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "listener": {
+                    "$ref": "#/definitions/types.RegisterListenerRequest"
+                },
+                "name": {
+                    "description": "Name of the chain. Must be unique.",
+                    "type": "string",
+                    "example": "mainnet"
+                },
+                "privateTxManagerURL": {
+                    "description": "Private tx manager required by go-quorum for sending private txs",
+                    "type": "string",
+                    "example": "http://go-quorum/tessera:9000"
+                },
+                "urls": {
+                    "description": "List of URLs of Ethereum nodes to connect to.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "https://mainnet.infura.io/v3/a73136601e6f4924a0baa4ed880b535e"
+                    ]
+                }
+            }
+        },
+        "types.RegisterContractRequest": {
+            "type": "object",
+            "required": [
+                "abi",
+                "name"
+            ],
+            "properties": {
+                "abi": {
+                    "description": "ABI of the contract.",
+                    "type": "object"
+                },
+                "bytecode": {
+                    "description": "Bytecode of the contract.",
+                    "type": "string",
+                    "example": "0x6080604052348015600f57600080f"
+                },
+                "deployedBytecode": {
+                    "description": "Deployed bytecode of the contract.",
+                    "type": "string",
+                    "example": "0x6080604052348015600f57600080f"
+                },
+                "name": {
+                    "description": "Name of the contract.",
+                    "type": "string",
+                    "example": "ERC20"
+                },
+                "tag": {
+                    "description": "Optional tag attached to the contract.",
+                    "type": "string",
+                    "example": "v1.0.0"
+                }
+            }
+        },
+        "types.RegisterFaucetRequest": {
+            "type": "object",
+            "required": [
+                "amount",
+                "chainRule",
+                "cooldown",
+                "creditorAccount",
+                "maxBalance",
+                "name"
+            ],
+            "properties": {
+                "amount": {
+                    "description": "Amount, in Wei, sent to the beneficiary on each funding transaction.",
+                    "type": "string",
+                    "example": "0xF4240"
+                },
+                "chainRule": {
+                    "description": "Name of the chain on which to register the faucet.",
+                    "type": "string",
+                    "example": "mainnet"
+                },
+                "cooldown": {
+                    "description": "Waiting time in between two funding transactions to the same beneficiary.",
+                    "type": "string",
+                    "example": "10s"
+                },
+                "creditorAccount": {
+                    "description": "Address of the faucet creditor's account.",
+                    "type": "string",
+                    "example": "0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"
+                },
+                "maxBalance": {
+                    "description": "Expected maximum balance of beneficiary. It won't fund past this value.",
+                    "type": "string",
+                    "example": "0x254582f40"
+                },
+                "name": {
+                    "description": "Name of the faucet.",
+                    "type": "string",
+                    "example": "faucet-mainnet"
+                }
+            }
+        },
+        "types.RegisterListenerRequest": {
+            "type": "object",
+            "properties": {
+                "backOffDuration": {
+                    "description": "Time to wait before trying to fetch a new mined block (for example `1s` or `1m`, default is `5s`).",
+                    "type": "string",
+                    "example": "1s"
+                },
+                "depth": {
+                    "description": "Block depth after which the Transaction Listener considers a block final and processes it (default 0).",
+                    "type": "integer",
+                    "example": 0
+                },
+                "externalTxEnabled": {
+                    "description": "Whether to listen to external transactions not crafted by Orchestrate (default `false`).",
+                    "type": "boolean",
+                    "example": false
+                },
+                "fromBlock": {
+                    "description": "Block from which the Transaction Listener should start processing transactions (default `latest`).",
+                    "type": "string",
+                    "example": "latest"
+                }
+            }
+        },
+        "types.RetryParams": {
+            "type": "object",
+            "properties": {
+                "increment": {
+                    "description": "Gas increment for each retry. For example, set `0.05` for a 5% increment.",
+                    "type": "number",
+                    "example": 0.05
+                },
+                "interval": {
+                    "description": "Interval between different transaction retries.",
+                    "type": "string",
+                    "example": "2m"
+                },
+                "limit": {
+                    "description": "Maximum gas increment over retries. For example, set `0.5` for a 50% gas increment from source transaction.",
+                    "type": "number",
+                    "example": 0.5
+                }
+            }
+        },
+        "types.ScheduleResponse": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "description": "Date and time at which the schedule was created.",
+                    "type": "string",
+                    "example": "2020-07-09T12:35:42.115395Z"
+                },
+                "jobs": {
+                    "description": "List of jobs on the schedule.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.JobResponse"
+                    }
+                },
+                "ownerID": {
+                    "description": "ID of the schedule owner.",
+                    "type": "string",
+                    "example": "foo"
+                },
+                "tenantID": {
+                    "description": "ID of the tenant executing the API.",
+                    "type": "string",
+                    "example": "tenant_id"
+                },
+                "uuid": {
+                    "description": "UUID of the schedule.",
+                    "type": "string",
+                    "example": "b4374e6f-b28a-4bad-b4fe-bda36eaf849c"
+                }
+            }
+        },
+        "types.SendTransactionRequest": {
+            "type": "object",
+            "required": [
+                "chain",
+                "params"
+            ],
+            "properties": {
+                "chain": {
+                    "description": "Name of the chain on which to send the transaction.",
+                    "type": "string",
+                    "example": "myChain"
+                },
+                "labels": {
+                    "description": "List of custom labels.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "params": {
+                    "$ref": "#/definitions/types.TransactionParams"
+                }
+            }
+        },
+        "types.SetContractCodeHashRequest": {
+            "type": "object",
+            "required": [
+                "code_hash"
+            ],
+            "properties": {
+                "code_hash": {
+                    "description": "Contract code hash to set.",
+                    "type": "string",
+                    "example": "0x6080604052348015600f57600080f"
+                }
+            }
+        },
+        "types.SignMessageRequest": {
+            "type": "object",
+            "required": [
+                "message"
+            ],
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "0xfeade..."
+                },
+                "storeID": {
+                    "description": "ID of the Quorum Key Manager store containing the account.",
+                    "type": "string",
+                    "example": "qkmStoreID"
+                }
+            }
+        },
+        "types.TransactionParams": {
+            "type": "object",
+            "required": [
+                "contractName",
+                "methodSignature",
+                "to"
+            ],
+            "properties": {
+                "accessList": {
+                    "description": "Optional list of addresses and storage keys the transaction plans to access.",
                     "type": "array",
                     "items": {
                         "type": "object"
                     }
                 },
                 "args": {
+                    "description": "Contract arguments.",
                     "type": "array",
                     "items": {
                         "type": "object"
                     }
                 },
                 "contractName": {
+                    "description": "Name of the contract.",
                     "type": "string",
                     "example": "MyContract"
                 },
                 "contractTag": {
+                    "description": "Optional tag attached to the contract.",
                     "type": "string",
                     "example": "v1.1.0"
                 },
                 "from": {
+                    "description": "Address of the sender.",
                     "type": "string",
-                    "example": "0x1abae27a0cbfb02945720425d3b80c7e09728534"
+                    "example": "0x1abae27a0cbfb02945720425d3b80c7e097285534"
                 },
                 "gas": {
+                    "description": "Gas provided by the sender.",
                     "type": "integer",
-                    "example": 21000
+                    "example": 50000
                 },
                 "gasPrice": {
+                    "description": "If sending a non-[EIP1559 transaction](https://besu.hyperledger.org/en/stable/Concepts/Transactions/Transaction-Types/#eip1559-transactions), the gas price, in Wei, provided by the sender.",
                     "type": "string",
-                    "example": "0x5208"
+                    "example": "0xAB208"
+                },
+                "gasPricePolicy": {
+                    "$ref": "#/definitions/types.GasPriceParams"
                 },
                 "mandatoryFor": {
+                    "description": "When sending a private transaction with [mandatory party protection](https://consensys.net/docs/goquorum/en/stable/concepts/privacy/privacy-enhancements/#mandatory-party-protection), a list of the recipients' public keys.",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -4260,10 +4188,12 @@
                     ]
                 },
                 "maxFeePerGas": {
+                    "description": "If sending an [EIP1559 transaction](https://besu.hyperledger.org/en/stable/Concepts/Transactions/Transaction-Types/#eip1559-transactions), the maximum total fee, in Wei, the sender is willing to pay per gas.",
                     "type": "string",
                     "example": "0x4c4b40"
                 },
                 "maxPriorityFeePerGas": {
+                    "description": "If sending an [EIP1559 transaction](https://besu.hyperledger.org/en/stable/Concepts/Transactions/Transaction-Types/#eip1559-transactions), the maximum fee, in Wei, the sender is willing to pay per gas above the base fee.",
                     "type": "string",
                     "example": "0x59682f00"
                 },
@@ -4271,19 +4201,23 @@
                     "type": "string",
                     "example": "transfer(address,uint256)"
                 },
-                "nonce": {
-                    "type": "integer",
-                    "example": 1
+                "oneTimeKey": {
+                    "description": "Indicates if the transaction is a One Time Key transaction.",
+                    "type": "boolean",
+                    "example": true
                 },
                 "privacyFlag": {
+                    "description": "Set to 0 for standard privacy (default), 1 for [counter-party protection](https://consensys.net/docs/goquorum/en/stable/concepts/privacy/privacy-enhancements/#counter-party-protection), 2 for [mandatory party protection](https://consensys.net/docs/goquorum/en/stable/concepts/privacy/privacy-enhancements/#mandatory-party-protection), and 3 for [private state validation](https://consensys.net/docs/goquorum/en/latest/concepts/privacy/privacy-enhancements/#private-state-validation).",
                     "type": "integer",
                     "example": 0
                 },
                 "privacyGroupId": {
+                    "description": "When sending a private transaction, the privacy group ID of the recipients. Not used with `PrivateFor`.",
                     "type": "string",
                     "example": "A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="
                 },
                 "privateFor": {
+                    "description": "When sending a private transaction, a list of the recipients' public keys. Not used with `PrivacyGroupID`.",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -4294,22 +4228,22 @@
                     ]
                 },
                 "privateFrom": {
+                    "description": "When sending a private transaction, the sender's public key.",
                     "type": "string",
                     "example": "A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="
                 },
                 "protocol": {
+                    "description": "Currently supports `Tessera` and `EEA`.",
                     "type": "string",
-                    "example": "GoQuorum"
-                },
-                "raw": {
-                    "type": "string",
-                    "example": "0xfe378324abcde723"
+                    "example": "Tessera"
                 },
                 "to": {
+                    "description": "Address of the recipient, mutually exclusive with `from`.",
                     "type": "string",
                     "example": "0x1abae27a0cbfb02945720425d3b80c7e09728534"
                 },
                 "transactionType": {
+                    "description": "`dynamic_fee` for a post-London fork transaction, `legacy` for a pre-London fork transaction.",
                     "type": "string",
                     "enum": [
                         "legacy",
@@ -4318,123 +4252,132 @@
                     "example": "dynamic_fee"
                 },
                 "value": {
+                    "description": "Value transferred, in Wei.",
+                    "type": "string",
+                    "example": "0x44300E0"
+                }
+            }
+        },
+        "types.TransactionResponse": {
+            "type": "object",
+            "properties": {
+                "chain": {
+                    "description": "Chain on which the transaction was created.",
+                    "type": "string",
+                    "example": "myChain"
+                },
+                "createdAt": {
+                    "description": "Date and time at which the transaction was created.",
+                    "type": "string",
+                    "example": "2020-07-09T12:35:42.115395Z"
+                },
+                "idempotencyKey": {
+                    "description": "Idempotency key of the transaction request.",
+                    "type": "string",
+                    "example": "myIdempotencyKey"
+                },
+                "jobs": {
+                    "description": "List of jobs in the transaction.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.JobResponse"
+                    }
+                },
+                "params": {
+                    "$ref": "#/definitions/types.ETHTransactionResponse"
+                },
+                "uuid": {
+                    "description": "UUID of the transaction.",
+                    "type": "string",
+                    "example": "b4374e6f-b28a-4bad-b4fe-bda36eaf849c"
+                }
+            }
+        },
+        "types.TransferParams": {
+            "type": "object",
+            "required": [
+                "from",
+                "to",
+                "value"
+            ],
+            "properties": {
+                "accessList": {
+                    "description": "Optional list of addresses and storage keys the transaction plans to access.",
+                    "type": "array",
+                    "items": {
+                        "type": "object"
+                    }
+                },
+                "from": {
+                    "description": "Address of the sender.",
+                    "type": "string",
+                    "example": "0x1abae27a0cbfb02945720425d3b80c7e09728534"
+                },
+                "gas": {
+                    "description": "Gas provided by the sender.",
+                    "type": "integer",
+                    "example": 21000
+                },
+                "gasPrice": {
+                    "description": "If sending a non-[EIP1559 transaction](https://besu.hyperledger.org/en/stable/Concepts/Transactions/Transaction-Types/#eip1559-transactions), the gas price, in Wei, provided by the sender.",
+                    "type": "string",
+                    "example": "0x5208"
+                },
+                "gasPricePolicy": {
+                    "$ref": "#/definitions/types.GasPriceParams"
+                },
+                "maxFeePerGas": {
+                    "description": "If sending an [EIP1559 transaction](https://besu.hyperledger.org/en/stable/Concepts/Transactions/Transaction-Types/#eip1559-transactions), the maximum total fee, in Wei, the sender is willing to pay per gas.",
+                    "type": "string",
+                    "example": "0x4c4b40"
+                },
+                "maxPriorityFeePerGas": {
+                    "description": "If sending an [EIP1559 transaction](https://besu.hyperledger.org/en/stable/Concepts/Transactions/Transaction-Types/#eip1559-transactions), the maximum fee, in Wei, the sender is willing to pay per gas above the base fee.",
+                    "type": "string",
+                    "example": "0x59682f00"
+                },
+                "to": {
+                    "description": "Address of the recipient, mutually exclusive with `from`.",
+                    "type": "string",
+                    "example": "0x1abae27a0cbfb02945720425d3b80c7e09728534"
+                },
+                "transactionType": {
+                    "description": "`dynamic_fee` for a post-London fork transaction, `legacy` for a pre-London fork transaction.",
+                    "type": "string",
+                    "enum": [
+                        "legacy",
+                        "dynamic_fee"
+                    ],
+                    "example": "dynamic_fee"
+                },
+                "value": {
+                    "description": "Value transferred, in Wei.",
                     "type": "string",
                     "example": "0x59682f00"
                 }
             }
         },
-        "entities.Log": {
-            "type": "object",
-            "properties": {
-                "at": {
-                    "type": "string",
-                    "example": "2020-07-09T12:35:42.115395Z"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Log message"
-                },
-                "status": {
-                    "type": "string"
-                }
-            }
-        },
-        "entities.PrivateTxManager": {
-            "type": "object",
-            "properties": {
-                "chainUUID": {
-                    "description": "UUID of the registered chain.",
-                    "type": "string"
-                },
-                "createdAt": {
-                    "description": "Date and time that the private transaction manager was registered with the chain.",
-                    "type": "string"
-                },
-                "type": {
-                    "description": "Currently supports `Tessera` and `EEA`.",
-                    "type": "string"
-                },
-                "url": {
-                    "description": "Transaction manager endpoint.",
-                    "type": "string"
-                },
-                "uuid": {
-                    "description": "UUID of the private transaction manager.",
-                    "type": "string"
-                }
-            }
-        },
-        "httputil.ErrorResponse": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "integer",
-                    "example": 24000
-                },
-                "message": {
-                    "type": "string",
-                    "example": "error message"
-                }
-            }
-        },
-        "types.DomainSeparator": {
+        "types.TransferRequest": {
             "type": "object",
             "required": [
-                "chainID",
-                "name",
-                "version"
+                "chain",
+                "params"
             ],
             "properties": {
-                "chainID": {
-                    "type": "integer",
-                    "example": 1
-                },
-                "name": {
+                "chain": {
+                    "description": "Name of the chain on which to send the transaction.",
                     "type": "string",
-                    "example": "MyDApp"
+                    "example": "myChain"
                 },
-                "salt": {
-                    "type": "string",
-                    "example": "some-random-string"
-                },
-                "verifyingContract": {
-                    "type": "string",
-                    "example": "0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"
-                },
-                "version": {
-                    "type": "string",
-                    "example": "v1.0.0"
-                }
-            }
-        },
-        "types.SignTypedDataRequest": {
-            "type": "object",
-            "required": [
-                "domainSeparator",
-                "message",
-                "messageType",
-                "types"
-            ],
-            "properties": {
-                "domainSeparator": {
-                    "$ref": "#/definitions/types.DomainSeparator"
-                },
-                "message": {
-                    "type": "object",
-                    "additionalProperties": true
-                },
-                "messageType": {
-                    "type": "string",
-                    "example": "Mail"
-                },
-                "types": {
+                "labels": {
+                    "description": "List of custom labels.",
                     "type": "object",
                     "additionalProperties": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/types.Type"
-                        }
+                        "type": "string"
                     }
+                },
+                "params": {
+                    "$ref": "#/definitions/types.TransferParams"
                 }
             }
         },
@@ -4452,6 +4395,139 @@
                 "type": {
                     "type": "string",
                     "example": "string"
+                }
+            }
+        },
+        "types.UpdateAccountRequest": {
+            "type": "object",
+            "properties": {
+                "alias": {
+                    "description": "Alias of the account.",
+                    "type": "string",
+                    "example": "personal-account"
+                },
+                "attributes": {
+                    "description": "Additional information attached to the account.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "storeID": {
+                    "description": "ID of the Quorum Key Manager store containing the account.",
+                    "type": "string",
+                    "example": "qkmStoreID"
+                }
+            }
+        },
+        "types.UpdateChainRequest": {
+            "type": "object",
+            "properties": {
+                "labels": {
+                    "description": "List of custom labels. Useful for adding custom information to the chain.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "listener": {
+                    "$ref": "#/definitions/types.UpdateListenerRequest"
+                },
+                "name": {
+                    "description": "Name of the chain. Must be unique.",
+                    "type": "string",
+                    "example": "mainnet"
+                }
+            }
+        },
+        "types.UpdateFaucetRequest": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "description": "Amount, in Wei, sent to the beneficiary on each funding transaction.",
+                    "type": "string",
+                    "example": "0x254582f40"
+                },
+                "chainRule": {
+                    "description": "Name of the chain on which to register the faucet.",
+                    "type": "string",
+                    "example": "mainnet"
+                },
+                "cooldown": {
+                    "description": "Waiting time in between two funding transactions to the same beneficiary.",
+                    "type": "string",
+                    "example": "10s"
+                },
+                "creditorAccount": {
+                    "description": "Address of the faucet creditor's account.",
+                    "type": "string",
+                    "example": "0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"
+                },
+                "maxBalance": {
+                    "description": "Expected maximum balance of beneficiary. It won't fund past this value.",
+                    "type": "string",
+                    "example": "0x254582f40"
+                },
+                "name": {
+                    "description": "Name of the faucet.",
+                    "type": "string",
+                    "example": "faucet-mainnet"
+                }
+            }
+        },
+        "types.UpdateJobRequest": {
+            "type": "object",
+            "properties": {
+                "annotations": {
+                    "$ref": "#/definitions/types.Annotations"
+                },
+                "labels": {
+                    "description": "List of custom labels.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "message": {
+                    "description": "Update message.",
+                    "type": "string",
+                    "example": "Update message"
+                },
+                "receipt": {
+                    "$ref": "#/definitions/ethereum.Receipt"
+                },
+                "status": {
+                    "description": "Status of the job.",
+                    "type": "string",
+                    "example": "MINED"
+                },
+                "transaction": {
+                    "$ref": "#/definitions/types.ETHTransactionRequest"
+                }
+            }
+        },
+        "types.UpdateListenerRequest": {
+            "type": "object",
+            "properties": {
+                "backOffDuration": {
+                    "description": "Time to wait before trying to fetch a new mined block (for example `1s` or `1m`, default is `5s`).",
+                    "type": "string",
+                    "example": "1s"
+                },
+                "currentBlock": {
+                    "description": "Latest block number fetched.",
+                    "type": "integer",
+                    "example": 1
+                },
+                "depth": {
+                    "description": "Block depth after which the Transaction Listener considers a block final and processes it (default 0).",
+                    "type": "integer",
+                    "example": 0
+                },
+                "externalTxEnabled": {
+                    "description": "Whether to listen to external transactions not crafted by Orchestrate (default `false`).",
+                    "type": "boolean",
+                    "example": false
                 }
             }
         },
@@ -4490,7 +4566,7 @@
                     "example": "0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18"
                 },
                 "data": {
-                    "$ref": "#/definitions/types.SignTypedDataRequest"
+                    "$ref": "#/definitions/github.com_consensys_quorum-key-manager_src_stores_api_types.SignTypedDataRequest"
                 },
                 "signature": {
                     "type": "string",

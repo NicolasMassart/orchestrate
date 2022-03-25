@@ -42,12 +42,7 @@ func (agent *PGContract) Register(ctx context.Context, contract *entities.Contra
 	return agent.client.RunInTransaction(ctx, func(c postgres.Client) error {
 		// Insert repository
 		repository := models.NewRepository(contract.Name)
-		err := c.ModelContext(ctx, repository).
-			Column("id").
-			Where("name = ?name").
-			OnConflict("DO NOTHING").
-			Returning("id").
-			SelectOrInsert()
+		err := c.ModelContext(ctx, repository).Where("name = ?name").SelectOrInsert()
 		if err != nil {
 			errMessage := "failed to select or insert repository"
 			agent.logger.WithContext(ctx).WithError(err).Error(errMessage)
@@ -56,25 +51,15 @@ func (agent *PGContract) Register(ctx context.Context, contract *entities.Contra
 
 		// Insert artifact
 		artifact := models.NewArtifact(contract)
-		err = c.ModelContext(ctx, artifact).
-			Column("id").
-			Where("abi = ?abi").
-			Where("codehash = ?codehash").
-			OnConflict("DO NOTHING").
-			Returning("id").
-			SelectOrInsert()
+		err = c.ModelContext(ctx, artifact).Insert()
 		if err != nil {
-			errMessage := "failed to select or insert artifact"
+			errMessage := "failed to insert artifact"
 			agent.logger.WithContext(ctx).WithError(err).Error(errMessage)
 			return errors.FromError(err).SetMessage(errMessage)
 		}
 
 		// Insert tag
-		tag := models.NewTag(contract.Tag, repository.ID, artifact.ID)
-		err = c.ModelContext(ctx, tag).
-			OnConflict("ON CONSTRAINT tags_name_repository_id_key DO UPDATE").
-			Set("artifact_id = ?artifact_id").
-			Insert()
+		err = c.ModelContext(ctx, models.NewTag(contract.Tag, repository.ID, artifact.ID)).Insert()
 		if err != nil {
 			errMessage := "failed to insert tag"
 			agent.logger.WithContext(ctx).WithError(err).Error(errMessage)
@@ -83,6 +68,27 @@ func (agent *PGContract) Register(ctx context.Context, contract *entities.Contra
 
 		return nil
 	})
+}
+
+func (agent *PGContract) Update(ctx context.Context, contract *entities.Contract) error {
+	// Updating a contract means changing its artifact with the same repository and tag. ex: "latest" is overwritten
+	artifact, err := agent.findArtifactByNameAndTag(ctx, contract.Name, contract.Tag)
+	if err != nil {
+		errMessage := "failed to find contract artifact when updating"
+		agent.logger.WithContext(ctx).WithError(err).Error(errMessage)
+		return errors.FromError(err).SetMessage(errMessage)
+	}
+
+	newArtifact := models.NewArtifact(contract)
+	newArtifact.ID = artifact.ID
+	err = agent.client.ModelContext(ctx, newArtifact).WherePK().Update()
+	if err != nil {
+		errMessage := "failed to update contract"
+		agent.logger.WithContext(ctx).WithError(err).Error(errMessage)
+		return errors.FromError(err).SetMessage(errMessage)
+	}
+
+	return nil
 }
 
 func (agent *PGContract) RegisterDeployment(ctx context.Context, chainID string, address ethcommon.Address, codeHash []byte) error {
@@ -151,15 +157,7 @@ LIMIT 1
 }
 
 func (agent *PGContract) FindOneByNameAndTag(ctx context.Context, name, tag string) (*entities.Contract, error) {
-	artifact := &models.Artifact{}
-	err := agent.client.ModelContext(ctx, artifact).
-		Column("artifact.id", "abi", "bytecode", "deployed_bytecode").
-		Join("JOIN tags AS t ON t.artifact_id = artifact.id").
-		Join("JOIN repositories AS registry ON registry.id = t.repository_id").
-		Where("LOWER(t.name) = LOWER(?)", tag).
-		Where("LOWER(registry.name) = LOWER(?)", name).
-		SelectOne()
-
+	artifact, err := agent.findArtifactByNameAndTag(ctx, name, tag)
 	if err != nil {
 		errMessage := "could not find contract by name and tag"
 		if errors.IsNotFoundError(err) {
@@ -202,6 +200,22 @@ func (agent *PGContract) ListTags(ctx context.Context, name string) ([]string, e
 	}
 
 	return tags, nil
+}
+
+func (agent *PGContract) findArtifactByNameAndTag(ctx context.Context, name, tag string) (*models.Artifact, error) {
+	artifact := &models.Artifact{}
+	err := agent.client.ModelContext(ctx, artifact).
+		Column("artifact.id", "abi", "bytecode", "deployed_bytecode").
+		Join("JOIN tags AS t ON t.artifact_id = artifact.id").
+		Join("JOIN repositories AS registry ON registry.id = t.repository_id").
+		Where("LOWER(t.name) = LOWER(?)", tag).
+		Where("LOWER(registry.name) = LOWER(?)", name).
+		SelectOne()
+	if err != nil {
+		return nil, err
+	}
+
+	return artifact, nil
 }
 
 func parseContract(qContract *contractQuery) (*entities.Contract, error) {

@@ -118,7 +118,7 @@ func (s *pgAccountTestSuite) TestUpdate() {
 			mockQuery.EXPECT().Where("tenant_id = ?", fakeAccount.TenantID).Return(mockQuery),
 			mockQuery.EXPECT().Where("owner_id = ?", fakeAccount.OwnerID).Return(mockQuery),
 		)
-		mockQuery.EXPECT().Update().Return(nil)
+		mockQuery.EXPECT().UpdateNotZero().Return(nil)
 
 		account, err := s.dataAgent.Update(ctx, fakeAccount)
 		require.NoError(t, err)
@@ -145,20 +145,20 @@ func (s *pgAccountTestSuite) TestUpdate() {
 			mockQuery.EXPECT().Where("address = ?", fakeAccount.Address.Hex()).Return(mockQuery),
 			mockQuery.EXPECT().Where("tenant_id = ?", fakeAccount.TenantID).Return(mockQuery),
 		)
-		mockQuery.EXPECT().Update().Return(nil)
+		mockQuery.EXPECT().UpdateNotZero().Return(nil)
 
 		account, err := s.dataAgent.Update(ctx, fakeAccount)
 		require.NoError(t, err)
 		require.NotNil(t, account)
 	})
 
-	s.T().Run("should fail with same error if Update fails", func(t *testing.T) {
+	s.T().Run("should fail with same error if UpdateNotZero fails", func(t *testing.T) {
 		expectedErr := errors.PostgresConnectionError("error")
 		mockQuery := mocks.NewMockQuery(ctrl)
 
 		s.mockPGClient.EXPECT().ModelContext(ctx, gomock.Any()).Return(mockQuery)
 		mockQuery.EXPECT().Where(gomock.Any(), gomock.Any()).Return(mockQuery).Times(3)
-		mockQuery.EXPECT().Update().Return(expectedErr)
+		mockQuery.EXPECT().UpdateNotZero().Return(expectedErr)
 
 		account, err := s.dataAgent.Update(ctx, testdata.FakeAccount())
 		assert.Nil(t, account)

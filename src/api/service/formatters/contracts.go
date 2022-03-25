@@ -96,13 +96,12 @@ func FormatContractResponse(contract *entities.Contract) *types.ContractResponse
 	return &types.ContractResponse{
 		Name:             contract.Name,
 		Tag:              contract.Tag,
-		Registry:         contract.Registry,
 		ABI:              contract.RawABI,
-		Bytecode:         contract.Bytecode.String(),
-		DeployedBytecode: contract.DeployedBytecode.String(),
+		Bytecode:         contract.Bytecode,
+		DeployedBytecode: contract.DeployedBytecode,
 		Constructor:      FormatABIComponentResponse(contract.Constructor),
-		Methods:          contract.Methods,
-		Events:           contract.Events,
+		Methods:          FormatABIComponentResponses(contract.Methods),
+		Events:           FormatABIComponentResponses(contract.Events),
 	}
 }
 
@@ -111,4 +110,13 @@ func FormatABIComponentResponse(component entities.ABIComponent) types.ABICompon
 		Signature: component.Signature,
 		ABI:       component.ABI,
 	}
+}
+
+func FormatABIComponentResponses(components []entities.ABIComponent) []types.ABIComponentResponse {
+	var resp []types.ABIComponentResponse
+	for _, c := range components {
+		resp = append(resp, FormatABIComponentResponse(c))
+	}
+
+	return resp
 }

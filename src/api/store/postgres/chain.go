@@ -148,7 +148,7 @@ func (agent *PGChain) Update(ctx context.Context, nextChain *entities.Chain, ten
 		Where("uuid = ?", chain.UUID).
 		WhereAllowedTenants("", tenants).
 		WhereAllowedOwner("", ownerID).
-		Update()
+		UpdateNotZero()
 	if err != nil {
 		errMessage := "failed to update chain"
 		agent.logger.WithContext(ctx).WithError(err).Error(errMessage)
