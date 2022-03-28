@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"github.com/consensys/orchestrate/cmd/api"
-	chainlistener "github.com/consensys/orchestrate/cmd/chain-listener"
+	txlistener "github.com/consensys/orchestrate/cmd/tx-listener"
 	txsender "github.com/consensys/orchestrate/cmd/tx-sender"
 	"github.com/spf13/cobra"
 )
@@ -17,7 +17,7 @@ func NewCommand() *cobra.Command {
 
 	// Add Run command
 	rootCmd.AddCommand(txsender.NewRootCommand())
-	rootCmd.AddCommand(chainlistener.NewRootCommand())
+	rootCmd.AddCommand(txlistener.NewRootCommand())
 	rootCmd.AddCommand(api.NewRootCommand())
 
 	return rootCmd

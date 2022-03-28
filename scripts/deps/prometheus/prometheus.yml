@@ -5,7 +5,7 @@ scrape_configs:
     static_configs:
       - targets: [
           'tx-sender:8082',
-          'chain-listener:8082',
+          'tx-listener:8082',
           'chain-registry:8082',
           'api:8082',
           'key-manager:8082',

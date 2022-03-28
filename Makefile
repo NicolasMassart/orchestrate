@@ -1,7 +1,7 @@
 GOFILES := $(shell find . -name '*.go' -not -path "./vendor/*" | grep -v pkg/toolkit/app/http/handler/dashboard/genstatic/gen.go | grep -v pkg/http/handler/swagger/genstatic/gen.go | egrep -v "^\./\.go" | grep -v _test.go)
 PACKAGES ?= $(shell go list ./... | grep -Fv -e tests -e testutils -e genstatic -e mock -e integration-test )
 INTEGRATION_TEST_PACKAGES ?= $(shell go list ./... | grep integration-tests )
-ORCH_SERVICES = tx-sender chain-listener api
+ORCH_SERVICES = tx-sender tx-listener api
 ORCH_MIGRATE = api
 DEPS_VAULT = vault vault-agent
 DEPS_POSTGRES = postgres
