@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	client2 "github.com/consensys/quorum-key-manager/pkg/client"
@@ -110,7 +111,7 @@ func (listener *MessageListener) consumeClaimLoop(ctx context.Context, session s
 			jlogger := logger.WithField("job", evlp.GetJobUUID()).WithField("schedule", evlp.GetScheduleUUID())
 			job := entities.NewJobFromEnvelope(evlp)
 			newCtx := log.With(ctx, jlogger)
-			if evlp.Headers[authutils.AuthorizationHeader] != "" {
+			if evlp.Headers[authutils.AuthorizationHeader] != "" && strings.Contains(evlp.Headers[authutils.AuthorizationHeader], "Bearer") {
 				newCtx = appendAuthHeader(newCtx, evlp.Headers[authutils.AuthorizationHeader])
 			}
 
