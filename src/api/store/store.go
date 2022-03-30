@@ -18,6 +18,7 @@ type DB interface {
 	ContractEvent() ContractEventAgent
 	Contract() ContractAgent
 	Chain() ChainAgent
+	EventStream() EventStreamAgent
 	RunInTransaction(ctx context.Context, persistFunc func(db DB) error) error
 }
 
@@ -81,4 +82,9 @@ type ContractEventAgent interface {
 	RegisterMultiple(ctx context.Context, events []entities.ContractEvent) error
 	FindOneByAccountAndSigHash(ctx context.Context, chainID, address, sighash string, indexedInputCount uint32) (*entities.ContractEvent, error)
 	FindDefaultBySigHash(ctx context.Context, sighash string, indexedInputCount uint32) ([]*entities.ContractEvent, error)
+}
+
+type EventStreamAgent interface {
+	Insert(ctx context.Context, eventStream *entities.EventStream) (*entities.EventStream, error)
+	Search(ctx context.Context, filters *entities.EventStreamFilters, tenants []string, ownerID string) ([]*entities.EventStream, error)
 }

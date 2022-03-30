@@ -148,6 +148,20 @@ func (mr *MockDBMockRecorder) Chain() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Chain", reflect.TypeOf((*MockDB)(nil).Chain))
 }
 
+// EventStream mocks base method
+func (m *MockDB) EventStream() store.EventStreamAgent {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "EventStream")
+	ret0, _ := ret[0].(store.EventStreamAgent)
+	return ret0
+}
+
+// EventStream indicates an expected call of EventStream
+func (mr *MockDBMockRecorder) EventStream() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EventStream", reflect.TypeOf((*MockDB)(nil).EventStream))
+}
+
 // RunInTransaction mocks base method
 func (m *MockDB) RunInTransaction(ctx context.Context, persistFunc func(store.DB) error) error {
 	m.ctrl.T.Helper()
@@ -903,4 +917,57 @@ func (m *MockContractEventAgent) FindDefaultBySigHash(ctx context.Context, sigha
 func (mr *MockContractEventAgentMockRecorder) FindDefaultBySigHash(ctx, sighash, indexedInputCount interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindDefaultBySigHash", reflect.TypeOf((*MockContractEventAgent)(nil).FindDefaultBySigHash), ctx, sighash, indexedInputCount)
+}
+
+// MockEventStreamAgent is a mock of EventStreamAgent interface
+type MockEventStreamAgent struct {
+	ctrl     *gomock.Controller
+	recorder *MockEventStreamAgentMockRecorder
+}
+
+// MockEventStreamAgentMockRecorder is the mock recorder for MockEventStreamAgent
+type MockEventStreamAgentMockRecorder struct {
+	mock *MockEventStreamAgent
+}
+
+// NewMockEventStreamAgent creates a new mock instance
+func NewMockEventStreamAgent(ctrl *gomock.Controller) *MockEventStreamAgent {
+	mock := &MockEventStreamAgent{ctrl: ctrl}
+	mock.recorder = &MockEventStreamAgentMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockEventStreamAgent) EXPECT() *MockEventStreamAgentMockRecorder {
+	return m.recorder
+}
+
+// Insert mocks base method
+func (m *MockEventStreamAgent) Insert(ctx context.Context, eventStream *entities.EventStream) (*entities.EventStream, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Insert", ctx, eventStream)
+	ret0, _ := ret[0].(*entities.EventStream)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Insert indicates an expected call of Insert
+func (mr *MockEventStreamAgentMockRecorder) Insert(ctx, eventStream interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockEventStreamAgent)(nil).Insert), ctx, eventStream)
+}
+
+// Search mocks base method
+func (m *MockEventStreamAgent) Search(ctx context.Context, filters *entities.EventStreamFilters, tenants []string, ownerID string) ([]*entities.EventStream, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Search", ctx, filters, tenants, ownerID)
+	ret0, _ := ret[0].([]*entities.EventStream)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Search indicates an expected call of Search
+func (mr *MockEventStreamAgentMockRecorder) Search(ctx, filters, tenants, ownerID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockEventStreamAgent)(nil).Search), ctx, filters, tenants, ownerID)
 }
