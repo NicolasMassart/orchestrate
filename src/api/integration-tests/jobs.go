@@ -144,10 +144,10 @@ func (s *jobsTestSuite) TestStart() {
 
 		err = s.client.StartJob(ctx, job.UUID)
 		require.NoError(t, err)
-		evlp, err := s.env.consumer.WaitForEnvelope(job.ScheduleUUID, s.env.kafkaTopicConfig.Sender, waitForEnvelopeTimeOut)
+		msgJob, err := s.env.consumer.WaitForJob(ctx, job.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
 		require.NoError(s.T(), err)
 
-		assert.Equal(t, evlp.GetJobUUID(), job.UUID)
+		assert.Equal(t, msgJob.UUID, job.UUID)
 
 		jobRetrieved, err := s.client.GetJob(ctx, job.UUID)
 		require.NoError(t, err)
@@ -169,10 +169,10 @@ func (s *jobsTestSuite) TestStart() {
 
 		err = s.client.StartJob(ctx, job.UUID)
 		require.NoError(t, err)
-		evlp, err := s.env.consumer.WaitForEnvelope(job.ScheduleUUID, s.env.kafkaTopicConfig.Sender, waitForEnvelopeTimeOut)
+		msgJob, err := s.env.consumer.WaitForJob(ctx, job.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
 		require.NoError(s.T(), err)
 
-		assert.Equal(t, evlp.GetJobUUID(), job.UUID)
+		assert.Equal(t, msgJob.UUID, job.UUID)
 	})
 }
 
@@ -191,10 +191,10 @@ func (s *jobsTestSuite) TestUpdate() {
 
 		err = s.client.StartJob(ctx, job.UUID)
 		require.NoError(s.T(), err)
-		evlp, err := s.env.consumer.WaitForEnvelope(job.ScheduleUUID, s.env.kafkaTopicConfig.Sender, waitForEnvelopeTimeOut)
+		msgJob, err := s.env.consumer.WaitForJob(ctx, job.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
 		require.NoError(s.T(), err)
 		
-		assert.Equal(s.T(), evlp.GetJobUUID(), job.UUID)
+		assert.Equal(s.T(), msgJob.UUID, job.UUID)
 
 		receipt := testdata2.FakeReceipt()
 		_, err = s.client.UpdateJob(ctx, job.UUID, &api.UpdateJobRequest{
@@ -202,10 +202,10 @@ func (s *jobsTestSuite) TestUpdate() {
 			Receipt: receipt,
 		})
 		require.NoError(s.T(), err)
-		evlp, err = s.env.consumer.WaitForEnvelope(job.ScheduleUUID, s.env.kafkaTopicConfig.Decoded, waitForEnvelopeTimeOut)
+		txResp, err := s.env.consumer.WaitForTxResponseInTxDecoded(ctx, job.ScheduleUUID, waitForEnvelopeTimeOut)
 		require.NoError(s.T(), err)
-		assert.Equal(s.T(), evlp.GetJobUUID(), job.UUID)
-		assert.Equal(s.T(), evlp.GetReceipt().TxHash, receipt.TxHash)
+		assert.Equal(s.T(), txResp.GetJobUUID(), job.UUID)
+		assert.Equal(s.T(), txResp.GetReceipt().TxHash, receipt.TxHash)
 	})
 	
 	s.T().Run("should update job to FAILED and notify", func(t *testing.T) {
@@ -218,18 +218,18 @@ func (s *jobsTestSuite) TestUpdate() {
 
 		err = s.client.StartJob(ctx, job.UUID)
 		require.NoError(s.T(), err)
-		evlp, err := s.env.consumer.WaitForEnvelope(job.ScheduleUUID, s.env.kafkaTopicConfig.Sender, waitForEnvelopeTimeOut)
+		msgJob, err := s.env.consumer.WaitForJob(ctx, job.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
 		require.NoError(s.T(), err)
 		
-		assert.Equal(s.T(), evlp.GetJobUUID(), job.UUID)
+		assert.Equal(s.T(), msgJob.UUID, job.UUID)
 
 		_, err = s.client.UpdateJob(ctx, job.UUID, &api.UpdateJobRequest{
 			Status:  entities.StatusFailed,
 		})
 
 		require.NoError(s.T(), err)
-		evlp, err = s.env.consumer.WaitForEnvelope(job.ScheduleUUID, s.env.kafkaTopicConfig.Recover, waitForEnvelopeTimeOut)
+		txResp, err := s.env.consumer.WaitForTxResponseInTxRecover(ctx, job.ScheduleUUID, waitForEnvelopeTimeOut)
 		require.NoError(s.T(), err)
-		assert.Equal(s.T(), evlp.GetJobUUID(), job.UUID)
+		assert.Equal(s.T(), txResp.GetJobUUID(), job.UUID)
 	})
 }

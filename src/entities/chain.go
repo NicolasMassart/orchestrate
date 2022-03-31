@@ -16,8 +16,8 @@ type Chain struct {
 	ListenerDepth             uint64
 	ListenerCurrentBlock      uint64
 	ListenerStartingBlock     uint64
-	ListenerBackOffDuration   time.Duration
-	ListenerExternalTxEnabled bool
+	ListenerBackOffDuration   time.Duration // @TODO Rename to BlockTime
+	ListenerExternalTxEnabled bool          // @TODO Remove
 	Labels                    map[string]string
 	CreatedAt                 time.Time
 	UpdatedAt                 time.Time

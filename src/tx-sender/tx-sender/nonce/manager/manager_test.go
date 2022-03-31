@@ -32,7 +32,7 @@ func TestNonceManager(t *testing.T) {
 		job := testdata.FakeJob()
 		expectedNonce := uint64(1)
 
-		ns.EXPECT().GetLastSent(partitionKey(job)).Return(uint64(0), errors.NotFoundError("error"))
+		ns.EXPECT().GetLastSent(job.PartitionKey()).Return(uint64(0), errors.NotFoundError("error"))
 
 		url := utils.GetProxyURL(chainRegistryURL, job.ChainUUID)
 		ec.EXPECT().PendingNonceAt(ctx, url, *job.Transaction.From).Return(expectedNonce, nil)
@@ -47,7 +47,7 @@ func TestNonceManager(t *testing.T) {
 		job := testdata.FakeJob()
 		expectedNonce := uint64(2)
 
-		ns.EXPECT().GetLastSent(partitionKey(job)).Return(expectedNonce-1, nil)
+		ns.EXPECT().GetLastSent(job.PartitionKey()).Return(expectedNonce-1, nil)
 
 		nonce, err := manager.GetNonce(ctx, job)
 		assert.NoError(t, err)
@@ -59,7 +59,7 @@ func TestNonceManager(t *testing.T) {
 		job := testdata.FakeJob()
 
 		expectedErr := errors.InvalidNonceWarning("invalid error")
-		ns.EXPECT().GetLastSent(partitionKey(job)).Return(uint64(0), expectedErr)
+		ns.EXPECT().GetLastSent(job.PartitionKey()).Return(uint64(0), expectedErr)
 
 		_, err := manager.GetNonce(ctx, job)
 		assert.Equal(t, err, expectedErr)
@@ -71,8 +71,8 @@ func TestNonceManager(t *testing.T) {
 		expectedNonce := uint64(1)
 		job.Transaction.Nonce = utils.ToPtr(expectedNonce).(*uint64)
 
-		ns.EXPECT().GetLastSent(partitionKey(job)).Return(uint64(0), nil)
-		ns.EXPECT().SetLastSent(partitionKey(job), expectedNonce).Return(nil)
+		ns.EXPECT().GetLastSent(job.PartitionKey()).Return(uint64(0), nil)
+		ns.EXPECT().SetLastSent(job.PartitionKey(), expectedNonce).Return(nil)
 		rt.EXPECT().Recovered(job.UUID)
 
 		err := manager.IncrementNonce(ctx, job)
@@ -85,8 +85,8 @@ func TestNonceManager(t *testing.T) {
 		expectedNonce := uint64(1)
 		job.Transaction.Nonce = utils.ToPtr(expectedNonce).(*uint64)
 
-		ns.EXPECT().GetLastSent(partitionKey(job)).Return(uint64(0), nil)
-		ns.EXPECT().SetLastSent(partitionKey(job), expectedNonce).Return(nil)
+		ns.EXPECT().GetLastSent(job.PartitionKey()).Return(uint64(0), nil)
+		ns.EXPECT().SetLastSent(job.PartitionKey(), expectedNonce).Return(nil)
 		rt.EXPECT().Recovered(job.UUID)
 
 		err := manager.IncrementNonce(ctx, job)
@@ -99,7 +99,7 @@ func TestNonceManager(t *testing.T) {
 		expectedNonce := uint64(2)
 		job.Transaction.Nonce = utils.ToPtr(expectedNonce).(*uint64)
 
-		ns.EXPECT().GetLastSent(partitionKey(job)).Return(uint64(0), nil)
+		ns.EXPECT().GetLastSent(job.PartitionKey()).Return(uint64(0), nil)
 		rt.EXPECT().Recovered(job.UUID)
 
 		err := manager.IncrementNonce(ctx, job)
@@ -113,8 +113,8 @@ func TestNonceManager(t *testing.T) {
 		job.Transaction.Nonce = utils.ToPtr(expectedNonce + 1).(*uint64)
 
 		jobErr := errors.InvalidNonceWarning("nonce too low")
-		ns.EXPECT().GetLastSent(partitionKey(job)).Return(uint64(1), nil)
-		ns.EXPECT().DeleteLastSent(partitionKey(job)).Return(nil)
+		ns.EXPECT().GetLastSent(job.PartitionKey()).Return(uint64(1), nil)
+		ns.EXPECT().DeleteLastSent(job.PartitionKey()).Return(nil)
 		rt.EXPECT().Recovering(job.UUID).Return(uint64(0))
 		rt.EXPECT().Recover(job.UUID)
 
@@ -130,7 +130,7 @@ func TestNonceManager(t *testing.T) {
 		job.Transaction.Nonce = utils.ToPtr(expectedNonce).(*uint64)
 
 		jobErr := errors.InvalidNonceWarning("nonce too low")
-		ns.EXPECT().GetLastSent(partitionKey(job)).Return(expectedNonce, nil)
+		ns.EXPECT().GetLastSent(job.PartitionKey()).Return(expectedNonce, nil)
 		rt.EXPECT().Recovering(job.UUID).Return(uint64(0))
 		rt.EXPECT().Recover(job.UUID)
 

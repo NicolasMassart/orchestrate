@@ -35,7 +35,7 @@
 #      }
 #      """
 #    Then the response code should be 200
-#    Then Envelopes should be in topic "tx.decoded"
+#    Then TxResponse was found in tx-decoded topic "{msgID}"
 #    And Envelopes should have the following fields
 #      | Receipt.Status |
 #      | 1              |

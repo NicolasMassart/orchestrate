@@ -1,13 +1,13 @@
 package builder
 
 import (
-	"github.com/Shopify/sarama"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/business/use-cases/faucets"
 	"github.com/consensys/orchestrate/src/api/metrics"
 	"github.com/consensys/orchestrate/src/api/store"
-	pkgsarama "github.com/consensys/orchestrate/src/infra/broker/sarama"
 	"github.com/consensys/orchestrate/src/infra/ethclient"
+	"github.com/consensys/orchestrate/src/infra/kafka"
+	broker "github.com/consensys/orchestrate/src/infra/kafka/sarama"
 	qkmclient "github.com/consensys/quorum-key-manager/pkg/client"
 )
 
@@ -28,8 +28,8 @@ func NewUseCases(
 	keyManagerClient qkmclient.EthClient,
 	qkmStoreID string,
 	ec ethclient.Client,
-	producer sarama.SyncProducer,
-	topicsCfg *pkgsarama.KafkaTopicConfig,
+	producer kafka.Producer,
+	topicsCfg *broker.TopicConfig,
 ) usecases.UseCases {
 
 	chainUseCases := newChainUseCases(db, ec)

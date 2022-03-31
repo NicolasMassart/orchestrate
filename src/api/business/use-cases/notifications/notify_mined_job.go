@@ -3,8 +3,8 @@ package notifications
 import (
 	"context"
 
-	"github.com/Shopify/sarama"
-	encoding "github.com/consensys/orchestrate/pkg/encoding/proto"
+	"github.com/consensys/orchestrate/src/infra/kafka"
+
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
@@ -13,7 +13,8 @@ import (
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/store"
 	"github.com/consensys/orchestrate/src/entities"
-	pkgsarama "github.com/consensys/orchestrate/src/infra/broker/sarama"
+	"github.com/consensys/orchestrate/src/infra/kafka/proto"
+	broker "github.com/consensys/orchestrate/src/infra/kafka/sarama"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
@@ -21,8 +22,8 @@ const notifyMinedJobComponent = "use-cases.notify-mined-job"
 
 type notifyMinedJobUseCase struct {
 	db               store.DB
-	kafkaProducer    sarama.SyncProducer
-	topicsCfg        *pkgsarama.KafkaTopicConfig
+	kafkaProducer    kafka.Producer
+	topicsCfg        *broker.TopicConfig
 	searchContractUC usecases.SearchContractUseCase
 	decodeLogUC      usecases.DecodeEventLogUseCase
 	logger           *log.Logger
@@ -32,8 +33,8 @@ func NewNotifyMinedJobUseCase(
 	db store.DB,
 	searchContractUC usecases.SearchContractUseCase,
 	decodeLogUC usecases.DecodeEventLogUseCase,
-	kafkaProducer sarama.SyncProducer,
-	topicsCfg *pkgsarama.KafkaTopicConfig,
+	kafkaProducer kafka.Producer,
+	topicsCfg *broker.TopicConfig,
 ) usecases.NotifyMinedJob {
 	return &notifyMinedJobUseCase{
 		db:               db,
@@ -70,20 +71,9 @@ func (uc *notifyMinedJobUseCase) Execute(ctx context.Context, job *entities.Job)
 		}
 	}
 
-	msg := job.TxResponse()
-	b, err := encoding.Marshal(msg)
-	if err != nil {
-		errMsg := "failed to encode mined job response"
-		logger.WithError(err).Error(errMsg)
-		return errors.EncodingError(errMsg)
-	}
-
 	// Send message
-	_, _, err = uc.kafkaProducer.SendMessage(&sarama.ProducerMessage{
-		Topic: uc.topicsCfg.Decoded,
-		Key:   sarama.StringEncoder(job.ChainUUID),
-		Value: sarama.ByteEncoder(b),
-	})
+	msg := proto.NewTxResponse(job)
+	err = uc.kafkaProducer.SendTxResponse(uc.topicsCfg.Decoded, msg)
 	if err != nil {
 		errMsg := "could not produce kafka message"
 		logger.WithError(err).Error(errMsg)

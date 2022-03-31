@@ -4,10 +4,10 @@ import (
 	"context"
 	"math/big"
 
-	"github.com/consensys/orchestrate/pkg/encoding/rlp"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	qkmtypes "github.com/consensys/quorum-key-manager/src/stores/api/types"
 	ethcommon "github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/rlp"
 
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -37,7 +37,7 @@ func NewSignEEAPrivateTransactionUseCase(keyManagerClient client.KeyManagerClien
 func (uc *signEEAPrivateTransactionUseCase) Execute(ctx context.Context, job *entities.Job) (signedRaw hexutil.Bytes, txHash *ethcommon.Hash, err error) {
 	logger := uc.logger.WithContext(ctx).WithField("one_time_key", job.InternalData.OneTimeKey)
 
-	transaction := ethTransactionToTransaction(job.Transaction, job.InternalData.ChainID)
+	transaction := job.Transaction.ToETHTransaction(job.InternalData.ChainID)
 	privateArgs := &privateETHTransactionParams{
 		PrivateFrom:    job.Transaction.PrivateFrom,
 		PrivateFor:     job.Transaction.PrivateFor,
@@ -143,7 +143,7 @@ func (uc *signEEAPrivateTransactionUseCase) getSignedRawEEATransaction(ctx conte
 		return nil, err
 	}
 
-	signedRaw, err := rlp.Encode([]interface{}{
+	signedRaw, err := rlp.EncodeToBytes([]interface{}{
 		transaction.Nonce(),
 		transaction.GasPrice(),
 		transaction.Gas(),

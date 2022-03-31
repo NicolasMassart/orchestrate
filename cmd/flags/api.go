@@ -9,24 +9,40 @@ import (
 	metricregistry "github.com/consensys/orchestrate/pkg/toolkit/app/metrics/registry"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	tcpmetrics "github.com/consensys/orchestrate/pkg/toolkit/tcp/metrics"
+	"github.com/consensys/orchestrate/src/api"
 	"github.com/consensys/orchestrate/src/api/metrics"
 	"github.com/consensys/orchestrate/src/api/proxy"
-	broker "github.com/consensys/orchestrate/src/infra/broker/sarama"
 	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 )
 
 func NewAPIFlags(f *pflag.FlagSet) {
 	QKMFlags(f)
 	PGFlags(f)
 
+	KafkaFlags(f)
+	KafkaTopicTxDecoded(f)
+	KafkaTopicTxRecover(f)
+	KafkaTopicTxSender(f)
+
 	log.Flags(f)
 	multitenancy.Flags(f)
 	authjwt.Flags(f)
 	authkey.Flags(f)
-	broker.KafkaProducerFlags(f)
-	broker.KafkaTopicTxSender(f)
 	app.Flags(f)
 	app.MetricFlags(f)
 	metricregistry.Flags(f, httpmetrics.ModuleName, tcpmetrics.ModuleName, metrics.ModuleName)
 	proxy.Flags(f)
+}
+
+func NewAPIConfig(vipr *viper.Viper) *api.Config {
+	return &api.Config{
+		App:          app.NewConfig(vipr),
+		Postgres:     NewPGConfig(vipr),
+		Kafka:        NewKafkaConfig(vipr),
+		KafkaTopics:  NewKafkaTopicConfig(vipr),
+		Multitenancy: vipr.GetBool(multitenancy.EnabledViperKey),
+		Proxy:        proxy.NewConfig(),
+		QKM:          NewQKMConfig(vipr),
+	}
 }

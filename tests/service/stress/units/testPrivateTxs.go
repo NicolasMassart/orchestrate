@@ -2,23 +2,20 @@ package units
 
 import (
 	"context"
-
 	"encoding/json"
 
 	"github.com/consensys/orchestrate/pkg/errors"
 	orchestrateclient "github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
-	"github.com/consensys/orchestrate/pkg/types/tx"
 	"github.com/consensys/orchestrate/pkg/utils"
 	api "github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities"
+	"github.com/consensys/orchestrate/src/infra/kafka/testutils"
 	"github.com/consensys/orchestrate/tests/service/stress/assets"
-	utils2 "github.com/consensys/orchestrate/tests/service/stress/utils"
-	utils3 "github.com/consensys/orchestrate/tests/utils"
-	"github.com/consensys/orchestrate/tests/utils/chanregistry"
 )
 
-func BatchPrivateTxsTest(ctx context.Context, cfg *WorkloadConfig, client orchestrateclient.OrchestrateClient, chanReg *chanregistry.ChanRegistry) error {
+func BatchPrivateTxsTest(ctx context.Context, cfg *WorkloadConfig, client orchestrateclient.OrchestrateClient,
+	consumerTracker *testutils.ConsumerTracker) error {
 	logger := log.WithContext(ctx).SetComponent("stress-test.private-txs")
 
 	account := cfg.accounts[utils.RandInt(len(cfg.accounts))]
@@ -27,9 +24,6 @@ func BatchPrivateTxsTest(ctx context.Context, cfg *WorkloadConfig, client orches
 	privacyGroup := cfg.privacyGroups[utils.RandInt(len(cfg.privacyGroups))]
 	privateFrom := chain.PrivNodeAddress[utils.RandInt(len(chain.PrivNodeAddress))]
 	idempotency := utils.RandString(30)
-
-	evlp := tx.NewEnvelope()
-	t := utils2.NewEnvelopeTracker(chanReg, evlp, idempotency)
 
 	req := &api.DeployContractRequest{
 		ChainName: chain.Name,
@@ -57,7 +51,7 @@ func BatchPrivateTxsTest(ctx context.Context, cfg *WorkloadConfig, client orches
 	logger = logger.WithField("chain", req.ChainName).WithField("idem", idempotency)
 	logger.Debug("sending private tx to deploy contract")
 
-	_, err := client.SendDeployTransaction(ctx, req)
+	tx, err := client.SendDeployTransaction(ctx, req)
 	if err != nil {
 		if !errors.IsConnectionError(err) {
 			logger = logger.WithField("req", string(sReq))
@@ -66,7 +60,7 @@ func BatchPrivateTxsTest(ctx context.Context, cfg *WorkloadConfig, client orches
 		return err
 	}
 
-	err = utils2.WaitForEnvelope(t, cfg.waitForEnvelopeTimeout)
+	_, err = consumerTracker.WaitForTxResponseInTxDecoded(ctx, tx.UUID, cfg.waitForEnvelopeTimeout)
 	if err != nil {
 		if !errors.IsConnectionError(err) {
 			logger = logger.WithField("req", string(sReq))
@@ -75,7 +69,6 @@ func BatchPrivateTxsTest(ctx context.Context, cfg *WorkloadConfig, client orches
 		return err
 	}
 
-	logger.WithField("topic", utils3.TxDecodedTopicKey).Debug("envelope was found")
 	return nil
 }
 

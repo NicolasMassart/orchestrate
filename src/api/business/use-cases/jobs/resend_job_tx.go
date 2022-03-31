@@ -3,10 +3,11 @@ package jobs
 import (
 	"context"
 
-	"github.com/Shopify/sarama"
+	"github.com/consensys/orchestrate/src/infra/kafka"
+
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
-	pkgsarama "github.com/consensys/orchestrate/src/infra/broker/sarama"
+	broker "github.com/consensys/orchestrate/src/infra/kafka/sarama"
 
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
@@ -17,12 +18,12 @@ const resendJobTxComponent = "use-cases.resend-job-tx"
 
 type resendJobTxUseCase struct {
 	db            store.DB
-	kafkaProducer sarama.SyncProducer
-	topicsCfg     *pkgsarama.KafkaTopicConfig
+	kafkaProducer kafka.Producer
+	topicsCfg     *broker.TopicConfig
 	logger        *log.Logger
 }
 
-func NewResendJobTxUseCase(db store.DB, kafkaProducer sarama.SyncProducer, topicsCfg *pkgsarama.KafkaTopicConfig) usecases.ResendJobTxUseCase {
+func NewResendJobTxUseCase(db store.DB, kafkaProducer kafka.Producer, topicsCfg *broker.TopicConfig) usecases.ResendJobTxUseCase {
 	return &resendJobTxUseCase{
 		db:            db,
 		kafkaProducer: kafkaProducer,
@@ -43,7 +44,7 @@ func (uc *resendJobTxUseCase) Execute(ctx context.Context, jobUUID string, userI
 	}
 
 	job.InternalData.ParentJobUUID = jobUUID
-	err = sendEnvelope(uc.kafkaProducer, uc.topicsCfg.Sender, job)
+	err = uc.kafkaProducer.SendJobMessage(uc.topicsCfg.Sender, job, userInfo)
 	if err != nil {
 		logger.WithError(err).Error("failed to send resend job envelope")
 		return err

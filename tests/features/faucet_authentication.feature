@@ -80,7 +80,7 @@ Feature: Faucet funding
     Then I register the following response fields
       | alias     | path         |
       | txJobUUID | jobs[0].uuid |
-    Then Envelopes should be in topic "tx.recover"
+    Then TxResponse was found in tx-recover topic
     When I send "GET" request to "{{global.api}}/jobs/{{txJobUUID}}"
     Then the response code should be 200
     And Response should have the following fields

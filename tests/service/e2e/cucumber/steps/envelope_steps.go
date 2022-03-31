@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"context"
 	"crypto/ecdsa"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math/big"
 	"math/rand"
 	"net/http"
 	"reflect"
@@ -14,24 +16,21 @@ import (
 	"sync"
 	"time"
 
+	"github.com/consensys/orchestrate/src/api/service/formatters"
+	"github.com/consensys/orchestrate/src/entities"
+	"github.com/consensys/orchestrate/src/infra/kafka/proto"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/go-kit/kit/transport/http/jsonrpc"
 
 	clientutils "github.com/consensys/orchestrate/pkg/toolkit/app/http/client-utils"
 
 	"github.com/cenkalti/backoff/v4"
-	"github.com/consensys/orchestrate/pkg/encoding/rlp"
 	utils4 "github.com/consensys/orchestrate/pkg/utils"
 	api "github.com/consensys/orchestrate/src/api/service/types"
-	utils3 "github.com/consensys/orchestrate/tests/utils"
 
-	"encoding/json"
-
-	"github.com/Shopify/sarama"
-	encoding "github.com/consensys/orchestrate/pkg/encoding/sarama"
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/ethereum/account"
-	"github.com/consensys/orchestrate/pkg/types/tx"
 	utils2 "github.com/consensys/orchestrate/src/infra/ethclient/utils"
 	"github.com/consensys/orchestrate/tests/service/e2e/cucumber/alias"
 	"github.com/consensys/orchestrate/tests/service/e2e/utils"
@@ -42,7 +41,6 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/gofrs/uuid"
 	log "github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 )
 
 const aliasHeaderValue = "alias"
@@ -50,121 +48,49 @@ const aliasHeaderValue = "alias"
 var aliasRegex = regexp.MustCompile("{{([^}]*)}}")
 var AddressPtrType = reflect.TypeOf(new(common.Address))
 
-// type SimpleEnvelope struct {
-// 	TxHash string
-// 	Raw    string
-// 	From   string
-// }
-//
-// func newSimpleEnvelope(e tx.Envelope) *SimpleEnvelope {
-// 	return &SimpleEnvelope{
-// 		TxHash: e.GetTxHashString(),
-// 		Raw:    e.GetRawString(),
-// 		From:   e.GetFromString(),
-// 	}
-// }
-
-func (sc *ScenarioContext) sendEnvelope(topic string, e *tx.Envelope) error {
-	// Prepare message to be sent
-	msg := &sarama.ProducerMessage{
-		Topic: viper.GetString(fmt.Sprintf("topic.%v", topic)),
-		Key:   sarama.StringEncoder(e.PartitionKey()),
-	}
-
-	err := encoding.Marshal(e.TxEnvelopeAsRequest(), msg)
-	if err != nil {
-		return err
-	}
-
-	// Send message
-	_, _, err = sc.producer.SendMessage(msg)
-	if err != nil {
-		return err
-	}
-
-	log.WithFields(log.Fields{
-		"id":            e.GetID(),
-		"scenario.id":   sc.Pickle.Id,
-		"scenario.name": sc.Pickle.Name,
-	}).Debugf("scenario: envelope sent")
-
-	return nil
+func (sc *ScenarioContext) appendTxResponse(txResponse *proto.TxResponse) {
+	sc.mux.Lock()
+	defer sc.mux.Unlock()
+	sc.txResponses = append(sc.txResponses, txResponse)
 }
 
-func (sc *ScenarioContext) iSendEnvelopesToTopic(topic string, table *gherkin.PickleStepArgument_PickleTable) error {
-	// Parse table
-	if err := sc.replaceAliases(table); err != nil {
-		return err
-	}
+func (sc *ScenarioContext) txResponseShouldBeInTxDecodedTopic(msgID string) error {
+	ctx := context.Background()
 
-	envelopes, err := utils.ParseEnvelope(table)
-	if err != nil {
-		return errors.DataError("could not parse tx request - got %v", err)
-	}
+	cerr := make(chan error, 1)
 
-	// Set trackers for each envelope
-	sc.setTrackers(sc.newTrackers(envelopes))
+	go func() {
+		txResponse, err := sc.consumerTracker.WaitForTxResponseInTxDecoded(ctx, msgID, sc.waitForEnvelope)
+		sc.appendTxResponse(txResponse)
+		cerr <- err
+	}()
 
-	// Send envelopes
-	for _, t := range sc.trackers {
-		err := sc.sendEnvelope(topic, t.Current)
-		if err != nil {
-			return errors.InternalError("could not send tx request - got %v", err)
+	go func() {
+		txResponse, err := sc.consumerTracker.WaitForTxResponseInTxRecover(ctx, msgID, sc.waitForEnvelope)
+		if err == nil {
+			cerr <- fmt.Errorf("envelope found in tx-recover %s", txResponse.Errors[0])
 		}
-	}
+	}()
 
-	return nil
+	return <-cerr
 }
-
-func (sc *ScenarioContext) registerEnvelopeTracker(value string) error {
-	envelopeID, ok := sc.aliases.Get(sc.Pickle.Id, value)
-	if !ok {
-		envelopeID, ok = sc.aliases.Get("global", value)
-		if !ok {
-			envelopeID = value
-		}
-	}
-
-	evlp := tx.NewEnvelope()
-	_ = evlp.SetID(envelopeID.(string)).
-		SetContextLabelsValue("debug", "true").
-		SetContextLabelsValue("scenario.id", sc.Pickle.Id)
-
-	sc.setTrackers(append(sc.trackers, sc.newTracker(evlp)))
-
-	return nil
-}
-
-func (sc *ScenarioContext) envelopeShouldBeInTopic(topic string) error {
-	for i, t := range sc.trackers {
-		err := t.Load(topic, viper.GetDuration(CucumberTimeoutViperKey))
-		if err != nil {
-			e := t.Load("tx.recover", time.Millisecond)
-			if e != nil {
-				return fmt.Errorf("%v: envelope n°%v neither in topic %q nor in %q", sc.Pickle.Id, i, topic, "tx.recover")
-			}
-			return fmt.Errorf("%v: envelope n°%v not in topic %q but found in %q - envelope.Errors %q", sc.Pickle.Id, i, topic, "tx.recover", t.Current.Error())
-		}
-	}
-
-	// Waiting for job to be updated after notifying (Hacky and ugly)
-	if topic == utils3.TxDecodedTopicKey || topic == utils3.TxRecoverTopicKey {
-		time.Sleep(time.Second)
-	}
-	return nil
+func (sc *ScenarioContext) txResponseShouldBeInTxRecoverTopic(msgID string) error {
+	ctx := context.Background()
+	_, err := sc.consumerTracker.WaitForTxResponseInTxRecover(ctx, msgID, sc.waitForEnvelope)
+	return err
 }
 
 func (sc *ScenarioContext) envelopesShouldHaveTheFollowingValues(table *gherkin.PickleStepArgument_PickleTable) error {
 	header := table.Rows[0]
 	rows := table.Rows[1:]
-	if len(rows) != len(sc.trackers) {
+	if len(rows) != len(sc.txResponses) {
 		return fmt.Errorf("expected as much rows as envelopes tracked")
 	}
 
-	for r, row := range rows {
-		val := reflect.ValueOf(sc.trackers[r].Current).Elem()
-		sEvlp, err := json.Marshal(*sc.trackers[r].Current)
-		log.WithError(err).Debugf("Marshaled envelope: %s", utils4.ShortString(fmt.Sprint(sEvlp), 30))
+	for idx, row := range rows {
+		val := reflect.ValueOf(sc.txResponses[idx]).Elem()
+		txResponse, err := json.Marshal(sc.txResponses[idx])
+		log.WithError(err).Debugf("Marshaled envelope: %s", utils4.ShortString(fmt.Sprint(txResponse), 30))
 		for c, col := range row.Cells {
 			fieldName := header.Cells[c].Value
 			field, err := utils.GetField(fieldName, val)
@@ -173,7 +99,7 @@ func (sc *ScenarioContext) envelopesShouldHaveTheFollowingValues(table *gherkin.
 			}
 
 			if err := utils.CmpField(field, col.Value); err != nil {
-				return fmt.Errorf("(%d/%d) %v %v", r+1, len(rows), fieldName, err)
+				return fmt.Errorf("(%d/%d) %v %v", idx+1, len(rows), fieldName, err)
 			}
 		}
 	}
@@ -182,12 +108,10 @@ func (sc *ScenarioContext) envelopesShouldHaveTheFollowingValues(table *gherkin.
 }
 
 func (sc *ScenarioContext) iRegisterTheFollowingEnvelopeFields(table *gherkin.PickleStepArgument_PickleTable) (err error) {
-
-	evlps := make(map[string]*tx.Envelope)
-	for _, tracker := range sc.trackers {
-		evlp := tracker.Current
-		evlps[evlp.GetID()] = evlp
-		evlps[evlp.GetContextLabelsValue("id")] = evlp
+	txResponses := make(map[string]*proto.TxResponse)
+	for _, txResponse := range sc.txResponses {
+		txResponses[txResponse.Id] = txResponse
+		txResponses[txResponse.ContextLabels["id"]] = txResponse
 	}
 
 	header := table.Rows[0]
@@ -199,14 +123,14 @@ func (sc *ScenarioContext) iRegisterTheFollowingEnvelopeFields(table *gherkin.Pi
 	}
 
 	for i, row := range rows {
-		evlpID := row.Cells[0].Value
-		if aliasRegex.MatchString(evlpID) {
-			evlpID = aliasRegex.FindString(evlpID)
+		msgID := row.Cells[0].Value
+		if aliasRegex.MatchString(msgID) {
+			msgID = aliasRegex.FindString(msgID)
 		}
 
-		evlp, ok := evlps[evlpID]
+		evlp, ok := txResponses[msgID]
 		if !ok {
-			return fmt.Errorf("envelope %s is not found: %q", evlpID, row)
+			return fmt.Errorf("envelope %s is not found: %q", msgID, row)
 		}
 
 		a := row.Cells[1].Value
@@ -522,25 +446,10 @@ func (sc *ScenarioContext) iRegisterTheFollowingAliasAs(table *gherkin.PickleSte
 	return nil
 }
 
-func (sc *ScenarioContext) iTrackTheFollowingEnvelopes(table *gherkin.PickleStepArgument_PickleTable) error {
-	if len(table.Rows[0].Cells) != 1 {
-		return errors.DataError("invalid table")
-	}
-
-	var envelopes []*tx.Envelope
-	for _, r := range table.Rows[1:] {
-		if r.Cells[0].Value != "" {
-			envelopes = append(envelopes, tx.NewEnvelope().SetID(r.Cells[0].Value))
-		}
-	}
-	sc.setTrackers(sc.newTrackers(envelopes))
-
-	return nil
-}
-
 func (sc *ScenarioContext) iSignTheFollowingTransactions(table *gherkin.PickleStepArgument_PickleTable) error {
 	tenantCol := utils.ExtractColumns(table, []string{"Tenant"})
 	apiKeyCol := utils.ExtractColumns(table, []string{"API-KEY"})
+	chainUUUIDCol := utils.ExtractColumns(table, []string{"ChainUUID"})
 
 	helpersColumns := []string{aliasHeaderValue, "privateKey"}
 	helpersTable := utils.ExtractColumns(table, helpersColumns)
@@ -548,15 +457,20 @@ func (sc *ScenarioContext) iSignTheFollowingTransactions(table *gherkin.PickleSt
 		return errors.DataError("One of the following columns is missing %q", helpersColumns)
 	}
 
-	envelopes, err := utils.ParseEnvelope(table)
+	txReqs, err := utils.ParseTransactions(table)
 	if err != nil {
 		return err
 	}
 
 	// Sign tx for each envelope
 	ctx := utils2.RetryConnectionError(context.Background(), true)
-	for i, e := range envelopes {
+	for i, txReq := range txReqs {
 		apiKey := apiKeyCol.Rows[i+1].Cells[0].Value
+
+		chainUUID := ""
+		if chainUUUIDCol != nil {
+			chainUUID = chainUUUIDCol.Rows[i+1].Cells[0].Value
+		}
 
 		tenant := ""
 		if tenantCol != nil {
@@ -564,16 +478,23 @@ func (sc *ScenarioContext) iSignTheFollowingTransactions(table *gherkin.PickleSt
 		}
 
 		headers := utils.GetHeaders(apiKey, tenant, "")
-		err = sc.craftAndSignEnvelope(
+		txRaw, txHash, err := sc.signTransaction(
 			context.WithValue(ctx, clientutils.RequestHeaderKey, headers),
-			e,
+			formatters.FormatETHTransactionRequest(txReq),
+			chainUUID,
 			helpersTable.Rows[i+1].Cells[1].Value,
 		)
 		if err != nil {
 			return err
 		}
 
-		sc.aliases.Set(e, sc.Pickle.Id, helpersTable.Rows[i+1].Cells[0].Value)
+		sc.aliases.Set(struct {
+			Raw    string
+			TxHash string
+		}{
+			Raw:    string(txRaw),
+			TxHash: txHash,
+		}, sc.Pickle.Id, helpersTable.Rows[i+1].Cells[0].Value)
 	}
 
 	return nil
@@ -668,64 +589,51 @@ func (sc *ScenarioContext) getJWT(audience string) (string, error) {
 	return "", fmt.Errorf(string(respMsg))
 }
 
-func (sc *ScenarioContext) craftAndSignEnvelope(ctx context.Context, e *tx.Envelope, privKey string) error {
-	chainRegistry, ok := sc.aliases.Get(alias.GlobalAka, "api")
-	if !ok {
-		return errors.DataError("Could not find the api endpoint")
-	}
-	endpoint := utils4.GetProxyURL(chainRegistry.(string), e.GetChainUUID())
-	if e.GetChainID() == nil && e.GetChainUUID() != "" {
-		chainID, errNetwork := sc.ec.Network(utils2.RetryConnectionError(ctx, true), endpoint)
-		if errNetwork != nil {
-			log.WithError(errNetwork).Error("failed to get chain ID")
-			return errNetwork
-		}
-		_ = e.SetChainID(chainID)
+// nolint
+func (sc *ScenarioContext) signTransaction(ctx context.Context, tx *entities.ETHTransaction, chainUUID, privKey string) ([]byte, string, error) {
+	chain, err := sc.client.GetChain(ctx, chainUUID)
+	if err != nil {
+		log.WithError(err).WithField("private_key", privKey).Error("failed to create account using private key")
+		return nil, "", err
 	}
 
-	signer := types.NewEIP155Signer(e.GetChainID())
+	chainID, _ := new(big.Int).SetString(chain.ChainID, 10)
+	signer := types.NewEIP155Signer(chainID)
 	acc, err := crypto.HexToECDSA(privKey)
 	if err != nil {
 		log.WithError(err).WithField("private_key", privKey).Error("failed to create account using private key")
-		return err
+		return nil, "", err
 	}
 
-	_ = e.SetFrom(crypto.PubkeyToAddress(acc.PublicKey))
-	if e.GetGasPrice() == nil {
-		gasPrice, errGasPrice := sc.ec.SuggestGasPrice(ctx, endpoint)
+	if tx.GasPrice == nil {
+		gasPrice, errGasPrice := sc.ec.SuggestGasPrice(ctx, chain.URLs[0])
 		if errGasPrice != nil {
 			log.WithError(errGasPrice).Error("failed to suggest gas price")
-			return errGasPrice
+			return nil, "", errGasPrice
 		}
-		_ = e.SetGasPrice((*hexutil.Big)(gasPrice))
+		tx.GasPrice = (*hexutil.Big)(gasPrice)
 	}
 
-	transaction, err := e.GetTransaction()
-	if err != nil {
-		log.WithError(err).Error("failed to get transaction from envelope")
-		return err
-	}
-
+	transaction := tx.ToETHTransaction(chainID)
 	signature, err := signTransaction(transaction, acc, signer)
 	if err != nil {
 		log.WithError(err).Error("failed to sign transaction")
-		return err
+		return nil, "", err
 	}
 
 	signedTx, err := transaction.WithSignature(signer, signature)
 	if err != nil {
 		log.WithError(err).Error("failed to set signature in transaction")
-		return err
+		return nil, "", err
 	}
 
-	signedRaw, err := rlp.Encode(signedTx)
+	signedRaw, err := rlp.EncodeToBytes(signedTx)
 	if err != nil {
 		log.WithError(err).Error("failed to RLP encode signed transaction")
-		return err
+		return nil, "", err
 	}
 
-	_ = e.SetRaw(signedRaw).SetTxHash(signedTx.Hash())
-	return nil
+	return signedRaw, signedTx.Hash().String(), nil
 }
 
 func signTransaction(transaction *types.Transaction, privKey *ecdsa.PrivateKey, signer types.Signer) ([]byte, error) {
@@ -745,10 +653,8 @@ func initEnvelopeSteps(s *godog.ScenarioContext, sc *ScenarioContext) {
 	s.Step(`^I have the following account`, sc.preProcessTableStep(sc.iHaveTheFollowingAccount))
 	s.Step(`^I register the following alias$`, sc.preProcessTableStep(sc.iRegisterTheFollowingAliasAs))
 	s.Step(`^I have created the following accounts$`, sc.preProcessTableStep(sc.iHaveCreatedTheFollowingAccounts))
-	s.Step(`^I track the following envelopes$`, sc.preProcessTableStep(sc.iTrackTheFollowingEnvelopes))
-	s.Step(`^I send envelopes to topic "([^"]*)"$`, sc.iSendEnvelopesToTopic)
-	s.Step(`^Register new envelope tracker "([^"]*)"$`, sc.registerEnvelopeTracker)
-	s.Step(`^Envelopes should be in topic "([^"]*)"$`, sc.envelopeShouldBeInTopic)
+	s.Step(`^TxResponse was found in tx-decoded topic "([^"]*)"$`, sc.txResponseShouldBeInTxDecodedTopic)
+	s.Step(`^TxResponse was found in tx-recover topic "([^"]*)"$`, sc.txResponseShouldBeInTxRecoverTopic)
 	s.Step(`^Envelopes should have the following fields$`, sc.preProcessTableStep(sc.envelopesShouldHaveTheFollowingValues))
 	s.Step(`^I register the following envelope fields$`, sc.preProcessTableStep(sc.iRegisterTheFollowingEnvelopeFields))
 	s.Step(`^I sign the following transactions$`, sc.preProcessTableStep(sc.iSignTheFollowingTransactions))

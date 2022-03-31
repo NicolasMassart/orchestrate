@@ -2,14 +2,10 @@ package manager
 
 import (
 	"context"
-	"crypto/md5"
-	"fmt"
-	"sort"
 	"strings"
 
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
-	"github.com/consensys/orchestrate/pkg/types/tx"
 	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/infra/ethclient"
@@ -43,7 +39,7 @@ func NewNonceManager(ec ethclient.MultiClient, nm store.NonceSender, tracker sto
 func (nc *Manager) GetNonce(ctx context.Context, job *entities.Job) (uint64, error) {
 	logger := nc.logger.WithContext(ctx).WithField("job", job.UUID)
 
-	nonceKey := partitionKey(job)
+	nonceKey := job.PartitionKey()
 	if nonceKey == "" {
 		logger.Debug("empty nonceKey, skip nonce check")
 		return 0, nil
@@ -84,7 +80,7 @@ func (nc *Manager) CleanNonce(ctx context.Context, job *entities.Job, jobErr err
 		return nil
 	}
 
-	nonceKey := partitionKey(job)
+	nonceKey := job.PartitionKey()
 	logger.Warn("chain responded with invalid nonce error")
 	if nc.recovery.Recovering(job.UUID) >= nc.maxRecovery {
 		err := errors.InvalidNonceError("reached max nonce recovery max")
@@ -123,7 +119,7 @@ func (nc *Manager) CleanNonce(ctx context.Context, job *entities.Job, jobErr err
 func (nc *Manager) IncrementNonce(ctx context.Context, job *entities.Job) error {
 	logger := nc.logger.WithContext(ctx).WithField("job", job.UUID)
 
-	nonceKey := partitionKey(job)
+	nonceKey := job.PartitionKey()
 	txNonce := uint64(0)
 	if job.Transaction.Nonce != nil {
 		txNonce = *job.Transaction.Nonce
@@ -153,10 +149,10 @@ func (nc *Manager) fetchNonceFromChain(ctx context.Context, job *entities.Job) (
 	url := utils.GetProxyURL(nc.chainRegistryURL, job.ChainUUID)
 
 	switch {
-	case string(job.Type) == tx.JobType_EEA_PRIVATE_TX.String() && job.Transaction.PrivacyGroupID != "":
+	case job.Type == entities.EEAPrivateTransaction && job.Transaction.PrivacyGroupID != "":
 		n, err = nc.ethClient.PrivNonce(ctx, url, *job.Transaction.From,
 			job.Transaction.PrivacyGroupID)
-	case string(job.Type) == tx.JobType_EEA_PRIVATE_TX.String() && job.Transaction.PrivateFor != nil:
+	case job.Type == entities.EEAPrivateTransaction && job.Transaction.PrivateFor != nil:
 		n, err = nc.ethClient.PrivEEANonce(ctx, url, *job.Transaction.From,
 			job.Transaction.PrivateFrom, job.Transaction.PrivateFor)
 	default:
@@ -164,27 +160,4 @@ func (nc *Manager) fetchNonceFromChain(ctx context.Context, job *entities.Job) (
 	}
 
 	return
-}
-
-func partitionKey(job *entities.Job) string {
-	// Return empty partition key for raw tx and one time key tx
-	// Not able to format a correct partition key if From or ChainID are not set. In that case return empty partition key
-	if job.Transaction.From == nil || job.InternalData.ChainID == nil {
-		return ""
-	}
-
-	fromAddr := job.Transaction.From
-	chainID := job.InternalData.ChainID
-	switch {
-	case string(job.Type) == tx.JobType_EEA_PRIVATE_TX.String() && job.Transaction.PrivacyGroupID != "":
-		return fmt.Sprintf("%v@eea-%v@%v", fromAddr, job.Transaction.PrivacyGroupID, chainID)
-	case string(job.Type) == tx.JobType_EEA_PRIVATE_TX.String() && len(job.Transaction.PrivateFor) > 0:
-		l := append(job.Transaction.PrivateFor, job.Transaction.PrivateFrom)
-		sort.Strings(l)
-		h := md5.New()
-		_, _ = h.Write([]byte(strings.Join(l, "-")))
-		return fmt.Sprintf("%v@eea-%v@%v", fromAddr, fmt.Sprintf("%x", h.Sum(nil)), chainID)
-	default:
-		return fmt.Sprintf("%v@%v", fromAddr, chainID)
-	}
 }

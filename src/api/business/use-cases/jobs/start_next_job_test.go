@@ -78,8 +78,8 @@ func TestStartNextJob_Execute(t *testing.T) {
 			Status:    entities.StatusStored,
 			CreatedAt: time.Now(),
 		})
-		prevJob.Type = entities.TesseraPrivateTransaction
-		nextJob.Type = entities.TesseraMarkingTransaction
+		prevJob.Type = entities.GoQuorumPrivateTransaction
+		nextJob.Type = entities.GoQuorumMarkingTransaction
 
 		mockJobDA.EXPECT().FindOneByUUID(gomock.Any(), prevJob.UUID, userInfo.AllowedTenants, userInfo.Username, false).
 			Return(prevJob, nil)

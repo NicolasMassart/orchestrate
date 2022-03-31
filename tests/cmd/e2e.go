@@ -6,12 +6,10 @@ import (
 
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
-	broker "github.com/consensys/orchestrate/src/infra/broker/sarama"
+	"github.com/spf13/viper"
 
 	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/consensys/orchestrate/tests/service/e2e"
-	"github.com/consensys/orchestrate/tests/service/e2e/cucumber"
-	"github.com/consensys/orchestrate/tests/service/e2e/cucumber/steps"
 	"github.com/spf13/cobra"
 )
 
@@ -23,12 +21,7 @@ func NewRunE2ECommand() *cobra.Command {
 		SilenceUsage: true,
 	}
 
-	// Register Cucumber flag
-	cucumber.InitFlags(runCmd.Flags())
-	steps.InitFlags(runCmd.Flags())
-	e2e.InitFlags(runCmd.Flags())
-	broker.KafkaConsumerFlags(runCmd.Flags())
-
+	e2e.Flags(runCmd.Flags())
 	return runCmd
 }
 
@@ -43,8 +36,14 @@ func runE2E(cmd *cobra.Command, _ []string) error {
 	})
 	defer sig.Close()
 
+	cfg, err := e2e.NewConfig(viper.GetViper())
+	if err != nil {
+		logger.WithError(err).Error("failed to load settings")
+		return err
+	}
+
 	var gerr error
-	if err := e2e.Start(ctx); err != nil {
+	if err := e2e.Start(ctx, cfg); err != nil {
 		logger.WithError(err).Error("did not complete successfully")
 		gerr = errors.CombineErrors(gerr, err)
 	}

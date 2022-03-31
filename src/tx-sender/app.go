@@ -5,17 +5,17 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/consensys/orchestrate/src/infra/kafka"
+
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"github.com/consensys/orchestrate/src/tx-sender/tx-sender/nonce"
 	"github.com/consensys/orchestrate/src/tx-sender/tx-sender/nonce/manager"
 
-	"github.com/Shopify/sarama"
 	"github.com/cenkalti/backoff/v4"
 	"github.com/consensys/orchestrate/pkg/errors"
 	api "github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
-	pkgsarama "github.com/consensys/orchestrate/src/infra/broker/sarama"
 	"github.com/consensys/orchestrate/src/infra/ethclient"
 	"github.com/consensys/orchestrate/src/infra/redis"
 	"github.com/consensys/orchestrate/src/tx-sender/service"
@@ -33,7 +33,7 @@ type txSenderDaemon struct {
 	jobClient        api.JobClient
 	ec               ethclient.MultiClient
 	nonceManager     nonce.Manager
-	consumerGroup    []sarama.ConsumerGroup
+	consumerGroup    []kafka.Consumer
 	config           *Config
 	logger           *log.Logger
 	cancel           context.CancelFunc
@@ -41,13 +41,13 @@ type txSenderDaemon struct {
 
 func NewTxSender(
 	config *Config,
-	consumerGroup []sarama.ConsumerGroup,
+	consumerGroup []kafka.Consumer,
 	keyManagerClient keymanager.KeyManagerClient,
 	apiClient api.OrchestrateClient,
 	ec ethclient.MultiClient,
 	redisCli redis.Client,
 ) (*app.App, error) {
-	appli, err := app.New(config.App, readinessOpt(apiClient, redisCli), app.MetricsOpt())
+	appli, err := app.New(config.App, readinessOpt(apiClient, redisCli, consumerGroup[0].Client()), app.MetricsOpt())
 	if err != nil {
 		return nil, err
 	}
@@ -83,8 +83,7 @@ func (d *txSenderDaemon) Run(ctx context.Context) error {
 	useCases := builder.NewUseCases(d.jobClient, d.keyManagerClient, d.ec, d.nonceManager, d.config.ProxyURL)
 
 	// Create service layer listener
-	listener := service.NewMessageListener(useCases, d.jobClient, d.config.RecoverTopic, d.config.SenderTopic,
-		d.config.BckOff)
+	listener := service.NewMessageListener(useCases, d.jobClient, d.config.BckOff)
 
 	ctx, d.cancel = context.WithCancel(ctx)
 	if d.config.IsMultiTenancyEnabled {
@@ -101,7 +100,7 @@ func (d *txSenderDaemon) Run(ctx context.Context) error {
 			// We retry once after consume exits to prevent entire stack to exit after kafka rebalance is triggered
 			err := backoff.RetryNotify(
 				func() error {
-					err := cGroup.Consume(cctx, []string{d.config.SenderTopic}, listener)
+					err := cGroup.Consume(cctx, []string{d.config.KafkaTopicTxSender}, listener)
 
 					// In this case, kafka rebalance was triggered and we want to retry
 					if err == nil && cctx.Err() == nil {
@@ -132,9 +131,9 @@ func (d *txSenderDaemon) Close() error {
 	return gerr
 }
 
-func readinessOpt(apiClient api.MetricClient, redisCli redis.Client) app.Option {
+func readinessOpt(apiClient api.MetricClient, redisCli redis.Client, brokerClient kafka.Client) app.Option {
 	return func(ap *app.App) error {
-		ap.AddReadinessCheck("kafka", pkgsarama.GlobalClientChecker())
+		ap.AddReadinessCheck("kafka", brokerClient.Checker)
 		ap.AddReadinessCheck("api", apiClient.Checker())
 		if redisCli != nil {
 			ap.AddReadinessCheck("redis", redisCli.Ping)

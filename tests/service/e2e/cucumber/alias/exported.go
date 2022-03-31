@@ -8,7 +8,6 @@ import (
 
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/auth/key"
-	txsender "github.com/consensys/orchestrate/src/tx-sender"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -45,9 +44,9 @@ func importGlobalAlias(rawTestData string) {
 		"api":                 viper.GetString(client.URLViperKey),
 		"api-metrics":         viper.GetString(client.MetricsURLViperKey),
 		"api-key":             viper.GetString(key.APIKeyViperKey),
-		"tx-sender-metrics":   viper.GetString(txsender.MetricsURLViperKey),
+		"tx-sender-metrics":   viper.GetString(flags.TxSenderMetricsURLViperKey),
 		"key-manager":         viper.GetString(flags.URLViperKey),
-		"key-manager-metrics": viper.GetString(flags.MetricsURLViperKey),
+		"key-manager-metrics": viper.GetString(flags.QKMMetricsURLViperKey),
 		"external-tx-label":   ExternalTxLabel,
 	}
 

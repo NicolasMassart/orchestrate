@@ -56,9 +56,6 @@ Feature: Account management
     And Response should have the following fields
       | alias              | attributes.new_attribute |
       | {{generateAccID2}} | {{scenarioID}}           |
-    Then I track the following envelopes
-      | ID           |
-      | {{sendTxID}} |
     When I send "POST" request to "{{global.api}}/transactions/deploy-contract" with json:
   """
 {
@@ -74,7 +71,7 @@ Feature: Account management
 }
       """
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{{sendTxID}}"
 
   Scenario: Generate account and send transaction
     Given I register the following alias
@@ -102,9 +99,6 @@ Feature: Account management
     Then I register the following response fields
       | alias            | path    |
       | generatedAccAddr | address |
-    Then I track the following envelopes
-      | ID           |
-      | {{sendTxID}} |
     Given I set the headers
       | Key         | Value                |
       | X-API-KEY   | {{global.api-key}}   |
@@ -124,7 +118,7 @@ Feature: Account management
 }
       """
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{{sendTxID}}"
 
   Scenario: Should fail to create an account on a not existing QKM store
     Given I register the following alias
@@ -151,9 +145,6 @@ Feature: Account management
       | alias    | value              |
       | fromAcc  | {{random.account}} |
       | sendTxID | {{random.uuid}}    |
-    Then I track the following envelopes
-      | ID           |
-      | {{sendTxID}} |
     Given I set the headers
       | Key         | Value                |
       | X-API-KEY   | {{global.api-key}}   |

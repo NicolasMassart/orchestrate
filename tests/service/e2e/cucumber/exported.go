@@ -1,91 +1,36 @@
 package cucumber
 
 import (
-	"context"
-	"os"
-	"strings"
-	"sync"
+	"time"
 
-	"github.com/consensys/orchestrate/pkg/sdk/client"
-	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
-	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
-	broker "github.com/consensys/orchestrate/src/infra/broker/sarama"
-	ethclient "github.com/consensys/orchestrate/src/infra/ethclient/rpc"
-	"github.com/consensys/orchestrate/tests/service/e2e/cucumber/alias"
+	"github.com/consensys/orchestrate/pkg/errors"
+	"github.com/consensys/orchestrate/src/infra/kafka/sarama"
+	"github.com/consensys/orchestrate/src/infra/kafka/testutils"
+	"github.com/consensys/orchestrate/tests/service/e2e/cucumber/steps"
 	"github.com/cucumber/godog"
-	"github.com/spf13/viper"
+	log "github.com/sirupsen/logrus"
 )
 
-var (
-	options  *godog.Options
-	initOnce = &sync.Once{}
-)
+func Run(opt *godog.Options, consumerTracker *testutils.ConsumerTracker, topics *sarama.TopicConfig, waitFor time.Duration) error {
+	status := godog.TestSuite{
+		Name: "tests",
+		ScenarioInitializer: func(s *godog.ScenarioContext) {
+			steps.InitializeScenario(s, consumerTracker, topics, waitFor)
+		},
+		Options: opt,
+	}.Run()
 
-// Init initialize Cucumber service
-func Init(ctx context.Context, rawTestData string) {
-	initOnce.Do(func() {
-		if options != nil {
-			return
-		}
+	// godog status:
+	//  0 - success
+	//  1 - failed
+	//  2 - command line usage error
+	//  128 - or higher, os signal related error exit codes
 
-		logger := log.FromContext(ctx)
-
-		// Initialize Steps
-		broker.InitSyncProducer(ctx)
-		alias.Init(rawTestData)
-		client.Init()
-		ethclient.Init(ctx)
-
-		tags := listTagCucumber()
-
-		options = &godog.Options{
-			ShowStepDefinitions: viper.GetBool(ShowStepDefinitionsViperKey),
-			Randomize:           viper.GetInt64(RandomizeViperKey),
-			StopOnFailure:       viper.GetBool(StopOnFailureViperKey),
-			Strict:              viper.GetBool(StrictViperKey),
-			NoColors:            viper.GetBool(NoColorsViperKey),
-			Tags:                tags,
-			Format:              viper.GetString(FormatViperKey),
-			Concurrency:         viper.GetInt(ConcurrencyViperKey),
-			Paths:               viper.GetStringSlice(PathsViperKey),
-		}
-
-		outputPath := viper.GetString(OutputPathViperKey)
-		if outputPath != "" {
-			f, err := os.Create(viper.GetString(OutputPathViperKey))
-			if err != nil {
-				logger.WithError(err).Fatalf("could not write output in %s", outputPath)
-			}
-			options.Output = f
-		}
-
-		logger.WithField("tags", options.Tags).
-			WithField("concurrency", options.Concurrency).
-			WithField("paths", options.Paths).
-			WithField("output", outputPath).
-			Info("service ready")
-	})
-}
-
-func listTagCucumber() string {
-	var tags []string
-	if viper.GetString(TagsViperKey) != "" {
-		tags = append(tags, strings.Split(viper.GetString(TagsViperKey), " ")...)
+	// If fail
+	if status > 0 {
+		return errors.InternalError("cucumber: feature tests failed with status %d", status)
 	}
 
-	if !viper.GetBool(multitenancy.EnabledViperKey) {
-		tags = append(tags, "~@multi-tenancy")
-	}
-
-	return strings.Join(tags, " && ")
-}
-
-// SetGlobalOptions sets global Cucumber Handler
-func SetGlobalOptions(o *godog.Options) {
-	options = o
-}
-
-// GlobalOptions returns global Cucumber handler
-func GlobalOptions() *godog.Options {
-	return options
+	log.Info("cucumber: feature tests succeeded")
+	return nil
 }

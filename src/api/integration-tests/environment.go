@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/consensys/orchestrate/cmd/flags"
+	"github.com/consensys/orchestrate/src/infra/kafka/testutils"
 	"github.com/consensys/orchestrate/src/infra/postgres/gopg"
 	"github.com/go-pg/pg/v9"
 
@@ -16,23 +17,23 @@ import (
 
 	authjwt "github.com/consensys/orchestrate/pkg/toolkit/app/auth/jwt"
 
-	integrationtest "github.com/consensys/orchestrate/pkg/integration-test"
-	"github.com/consensys/orchestrate/pkg/integration-test/docker"
-	"github.com/consensys/orchestrate/pkg/integration-test/docker/config"
-	ganacheDocker "github.com/consensys/orchestrate/pkg/integration-test/docker/container/ganache"
-	hashicorpDocker "github.com/consensys/orchestrate/pkg/integration-test/docker/container/hashicorp"
-	kafkaDocker "github.com/consensys/orchestrate/pkg/integration-test/docker/container/kafka"
-	postgresDocker "github.com/consensys/orchestrate/pkg/integration-test/docker/container/postgres"
-	quorumkeymanagerDocker "github.com/consensys/orchestrate/pkg/integration-test/docker/container/quorum-key-manager"
-	"github.com/consensys/orchestrate/pkg/integration-test/docker/container/zookeeper"
 	"github.com/consensys/orchestrate/pkg/toolkit/app"
 	authkey "github.com/consensys/orchestrate/pkg/toolkit/app/auth/key"
 	httputils "github.com/consensys/orchestrate/pkg/toolkit/app/http"
 	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/consensys/orchestrate/src/api"
 	"github.com/consensys/orchestrate/src/api/store/postgres/migrations"
-	"github.com/consensys/orchestrate/src/infra/broker/sarama"
 	ethclient "github.com/consensys/orchestrate/src/infra/ethclient/rpc"
+	"github.com/consensys/orchestrate/src/infra/kafka/sarama"
+	"github.com/consensys/orchestrate/tests/pkg/docker"
+	"github.com/consensys/orchestrate/tests/pkg/docker/config"
+	ganacheDocker "github.com/consensys/orchestrate/tests/pkg/docker/container/ganache"
+	hashicorpDocker "github.com/consensys/orchestrate/tests/pkg/docker/container/hashicorp"
+	kafkaDocker "github.com/consensys/orchestrate/tests/pkg/docker/container/kafka"
+	postgresDocker "github.com/consensys/orchestrate/tests/pkg/docker/container/postgres"
+	quorumkeymanagerDocker "github.com/consensys/orchestrate/tests/pkg/docker/container/quorum-key-manager"
+	"github.com/consensys/orchestrate/tests/pkg/docker/container/zookeeper"
+	integrationtest "github.com/consensys/orchestrate/tests/pkg/integration-test"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"github.com/traefik/traefik/v2/pkg/log"
@@ -68,10 +69,10 @@ type IntegrationEnvironment struct {
 	logger            log.Logger
 	api               *app.App
 	client            *docker.Client
-	consumer          *integrationtest.KafkaConsumer
+	consumer          *testutils.ConsumerTracker
 	baseURL           string
 	metricsURL        string
-	kafkaTopicConfig  *sarama.KafkaTopicConfig
+	apiCfg            *api.Config
 	blockchainNodeURL string
 }
 
@@ -93,6 +94,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	// Initialize environment flags
 	flgs := pflag.NewFlagSet("api-integration-test", pflag.ContinueOnError)
 	flags.NewAPIFlags(flgs)
+	flags.KafkaConsumerFlags(flgs) // Only for testing proposes
 	args := []string{
 		"--metrics-port=" + envMetricsPort,
 		"--rest-port=" + envHTTPPort,
@@ -179,6 +181,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		client:            dockerClient,
 		baseURL:           "http://localhost:" + envHTTPPort,
 		metricsURL:        "http://localhost:" + envMetricsPort,
+		apiCfg:            flags.NewAPIConfig(viper.GetViper()),
 		blockchainNodeURL: fmt.Sprintf("http://localhost:%s", envGanacheHostPort),
 	}, nil
 }
@@ -279,22 +282,25 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 		return err
 	}
 
-	env.kafkaTopicConfig = sarama.NewKafkaTopicConfig(viper.GetViper())
-
-	env.api, err = newAPI(ctx, env.kafkaTopicConfig)
+	env.api, err = newAPI(ctx, env.apiCfg)
 	if err != nil {
 		env.logger.WithError(err).Error("could initialize API")
 		return err
 	}
 
 	// Start Kafka consumer
-	env.consumer, err = integrationtest.NewKafkaTestConsumer(ctx, "api-integration-listener-group", sarama.GlobalClient(),
-		[]string{env.kafkaTopicConfig.Sender, env.kafkaTopicConfig.Decoded, env.kafkaTopicConfig.Recover})
+	env.consumer, err = testutils.NewConsumerTracker(env.apiCfg.Kafka, env.apiCfg.KafkaTopics)
 	if err != nil {
-		env.logger.WithError(err).Error("could initialize Kafka")
+		env.logger.WithError(err).Error("could initialize kafka consumer")
 		return err
 	}
-	err = env.consumer.Start(context.Background())
+
+	go func() {
+		err = env.consumer.Consume(context.Background(), []string{env.apiCfg.KafkaTopics.Decoded, env.apiCfg.KafkaTopics.Recover,
+			env.apiCfg.KafkaTopics.Sender})
+	}()
+	time.Sleep(time.Second * 5) // Wait for consumer to be ready
+
 	if err != nil {
 		env.logger.WithError(err).Error("could not run Kafka consumer")
 		return err
@@ -399,39 +405,39 @@ func (env *IntegrationEnvironment) migrate() error {
 	return nil
 }
 
-func newAPI(ctx context.Context, topicCfg *sarama.KafkaTopicConfig) (*app.App, error) {
-	// Initialize dependencies
-	apiConfig := api.NewConfig(viper.GetViper())
-	qkmClient, err := http.New(apiConfig.QKM)
+func newAPI(ctx context.Context, cfg *api.Config) (*app.App, error) {
+	qkmClient, err := http.New(cfg.QKM)
 	if err != nil {
 		return nil, err
 	}
 
-	postgresClient, err := gopg.New("orchestrate.integration-tests.api", apiConfig.Postgres)
+	postgresClient, err := gopg.New("orchestrate.integration-tests.api", cfg.Postgres)
 	if err != nil {
 		return nil, err
 	}
 
 	authjwt.Init(ctx)
 	authkey.Init(ctx)
-	sarama.InitSyncProducer(ctx)
 	ethclient.Init(ctx)
 
 	interceptedHTTPClient := httputils.NewClient(httputils.NewDefaultConfig())
 	gock.InterceptClient(interceptedHTTPClient)
 
-	txSchedulerConfig := api.NewConfig(viper.GetViper())
+	clientProducer, err := sarama.NewProducer(cfg.Kafka)
+	if err != nil {
+		return nil, err
+	}
 
 	return api.NewAPI(
-		txSchedulerConfig,
+		cfg,
 		postgresClient,
 		authjwt.GlobalChecker(),
 		authkey.GlobalChecker(),
 		qkmClient,
-		apiConfig.QKM.StoreName,
+		cfg.QKM.StoreName,
 		ethclient.GlobalClient(),
-		sarama.GlobalSyncProducer(),
-		topicCfg,
+		clientProducer,
+		cfg.KafkaTopics,
 	)
 }
 

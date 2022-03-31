@@ -3,7 +3,6 @@ package signer
 import (
 	"context"
 
-	"github.com/consensys/orchestrate/pkg/encoding/rlp"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/consensys/orchestrate/src/entities"
@@ -11,6 +10,7 @@ import (
 	quorumtypes "github.com/consensys/quorum/core/types"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/rlp"
 
 	usecases "github.com/consensys/orchestrate/src/tx-sender/tx-sender/use-cases"
 
@@ -38,7 +38,7 @@ func NewSignGoQuorumPrivateTransactionUseCase(keyManagerClient client.KeyManager
 func (uc *signGoQuorumPrivateTransactionUseCase) Execute(ctx context.Context, job *entities.Job) (signedRaw hexutil.Bytes, txHash *ethcommon.Hash, err error) {
 	logger := uc.logger.WithContext(ctx).WithField("one_time_key", job.InternalData.OneTimeKey)
 
-	transaction := ethTransactionToQuorumTransaction(job.Transaction)
+	transaction := job.Transaction.ToQuorumTransaction()
 	transaction.SetPrivate()
 	if job.InternalData.OneTimeKey {
 		signedRaw, txHash, err = uc.signWithOneTimeKey(ctx, transaction)
@@ -78,7 +78,7 @@ func (uc *signGoQuorumPrivateTransactionUseCase) signWithOneTimeKey(ctx context.
 		return nil, nil, errors.InvalidParameterError(errMessage).ExtendComponent(signQuorumPrivateTransactionComponent)
 	}
 
-	signedRawB, err := rlp.Encode(signedTx)
+	signedRawB, err := rlp.EncodeToBytes(signedTx)
 	if err != nil {
 		errMessage := "failed to RLP encode signed quorum private transaction"
 		logger.WithError(err).Error(errMessage)
@@ -113,7 +113,7 @@ func (uc *signGoQuorumPrivateTransactionUseCase) signWithAccount(ctx context.Con
 		return nil, nil, errors.EncodingError(errMessage)
 	}
 
-	err = rlp.Decode(signedRaw, &tx)
+	err = rlp.DecodeBytes(signedRaw, &tx)
 	if err != nil {
 		errMessage := "failed to decode quorum transaction"
 		logger.WithError(err).Error(errMessage)

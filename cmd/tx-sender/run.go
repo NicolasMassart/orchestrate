@@ -3,6 +3,7 @@ package txsender
 import (
 	"os"
 
+	"github.com/consensys/orchestrate/cmd/flags"
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/utils"
 	txsender "github.com/consensys/orchestrate/src/tx-sender"
@@ -28,14 +29,16 @@ func newRunCommand() *cobra.Command {
 	}
 
 	// Register KeyStore flags
-	txsender.Flags(runCmd.Flags())
+	flags.TxSenderFlags(runCmd.Flags())
 
 	return runCmd
 }
 
 func run(cmd *cobra.Command, _ []string) error {
 	ctx := cmd.Context()
-	app, err := txsender.New(ctx)
+	cfg := flags.NewTxSenderConfig(viper.GetViper())
+
+	app, err := txsender.New(ctx, cfg)
 	if err != nil {
 		return errors.CombineErrors(cmdErr, err)
 	}

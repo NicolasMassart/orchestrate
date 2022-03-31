@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/consensys/orchestrate/src/infra/kafka"
+
 	"github.com/consensys/orchestrate/src/infra/postgres"
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http/middleware/httpcache"
@@ -16,7 +18,6 @@ import (
 
 	qkmclient "github.com/consensys/quorum-key-manager/pkg/client"
 
-	"github.com/Shopify/sarama"
 	"github.com/consensys/orchestrate/pkg/toolkit/app"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/auth"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http/config/dynamic"
@@ -24,7 +25,7 @@ import (
 	"github.com/consensys/orchestrate/src/api/business/builder"
 	"github.com/consensys/orchestrate/src/api/metrics"
 	"github.com/consensys/orchestrate/src/api/service/controllers"
-	pkgsarama "github.com/consensys/orchestrate/src/infra/broker/sarama"
+	broker "github.com/consensys/orchestrate/src/infra/kafka/sarama"
 )
 
 func NewAPI(
@@ -34,8 +35,8 @@ func NewAPI(
 	keyManagerClient qkmclient.KeyManagerClient,
 	qkmStoreID string,
 	ec ethclient.Client,
-	syncProducer sarama.SyncProducer,
-	topicCfg *pkgsarama.KafkaTopicConfig,
+	syncProducer kafka.Producer,
+	topicCfg *broker.TopicConfig,
 ) (*app.App, error) {
 	// Metrics
 	var appMetrics metrics.TransactionSchedulerMetrics
@@ -88,7 +89,7 @@ func NewAPI(
 	return app.New(
 		cfg.App,
 		app.MultiTenancyOpt("auth", jwt, key, cfg.Multitenancy),
-		ReadinessOpt(db),
+		ReadinessOpt(db, syncProducer.Client()),
 		app.MetricsOpt(appMetrics),
 		accessLogMid,
 		rateLimitOpt,
@@ -99,10 +100,10 @@ func NewAPI(
 	)
 }
 
-func ReadinessOpt(postgresClient postgres.Client) app.Option {
+func ReadinessOpt(postgresClient postgres.Client, brokerClient kafka.Client) app.Option {
 	return func(ap *app.App) error {
 		ap.AddReadinessCheck("database", func() error { return postgresClient.Exec("SELECT 1") })
-		ap.AddReadinessCheck("kafka", pkgsarama.GlobalClientChecker())
+		ap.AddReadinessCheck("kafka", brokerClient.Checker)
 		return nil
 	}
 }

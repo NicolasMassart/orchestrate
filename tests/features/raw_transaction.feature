@@ -34,7 +34,7 @@ Feature: Send raw transfer transaction
     },
     "labels": {
     	"scenario.id": "{{scenarioID}}",
-    	"id": "{{rawTx.ID}}"
+    	"id": "{{rawTx.TxHash}}"
     }
 }
       """
@@ -42,7 +42,7 @@ Feature: Send raw transfer transaction
     Then I register the following response fields
       | alias   | path         |
       | jobUUID | jobs[0].uuid |
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     And Envelopes should have the following fields
       | Receipt.Status |
       | 1              |
@@ -77,7 +77,7 @@ Feature: Send raw transfer transaction
     },
     "labels": {
     	"scenario.id": "{{scenarioID}}",
-    	"id": "{{rawTx.ID}}"
+    	"id": "{{rawTx.TxHash}}"
     }
 }
       """
@@ -85,7 +85,7 @@ Feature: Send raw transfer transaction
     Then I register the following response fields
       | alias   | path         |
       | jobUUID | jobs[0].uuid |
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     And Envelopes should have the following fields
       | Receipt.Status |
       | 1              |
@@ -118,7 +118,7 @@ Feature: Send raw transfer transaction
     },
     "labels": {
     	"scenario.id": "{{scenarioID}}",
-    	"id": "{{rawTx.ID}}"
+    	"id": "{{rawTx.TxHash}}"
     }
 }
       """
@@ -126,7 +126,7 @@ Feature: Send raw transfer transaction
     Then I register the following response fields
       | alias   | path         |
       | jobUUID | jobs[0].uuid |
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     When I send "GET" request to "{{global.api}}/jobs/{{jobUUID}}"
     Then the response code should be 200
     And Response should have the following fields
@@ -149,7 +149,7 @@ Feature: Send raw transfer transaction
     Then I register the following response fields
       | alias   | path         |
       | jobUUID | jobs[0].uuid |
-    Then Envelopes should be in topic "tx.recover"
+    Then TxResponse was found in tx-recover topic
     When I send "GET" request to "{{global.api}}/jobs/{{jobUUID}}"
     Then the response code should be 200
     And Response should have the following fields

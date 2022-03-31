@@ -7,26 +7,26 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/consensys/orchestrate/src/infra/redis/redigo"
-
-	sarama2 "github.com/Shopify/sarama"
 	"github.com/alicebob/miniredis"
 	"github.com/cenkalti/backoff/v4"
-	integrationtest "github.com/consensys/orchestrate/pkg/integration-test"
-	"github.com/consensys/orchestrate/pkg/integration-test/docker"
-	"github.com/consensys/orchestrate/pkg/integration-test/docker/config"
-	kafkaDocker "github.com/consensys/orchestrate/pkg/integration-test/docker/container/kafka"
-	"github.com/consensys/orchestrate/pkg/integration-test/docker/container/zookeeper"
+	"github.com/consensys/orchestrate/cmd/flags"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app"
 	httputils "github.com/consensys/orchestrate/pkg/toolkit/app/http"
 	"github.com/consensys/orchestrate/pkg/utils"
-	"github.com/consensys/orchestrate/src/infra/broker/sarama"
 	ethclient "github.com/consensys/orchestrate/src/infra/ethclient/rpc"
+	"github.com/consensys/orchestrate/src/infra/kafka"
+	"github.com/consensys/orchestrate/src/infra/kafka/sarama"
 	"github.com/consensys/orchestrate/src/infra/redis"
+	"github.com/consensys/orchestrate/src/infra/redis/redigo"
 	txsender "github.com/consensys/orchestrate/src/tx-sender"
 	"github.com/consensys/orchestrate/src/tx-sender/store"
 	noncesender "github.com/consensys/orchestrate/src/tx-sender/store/redis"
+	"github.com/consensys/orchestrate/tests/pkg/docker"
+	"github.com/consensys/orchestrate/tests/pkg/docker/config"
+	kafkaDocker "github.com/consensys/orchestrate/tests/pkg/docker/container/kafka"
+	"github.com/consensys/orchestrate/tests/pkg/docker/container/zookeeper"
+	integrationtest "github.com/consensys/orchestrate/tests/pkg/integration-test"
 	qkmclient "github.com/consensys/quorum-key-manager/pkg/client"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -47,16 +47,15 @@ var envKafkaHostPort string
 var envMetricsPort string
 
 type IntegrationEnvironment struct {
-	ctx        context.Context
-	logger     log.Logger
-	txSender   *app.App
-	client     *docker.Client
-	consumer   *integrationtest.KafkaConsumer
-	producer   sarama2.SyncProducer
-	metricsURL string
-	ns         store.NonceSender
-	redis      redis.Client
-	srvConfig  *txsender.Config
+	ctx         context.Context
+	logger      log.Logger
+	txSender    *app.App
+	client      *docker.Client
+	producer    kafka.Producer
+	metricsURL  string
+	ns          store.NonceSender
+	redis       redis.Client
+	txSenderCfg *txsender.Config
 }
 
 func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, error) {
@@ -74,7 +73,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 
 	// Initialize environment flags
 	flgs := pflag.NewFlagSet("tx-sender-integration-test", pflag.ContinueOnError)
-	txsender.Flags(flgs)
+	flags.TxSenderFlags(flgs)
 	args := []string{
 		"--metrics-port=" + envMetricsPort,
 		"--kafka-url=" + kafkaExternalHostname,
@@ -123,13 +122,13 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	}
 
 	return &IntegrationEnvironment{
-		ctx:        ctx,
-		logger:     logger,
-		client:     dockerClient,
-		metricsURL: "http://localhost:" + envMetricsPort,
-		producer:   sarama.GlobalSyncProducer(),
-		redis:      redisClient,
-		ns:         noncesender.NewNonceSender(redisClient, 100000),
+		ctx:         ctx,
+		logger:      logger,
+		client:      dockerClient,
+		metricsURL:  "http://localhost:" + envMetricsPort,
+		txSenderCfg: flags.NewTxSenderConfig(viper.GetViper()),
+		redis:       redisClient,
+		ns:          noncesender.NewNonceSender(redisClient, 100000),
 	}, nil
 }
 
@@ -159,34 +158,24 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 		return err
 	}
 
+	consumer, err := sarama.NewConsumer(env.txSenderCfg.Kafka)
+	if err != nil {
+		return err
+	}
+
 	// Create app
-	env.srvConfig = txsender.NewConfig(viper.GetViper())
-	env.srvConfig.BckOff = testBackOff()
-	env.txSender, err = newTxSender(ctx, env.srvConfig, env.redis)
+	env.txSenderCfg.BckOff = testBackOff()
+	env.txSender, err = newTxSender(env.txSenderCfg, env.redis, consumer)
 	if err != nil {
 		env.logger.WithError(err).Error("could not initialize tx-sender")
 		return err
 	}
 
-	// Start Kafka consumer
-	env.consumer, err = integrationtest.NewKafkaTestConsumer(
-		ctx,
-		"tx-sender-integration-listener-group",
-		sarama.GlobalClient(),
-		[]string{env.srvConfig.SenderTopic, env.srvConfig.RecoverTopic},
-	)
+	env.producer, err = sarama.NewProducer(env.txSenderCfg.Kafka)
 	if err != nil {
-		env.logger.WithError(err).Error("could initialize Kafka")
+		env.logger.WithError(err).Error("could not initialize kafka producer")
 		return err
 	}
-	err = env.consumer.Start(context.Background())
-	if err != nil {
-		env.logger.WithError(err).Error("could not run Kafka consumer")
-		return err
-	}
-
-	// Set producer
-	env.producer = sarama.GlobalSyncProducer()
 
 	// Start tx-sender app
 	err = env.txSender.Start(ctx)
@@ -194,6 +183,9 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 		env.logger.WithError(err).Error("could not start tx-sender")
 		return err
 	}
+
+	env.logger.Debug("Waiting for consumer to start....")
+	time.Sleep(time.Second * 5) // @TODO Improve awaiting trigger
 
 	integrationtest.WaitForServiceLive(ctx, fmt.Sprintf("%s/live", env.metricsURL), "tx-sender", 15*time.Second)
 	return nil
@@ -223,11 +215,8 @@ func (env *IntegrationEnvironment) Teardown(ctx context.Context) {
 	}
 }
 
-func newTxSender(ctx context.Context, txSenderConfig *txsender.Config, redisCli redis.Client) (*app.App, error) {
+func newTxSender(txSenderConfig *txsender.Config, redisCli redis.Client, consumer kafka.Consumer) (*app.App, error) {
 	// Initialize dependencies
-	sarama.InitSyncProducer(ctx)
-	sarama.InitConsumerGroup(ctx, txSenderConfig.GroupName)
-
 	httpClient := httputils.NewClient(httputils.NewDefaultConfig())
 	gock.InterceptClient(httpClient)
 
@@ -241,8 +230,9 @@ func newTxSender(ctx context.Context, txSenderConfig *txsender.Config, redisCli 
 	apiClient := client.NewHTTPClient(httpClient, conf2)
 
 	txSenderConfig.NonceMaxRecovery = maxRecoveryDefault
+
 	return txsender.NewTxSender(txSenderConfig,
-		[]sarama2.ConsumerGroup{sarama.GlobalConsumerGroup()},
+		[]kafka.Consumer{consumer},
 		qkmClient,
 		apiClient,
 		ec,

@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"strings"
+	encoding "encoding/json"
 	"time"
 
 	client2 "github.com/consensys/quorum-key-manager/pkg/client"
@@ -13,12 +13,9 @@ import (
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/src/entities"
 	utils2 "github.com/consensys/orchestrate/src/tx-sender/tx-sender/utils"
-	"google.golang.org/protobuf/proto"
 
 	"github.com/Shopify/sarama"
-	encoding "github.com/consensys/orchestrate/pkg/encoding/proto"
 	"github.com/consensys/orchestrate/pkg/errors"
-	"github.com/consensys/orchestrate/pkg/types/tx"
 	usecases "github.com/consensys/orchestrate/src/tx-sender/tx-sender/use-cases"
 )
 
@@ -29,25 +26,16 @@ const (
 
 type MessageListener struct {
 	useCases     usecases.UseCases
-	recoverTopic string
-	crafterTopic string
 	retryBackOff backoff.BackOff
-	producer     sarama.SyncProducer
 	jobClient    client.JobClient
 	cancel       context.CancelFunc
 	err          error
 	logger       *log.Logger
 }
 
-func NewMessageListener(useCases usecases.UseCases,
-	jobClient client.JobClient,
-	recoverTopic, crafterTopic string,
-	bck backoff.BackOff,
-) *MessageListener {
+func NewMessageListener(useCases usecases.UseCases, jobClient client.JobClient, bck backoff.BackOff) *MessageListener {
 	return &MessageListener{
 		useCases:     useCases,
-		recoverTopic: recoverTopic,
-		crafterTopic: crafterTopic,
 		retryBackOff: bck,
 		jobClient:    jobClient,
 		logger:       log.NewLogger().SetComponent(messageListenerComponent),
@@ -97,49 +85,30 @@ func (listener *MessageListener) consumeClaimLoop(ctx context.Context, session s
 				return nil
 			}
 
-			evlp, err := decodeMessage(logger, msg)
+			job, err := decodeMessage(msg)
 			if err != nil {
 				logger.WithError(err).Error("error decoding message", msg)
 				session.MarkMessage(msg, "")
 				continue
 			}
 
-			logger.WithField("envelope_id", evlp.ID).
-				WithField("timestamp", msg.Timestamp).
-				Debug("message consumed")
+			jlogger := logger.WithField("job", job.UUID).WithField("schedule", job.ScheduleUUID)
+			jlogger.WithField("timestamp", msg.Timestamp).Debug("message consumed")
 
-			jlogger := logger.WithField("job", evlp.GetJobUUID()).WithField("schedule", evlp.GetScheduleUUID())
-			job := entities.NewJobFromEnvelope(evlp)
-			newCtx := log.With(ctx, jlogger)
-			if evlp.Headers[authutils.AuthorizationHeader] != "" && strings.Contains(evlp.Headers[authutils.AuthorizationHeader], "Bearer") {
-				newCtx = appendAuthHeader(newCtx, evlp.Headers[authutils.AuthorizationHeader])
+			ctx = log.With(ctx, jlogger)
+			for _, h := range msg.Headers {
+				if string(h.Key) == authutils.AuthorizationHeader {
+					ctx = appendAuthHeader(ctx, string(h.Value))
+				}
 			}
 
-			err = listener.processEnvelope(newCtx, evlp, job)
+			err = listener.processTask(ctx, job)
 
-			switch {
-			// If job exceeded number of retries, we must Notify, Update job to FAILED and Continue
-			case err != nil && errors.IsConnectionError(err):
-				txResponse := evlp.AppendError(errors.FromError(err)).TxResponse()
-				serr := listener.sendEnvelope(newCtx, evlp.ID, txResponse, listener.recoverTopic, evlp.PartitionKey())
-				if serr == nil {
-					serr = utils2.UpdateJobStatus(newCtx, listener.jobClient, job,
-						entities.StatusFailed, err.Error(), nil)
-				}
-
+			if err != nil {
+				serr := utils2.UpdateJobStatus(ctx, listener.jobClient, job, entities.StatusFailed, err.Error(), nil)
 				if serr != nil {
 					jlogger.WithError(serr).Error(errorProcessingMessage)
 					return serr
-				}
-			case err != nil:
-				curJob, serr := listener.jobClient.GetJob(newCtx, job.UUID)
-				// IMPORTANT: Jobs can be updated in parallel to NEVER_MINED, MINED or FAILED, so that we should
-				// warning and ignore it in case job is in a final status
-				if serr == nil && entities.IsFinalJobStatus(curJob.Status) {
-					jlogger.WithError(err).Warn(errorProcessingMessage)
-				} else {
-					jlogger.WithError(err).Error(errorProcessingMessage)
-					return err
 				}
 			}
 
@@ -150,7 +119,7 @@ func (listener *MessageListener) consumeClaimLoop(ctx context.Context, session s
 	}
 }
 
-func (listener *MessageListener) processEnvelope(ctx context.Context, evlp *tx.Envelope, job *entities.Job) error {
+func (listener *MessageListener) processTask(ctx context.Context, job *entities.Job) error {
 	logger := log.FromContext(ctx)
 	return backoff.RetryNotify(
 		func() error {
@@ -171,7 +140,7 @@ func (listener *MessageListener) processEnvelope(ctx context.Context, evlp *tx.E
 			switch {
 			// Retry over same message
 			case errors.IsInvalidNonceWarning(err):
-				resetEnvelopeTx(evlp)
+				resetJobTx(job)
 				serr = utils2.UpdateJobStatus(ctx, listener.jobClient, job,
 					entities.StatusRecovering, err.Error(), nil)
 				if serr == nil {
@@ -204,78 +173,36 @@ func (listener *MessageListener) processEnvelope(ctx context.Context, evlp *tx.E
 }
 
 func (listener *MessageListener) executeSendJob(ctx context.Context, job *entities.Job) error {
-	switch string(job.Type) {
-	case tx.JobType_GO_QUORUM_PRIVATE_TX.String():
+	switch job.Type {
+	case entities.GoQuorumPrivateTransaction:
 		return listener.useCases.SendGoQuorumPrivateTx().Execute(ctx, job)
-	case tx.JobType_GO_QUORUM_MARKING_TX.String():
+	case entities.GoQuorumMarkingTransaction:
 		return listener.useCases.SendGoQuorumMarkingTx().Execute(ctx, job)
-	case tx.JobType_EEA_PRIVATE_TX.String():
+	case entities.EEAPrivateTransaction:
 		return listener.useCases.SendEEAPrivateTx().Execute(ctx, job)
-	case tx.JobType_ETH_RAW_TX.String():
+	case entities.EthereumRawTransaction:
 		return listener.useCases.SendETHRawTx().Execute(ctx, job)
-	case tx.JobType_EEA_MARKING_TX.String(), tx.JobType_ETH_TX.String():
+	case entities.EEAMarkingTransaction, entities.EthereumTransaction:
 		return listener.useCases.SendETHTx().Execute(ctx, job)
 	default:
 		return errors.InvalidParameterError("job type %s is not supported", job.Type)
 	}
 }
 
-func decodeMessage(logger *log.Logger, msg *sarama.ConsumerMessage) (*tx.Envelope, error) {
-	txEnvelope := &tx.TxEnvelope{}
-	err := encoding.Unmarshal(msg.Value, txEnvelope)
+func decodeMessage(msg *sarama.ConsumerMessage) (*entities.Job, error) {
+	job := &entities.Job{}
+	err := encoding.Unmarshal(msg.Value, job)
 	if err != nil {
-		errMessage := "failed to decode request message"
-		logger.WithError(err).Error(errMessage)
+		errMessage := "failed to decode job message"
 		return nil, errors.EncodingError(errMessage).ExtendComponent(messageListenerComponent)
 	}
-
-	evlp, err := txEnvelope.Envelope()
-	if err != nil {
-		errMessage := "failed to extract envelope from request"
-		logger.WithError(err).Error(errMessage)
-		return nil, errors.DataCorruptedError(errMessage).ExtendComponent(messageListenerComponent)
-	}
-
-	return evlp, nil
+	return job, nil
 }
 
-func (listener *MessageListener) sendEnvelope(ctx context.Context, msgID string, protoMessage proto.Message, topic, partitionKey string) error {
-	logger := listener.logger.WithContext(ctx).WithField("topic", topic).WithField("envelope_id", msgID)
-	logger.Debug("sending envelope")
-
-	msg := &sarama.ProducerMessage{}
-	msg.Topic = topic
-	// Set key for Kafka partitions
-	if partitionKey != "" {
-		msg.Key = sarama.StringEncoder(partitionKey)
-	}
-
-	b, err := encoding.Marshal(protoMessage)
-	if err != nil {
-		errMessage := "failed to marshal envelope as request"
-		logger.WithError(err).Error(errMessage)
-		return errors.EncodingError(errMessage).ExtendComponent(messageListenerComponent)
-	}
-	msg.Value = sarama.ByteEncoder(b)
-
-	partition, offset, err := listener.producer.SendMessage(msg)
-	if err != nil {
-		errMessage := "failed to produce kafka message"
-		logger.WithError(err).Error(errMessage)
-		return errors.KafkaConnectionError(errMessage).ExtendComponent(messageListenerComponent)
-	}
-
-	logger.WithField("partition", partition).
-		WithField("offset", offset).
-		Debug("envelope successfully sent")
-
-	return nil
-}
-
-func resetEnvelopeTx(req *tx.Envelope) {
-	req.Nonce = nil
-	req.TxHash = nil
-	req.Raw = nil
+func resetJobTx(job *entities.Job) {
+	job.Transaction.Nonce = nil
+	job.Transaction.Hash = nil
+	job.Transaction.Raw = nil
 }
 
 func appendAuthHeader(ctx context.Context, authHeader string) context.Context {

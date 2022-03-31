@@ -12,8 +12,8 @@ func init() {
 	viper.SetDefault(URLViperKey, urlDefault)
 	_ = viper.BindEnv(URLViperKey, urlEnv)
 
-	viper.SetDefault(MetricsURLViperKey, metricsURLDefault)
-	_ = viper.BindEnv(MetricsURLViperKey, metricsURLEnv)
+	viper.SetDefault(QKMMetricsURLViperKey, qkmMetricsURLDefault)
+	_ = viper.BindEnv(QKMMetricsURLViperKey, qkmMetricsURLEnv)
 
 	viper.SetDefault(storeNameViperKey, storeNameDefault)
 	_ = viper.BindEnv(storeNameViperKey, storeNameEnv)
@@ -48,9 +48,9 @@ const (
 )
 
 const (
-	MetricsURLViperKey = "key.manager.metrics-url"
-	metricsURLDefault  = ""
-	metricsURLEnv      = "KEY_MANAGER_METRICS_URL"
+	QKMMetricsURLViperKey = "key.manager.metrics-url"
+	qkmMetricsURLDefault  = ""
+	qkmMetricsURLEnv      = "KEY_MANAGER_METRICS_URL"
 )
 
 func url(f *pflag.FlagSet) {

@@ -264,7 +264,7 @@ func (uc *sendTxUsecase) newJobEntities(txRequest *entities.TxRequest, chainUUID
 		jobs = append(jobs, privTxJob, markingTxJob)
 	case txRequest.Params.Protocol == entities.GoQuorumChainType:
 		privTxJob := uc.newJobEntityFromTxRequest(txRequest, uc.newEthTransactionFromParams(txRequest.Params, txData, entities.LegacyTxType),
-			entities.TesseraPrivateTransaction, chainUUID)
+			entities.GoQuorumPrivateTransaction, chainUUID)
 
 		markingTx := &entities.ETHTransaction{
 			From:         nil,
@@ -275,7 +275,7 @@ func (uc *sendTxUsecase) newJobEntities(txRequest *entities.TxRequest, chainUUID
 		if txRequest.Params.From != nil {
 			markingTx.From = txRequest.Params.From
 		}
-		markingTxJob := uc.newJobEntityFromTxRequest(txRequest, markingTx, entities.TesseraMarkingTransaction, chainUUID)
+		markingTxJob := uc.newJobEntityFromTxRequest(txRequest, markingTx, entities.GoQuorumMarkingTransaction, chainUUID)
 		jobs = append(jobs, privTxJob, markingTxJob)
 	case txRequest.Params.Raw != nil:
 		rawTx, err := uc.newTransactionFromRaw(txRequest.Params.Raw)

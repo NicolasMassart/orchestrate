@@ -67,7 +67,7 @@ Feature: Transaction Scheduler Idempotency
       }
       """
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     Then  I set the headers
       | Key         | Value                |
       | X-API-KEY   | {{global.api-key}}   |

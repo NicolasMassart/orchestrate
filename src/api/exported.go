@@ -3,21 +3,26 @@ package api
 import (
 	"context"
 
+	broker "github.com/consensys/orchestrate/src/infra/kafka/sarama"
+
 	"github.com/consensys/orchestrate/pkg/toolkit/app"
 	authjwt "github.com/consensys/orchestrate/pkg/toolkit/app/auth/jwt"
 	authkey "github.com/consensys/orchestrate/pkg/toolkit/app/auth/key"
-	"github.com/consensys/orchestrate/src/infra/broker/sarama"
+	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	ethclient "github.com/consensys/orchestrate/src/infra/ethclient/rpc"
 	"github.com/consensys/orchestrate/src/infra/postgres/gopg"
 	qkmhttp "github.com/consensys/orchestrate/src/infra/quorum-key-manager/http"
 	nonclient "github.com/consensys/orchestrate/src/infra/quorum-key-manager/non-client"
 	"github.com/consensys/quorum-key-manager/pkg/client"
-	"github.com/spf13/viper"
 )
 
+type Daemon struct {
+	*app.App
+}
+
 // New Utility function used to initialize a new service
-func New(ctx context.Context) (*app.App, error) {
-	cfg := NewConfig(viper.GetViper())
+func New(ctx context.Context, cfg *Config) (*Daemon, error) {
+	logger := log.FromContext(ctx)
 
 	// Initialize infra dependencies
 	qkmClient, err := QKMClient(cfg)
@@ -32,10 +37,15 @@ func New(ctx context.Context) (*app.App, error) {
 
 	authjwt.Init(ctx)
 	authkey.Init(ctx)
-	sarama.InitSyncProducer(ctx)
 	ethclient.Init(ctx)
 
-	return NewAPI(
+	clientProducer, err := broker.NewProducer(cfg.Kafka)
+	if err != nil {
+		return nil, err
+	}
+	logger.WithField("host", cfg.Kafka.URLs).Info("kafka producer client ready")
+
+	api, err := NewAPI(
 		cfg,
 		postgresClient,
 		authjwt.GlobalChecker(),
@@ -43,17 +53,21 @@ func New(ctx context.Context) (*app.App, error) {
 		qkmClient,
 		cfg.QKM.StoreName,
 		ethclient.GlobalClient(),
-		sarama.GlobalSyncProducer(),
-		sarama.NewKafkaTopicConfig(viper.GetViper()),
+		clientProducer,
+		cfg.KafkaTopics,
 	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &Daemon{
+		api,
+	}, nil
 }
 
-func Run(ctx context.Context) error {
-	appli, err := New(ctx)
-	if err != nil {
-		return err
-	}
-	return appli.Run(ctx)
+func (d *Daemon) Run(ctx context.Context) error {
+	return d.App.Run(ctx)
 }
 
 func QKMClient(cfg *Config) (client.KeyManagerClient, error) {

@@ -36,7 +36,7 @@ Feature: Transaction Scheduler Jobs
       }
       """
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     Given I register the following alias
       | alias | value              |
       | to1   | {{random.account}} |
@@ -93,7 +93,7 @@ Feature: Transaction Scheduler Jobs
     Then the response code should be 200
     When I send "PUT" request to "{{global.api}}/jobs/{{txOneJobUUID}}/start"
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     And Envelopes should have the following fields
       | Receipt.Status |
       | 1              |
@@ -148,7 +148,7 @@ Feature: Transaction Scheduler Jobs
     Then the response code should be 200
     When I send "PUT" request to "{{global.api}}/jobs/{{txTwoJobUUID}}/start"
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     And Envelopes should have the following fields
       | Receipt.Status |
       | 1              |

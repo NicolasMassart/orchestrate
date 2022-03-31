@@ -4,13 +4,13 @@ import (
 	"context"
 	"math/big"
 
-	"github.com/consensys/orchestrate/pkg/encoding/rlp"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/consensys/orchestrate/src/entities"
 	qkmtypes "github.com/consensys/quorum-key-manager/src/stores/api/types"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/rlp"
 
 	usecases "github.com/consensys/orchestrate/src/tx-sender/tx-sender/use-cases"
 
@@ -39,7 +39,7 @@ func NewSignETHTransactionUseCase(keyManagerClient client.KeyManagerClient) usec
 func (uc *signETHTransactionUseCase) Execute(ctx context.Context, job *entities.Job) (signedRaw hexutil.Bytes, txHash *ethcommon.Hash, err error) {
 	logger := uc.logger.WithContext(ctx).WithField("one_time_key", job.InternalData.OneTimeKey)
 
-	transaction := ethTransactionToTransaction(job.Transaction, job.InternalData.ChainID)
+	transaction := job.Transaction.ToETHTransaction(job.InternalData.ChainID)
 	if job.InternalData.OneTimeKey {
 		signedRaw, txHash, err = uc.signWithOneTimeKey(ctx, transaction, job.InternalData.ChainID)
 	} else {
@@ -76,7 +76,7 @@ func (uc *signETHTransactionUseCase) signWithOneTimeKey(ctx context.Context, tra
 		return nil, nil, errors.InvalidParameterError(errMessage).ExtendComponent(signTransactionComponent)
 	}
 
-	signedRawB, err := rlp.Encode(signedTx)
+	signedRawB, err := rlp.EncodeToBytes(signedTx)
 	if err != nil {
 		errMessage := "failed to RLP encode signed transaction"
 		logger.WithError(err).Error(errMessage)

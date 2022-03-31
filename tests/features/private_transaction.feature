@@ -51,8 +51,7 @@ Feature: Private transactions
       | jobPrivTxOne    | jobs[0].uuid |
       | jobMarkingTxOne | jobs[1].uuid |
       | evlpID          | uuid         |
-    Then Envelopes should be in topic "tx.sender"
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     And Envelopes should have the following fields
       | Receipt.Status | Receipt.ContractAddress |
       | 1              | ~                       |
@@ -102,7 +101,7 @@ Feature: Private transactions
       }
       """
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
 
   @go-quorum
   Scenario: Deploy private ERC20 contract with Quorum and Tessera using privacy enhancement
@@ -145,8 +144,7 @@ Feature: Private transactions
       | jobPrivTxOne    | jobs[0].uuid |
       | jobMarkingTxOne | jobs[1].uuid |
       | evlpID          | uuid         |
-    Then Envelopes should be in topic "tx.sender"
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     And Envelopes should have the following fields
       | Receipt.Status | Receipt.ContractAddress |
       | 1              | ~                       |
@@ -210,8 +208,7 @@ Feature: Private transactions
       | jobPrivTxOne    | jobs[0].uuid |
       | jobMarkingTxOne | jobs[1].uuid |
       | evlpID          | uuid         |
-    Then Envelopes should be in topic "tx.sender"
-    Then Envelopes should be in topic "tx.recover"
+    Then TxResponse was found in tx-recover topic
 
   @go-quorum
   Scenario: Force not correlative nonce for private and public txs in Quorum/Tessera
@@ -241,7 +238,7 @@ Feature: Private transactions
       }
       """
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     Then I track the following envelopes
       | ID                                  |
       | {{privateQuorumDeployContractTxID}} |
@@ -265,8 +262,7 @@ Feature: Private transactions
       }
       """
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.sender"
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     And Envelopes should have the following fields
       | Receipt.Status | Receipt.ContractAddress |
       | 1              | ~                       |
@@ -363,7 +359,7 @@ Feature: Private transactions
       | alias           | path         |
       | jobPrivTxTwo    | jobs[0].uuid |
       | jobMarkingTxTwo | jobs[1].uuid |
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     And Envelopes should have the following fields
       | Receipt.Status | Receipt.Output | Receipt.ContractAddress | Receipt.PrivateFrom                        | Receipt.PrivateFor                             |
       | 1              | ~              | ~                       | {{global.nodes.besu[0].privateAddress[0]}} | ["{{global.nodes.besu[1].privateAddress[0]}}"] |
@@ -413,7 +409,7 @@ Feature: Private transactions
       }
       """
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     And Envelopes should have the following fields
       | Receipt.Status |
       | 1              |
@@ -521,7 +517,7 @@ Feature: Private transactions
       }
       """
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     And Envelopes should have the following fields
       | Receipt.Status | Receipt.Output | Receipt.PrivateFrom                        | Receipt.PrivateFor                             |
       | 1              | ~              | {{global.nodes.besu[0].privateAddress[0]}} | ["{{global.nodes.besu[1].privateAddress[0]}}"] |
@@ -632,7 +628,7 @@ Feature: Private transactions
       }
       """
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     And Envelopes should have the following fields
       | Receipt.Status | Receipt.Output | Receipt.PrivateFrom                        | Receipt.PrivateFor                             |
       | 1              | ~              | {{global.nodes.besu[0].privateAddress[0]}} | ["{{global.nodes.besu[2].privateAddress[0]}}"] |
@@ -694,7 +690,7 @@ Feature: Private transactions
       }
       """
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     And Envelopes should have the following fields
       | Receipt.Status | Receipt.Output | Receipt.PrivateFrom                        | Receipt.PrivacyGroupId |
       | 1              | ~              | {{global.nodes.besu[0].privateAddress[0]}} | {{privacyGroupId}}     |
@@ -757,7 +753,7 @@ Feature: Private transactions
       }
       """
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     And Envelopes should have the following fields
       | Receipt.Status | Receipt.Output | Receipt.ContractAddress | Receipt.PrivateFrom                        | Receipt.PrivacyGroupId |
       | 1              | ~              | ~                       | {{global.nodes.besu[0].privateAddress[0]}} | {{privacyGroupId}}     |
@@ -859,7 +855,7 @@ Feature: Private transactions
       }
       """
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     And Envelopes should have the following fields
       | Receipt.Status | Receipt.Output | Receipt.ContractAddress | Receipt.PrivateFrom                        |
       | 1              | ~              | ~                       | {{global.nodes.besu[0].privateAddress[0]}} |
@@ -892,7 +888,7 @@ Feature: Private transactions
       }
       """
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     And Envelopes should have the following fields
       | Receipt.Status | Receipt.ContractAddress |
       | 1              | ~                       |
@@ -920,7 +916,7 @@ Feature: Private transactions
       }
       """
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     And Envelopes should have the following fields
       | Receipt.Status | Receipt.Output | Receipt.ContractAddress | Receipt.PrivateFrom                        | Receipt.PrivateFor                             |
       | 1              | ~              | ~                       | {{global.nodes.besu[0].privateAddress[0]}} | ["{{global.nodes.besu[1].privateAddress[0]}}"] |
@@ -990,7 +986,7 @@ Feature: Private transactions
       | {{scheduleUUID}} |
     When I send "PUT" request to "{{global.api}}/jobs/{{txPrivJobUUID}}/start"
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     And Envelopes should have the following fields
       | Receipt.Status |
       | 2              |

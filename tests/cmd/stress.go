@@ -4,8 +4,6 @@ import (
 	"context"
 	"os"
 
-	broker "github.com/consensys/orchestrate/src/infra/broker/sarama"
-
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/consensys/orchestrate/tests/service/stress"
@@ -22,7 +20,6 @@ func NewRunStressTestCommand() *cobra.Command {
 
 	// Register Stress flag
 	stress.InitFlags(runCmd.Flags())
-	broker.KafkaConsumerFlags(runCmd.Flags())
 
 	return runCmd
 }

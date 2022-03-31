@@ -9,7 +9,8 @@ import (
 	"github.com/consensys/orchestrate/pkg/utils"
 	api "github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/infra/ethclient"
-	utils2 "github.com/consensys/orchestrate/tests/utils"
+	"github.com/consensys/orchestrate/tests/config"
+	"github.com/consensys/orchestrate/tests/pkg"
 )
 
 var chainsCtxKey ctxKey = "chains"
@@ -22,7 +23,7 @@ type Chain struct {
 }
 
 func RegisterNewChain(ctx context.Context, client orchestrateclient.OrchestrateClient, ec ethclient.ChainSyncReader,
-	proxyHost, chainName string, chainData *utils2.TestDataChain,
+	proxyHost, chainName string, chainData *config.ChainData,
 ) (context.Context, string, error) {
 	logger := log.FromContext(ctx).WithField("name", chainName).WithField("urls", chainData.URLs)
 	logger.WithContext(ctx).Debug("registering new chain")
@@ -36,7 +37,7 @@ func RegisterNewChain(ctx context.Context, client orchestrateclient.OrchestrateC
 		return nil, "", err
 	}
 
-	err = utils2.WaitForProxy(ctx, proxyHost, c.UUID, ec)
+	err = pkg.WaitForProxy(ctx, proxyHost, c.UUID, ec)
 	if err != nil {
 		logger.WithError(err).Error("failed to wait for chain proxy")
 		return nil, "", err

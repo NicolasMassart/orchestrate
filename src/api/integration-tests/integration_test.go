@@ -8,16 +8,15 @@ import (
 	"testing"
 	"time"
 
-	integrationtest "github.com/consensys/orchestrate/pkg/integration-test"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http"
 	"github.com/consensys/orchestrate/pkg/utils"
 	api "github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/api/service/types/testdata"
 	entitiestestdata "github.com/consensys/orchestrate/src/entities/testdata"
+	integrationtest "github.com/consensys/orchestrate/tests/pkg/integration-test"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"gopkg.in/h2non/gock.v1"
 )
 
 type apiTestSuite struct {
@@ -28,8 +27,6 @@ type apiTestSuite struct {
 }
 
 func (s *apiTestSuite) SetupSuite() {
-	defer gock.Off()
-
 	err := integrationtest.StartEnvironment(s.env.ctx, s.env)
 	require.NoError(s.T(), err)
 	time.Sleep(1 * time.Second)

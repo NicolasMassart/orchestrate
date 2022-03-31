@@ -65,7 +65,7 @@ func NewTransaction(tx *entities.ETHTransaction) *Transaction {
 
 func (tx *Transaction) ToEntity() *entities.ETHTransaction {
 	return &entities.ETHTransaction{
-		Hash:            utils.StringToEthHash(tx.Hash),
+		Hash:            utils.StringToETHHash(tx.Hash),
 		From:            utils.ToEthAddr(tx.Sender),
 		To:              utils.ToEthAddr(tx.Recipient),
 		Nonce:           utils.StringToUint64(tx.Nonce),

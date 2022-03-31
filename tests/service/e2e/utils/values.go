@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/consensys/orchestrate/pkg/errors"
-	"github.com/consensys/orchestrate/pkg/types/tx"
+	api "github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities"
 	gherkin "github.com/cucumber/messages-go/v10"
 	"github.com/ethereum/go-ethereum/common"
@@ -152,19 +152,19 @@ func ParseTable(i interface{}, table *gherkin.PickleStepArgument_PickleTable) ([
 	return interfaces, nil
 }
 
-func ParseEnvelope(table *gherkin.PickleStepArgument_PickleTable) ([]*tx.Envelope, error) {
-	var envelopes []*tx.Envelope
+func ParseTransactions(table *gherkin.PickleStepArgument_PickleTable) ([]*api.ETHTransactionRequest, error) {
+	var txs []*api.ETHTransactionRequest
 
 	// TODO: Parse Enum for METHOD or JOBTYPE
 
-	interfaces, err := ParseTable(tx.Envelope{}, table)
+	interfaces, err := ParseTable(api.ETHTransactionRequest{}, table)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, e := range interfaces {
-		envelopes = append(envelopes, e.(*tx.Envelope).SafeEnvelope())
+		txs = append(txs, e.(*api.ETHTransactionRequest))
 	}
 
-	return envelopes, nil
+	return txs, nil
 }

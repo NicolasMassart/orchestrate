@@ -8,6 +8,14 @@
 ### ⚠ BREAKING CHANGES
 * Redefined notification message format
 
+## v21.12.5 (2022-03-30)
+### 🛠 Bug fixes
+* Fixed `externalTxEnabled` chain update.
+
+## v21.12.4 (2022-03-23)
+### 🛠 Bug fixes
+* Forward user's JWT token to the transaction-sender microservice
+
 ## v21.12.3 (2022-03-14)
 ### 🛠 Bug fixes
 * Migrated faucet DB table to use TEXT for every VARCHAR column.

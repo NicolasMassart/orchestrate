@@ -76,7 +76,7 @@ Feature: Faucet funding
       | alias         | path         |
       | txJobUUID     | jobs[0].uuid |
       | faucetJobUUID | jobs[1].uuid |
-    Then Envelopes should be in topic "tx.recover"
+    Then TxResponse was found in tx-recover topic
     When I send "GET" request to "{{global.api}}/jobs/{{txJobUUID}}"
     Then the response code should be 200
     Given I sleep "1s"

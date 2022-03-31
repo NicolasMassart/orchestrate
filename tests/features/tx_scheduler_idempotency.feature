@@ -64,7 +64,7 @@ Feature: Transaction Scheduler Idempotency
       }
       """
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     When I send "GET" request to "{{global.api}}/transactions?idempotency_keys={{idempotencykey}}"
     Then the response code should be 200
     And Response should have the following fields
@@ -123,7 +123,7 @@ Feature: Transaction Scheduler Idempotency
     And Response should have the following fields
       | message                                                                                       |
       | DB101@: transaction request with the same idempotency key and different params already exists |
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     When I send "GET" request to "{{global.api}}/transactions?idempotency_keys={{idempotencykey}}"
     Then the response code should be 200
     And Response should have the following fields

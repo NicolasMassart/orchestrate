@@ -41,7 +41,7 @@ Feature: Transaction Scheduler Jobs
       }
       """
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
 
   @besu
   Scenario: Cannot start or update other tenant jobs
@@ -112,7 +112,7 @@ Feature: Transaction Scheduler Jobs
       | uuid          | status  |
       | {{txJobUUID}} | CREATED |
     When I send "PUT" request to "{{global.api}}/jobs/{{txJobUUID}}/start"
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     When I send "GET" request to "{{global.api}}/jobs/{{txJobUUID}}"
     Then the response code should be 200
     And Response should have the following fields

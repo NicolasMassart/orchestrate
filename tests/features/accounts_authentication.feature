@@ -41,9 +41,6 @@ Feature: Account management
     Then I register the following response fields
       | alias            | path    |
       | generatedAccAddr | address |
-    Then I track the following envelopes
-      | ID              |
-      | {{fooSendTxID}} |
     Given I set the headers
       | Key         | Value                  |
       | X-API-KEY   | {{global.api-key}}     |
@@ -75,10 +72,7 @@ Feature: Account management
 }
       """
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.decoded"
-    Then I track the following envelopes
-      | ID              |
-      | {{fooSendTxID}} |
+    Then TxResponse was found in tx-decoded topic "{{fooSendTxID}}"
     Given I set the headers
       | Key         | Value                  |
       | X-API-KEY   | {{global.api-key}}     |
@@ -98,10 +92,7 @@ Feature: Account management
 }
       """
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.decoded"
-    Then I track the following envelopes
-      | ID                   |
-      | {{wildcardSendTxID}} |
+    Then TxResponse was found in tx-decoded topic "{{fooSendTxID}}"
     Given I set the headers
       | Key         | Value                 |
       | X-API-KEY   | {{global.api-key}}    |
@@ -121,7 +112,7 @@ Feature: Account management
 }
       """
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{{wildcardSendTxID}}"
 
   Scenario: Accounts own by tenant foo can be access only by tenant foo
     Given I register the following alias
@@ -151,9 +142,6 @@ Feature: Account management
     Then I register the following response fields
       | alias            | path    |
       | generatedAccAddr | address |
-    Then I track the following envelopes
-      | ID              |
-      | {{fooSendTxID}} |
     Given I set the headers
       | Key         | Value                  |
       | X-API-KEY   | {{global.api-key}}     |
@@ -173,10 +161,7 @@ Feature: Account management
 }
       """
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.decoded"
-    Then I track the following envelopes
-      | ID              |
-      | {{barSendTxID}} |
+    Then TxResponse was found in tx-decoded topic "{{fooSendTxID}}"
     Given I set the headers
       | Key         | Value                  |
       | X-API-KEY   | {{global.api-key}}     |
@@ -203,9 +188,6 @@ Feature: Account management
 }
       """
     Then the response code should be 422
-    Then I track the following envelopes
-      | ID                   |
-      | {{wildcardSendTxID}} |
     Given I set the headers
       | Key         | Value                  |
       | X-API-KEY   | {{global.api-key}}     |
@@ -225,7 +207,7 @@ Feature: Account management
 }
       """
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{{wildcardSendTxID}}"
 
   Scenario: Accounts own by an specific user  can be access only by itself
     Given I register the following alias
@@ -256,9 +238,6 @@ Feature: Account management
     Then I register the following response fields
       | alias            | path    |
       | generatedAccAddr | address |
-    Then I track the following envelopes
-      | ID               |
-      | {{userSendTxID}} |
     When I send "POST" request to "{{global.api}}/transactions/deploy-contract" with json:
   """
 {
@@ -274,10 +253,7 @@ Feature: Account management
 }
       """
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.decoded"
-    Then I track the following envelopes
-      | ID                 |
-      | {{tenantSendTxID}} |
+    Then TxResponse was found in tx-decoded topic "{{userSendTxID}}"
     Given I set the headers
       | Key         | Value                  |
       | X-API-KEY   | {{global.api-key}}     |

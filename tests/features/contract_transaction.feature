@@ -56,7 +56,7 @@ Feature: Send contract transactions
       }
       """
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     And Envelopes should have the following fields
       | Receipt.Status |
       | 1              |
@@ -116,7 +116,7 @@ Feature: Send contract transactions
       }
       """
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     And I register the following envelope fields
       | id                     | alias              | path                    |
       | {{besuContractTxID}}   | besuContractAddr   | Receipt.ContractAddress |
@@ -300,7 +300,7 @@ Feature: Send contract transactions
       }
       """
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     And Envelopes should have the following fields
       | Receipt.Status | Receipt.Logs[0].Event             | Receipt.Logs[0].DecodedData.from | Receipt.Logs[0].DecodedData.to             | Receipt.Logs[0].DecodedData.value | Receipt.ContractName | Receipt.ContractTag |
       | 1              | Transfer(address,address,uint256) | {{account1}}                     | 0xdbb881a51CD4023E4400CEF3ef73046743f08da3 | 1                                 | SimpleToken          | latest              |
@@ -337,7 +337,7 @@ Feature: Send contract transactions
       }
       """
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     And I register the following envelope fields
       | id                    | alias               | path                    |
       | {{counterDeployTxID}} | counterContractAddr | Receipt.ContractAddress |
@@ -370,7 +370,7 @@ Feature: Send contract transactions
     Then I register the following response fields
       | alias      | path         |
       | jobOTKUUID | jobs[0].uuid |
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     And Envelopes should have the following fields
       | Receipt.Status | Receipt.Logs[0].Event        | Receipt.Logs[0].DecodedData.from |
       | 1              | Incremented(address,uint256) | ~                                |
@@ -406,7 +406,7 @@ Feature: Send contract transactions
       }
       """
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     And I register the following envelope fields
       | id                    | alias               | path                    |
       | {{counterDeployTxID}} | counterContractAddr | Receipt.ContractAddress |

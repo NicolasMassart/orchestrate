@@ -34,8 +34,7 @@ func newRunCommand() *cobra.Command {
 }
 
 func run(cmd *cobra.Command, _ []string) error {
-	cfg := flags.NewTxlistenerConfig(viper.GetViper())
-	srv, err := txlistener.New(cmd.Context(), cfg)
+	srv, err := txlistener.New(cmd.Context(), flags.NewTxlistenerConfig(viper.GetViper()))
 	if err != nil {
 		return err
 	}

@@ -73,30 +73,6 @@ func TestClientUpdate_DoesNotRetryOnSuccess(t *testing.T) {
 	assert.False(t, bckoff.HasRetried())
 }
 
-func TestClientUpdate_RetryOnInvalidStateError(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	ctx := context.Background()
-	bckoff := &backoffmock.MockIntervalBackoff{}
-	expectedRes := types.JobResponse{UUID: jobUUID}
-	req := &types.UpdateJobRequest{Status: "PENDING"}
-
-	server := testServer(httputil.ErrorResponse{
-		Code:    errors.InvalidState,
-		Message: "err",
-	}, expectedRes)
-	client = NewHTTPClient(
-		server.Client(),
-		NewConfig(server.URL, "", bckoff),
-	)
-
-	res, err := client.UpdateJob(ctx, jobUUID, req)
-	assert.NoError(t, err)
-	assert.Equal(t, &expectedRes, res)
-	assert.True(t, bckoff.HasRetried())
-}
-
 func TestClientUpdate_NotRetryOnNotInvalidStateError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

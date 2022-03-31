@@ -110,8 +110,8 @@ func (s *sendTxSuite) TestSendTx_Success() {
 		txRequest := testdata.FakeTesseraTxRequest()
 		txRequest.Params.Protocol = entities.GoQuorumChainType
 	
-		response, err := successfulTestExecution(s, txRequest, false, entities.TesseraPrivateTransaction,
-			entities.TesseraMarkingTransaction)
+		response, err := successfulTestExecution(s, txRequest, false, entities.GoQuorumPrivateTransaction,
+			entities.GoQuorumMarkingTransaction)
 		assert.NoError(t, err)
 		assert.Equal(t, txRequest.IdempotencyKey, response.IdempotencyKey)
 		assert.Equal(t, txRequest.Schedule.UUID, response.Schedule.UUID)

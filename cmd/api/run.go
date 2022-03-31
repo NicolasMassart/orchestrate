@@ -4,7 +4,6 @@ import (
 	"os"
 
 	"github.com/consensys/orchestrate/cmd/flags"
-
 	"github.com/consensys/orchestrate/src/api"
 
 	"github.com/consensys/orchestrate/pkg/errors"
@@ -30,12 +29,17 @@ func newRunCommand() *cobra.Command {
 		},
 	}
 
-	// Transaction scheduler flags
 	flags.NewAPIFlags(runCmd.Flags())
 
 	return runCmd
 }
 
 func run(cmd *cobra.Command, _ []string) error {
-	return api.Run(cmd.Context())
+	ctx := cmd.Context()
+	apiApp, err := api.New(ctx, flags.NewAPIConfig(viper.GetViper()))
+	if err != nil {
+		return err
+	}
+
+	return apiApp.Run(ctx)
 }

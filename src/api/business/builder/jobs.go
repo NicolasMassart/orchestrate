@@ -1,13 +1,13 @@
 package builder
 
 import (
-	"github.com/Shopify/sarama"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/business/use-cases/jobs"
 	"github.com/consensys/orchestrate/src/api/business/use-cases/notifications"
 	"github.com/consensys/orchestrate/src/api/metrics"
 	"github.com/consensys/orchestrate/src/api/store"
-	pkgsarama "github.com/consensys/orchestrate/src/infra/broker/sarama"
+	"github.com/consensys/orchestrate/src/infra/kafka"
+	broker "github.com/consensys/orchestrate/src/infra/kafka/sarama"
 )
 
 type jobUseCases struct {
@@ -23,8 +23,8 @@ type jobUseCases struct {
 func newJobUseCases(
 	db store.DB,
 	appMetrics metrics.TransactionSchedulerMetrics,
-	producer sarama.SyncProducer,
-	topicsCfg *pkgsarama.KafkaTopicConfig,
+	producer kafka.Producer,
+	topicsCfg *broker.TopicConfig,
 	getChainUC usecases.GetChainUseCase,
 	searchContractUC usecases.SearchContractUseCase,
 	decodeLogUC usecases.DecodeEventLogUseCase,

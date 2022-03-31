@@ -37,7 +37,7 @@ Feature: Deploy contracts
       }
       """
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
 
   @besu
   Scenario: Deploy SimpleToken in Besu
@@ -69,7 +69,7 @@ Feature: Deploy contracts
     Then I register the following response fields
       | alias      | path         |
       | jobOneUUID | jobs[0].uuid |
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     And Envelopes should have the following fields
       | Receipt.Status | Receipt.ContractAddress |
       | 1              | ~                       |
@@ -110,7 +110,7 @@ Feature: Deploy contracts
     Then I register the following response fields
       | alias      | path         |
       | jobOneUUID | jobs[0].uuid |
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     And Envelopes should have the following fields
       | Receipt.Status | Receipt.ContractAddress |
       | 1              | ~                       |
@@ -150,7 +150,7 @@ Feature: Deploy contracts
     Then I register the following response fields
       | alias   | path         |
       | jobUUID | jobs[0].uuid |
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     And Envelopes should have the following fields
       | Receipt.Status | Receipt.ContractAddress | Receipt.ContractName | Receipt.ContractTag |
       | 1              | ~                       | SimpleToken          | latest              |
@@ -191,7 +191,7 @@ Feature: Deploy contracts
     Then I register the following response fields
       | alias   | path         |
       | jobUUID | jobs[0].uuid |
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     And Envelopes should have the following fields
       | Receipt.Status | Receipt.ContractAddress |
       | 1              | ~                       |
@@ -234,7 +234,7 @@ Feature: Deploy contracts
     Then I register the following response fields
       | alias      | path         |
       | jobOTKUUID | jobs[0].uuid |
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     And Envelopes should have the following fields
       | Receipt.Status | Receipt.ContractAddress |
       | 1              | ~                       |
@@ -278,7 +278,7 @@ Feature: Deploy contracts
     Then I register the following response fields
       | alias      | path         |
       | jobOTKUUID | jobs[0].uuid |
-    Then Envelopes should be in topic "tx.recover"
+    Then TxResponse was found in tx-recover topic
     And Envelopes should have the following fields
       | Errors.0.Message |
       | ~                |

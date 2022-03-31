@@ -13,7 +13,6 @@ import (
 	authutils "github.com/consensys/orchestrate/pkg/toolkit/app/auth/utils"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
-	pkgsarama "github.com/consensys/orchestrate/src/infra/broker/sarama"
 )
 
 type Service struct {
@@ -69,7 +68,6 @@ func (s *Service) Stop(ctx context.Context) error {
 func ReadinessOpt(client orchestrateclient.OrchestrateClient) app.Option {
 	return func(ap *app.App) error {
 		ap.AddReadinessCheck("api", client.Checker())
-		ap.AddReadinessCheck("kafka", pkgsarama.GlobalClientChecker())
 		return nil
 	}
 }

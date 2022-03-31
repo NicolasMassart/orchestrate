@@ -8,27 +8,25 @@ import (
 
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/src/infra/ethclient"
+	"github.com/consensys/orchestrate/src/infra/kafka/testutils"
 	"github.com/spf13/viper"
 
-	"github.com/Shopify/sarama"
 	orchestrateclient "github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	utils2 "github.com/consensys/orchestrate/pkg/utils"
 	"github.com/consensys/orchestrate/tests/service/stress/assets"
 	"github.com/consensys/orchestrate/tests/service/stress/units"
-	"github.com/consensys/orchestrate/tests/utils/chanregistry"
 )
 
-type WorkLoadTest func(context.Context, *units.WorkloadConfig, orchestrateclient.OrchestrateClient, *chanregistry.ChanRegistry) error
+type WorkLoadTest func(context.Context, *units.WorkloadConfig, orchestrateclient.OrchestrateClient, *testutils.ConsumerTracker) error
 
 type WorkLoadService struct {
-	cfg      *Config
-	client   orchestrateclient.OrchestrateClient
-	ec       ethclient.MultiClient
-	producer sarama.SyncProducer
-	chanReg  *chanregistry.ChanRegistry
-	items    []*workLoadItem
-	cancel   context.CancelFunc
+	cfg             *Config
+	client          orchestrateclient.OrchestrateClient
+	ec              ethclient.MultiClient
+	consumerTracker *testutils.ConsumerTracker
+	items           []*workLoadItem
+	cancel          context.CancelFunc
 }
 
 type workLoadItem struct {
@@ -49,17 +47,15 @@ var artifacts = []string{"SimpleToken", "Counter", "ERC20", "ERC721"}
 
 // Init initialize Cucumber service
 func NewService(cfg *Config,
-	chanReg *chanregistry.ChanRegistry,
+	consumerTracker *testutils.ConsumerTracker,
 	client orchestrateclient.OrchestrateClient,
 	ec ethclient.MultiClient,
-	producer sarama.SyncProducer,
 ) *WorkLoadService {
 	return &WorkLoadService{
-		cfg:      cfg,
-		chanReg:  chanReg,
-		client:   client,
-		ec:       ec,
-		producer: producer,
+		cfg:             cfg,
+		consumerTracker: consumerTracker,
+		client:          client,
+		ec:              ec,
 		items: []*workLoadItem{
 			{cfg.Iterations, cfg.Concurrency, "BatchDeployContract", units.BatchDeployContractTest},
 			{cfg.Iterations, cfg.Concurrency, "BatchPrivateTxsTest", units.BatchPrivateTxsTest},
@@ -189,7 +185,7 @@ func (c *WorkLoadService) run(ctx context.Context, test *workLoadItem, cfg *unit
 		buffer <- true
 		wg.Add(1)
 		go func(idx int) {
-			err := test.call(ctx, cfg, c.client, c.chanReg)
+			err := test.call(ctx, cfg, c.client, c.consumerTracker)
 			if err != nil {
 				if gerr == nil {
 					gerr = err

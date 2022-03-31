@@ -4,7 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/Shopify/sarama"
+	"github.com/consensys/orchestrate/src/infra/kafka"
+
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
@@ -12,7 +13,7 @@ import (
 	"github.com/consensys/orchestrate/src/api/metrics"
 	"github.com/consensys/orchestrate/src/api/store"
 	"github.com/consensys/orchestrate/src/entities"
-	pkgsarama "github.com/consensys/orchestrate/src/infra/broker/sarama"
+	broker "github.com/consensys/orchestrate/src/infra/kafka/sarama"
 )
 
 const startJobComponent = "use-cases.start-job"
@@ -20,8 +21,8 @@ const startJobComponent = "use-cases.start-job"
 // startJobUseCase is a use case to start a transaction job
 type startJobUseCase struct {
 	db            store.DB
-	kafkaProducer sarama.SyncProducer
-	topicsCfg     *pkgsarama.KafkaTopicConfig
+	kafkaProducer kafka.Producer
+	topicsCfg     *broker.TopicConfig
 	metrics       metrics.TransactionSchedulerMetrics
 	logger        *log.Logger
 }
@@ -29,8 +30,8 @@ type startJobUseCase struct {
 // NewStartJobUseCase creates a new StartJobUseCase
 func NewStartJobUseCase(
 	db store.DB,
-	kafkaProducer sarama.SyncProducer,
-	topicsCfg *pkgsarama.KafkaTopicConfig,
+	kafkaProducer kafka.Producer,
+	topicsCfg *broker.TopicConfig,
 	m metrics.TransactionSchedulerMetrics,
 ) usecases.StartJobUseCase {
 	return &startJobUseCase{
@@ -68,7 +69,7 @@ func (uc *startJobUseCase) Execute(ctx context.Context, jobUUID string, userInfo
 
 	uc.addMetrics(time.Since(prevJobUpdateAt), curJob.Status, jobLog.Status, curJob.ChainUUID)
 
-	err = sendEnvelope(uc.kafkaProducer, uc.topicsCfg.Sender, curJob)
+	err = uc.kafkaProducer.SendJobMessage(uc.topicsCfg.Sender, curJob, userInfo)
 	if err != nil {
 		logger.WithError(err).Error("failed to send start job envelope")
 		return err

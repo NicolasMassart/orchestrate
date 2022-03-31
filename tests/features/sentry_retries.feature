@@ -37,7 +37,7 @@ Feature: Send transactions using tx-sentry
       }
       """
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
 
   Scenario: Retry transaction with zero gas increment
     Given I register the following alias
@@ -117,7 +117,7 @@ Feature: Send transactions using tx-sentry
       | txOneUUID | uuid |
     When I send "PUT" request to "{{global.api}}/jobs/{{txOneUUID}}/start"
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     When I send "GET" request to "{{global.api}}/jobs/{{txTwoUUID}}"
     Then the response code should be 200
     And Response should have the following fields
@@ -210,7 +210,7 @@ Feature: Send transactions using tx-sentry
       | txOneUUID | uuid |
     When I send "PUT" request to "{{global.api}}/jobs/{{txOneUUID}}/start"
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     When I send "GET" request to "{{global.api}}/schedules/{{scheduleUUID}}"
     Then the response code should be 200
     And Response should have the following fields

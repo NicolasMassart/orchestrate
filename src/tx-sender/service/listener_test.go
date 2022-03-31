@@ -5,22 +5,20 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 	"time"
 
 	"github.com/Shopify/sarama"
 	"github.com/cenkalti/backoff/v4"
-	"github.com/consensys/orchestrate/pkg/encoding/proto"
 	"github.com/consensys/orchestrate/pkg/errors"
 	mock3 "github.com/consensys/orchestrate/pkg/sdk/client/mock"
-	"github.com/consensys/orchestrate/pkg/toolkit/app/auth/utils"
-	"github.com/consensys/orchestrate/pkg/types/tx"
 	api "github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities"
-	"github.com/consensys/orchestrate/src/infra/broker/sarama/mock"
+	"github.com/consensys/orchestrate/src/entities/testdata"
+	"github.com/consensys/orchestrate/src/infra/kafka/testutils"
 	usecases "github.com/consensys/orchestrate/src/tx-sender/tx-sender/use-cases"
 	"github.com/consensys/orchestrate/src/tx-sender/tx-sender/use-cases/mocks"
-	"github.com/gofrs/uuid"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -88,14 +86,14 @@ func (s *messageListenerCtrlTestSuite) SetupTest() {
 	s.consumerGroup = "kafka-consumer-group"
 
 	bckoff := backoff.WithMaxRetries(backoff.NewConstantBackOff(time.Millisecond*100), 2)
-	s.listener = NewMessageListener(s, s.apiClient, s.recoverTopic, s.senderTopic, bckoff)
+	s.listener = NewMessageListener(s, s.apiClient, bckoff)
 }
 
 func (s *messageListenerCtrlTestSuite) TestMessageListener_PublicEthereum() {
 	var claims map[string][]int32
 	ctx, _ := context.WithTimeout(context.Background(), time.Second*5)
-	session := mock.NewConsumerGroupSession(ctx, s.consumerGroup, claims)
-	consumerClaim := mock.NewConsumerGroupClaim(s.senderTopic, 0, 0)
+	session := testutils.NewConsumerGroupSession(ctx, s.consumerGroup, claims)
+	consumerClaim := testutils.NewConsumerGroupClaim(s.senderTopic, 0, 0)
 
 	defer func() {
 		_ = s.listener.Cleanup(session)
@@ -106,9 +104,10 @@ func (s *messageListenerCtrlTestSuite) TestMessageListener_PublicEthereum() {
 	}()
 
 	s.T().Run("should execute use case for multiple public ethereum transactions", func(t *testing.T) {
-		envelope := fakeEnvelope(s.tenantID)
+		jobMsg := testdata.FakeJob()
+		jobMsg.TenantID = s.tenantID
 		msg := &sarama.ConsumerMessage{}
-		msg.Value, _ = proto.Marshal(envelope.TxEnvelopeAsRequest())
+		msg.Value, _ = json.Marshal(jobMsg)
 		
 		cjob := make(chan *entities.Job, 1)
 		s.sendETHUC.EXPECT().Execute(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, job *entities.Job) error {
@@ -124,15 +123,16 @@ func (s *messageListenerCtrlTestSuite) TestMessageListener_PublicEthereum() {
 		case <-time.Tick(time.Millisecond * 500):
 			t.Error(errMsgExceedTime)
 		case rjob := <-cjob:
-			assert.Equal(t, rjob.UUID, envelope.GetJobUUID())
+			assert.Equal(t, rjob.UUID, jobMsg.UUID)
 		}
 	})
 
 	s.T().Run("should execute use case for public raw ethereum transactions", func(t *testing.T) {
-		envelope := fakeEnvelope(s.tenantID)
-		_ = envelope.SetJobType(tx.JobType_ETH_RAW_TX)
+		jobMsg := testdata.FakeJob()
+		jobMsg.TenantID = s.tenantID
+		jobMsg.Type = entities.EthereumRawTransaction
 		msg := &sarama.ConsumerMessage{}
-		msg.Value, _ = proto.Marshal(envelope.TxEnvelopeAsRequest())
+		msg.Value, _ = json.Marshal(jobMsg)
 
 		cjob := make(chan *entities.Job, 1)
 		s.sendETHRawUC.EXPECT().Execute(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, job *entities.Job) error {
@@ -148,15 +148,16 @@ func (s *messageListenerCtrlTestSuite) TestMessageListener_PublicEthereum() {
 		case <-time.Tick(time.Millisecond * 500):
 			t.Error(errMsgExceedTime)
 		case rjob := <-cjob:
-			assert.Equal(t, rjob.UUID, envelope.GetJobUUID())
+			assert.Equal(t, rjob.UUID, jobMsg.UUID)
 		}
 	})
 
 	s.T().Run("should execute use case for eea transactions", func(t *testing.T) {
-		envelope := fakeEnvelope(s.tenantID)
-		_ = envelope.SetJobType(tx.JobType_EEA_PRIVATE_TX)
+		jobMsg := testdata.FakeJob()
+		jobMsg.TenantID = s.tenantID
+		jobMsg.Type = entities.EEAPrivateTransaction
 		msg := &sarama.ConsumerMessage{}
-		msg.Value, _ = proto.Marshal(envelope.TxEnvelopeAsRequest())
+		msg.Value, _ = json.Marshal(jobMsg)
 
 		cjob := make(chan *entities.Job, 1)
 		s.sendEEAPrivateUC.EXPECT().Execute(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, job *entities.Job) error {
@@ -172,15 +173,16 @@ func (s *messageListenerCtrlTestSuite) TestMessageListener_PublicEthereum() {
 		case <-time.Tick(time.Millisecond * 500):
 			t.Error(errMsgExceedTime)
 		case rjob := <-cjob:
-			assert.Equal(t, rjob.UUID, envelope.GetJobUUID())
+			assert.Equal(t, rjob.UUID, jobMsg.UUID)
 		}
 	})
 
 	s.T().Run("should execute use case for tessera marking transactions", func(t *testing.T) {
-		envelope := fakeEnvelope(s.tenantID)
-		_ = envelope.SetJobType(tx.JobType_GO_QUORUM_MARKING_TX)
+		jobMsg := testdata.FakeJob()
+		jobMsg.TenantID = s.tenantID
+		jobMsg.Type = entities.GoQuorumMarkingTransaction
 		msg := &sarama.ConsumerMessage{}
-		msg.Value, _ = proto.Marshal(envelope.TxEnvelopeAsRequest())
+		msg.Value, _ = json.Marshal(jobMsg)
 
 		cjob := make(chan *entities.Job, 1)
 		s.sendGoQuorumMarking.EXPECT().Execute(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, job *entities.Job) error {
@@ -196,15 +198,16 @@ func (s *messageListenerCtrlTestSuite) TestMessageListener_PublicEthereum() {
 		case <-time.Tick(time.Millisecond * 500):
 			t.Error(errMsgExceedTime)
 		case rjob := <-cjob:
-			assert.Equal(t, rjob.UUID, envelope.GetJobUUID())
+			assert.Equal(t, rjob.UUID, jobMsg.UUID)
 		}
 	})
 
 	s.T().Run("should execute use case for tessera private transactions", func(t *testing.T) {
-		envelope := fakeEnvelope(s.tenantID)
-		_ = envelope.SetJobType(tx.JobType_GO_QUORUM_PRIVATE_TX)
+		jobMsg := testdata.FakeJob()
+		jobMsg.TenantID = s.tenantID
+		jobMsg.Type = entities.GoQuorumPrivateTransaction
 		msg := &sarama.ConsumerMessage{}
-		msg.Value, _ = proto.Marshal(envelope.TxEnvelopeAsRequest())
+		msg.Value, _ = json.Marshal(jobMsg)
 
 		cjob := make(chan *entities.Job, 1)
 		s.sendGoQuorumPrivate.EXPECT().Execute(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, job *entities.Job) error {
@@ -220,7 +223,7 @@ func (s *messageListenerCtrlTestSuite) TestMessageListener_PublicEthereum() {
 		case <-time.Tick(time.Millisecond * 500):
 			t.Error(errMsgExceedTime)
 		case rjob := <-cjob:
-			assert.Equal(t, rjob.UUID, envelope.GetJobUUID())
+			assert.Equal(t, rjob.UUID, jobMsg.UUID)
 		}
 	})
 }
@@ -228,8 +231,8 @@ func (s *messageListenerCtrlTestSuite) TestMessageListener_PublicEthereum() {
 func (s *messageListenerCtrlTestSuite) TestMessageListener_PublicEthereum_Errors() {
 	var claims map[string][]int32
 	ctx, _ := context.WithTimeout(context.Background(), time.Second*5)
-	session := mock.NewConsumerGroupSession(ctx, s.consumerGroup, claims)
-	consumerClaim := mock.NewConsumerGroupClaim(s.senderTopic, 0, 0)
+	session := testutils.NewConsumerGroupSession(ctx, s.consumerGroup, claims)
+	consumerClaim := testutils.NewConsumerGroupClaim(s.senderTopic, 0, 0)
 
 	defer func() {
 		_ = s.listener.Cleanup(session)
@@ -241,17 +244,17 @@ func (s *messageListenerCtrlTestSuite) TestMessageListener_PublicEthereum_Errors
 
 	s.T().Run("should update transaction and send message to tx-recover if sending fails", func(t *testing.T) {
 		expectedErr := errors.InternalError("error")
-		evlp := fakeEnvelope(s.tenantID)
-		_ = evlp.SetJobType(tx.JobType_ETH_TX)
+		jobMsg := testdata.FakeJob()
+		jobMsg.TenantID = s.tenantID
 		msg := &sarama.ConsumerMessage{}
-		msg.Value, _ = proto.Marshal(evlp.TxEnvelopeAsRequest())
+		msg.Value, _ = json.Marshal(jobMsg)
 
 		cjob := make(chan *entities.Job, 1)
 		s.sendETHUC.EXPECT().Execute(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, job *entities.Job) error {
 			cjob <- job
 			return expectedErr
 		})
-		s.apiClient.EXPECT().UpdateJob(gomock.Any(), evlp.GetJobUUID(), &api.UpdateJobRequest{
+		s.apiClient.EXPECT().UpdateJob(gomock.Any(), jobMsg.UUID, &api.UpdateJobRequest{
 			Status:      entities.StatusFailed,
 			Message:     expectedErr.Error(),
 			Transaction: nil,
@@ -266,15 +269,16 @@ func (s *messageListenerCtrlTestSuite) TestMessageListener_PublicEthereum_Errors
 			t.Error(errMsgExceedTime)
 		case rjob := <-cjob:
 			time.Sleep(time.Millisecond * 500) // Wait for receipt to be sent
-			assert.Equal(t, evlp.GetJobUUID(), rjob.UUID)
+			assert.Equal(t, jobMsg.UUID, rjob.UUID)
 		}
 	})
 
 	s.T().Run("should update transaction and retry job if sending fails by nonce error", func(t *testing.T) {
 		invalidNonceErr := errors.InvalidNonceWarning("nonce too low")
-		evlp := fakeEnvelope(s.tenantID)
+		jobMsg := testdata.FakeJob()
+		jobMsg.TenantID = s.tenantID
 		msg := &sarama.ConsumerMessage{}
-		msg.Value, _ = proto.Marshal(evlp.TxEnvelopeAsRequest())
+		msg.Value, _ = json.Marshal(jobMsg)
 
 		cjob := make(chan *entities.Job, 1)
 		gomock.InOrder(
@@ -285,7 +289,7 @@ func (s *messageListenerCtrlTestSuite) TestMessageListener_PublicEthereum_Errors
 			}),
 		)
 
-		s.apiClient.EXPECT().UpdateJob(gomock.Any(), evlp.GetJobUUID(), &api.UpdateJobRequest{
+		s.apiClient.EXPECT().UpdateJob(gomock.Any(), jobMsg.UUID, &api.UpdateJobRequest{
 			Status:      entities.StatusRecovering,
 			Message:     invalidNonceErr.Error(),
 			Transaction: nil,
@@ -300,29 +304,7 @@ func (s *messageListenerCtrlTestSuite) TestMessageListener_PublicEthereum_Errors
 		case <-time.Tick(time.Millisecond * 500):
 			t.Error(errMsgExceedTime)
 		case rjob := <-cjob:
-			assert.Equal(t, evlp.GetJobUUID(), rjob.UUID)
+			assert.Equal(t, jobMsg.UUID, rjob.UUID)
 		}
 	})
-}
-
-func fakeEnvelope(tenantID string) *tx.Envelope {
-	jobUUID := uuid.Must(uuid.NewV4()).String()
-	scheduleUUID := uuid.Must(uuid.NewV4()).String()
-
-	envelope := tx.NewEnvelope()
-	_ = envelope.SetID(jobUUID)
-	_ = envelope.SetJobUUID(jobUUID)
-	_ = envelope.SetScheduleUUID(scheduleUUID)
-	_ = envelope.SetNonce(0)
-	_ = envelope.SetFromString("0xeca84382E0f1dDdE22EedCd0D803442972EC7BE5")
-	_ = envelope.SetGas(21000)
-	_ = envelope.SetGasPriceString("10000000")
-	_ = envelope.SetValueString("10000000")
-	_ = envelope.SetDataString("0x")
-	_ = envelope.SetChainIDString("1")
-	_ = envelope.SetHeadersValue(utils.TenantIDHeader, tenantID)
-	_ = envelope.SetPrivateFrom("A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=")
-	_ = envelope.SetPrivateFor([]string{"A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=", "B1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo="})
-
-	return envelope
 }

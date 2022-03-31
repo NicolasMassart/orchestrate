@@ -10,7 +10,6 @@ import (
 	mock2 "github.com/consensys/orchestrate/src/infra/ethclient/mock"
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/entities/testdata"
-	"github.com/consensys/orchestrate/pkg/types/tx"
 	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/consensys/orchestrate/src/tx-sender/tx-sender/nonce/mocks"
 	ethcommon "github.com/ethereum/go-ethereum/common"
@@ -97,7 +96,7 @@ func TestCrafterTransaction_Execute(t *testing.T) {
 
 	t.Run("should execute use case for EEA marking transaction successfully", func(t *testing.T) {
 		job := testdata.FakeJob()
-		job.Type = entities.JobType(tx.JobType_EEA_MARKING_TX.String())
+		job.Type = entities.EEAMarkingTransaction
 		job.Transaction.Nonce = nil
 		job.Transaction.GasPrice = nil
 		job.Transaction.Gas = nil
@@ -119,7 +118,7 @@ func TestCrafterTransaction_Execute(t *testing.T) {
 
 	t.Run("should execute use case for EEA private transaction successfully", func(t *testing.T) {
 		job := testdata.FakeJob()
-		job.Type = entities.JobType(tx.JobType_EEA_PRIVATE_TX.String())
+		job.Type = entities.EEAPrivateTransaction
 		job.Transaction.Nonce = nil
 		job.Transaction.GasPrice = nil
 		job.Transaction.Gas = nil

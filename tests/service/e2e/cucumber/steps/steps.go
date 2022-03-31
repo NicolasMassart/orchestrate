@@ -2,23 +2,20 @@ package steps
 
 import (
 	gohttp "net/http"
+	"sync"
+	"time"
 
-	"github.com/Shopify/sarama"
 	orchestrateclient "github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
-	"github.com/consensys/orchestrate/pkg/types/tx"
-	broker "github.com/consensys/orchestrate/src/infra/broker/sarama"
 	"github.com/consensys/orchestrate/src/infra/ethclient"
 	rpcClient "github.com/consensys/orchestrate/src/infra/ethclient/rpc"
+	"github.com/consensys/orchestrate/src/infra/kafka/proto"
+	"github.com/consensys/orchestrate/src/infra/kafka/sarama"
+	"github.com/consensys/orchestrate/src/infra/kafka/testutils"
 	"github.com/consensys/orchestrate/tests/service/e2e/cucumber/alias"
-	"github.com/consensys/orchestrate/tests/service/e2e/utils"
-	utils2 "github.com/consensys/orchestrate/tests/utils"
-	"github.com/consensys/orchestrate/tests/utils/chanregistry"
-	"github.com/consensys/orchestrate/tests/utils/tracker"
 	"github.com/cucumber/godog"
 	gherkin "github.com/cucumber/messages-go/v10"
-	"github.com/gofrs/uuid"
 	"github.com/mitchellh/copystructure"
 )
 
@@ -26,51 +23,50 @@ import (
 type ScenarioContext struct {
 	Pickle *gherkin.Pickle
 
-	// trackers track envelopes that are generated within the stepTable session
-	// as they are processed in the system
-	trackers []*tracker.Tracker
-
-	// defaultTracker allows to capture envelopes that are generated
-	// within the system (to be captured those envelopes should have scenario.id set)
-	defaultTracker *tracker.Tracker
-
-	// chanReg to register envelopes channels on trackers
-	chanReg *chanregistry.ChanRegistry
+	consumerTracker *testutils.ConsumerTracker
 
 	httpClient   *gohttp.Client
 	httpResponse *gohttp.Response
 
 	aliases *alias.Registry
 
+	topics *sarama.TopicConfig
+
+	waitForEnvelope time.Duration
+
+	txResponses []*proto.TxResponse
+
 	// API
 	client orchestrateclient.OrchestrateClient
-
-	// Producer to producer envelopes in topics
-	producer sarama.SyncProducer
 
 	logger *log.Logger
 
 	ec ethclient.Client
 
+	mux *sync.RWMutex
+
 	TearDownFunc []func()
 }
 
 func NewScenarioContext(
-	chanReg *chanregistry.ChanRegistry,
+	consumerTracker *testutils.ConsumerTracker,
 	httpClient *gohttp.Client,
 	client orchestrateclient.OrchestrateClient,
-	producer sarama.SyncProducer,
 	aliasesReg *alias.Registry,
 	ec ethclient.Client,
+	topics *sarama.TopicConfig,
+	waitFor time.Duration,
 ) *ScenarioContext {
 	sc := &ScenarioContext{
-		chanReg:    chanReg,
-		httpClient: httpClient,
-		aliases:    aliasesReg,
-		client:     client,
-		producer:   producer,
-		logger:     log.NewLogger().SetComponent("e2e.cucumber"),
-		ec:         ec,
+		consumerTracker: consumerTracker,
+		httpClient:      httpClient,
+		aliases:         aliasesReg,
+		client:          client,
+		logger:          log.NewLogger().SetComponent("e2e.cucumber"),
+		ec:              ec,
+		topics:          topics,
+		waitForEnvelope: waitFor,
+		mux:             &sync.RWMutex{},
 	}
 
 	return sc
@@ -82,71 +78,8 @@ func (sc *ScenarioContext) init(s *gherkin.Pickle) {
 	sc.Pickle = s
 	sc.aliases.Set(sc.Pickle.Id, sc.Pickle.Id, "scenarioID")
 
-	// Prepare default tracker
-	sc.defaultTracker = sc.newTracker(nil)
-
 	// Enrich logger
 	sc.logger = sc.logger.WithField("scenario.name", sc.Pickle.Name).WithField("scenario.id", sc.Pickle.Id)
-}
-
-func (sc *ScenarioContext) newTracker(e *tx.Envelope) *tracker.Tracker {
-	if e != nil {
-		sc.setMetadata(e)
-	}
-	// Set envelope metadata so it can be tracked
-
-	// Create tracker and attach envelope
-	t := tracker.NewTracker()
-	t.Current = e
-
-	// Initialize output channels on tracker and register channels on channel registry
-	for topic := range utils.TOPICS {
-		var ckey string
-		if e != nil {
-			ckey = utils2.LongKeyOf(topic, e.GetID())
-		} else {
-			ckey = utils2.ShortKeyOf(topic, sc.Pickle.Id)
-		}
-
-		// Create channel
-		// TODO: make chan size configurable
-		var ch = make(chan *tx.Envelope, 30)
-		// Register channel on channel registry
-		sc.logger.WithField("msg_id", ckey).WithField("topic", topic).
-			Debug("registered new envelope channel")
-		sc.chanReg.Register(ckey, ch)
-
-		// Add channel as a tracker output
-		t.AddOutput(topic, ch)
-	}
-
-	return t
-}
-
-func (sc *ScenarioContext) setMetadata(e *tx.Envelope) {
-	if e.GetID() == "" {
-		_ = e.SetID(uuid.Must(uuid.NewV4()).String())
-	}
-	// Prepare envelope metadata
-	_ = e.SetContextLabelsValue("debug", "true").
-		SetContextLabelsValue("scenario.id", sc.Pickle.Id).
-		SetContextLabelsValue("scenario.name", sc.Pickle.Name)
-}
-
-func (sc *ScenarioContext) newTrackers(envelopes []*tx.Envelope) []*tracker.Tracker {
-	// Create a tracker for every envelope
-	var trackers []*tracker.Tracker
-	for _, e := range envelopes {
-		// Create a tracker
-		sc.setMetadata(e)
-		trackers = append(trackers, sc.newTracker(e))
-	}
-
-	return trackers
-}
-
-func (sc *ScenarioContext) setTrackers(trackers []*tracker.Tracker) {
-	sc.trackers = trackers
 }
 
 type stepTable func(*gherkin.PickleStepArgument_PickleTable) error
@@ -165,14 +98,15 @@ func (sc *ScenarioContext) preProcessTableStep(tableFunc stepTable) stepTable {
 	}
 }
 
-func InitializeScenario(s *godog.ScenarioContext) {
+func InitializeScenario(s *godog.ScenarioContext, consumerTracker *testutils.ConsumerTracker, topics *sarama.TopicConfig, waitFor time.Duration) {
 	sc := NewScenarioContext(
-		chanregistry.GlobalChanRegistry(),
+		consumerTracker,
 		http.NewClient(http.NewDefaultConfig()),
 		orchestrateclient.GlobalClient(),
-		broker.GlobalSyncProducer(),
 		alias.GlobalAliasRegistry(),
 		rpcClient.GlobalClient(),
+		topics,
+		waitFor,
 	)
 
 	s.BeforeScenario(sc.init)

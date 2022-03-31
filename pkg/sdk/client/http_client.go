@@ -43,7 +43,7 @@ func callWithBackOff(ctx context.Context, backOff backoff2.BackOff, requestCall 
 			}
 
 			// Retry on following errors
-			if errors.IsInvalidStateError(err) || errors.IsServiceConnectionError(err) || errors.IsDependencyFailureError(err) {
+			if errors.IsServiceConnectionError(err) || errors.IsDependencyFailureError(err) {
 				return err
 			}
 

@@ -8,4 +8,4 @@ specs:
     address: http://hashicorp:8200
     mountPoint: orchestrate
     namespace: ""
-    token: root_token_5960
+    token: root_token_436

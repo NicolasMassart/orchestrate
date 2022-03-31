@@ -31,7 +31,7 @@ func ValueToString(v interface{}) string {
 	return fmt.Sprintf("%v", v)
 }
 
-func StringToEthHash(s string) *ethcommon.Hash {
+func StringToETHHash(s string) *ethcommon.Hash {
 	if s == "" {
 		return nil
 	}

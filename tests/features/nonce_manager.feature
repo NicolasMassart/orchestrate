@@ -73,7 +73,7 @@ Feature: Nonce manager
 }
       """
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
 #    When I send "POST" request to "{{global.api}}/transactions/transfer" with json:
 #      """
 #      {
@@ -90,7 +90,7 @@ Feature: Nonce manager
 #      }
 #      """
 #    Then the response code should be 202
-#    Then Envelopes should be in topic "tx.decoded"
+#    Then TxResponse was found in tx-decoded topic "{msgID}"
 
   Scenario: Nonce recalibrating
     Given I register the following alias
@@ -201,7 +201,7 @@ Feature: Nonce manager
     Then the response code should be 202
     When I send "PUT" request to "{{global.api}}/jobs/{{txThreeJobUUID}}/start"
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     And Envelopes should have the following fields
       | Receipt.Status | Nonce |
       | 1              | 0     |
@@ -321,7 +321,7 @@ Feature: Nonce manager
     Then the response code should be 202
     When I send "PUT" request to "{{global.api}}/jobs/{{txThreeJobUUID}}/start"
     Then the response code should be 202
-    Then Envelopes should be in topic "tx.decoded"
+    Then TxResponse was found in tx-decoded topic "{msgID}"
     And Envelopes should have the following fields
       | Receipt.Status | Nonce | To      |
       | 1              | 0     | {{to1}} |
@@ -496,7 +496,6 @@ Feature: Nonce manager
 #    Then I register the following response fields
 #      | alias        | path           |
 #      | jobs[1].uuid | speedUpJobUUID |
-#    Then Envelopes should be in topic "tx.sender"
 #    When I send "GET" request to "{{global.api}}/jobs/{{speedUpJobUUID}}"
 #    Then the response code should be 200
 #    And Response should have the following fields
@@ -541,7 +540,6 @@ Feature: Nonce manager
 #    Then I register the following response fields
 #      | alias        | path           |
 #      | jobs[1].uuid | callOffJobUUID |
-#    Then Envelopes should be in topic "tx.sender"
 #    When I send "GET" request to "{{global.api}}/jobs/{{callOffJobUUID}}"
 #    Then the response code should be 200
 #    And Response should have the following fields

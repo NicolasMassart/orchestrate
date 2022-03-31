@@ -66,11 +66,10 @@ func (s *transactionsTestSuite) TestDeployContract() {
 		assert.Equal(t, txRequest.Params.From.Hex(), job.Transaction.From)
 		assert.Equal(t, entities.EthereumTransaction, job.Type)
 
-		evlp, err := s.env.consumer.WaitForEnvelope(job.ScheduleUUID, s.env.kafkaTopicConfig.Sender, waitForEnvelopeTimeOut)
+		msgJob, err := s.env.consumer.WaitForJob(ctx, job.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
 		require.NoError(t, err)
-		assert.Equal(t, job.ScheduleUUID, evlp.GetID())
-		assert.Equal(t, job.UUID, evlp.GetJobUUID())
-		assert.Equal(t, entities.JobTypeToEnvelopeType[entities.EthereumTransaction].String(), evlp.GetJobTypeString())
+		assert.Equal(t, job.UUID, msgJob.UUID)
+		assert.Equal(t, entities.EthereumTransaction, msgJob.Type)
 	})
 }
 
@@ -112,16 +111,11 @@ func (s *transactionsTestSuite) TestSendTransaction() {
 		assert.Equal(t, txRequest.Params.To.Hex(), job.Transaction.To)
 		assert.Equal(t, entities.EthereumTransaction, job.Type)
 
-		evlp, err := s.env.consumer.WaitForEnvelope(job.ScheduleUUID, s.env.kafkaTopicConfig.Sender, waitForEnvelopeTimeOut)
-		if err != nil {
-			assert.Fail(t, err.Error())
-			return
-		}
-		assert.Equal(t, job.ScheduleUUID, evlp.GetID())
-		assert.Equal(t, job.UUID, evlp.GetJobUUID())
-		assert.True(t, evlp.IsOneTimeKeySignature())
-		assert.Equal(t, entities.JobTypeToEnvelopeType[entities.EthereumTransaction].String(), evlp.GetJobTypeString())
-		assert.Equal(t, evlp.PartitionKey(), "")
+		msgJob, err := s.env.consumer.WaitForJob(ctx, job.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
+		require.NoError(t, err)
+		assert.Equal(t, job.ScheduleUUID, msgJob.ScheduleUUID)
+		assert.Equal(t, job.UUID, msgJob.UUID)
+		assert.True(t, msgJob.InternalData.OneTimeKey)
 	})
 
 	s.T().Run("should succeed if payloads and idempotency key are the same and return same schedule", func(t *testing.T) {
@@ -251,15 +245,10 @@ func (s *transactionsTestSuite) TestSendEEATransaction() {
 		assert.Equal(t, entities.StatusCreated, markingTxJob.Status)
 		assert.Equal(t, entities.EEAMarkingTransaction, markingTxJob.Type)
 
-		privTxEvlp, err := s.env.consumer.WaitForEnvelope(privTxJob.ScheduleUUID, s.env.kafkaTopicConfig.Sender, waitForEnvelopeTimeOut)
-		if err != nil {
-			assert.Fail(t, err.Error())
-			return
-		}
-
-		assert.Equal(t, privTxJob.ScheduleUUID, privTxEvlp.GetID())
-		assert.Equal(t, privTxJob.UUID, privTxEvlp.GetJobUUID())
-		assert.Equal(t, entities.JobTypeToEnvelopeType[entities.EEAPrivateTransaction].String(), privTxEvlp.GetJobTypeString())
+		msgJob, err := s.env.consumer.WaitForJob(ctx, privTxJob.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
+		require.NoError(t, err)
+		assert.Equal(t, privTxJob.UUID, msgJob.UUID)
+		assert.Equal(t, entities.EEAPrivateTransaction, msgJob.Type)
 	})
 }
 
@@ -294,14 +283,11 @@ func (s *transactionsTestSuite) TestSendRawTransaction() {
 		assert.Equal(t, txRequest.Params.Raw.String(), job.Transaction.Raw)
 		assert.Equal(t, entities.EthereumRawTransaction, job.Type)
 
-		evlp, err := s.env.consumer.WaitForEnvelope(job.ScheduleUUID, s.env.kafkaTopicConfig.Sender, waitForEnvelopeTimeOut)
-		if err != nil {
-			assert.Fail(t, err.Error())
-			return
-		}
-		assert.Equal(t, job.ScheduleUUID, evlp.GetID())
-		assert.Equal(t, job.UUID, evlp.GetJobUUID())
-		assert.Equal(t, entities.JobTypeToEnvelopeType[entities.EthereumRawTransaction].String(), evlp.GetJobTypeString())
+		msgJob, err := s.env.consumer.WaitForJob(ctx, job.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
+		require.NoError(t, err)
+		assert.Equal(t, job.ScheduleUUID, msgJob.ScheduleUUID)
+		assert.Equal(t, job.UUID, msgJob.UUID)
+		assert.Equal(t, entities.EthereumRawTransaction, msgJob.Type)
 	})
 }
 
@@ -335,7 +321,7 @@ func (s *transactionsTestSuite) TestSendRawTransaction() {
 // 		assert.Equal(t, txRequest.Params.From.Hex(), job.Transaction.From.Hex())
 // 		assert.Equal(t, entities.EthereumTransaction, job.Type)
 //
-// 		evlp, err := s.env.consumer.WaitForEnvelope(job.ScheduleUUID, s.env.kafkaTopicConfig.Sender, waitForEnvelopeTimeOut)
+// 		evlp, err := s.env.consumer.WaitForMessage(job.ScheduleUUID, s.env.apiCfg.Sender, waitForEnvelopeTimeOut)
 // 		if err != nil {
 // 			assert.Fail(t, err.Error())
 // 			return
@@ -374,23 +360,18 @@ func (s *transactionsTestSuite) TestSendGoQuorumTransaction() {
 		assert.Equal(t, entities.StatusStarted, privTxJob.Status)
 		assert.Equal(t, txRequest.Params.From.Hex(), privTxJob.Transaction.From)
 		assert.Equal(t, txRequest.Params.To.Hex(), privTxJob.Transaction.To)
-		assert.Equal(t, entities.TesseraPrivateTransaction, privTxJob.Type)
+		assert.Equal(t, entities.GoQuorumPrivateTransaction, privTxJob.Type)
 
 		markingTxJob := txResponseGET.Jobs[1]
 		assert.NotEmpty(t, markingTxJob.UUID)
 		assert.Equal(t, entities.StatusCreated, markingTxJob.Status)
-		assert.Equal(t, entities.TesseraMarkingTransaction, markingTxJob.Type)
+		assert.Equal(t, entities.GoQuorumMarkingTransaction, markingTxJob.Type)
 
-		privTxEvlp, err := s.env.consumer.WaitForEnvelope(privTxJob.ScheduleUUID, s.env.kafkaTopicConfig.Sender, waitForEnvelopeTimeOut)
-		if err != nil {
-			assert.Fail(t, err.Error())
-			return
-		}
+		msgJob, err := s.env.consumer.WaitForJob(ctx, privTxJob.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
+		require.NoError(t, err)
 
-		assert.Equal(t, privTxJob.ScheduleUUID, privTxEvlp.GetID())
-		assert.Equal(t, privTxJob.UUID, privTxEvlp.GetJobUUID())
-		assert.False(t, privTxEvlp.IsOneTimeKeySignature())
-		assert.Equal(t, entities.JobTypeToEnvelopeType[entities.TesseraPrivateTransaction].String(), privTxEvlp.GetJobTypeString())
+		assert.Equal(t, privTxJob.UUID, msgJob.UUID)
+		assert.Equal(t, entities.GoQuorumPrivateTransaction, msgJob.Type)
 	})
 }
 
@@ -409,7 +390,7 @@ func (s *transactionsTestSuite) TestSendCallOffTransaction() {
 	txDeployRequest.Params.ContractName = contractReq.Name
 	txResponse, err := s.client.SendDeployTransaction(ctx, txDeployRequest)
 	require.NoError(s.T(), err)
-	_, err = s.env.consumer.WaitForEnvelope(txResponse.UUID, s.env.kafkaTopicConfig.Sender, waitForEnvelopeTimeOut)
+	_, err = s.env.consumer.WaitForJob(ctx, txResponse.Jobs[0].UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
 	require.NoError(s.T(), err)
 
 	// Emulate an update done by tx-sender after sending tx to blockchain
@@ -425,17 +406,18 @@ func (s *transactionsTestSuite) TestSendCallOffTransaction() {
 	s.T().Run("should send a call off transaction successfully", func(t *testing.T) {
 		txResponse, err = s.client.SendCallOffTransaction(ctx, txResponse.UUID)
 		require.NoError(t, err)
-		evlp, err := s.env.consumer.WaitForEnvelope(txResponse.UUID, s.env.kafkaTopicConfig.Sender, waitForEnvelopeTimeOut)
-		require.NoError(t, err)
 
 		require.True(t, len(txResponse.Jobs) > 1)
 		parentJob := txResponse.Jobs[len(txResponse.Jobs)-2]
 		callOffJob := txResponse.Jobs[len(txResponse.Jobs)-1]
+		
+		msgJob, err := s.env.consumer.WaitForJob(ctx, callOffJob.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
+		require.NoError(t, err)
+		
 		assert.Equal(t, callOffJob.ParentJobUUID, parentJob.UUID)
 		assert.Empty(t, callOffJob.Transaction.Data)
 		assert.Equal(t, "0x2af8", callOffJob.Transaction.GasFeeCap)
-		assert.Equal(t, callOffJob.ScheduleUUID, evlp.GetID())
-		assert.Equal(t, callOffJob.UUID, evlp.GetJobUUID())
+		assert.Equal(t, callOffJob.UUID, msgJob.UUID)
 	})
 }
 
@@ -454,7 +436,7 @@ func (s *transactionsTestSuite) TestSendSpeedUpTransaction() {
 	txDeployRequest.Params.ContractName = contractReq.Name
 	txResponse, err := s.client.SendDeployTransaction(ctx, txDeployRequest)
 	require.NoError(s.T(), err)
-	_, err = s.env.consumer.WaitForEnvelope(txResponse.UUID, s.env.kafkaTopicConfig.Sender, waitForEnvelopeTimeOut)
+	_, err = s.env.consumer.WaitForJob(ctx, txResponse.Jobs[0].UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
 	require.NoError(s.T(), err)
 
 	// Emulate an update done by tx-sender after sending tx to blockchain
@@ -470,16 +452,17 @@ func (s *transactionsTestSuite) TestSendSpeedUpTransaction() {
 	s.T().Run("should send a speed up transaction successfully", func(t *testing.T) {
 		txResponse, err = s.client.SendSpeedUpTransaction(ctx, txResponse.UUID, utils.ToPtr(0.1).(*float64))
 		require.NoError(t, err)
-		evlp, err := s.env.consumer.WaitForEnvelope(txResponse.UUID, s.env.kafkaTopicConfig.Sender, waitForEnvelopeTimeOut)
-		require.NoError(t, err)
 
 		require.True(t, len(txResponse.Jobs) > 1)
 		parentJob := txResponse.Jobs[len(txResponse.Jobs)-2]
-		callOffJob := txResponse.Jobs[len(txResponse.Jobs)-1]
-		assert.Equal(t, callOffJob.ParentJobUUID, parentJob.UUID)
-		assert.Equal(t, callOffJob.Transaction.Data, parentJob.Transaction.Data)
-		assert.Equal(t, "0x2af8", callOffJob.Transaction.GasFeeCap)
-		assert.Equal(t, callOffJob.ScheduleUUID, evlp.GetID())
-		assert.Equal(t, callOffJob.UUID, evlp.GetJobUUID())
+		speedUpJob := txResponse.Jobs[len(txResponse.Jobs)-1]
+		
+		msgJob, err := s.env.consumer.WaitForJob(ctx, speedUpJob.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
+		require.NoError(t, err)
+		
+		assert.Equal(t, speedUpJob.ParentJobUUID, parentJob.UUID)
+		assert.Equal(t, speedUpJob.Transaction.Data, parentJob.Transaction.Data)
+		assert.Equal(t, "0x2af8", speedUpJob.Transaction.GasFeeCap)
+		assert.Equal(t, speedUpJob.UUID, msgJob.UUID)
 	})
 }

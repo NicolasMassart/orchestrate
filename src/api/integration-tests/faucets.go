@@ -253,7 +253,7 @@ func (s *faucetsTestSuite) TestSuccess_TxsWithFaucet() {
 	}()
 
 	s.T().Run("should send a transaction with an additional faucet job", func(t *testing.T) {
-		defer gock.Off()
+		defer gock.OffAll()
 		// Transfer tx
 		txRequest := testdata.FakeSendTransferTransactionRequest()
 		txRequest.ChainName = chainWithFaucet.Name
@@ -265,46 +265,46 @@ func (s *faucetsTestSuite) TestSuccess_TxsWithFaucet() {
 		require.NoError(t, err)
 		require.Len(t, txResponseGET.Jobs, 2)
 	
-		faucetJob := txResponseGET.Jobs[1]
-		txJob := txResponseGET.Jobs[0]
-		assert.Equal(t, faucetJob.ChainUUID, faucet.ChainRule)
-		assert.Equal(t, entities.StatusStarted, faucetJob.Status)
-		assert.Equal(t, entities.EthereumTransaction, faucetJob.Type)
-		assert.Equal(t, faucetJob.Transaction.To, txJob.Transaction.From)
-		assert.Equal(t, faucetJob.Transaction.Value, faucet.Amount)
+		faucetJobRes := txResponseGET.Jobs[1]
+		txJobRes := txResponseGET.Jobs[0]
+		assert.Equal(t, faucetJobRes.ChainUUID, faucet.ChainRule)
+		assert.Equal(t, entities.StatusStarted, faucetJobRes.Status)
+		assert.Equal(t, entities.EthereumTransaction, faucetJobRes.Type)
+		assert.Equal(t, faucetJobRes.Transaction.To, txJobRes.Transaction.From)
+		assert.Equal(t, faucetJobRes.Transaction.Value, faucet.Amount)
 	
 		assert.NotEmpty(t, txResponseGET.UUID)
-		assert.NotEmpty(t, txJob.UUID)
-		assert.Equal(t, txJob.ChainUUID, faucet.ChainRule)
-		assert.Equal(t, entities.StatusStarted, txJob.Status)
-		assert.Equal(t, txRequest.Params.From.Hex(), txJob.Transaction.From)
-		assert.Equal(t, txRequest.Params.To.Hex(), txJob.Transaction.To)
-		assert.Equal(t, entities.EthereumTransaction, txJob.Type)
+		assert.NotEmpty(t, txJobRes.UUID)
+		assert.Equal(t, txJobRes.ChainUUID, faucet.ChainRule)
+		assert.Equal(t, entities.StatusStarted, txJobRes.Status)
+		assert.Equal(t, txRequest.Params.From.Hex(), txJobRes.Transaction.From)
+		assert.Equal(t, txRequest.Params.To.Hex(), txJobRes.Transaction.To)
+		assert.Equal(t, entities.EthereumTransaction, txJobRes.Type)
 	
-		fctEvlp, err := s.env.consumer.WaitForEnvelope(faucetJob.ScheduleUUID, s.env.kafkaTopicConfig.Sender, waitForEnvelopeTimeOut)
+		fctEvlp, err := s.env.consumer.WaitForJob(ctx, faucetJobRes.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
 		require.NoError(t, err)
-		assert.Equal(t, faucetJob.ScheduleUUID, fctEvlp.GetID())
-		assert.Equal(t, faucetJob.UUID, fctEvlp.GetJobUUID())
+		assert.Equal(t, faucetJobRes.ScheduleUUID, fctEvlp.ScheduleUUID)
+		assert.Equal(t, faucetJobRes.UUID, fctEvlp.UUID)
 	
-		jobEvlp, err := s.env.consumer.WaitForEnvelope(txJob.ScheduleUUID, s.env.kafkaTopicConfig.Sender, waitForEnvelopeTimeOut)
+		jobEvlp, err := s.env.consumer.WaitForJob(ctx, txJobRes.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
 		require.NoError(t, err)
-		assert.Equal(t, txJob.ScheduleUUID, jobEvlp.GetID())
-		assert.Equal(t, txJob.UUID, jobEvlp.GetJobUUID())
+		assert.Equal(t, txJobRes.ScheduleUUID, jobEvlp.ScheduleUUID)
+		assert.Equal(t, txJobRes.UUID, jobEvlp.UUID)
 	})
 
 	s.T().Run("should send a raw transaction with an additional faucet job", func(t *testing.T) {
-		defer gock.Off()
+		defer gock.OffAll()
 		// Raw tx
 		txRequest := testdata.FakeSendRawTransactionRequest()
 		txRequest.ChainName = chainWithFaucet.Name
 		txResponse, err := s.client.SendRawTransaction(ctx, txRequest)
 		require.NoError(t, err)
 		assert.NotEmpty(t, txResponse.UUID)
-
+	
 		txResponseGET, err := s.client.GetTxRequest(ctx, txResponse.UUID)
 		require.NoError(t, err)
 		require.Len(t, txResponseGET.Jobs, 2)
-
+	
 		faucetJob := txResponseGET.Jobs[1]
 		txJob := txResponseGET.Jobs[0]
 		assert.Equal(t, faucetJob.ChainUUID, faucet.ChainRule)
@@ -312,22 +312,22 @@ func (s *faucetsTestSuite) TestSuccess_TxsWithFaucet() {
 		assert.Equal(t, entities.EthereumTransaction, faucetJob.Type)
 		assert.Equal(t, faucetJob.Transaction.To, txJob.Transaction.From)
 		assert.Equal(t, faucetJob.Transaction.Value, faucet.Amount)
-
+	
 		assert.NotEmpty(t, txResponseGET.UUID)
 		assert.NotEmpty(t, txJob.UUID)
 		assert.Equal(t, txJob.ChainUUID, faucet.ChainRule)
 		assert.Equal(t, entities.StatusStarted, txJob.Status)
 		assert.Equal(t, "0x4c7aF4B315644848f400b7344A8e73Cf227812b4", txJob.Transaction.From)
 		assert.Equal(t, entities.EthereumRawTransaction, txJob.Type)
-
-		fctEvlp, err := s.env.consumer.WaitForEnvelope(faucetJob.ScheduleUUID, s.env.kafkaTopicConfig.Sender, waitForEnvelopeTimeOut)
+	
+		fctEvlp, err := s.env.consumer.WaitForJob(ctx, faucetJob.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
 		require.NoError(t, err)
-		assert.Equal(t, faucetJob.ScheduleUUID, fctEvlp.GetID())
-		assert.Equal(t, faucetJob.UUID, fctEvlp.GetJobUUID())
-
-		jobEvlp, err := s.env.consumer.WaitForEnvelope(txJob.ScheduleUUID, s.env.kafkaTopicConfig.Sender, waitForEnvelopeTimeOut)
+		assert.Equal(t, faucetJob.ScheduleUUID, fctEvlp.ScheduleUUID)
+		assert.Equal(t, faucetJob.UUID, fctEvlp.UUID)
+	
+		jobEvlp, err := s.env.consumer.WaitForJob(ctx, txJob.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
 		require.NoError(t, err)
-		assert.Equal(t, txJob.ScheduleUUID, jobEvlp.GetID())
-		assert.Equal(t, txJob.UUID, jobEvlp.GetJobUUID())
+		assert.Equal(t, txJob.ScheduleUUID, jobEvlp.ScheduleUUID)
+		assert.Equal(t, txJob.UUID, jobEvlp.UUID)
 	})
 }

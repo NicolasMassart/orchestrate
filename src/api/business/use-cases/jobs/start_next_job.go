@@ -57,7 +57,7 @@ func (uc *startNextJobUseCase) Execute(ctx context.Context, jobUUID string, user
 	switch nextJob.Type {
 	case entities.EEAMarkingTransaction:
 		err = uc.handleEEAMarkingTx(ctx, job, nextJob)
-	case entities.TesseraMarkingTransaction:
+	case entities.GoQuorumMarkingTransaction:
 		err = uc.handleTesseraMarkingTx(ctx, job, nextJob)
 	}
 
@@ -83,8 +83,8 @@ func (uc *startNextJobUseCase) handleEEAMarkingTx(ctx context.Context, prevJob, 
 }
 
 func (uc *startNextJobUseCase) handleTesseraMarkingTx(ctx context.Context, prevJob, job *entities.Job) error {
-	if prevJob.Type != entities.TesseraPrivateTransaction {
-		return errors.DataError("expected previous job as type: %s", entities.TesseraPrivateTransaction)
+	if prevJob.Type != entities.GoQuorumPrivateTransaction {
+		return errors.DataError("expected previous job as type: %s", entities.GoQuorumPrivateTransaction)
 	}
 
 	if prevJob.Status != entities.StatusStored {

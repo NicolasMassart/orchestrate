@@ -161,8 +161,8 @@ func isJobType(fl validator.FieldLevel) bool {
 			entities.EthereumRawTransaction,
 			entities.EEAPrivateTransaction,
 			entities.EEAMarkingTransaction,
-			entities.TesseraPrivateTransaction,
-			entities.TesseraMarkingTransaction:
+			entities.GoQuorumPrivateTransaction,
+			entities.GoQuorumMarkingTransaction:
 			return true
 		default:
 			return false
