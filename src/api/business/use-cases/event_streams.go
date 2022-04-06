@@ -12,6 +12,7 @@ import (
 type EventStreamsUseCases interface {
 	Create() CreateEventStreamUseCase
 	Search() SearchEventStreamsUseCase
+	NotifyTransaction() NotifyTransactionUseCase
 }
 
 type CreateEventStreamUseCase interface {
@@ -20,4 +21,8 @@ type CreateEventStreamUseCase interface {
 
 type SearchEventStreamsUseCase interface {
 	Execute(ctx context.Context, filters *entities.EventStreamFilters, userInfo *multitenancy.UserInfo) ([]*entities.EventStream, error)
+}
+
+type NotifyTransactionUseCase interface {
+	Execute(ctx context.Context, job *entities.Job, errStr string, userInfo *multitenancy.UserInfo) error
 }

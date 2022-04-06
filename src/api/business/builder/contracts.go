@@ -7,60 +7,62 @@ import (
 )
 
 type contractUseCases struct {
-	getContractsCatalogUC      usecases.GetContractsCatalogUseCase
-	getContractEvents          usecases.GetContractEventsUseCase
-	getContractTags            usecases.GetContractTagsUseCase
-	registerContractDeployment usecases.RegisterContractDeploymentUseCase
-	registerContractUC         usecases.RegisterContractUseCase
-	getContractUC              usecases.GetContractUseCase
-	searchContractUC           usecases.SearchContractUseCase
-	decodeLogUC                usecases.DecodeEventLogUseCase
+	getCatalog         usecases.GetContractsCatalogUseCase
+	getContractEvents  usecases.GetContractEventsUseCase
+	getTags            usecases.GetContractTagsUseCase
+	registerDeployment usecases.RegisterContractDeploymentUseCase
+	register           usecases.RegisterContractUseCase
+	get                usecases.GetContractUseCase
+	search             usecases.SearchContractUseCase
+	decodeLog          usecases.DecodeEventLogUseCase
 }
+
+var _ usecases.ContractUseCases = &contractUseCases{}
 
 func newContractUseCases(db store.DB) *contractUseCases {
 	getContractUC := contracts.NewGetContractUseCase(db.Contract())
 	getContractEventUC := contracts.NewGetEventsUseCase(db.ContractEvent())
-	
+
 	return &contractUseCases{
-		registerContractUC:         contracts.NewRegisterContractUseCase(db),
-		getContractUC:              getContractUC,
-		getContractsCatalogUC:      contracts.NewGetCatalogUseCase(db.Contract()),
-		decodeLogUC:                contracts.NewDecodeEventLogUseCase(getContractEventUC),
-		getContractEvents:          getContractEventUC,
-		getContractTags:            contracts.NewGetTagsUseCase(db.Contract()),
-		registerContractDeployment: contracts.NewRegisterDeploymentUseCase(db.Contract()),
-		searchContractUC:           contracts.NewSearchContractUseCase(db.Contract()),
+		register:           contracts.NewRegisterContractUseCase(db),
+		get:                getContractUC,
+		getCatalog:         contracts.NewGetCatalogUseCase(db.Contract()),
+		decodeLog:          contracts.NewDecodeEventLogUseCase(db, getContractEventUC),
+		getContractEvents:  getContractEventUC,
+		getTags:            contracts.NewGetTagsUseCase(db.Contract()),
+		registerDeployment: contracts.NewRegisterDeploymentUseCase(db.Contract()),
+		search:             contracts.NewSearchContractUseCase(db.Contract()),
 	}
 }
 
-func (u *contractUseCases) GetContract() usecases.GetContractUseCase {
-	return u.getContractUC
+func (u *contractUseCases) Get() usecases.GetContractUseCase {
+	return u.get
 }
 
-func (u *contractUseCases) RegisterContract() usecases.RegisterContractUseCase {
-	return u.registerContractUC
+func (u *contractUseCases) Register() usecases.RegisterContractUseCase {
+	return u.register
 }
 
-func (u *contractUseCases) GetContractsCatalog() usecases.GetContractsCatalogUseCase {
-	return u.getContractsCatalogUC
+func (u *contractUseCases) GetCatalog() usecases.GetContractsCatalogUseCase {
+	return u.getCatalog
 }
 
 func (u *contractUseCases) GetContractEvents() usecases.GetContractEventsUseCase {
 	return u.getContractEvents
 }
 
-func (u *contractUseCases) GetContractTags() usecases.GetContractTagsUseCase {
-	return u.getContractTags
+func (u *contractUseCases) GetTags() usecases.GetContractTagsUseCase {
+	return u.getTags
 }
 
-func (u *contractUseCases) SetContractCodeHash() usecases.RegisterContractDeploymentUseCase {
-	return u.registerContractDeployment
+func (u *contractUseCases) SetCodeHash() usecases.RegisterContractDeploymentUseCase {
+	return u.registerDeployment
 }
 
-func (u *contractUseCases) SearchContract() usecases.SearchContractUseCase {
-	return u.searchContractUC
+func (u *contractUseCases) Search() usecases.SearchContractUseCase {
+	return u.search
 }
 
 func (u *contractUseCases) DecodeLog() usecases.DecodeEventLogUseCase {
-	return u.decodeLogUC
+	return u.decodeLog
 }

@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"time"
 
+	notifier "github.com/consensys/orchestrate/src/infra/push_notification/client"
+
 	"github.com/consensys/orchestrate/cmd/flags"
 	"github.com/consensys/orchestrate/src/infra/kafka/testutils"
 	"github.com/consensys/orchestrate/src/infra/postgres/gopg"
@@ -296,8 +298,7 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 	}
 
 	go func() {
-		err = env.consumer.Consume(context.Background(), []string{env.apiCfg.KafkaTopics.Decoded, env.apiCfg.KafkaTopics.Recover,
-			env.apiCfg.KafkaTopics.Sender})
+		err = env.consumer.Consume(ctx, []string{env.apiCfg.KafkaTopics.Sender})
 	}()
 	time.Sleep(time.Second * 5) // Wait for consumer to be ready
 
@@ -416,6 +417,11 @@ func newAPI(ctx context.Context, cfg *api.Config) (*app.App, error) {
 		return nil, err
 	}
 
+	notifierClient, err := notifier.New(cfg.Kafka)
+	if err != nil {
+		return nil, err
+	}
+
 	authjwt.Init(ctx)
 	authkey.Init(ctx)
 	ethclient.Init(ctx)
@@ -437,7 +443,7 @@ func newAPI(ctx context.Context, cfg *api.Config) (*app.App, error) {
 		cfg.QKM.StoreName,
 		ethclient.GlobalClient(),
 		clientProducer,
-		cfg.KafkaTopics,
+		notifierClient,
 	)
 }
 

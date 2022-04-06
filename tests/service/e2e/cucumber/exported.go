@@ -4,18 +4,17 @@ import (
 	"time"
 
 	"github.com/consensys/orchestrate/pkg/errors"
-	"github.com/consensys/orchestrate/src/infra/kafka/sarama"
 	"github.com/consensys/orchestrate/src/infra/kafka/testutils"
 	"github.com/consensys/orchestrate/tests/service/e2e/cucumber/steps"
 	"github.com/cucumber/godog"
 	log "github.com/sirupsen/logrus"
 )
 
-func Run(opt *godog.Options, consumerTracker *testutils.ConsumerTracker, topics *sarama.TopicConfig, waitFor time.Duration) error {
+func Run(opt *godog.Options, consumerTracker *testutils.ConsumerTracker, topic string, waitFor time.Duration) error {
 	status := godog.TestSuite{
 		Name: "tests",
 		ScenarioInitializer: func(s *godog.ScenarioContext) {
-			steps.InitializeScenario(s, consumerTracker, topics, waitFor)
+			steps.InitializeScenario(s, consumerTracker, topic, waitFor)
 		},
 		Options: opt,
 	}.Run()

@@ -87,4 +87,5 @@ type ContractEventAgent interface {
 type EventStreamAgent interface {
 	Insert(ctx context.Context, eventStream *entities.EventStream) (*entities.EventStream, error)
 	Search(ctx context.Context, filters *entities.EventStreamFilters, tenants []string, ownerID string) ([]*entities.EventStream, error)
+	FindOneByTenantAndChain(ctx context.Context, tenantID, chainUUID string, tenants []string, ownerID string) (*entities.EventStream, error)
 }

@@ -16,9 +16,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/consensys/orchestrate/src/infra/push_notification/client"
+
 	"github.com/consensys/orchestrate/src/api/service/formatters"
 	"github.com/consensys/orchestrate/src/entities"
-	"github.com/consensys/orchestrate/src/infra/kafka/proto"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/go-kit/kit/transport/http/jsonrpc"
@@ -48,7 +49,7 @@ const aliasHeaderValue = "alias"
 var aliasRegex = regexp.MustCompile("{{([^}]*)}}")
 var AddressPtrType = reflect.TypeOf(new(common.Address))
 
-func (sc *ScenarioContext) appendTxResponse(txResponse *proto.TxResponse) {
+func (sc *ScenarioContext) appendTxResponse(txResponse *client.TxResponse) {
 	sc.mux.Lock()
 	defer sc.mux.Unlock()
 	sc.txResponses = append(sc.txResponses, txResponse)
@@ -60,15 +61,15 @@ func (sc *ScenarioContext) txResponseShouldBeInTxDecodedTopic(msgID string) erro
 	cerr := make(chan error, 1)
 
 	go func() {
-		txResponse, err := sc.consumerTracker.WaitForTxResponseInTxDecoded(ctx, msgID, sc.waitForEnvelope)
+		txResponse, err := sc.consumerTracker.WaitForTxResponseInTopic(ctx, msgID, "", sc.waitForEnvelope)
 		sc.appendTxResponse(txResponse)
 		cerr <- err
 	}()
 
 	go func() {
-		txResponse, err := sc.consumerTracker.WaitForTxResponseInTxRecover(ctx, msgID, sc.waitForEnvelope)
+		txResponse, err := sc.consumerTracker.WaitForTxResponseInTopic(ctx, msgID, "", sc.waitForEnvelope)
 		if err == nil {
-			cerr <- fmt.Errorf("envelope found in tx-recover %s", txResponse.Errors[0])
+			cerr <- fmt.Errorf("envelope found in tx-recover %s", txResponse.Error)
 		}
 	}()
 
@@ -76,7 +77,7 @@ func (sc *ScenarioContext) txResponseShouldBeInTxDecodedTopic(msgID string) erro
 }
 func (sc *ScenarioContext) txResponseShouldBeInTxRecoverTopic(msgID string) error {
 	ctx := context.Background()
-	_, err := sc.consumerTracker.WaitForTxResponseInTxRecover(ctx, msgID, sc.waitForEnvelope)
+	_, err := sc.consumerTracker.WaitForTxResponseInTopic(ctx, msgID, "", sc.waitForEnvelope)
 	return err
 }
 
@@ -108,10 +109,10 @@ func (sc *ScenarioContext) envelopesShouldHaveTheFollowingValues(table *gherkin.
 }
 
 func (sc *ScenarioContext) iRegisterTheFollowingEnvelopeFields(table *gherkin.PickleStepArgument_PickleTable) (err error) {
-	txResponses := make(map[string]*proto.TxResponse)
+	txResponses := make(map[string]*client.TxResponse)
 	for _, txResponse := range sc.txResponses {
-		txResponses[txResponse.Id] = txResponse
-		txResponses[txResponse.ContextLabels["id"]] = txResponse
+		txResponses[txResponse.Job.ScheduleUUID] = txResponse
+		txResponses[txResponse.Job.Labels["id"]] = txResponse
 	}
 
 	header := table.Rows[0]

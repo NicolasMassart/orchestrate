@@ -20,7 +20,7 @@ const (
 type Config struct {
 	App                    *app.Config
 	Kafka                  *sarama.Config
-	KafkaTopicTxSender     string
+	ConsumerTopic          string
 	GroupName              string
 	NConsumer              int
 	ProxyURL               string

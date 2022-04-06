@@ -47,23 +47,23 @@ type faucetsCtrlTestSuite struct {
 
 var _ usecases.FaucetUseCases = &faucetsCtrlTestSuite{}
 
-func (s *faucetsCtrlTestSuite) RegisterFaucet() usecases.RegisterFaucetUseCase {
+func (s *faucetsCtrlTestSuite) Register() usecases.RegisterFaucetUseCase {
 	return s.registerFaucetUC
 }
 
-func (s *faucetsCtrlTestSuite) GetFaucet() usecases.GetFaucetUseCase {
+func (s *faucetsCtrlTestSuite) Get() usecases.GetFaucetUseCase {
 	return s.getFaucetUC
 }
 
-func (s *faucetsCtrlTestSuite) SearchFaucets() usecases.SearchFaucetsUseCase {
+func (s *faucetsCtrlTestSuite) Search() usecases.SearchFaucetsUseCase {
 	return s.searchFaucetUC
 }
 
-func (s *faucetsCtrlTestSuite) UpdateFaucet() usecases.UpdateFaucetUseCase {
+func (s *faucetsCtrlTestSuite) Update() usecases.UpdateFaucetUseCase {
 	return s.updateFaucetUC
 }
 
-func (s *faucetsCtrlTestSuite) DeleteFaucet() usecases.DeleteFaucetUseCase {
+func (s *faucetsCtrlTestSuite) Delete() usecases.DeleteFaucetUseCase {
 	return s.deleteFaucetUC
 }
 

@@ -128,7 +128,7 @@ func NewTxSenderConfig(vipr *viper.Viper) *txsender.Config {
 	return &txsender.Config{
 		App:                    app.NewConfig(vipr),
 		Kafka:                  NewKafkaConfig(vipr),
-		KafkaTopicTxSender:     NewKafkaTopicConfig(vipr).Sender,
+		ConsumerTopic:          viper.GetString(TxSenderViperKey),
 		ProxyURL:               vipr.GetString(orchestrateclient.URLViperKey),
 		NonceMaxRecovery:       vipr.GetUint64(NonceMaxRecoveryViperKey),
 		BckOff:                 retryMessageBackOff(),

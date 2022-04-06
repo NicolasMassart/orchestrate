@@ -23,12 +23,6 @@ func NewClient(cfg *sarama.Config, addrs []string) (*Client, error) {
 		return nil, err
 	}
 
-	// Retrieve and log connected brokers
-	var brokers = make(map[int32]string)
-	for _, v := range client.Brokers() {
-		brokers[v.ID()] = v.Addr()
-	}
-
 	return &Client{client, addrs}, nil
 }
 

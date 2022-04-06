@@ -5,25 +5,25 @@ import (
 	encoding "encoding/json"
 	"fmt"
 
+	"github.com/consensys/orchestrate/src/api"
+
 	"github.com/Shopify/sarama"
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/src/entities"
-	"github.com/consensys/orchestrate/src/infra/kafka/proto"
-	sarama2 "github.com/consensys/orchestrate/src/infra/kafka/sarama"
 )
 
 const messageListenerComponent = "test.consumer.listener"
 
 type MessageListener struct {
 	chanRegistry *ChanRegistry
-	topics       *sarama2.TopicConfig
+	topics       *api.TopicConfig
 	cancel       context.CancelFunc
 	err          error
 	logger       *log.Logger
 }
 
-func NewMessageListener(chanRegistry *ChanRegistry, topics *sarama2.TopicConfig) *MessageListener {
+func NewMessageListener(chanRegistry *ChanRegistry, topics *api.TopicConfig) *MessageListener {
 	return &MessageListener{
 		chanRegistry: chanRegistry,
 		topics:       topics,
@@ -113,14 +113,6 @@ func (l *MessageListener) decodeMessage(msg *sarama.ConsumerMessage) (id string,
 			return "", nil, errors.EncodingError(errMessage).ExtendComponent(messageListenerComponent)
 		}
 		return job.UUID, job, nil
-	case l.topics.Recover, l.topics.Decoded:
-		txResponse := &proto.TxResponse{}
-		err := proto.Unmarshal(msg.Value, txResponse)
-		if err != nil {
-			errMessage := "failed to decode txResponse message"
-			return "", nil, errors.EncodingError(errMessage).ExtendComponent(messageListenerComponent)
-		}
-		return txResponse.Id, txResponse, nil
 	default:
 		return "", nil, errors.InvalidParameterError("message topic cannot be handle %s", msg.Topic)
 	}

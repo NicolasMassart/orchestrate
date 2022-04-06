@@ -7,13 +7,13 @@ import (
 )
 
 type transactionUseCases struct {
-	sendContractTransaction usecases.SendContractTxUseCase
-	sendDeployTransaction   usecases.SendDeployTxUseCase
-	sendTransaction         usecases.SendTxUseCase
-	getTransaction          usecases.GetTxUseCase
-	searchTransactions      usecases.SearchTransactionsUseCase
-	speedUpTransactions     usecases.SpeedUpTxUseCase
-	callOffTransactions     usecases.CallOffTxUseCase
+	sendContract usecases.SendContractTxUseCase
+	sendDeploy   usecases.SendDeployTxUseCase
+	send         usecases.SendTxUseCase
+	get          usecases.GetTxUseCase
+	search       usecases.SearchTransactionsUseCase
+	speedUp      usecases.SpeedUpTxUseCase
+	callOff      usecases.CallOffTxUseCase
 }
 
 func newTransactionUseCases(
@@ -25,44 +25,44 @@ func newTransactionUseCases(
 	getContractUC usecases.GetContractUseCase,
 ) *transactionUseCases {
 	getTransactionUC := transactions.NewGetTxUseCase(db, schedulesUCs.GetSchedule())
-	sendTxUC := transactions.NewSendTxUseCase(db, searchChainsUC, jobUCs.StartJob(), jobUCs.CreateJob(), getTransactionUC,
+	sendTxUC := transactions.NewSendTxUseCase(db, searchChainsUC, jobUCs.Start(), jobUCs.Create(), getTransactionUC,
 		getFaucetCandidateUC)
 
 	return &transactionUseCases{
-		sendContractTransaction: transactions.NewSendContractTxUseCase(sendTxUC, getContractUC),
-		sendDeployTransaction:   transactions.NewSendDeployTxUseCase(sendTxUC, getContractUC),
-		sendTransaction:         sendTxUC,
-		getTransaction:          getTransactionUC,
-		searchTransactions:      transactions.NewSearchTransactionsUseCase(db, getTransactionUC),
-		speedUpTransactions:     transactions.NewSpeedUpTxUseCase(getTransactionUC, jobUCs.retryJobTx),
-		callOffTransactions:     transactions.NewCallOffTxUseCase(getTransactionUC, jobUCs.retryJobTx),
+		sendContract: transactions.NewSendContractTxUseCase(sendTxUC, getContractUC),
+		sendDeploy:   transactions.NewSendDeployTxUseCase(sendTxUC, getContractUC),
+		send:         sendTxUC,
+		get:          getTransactionUC,
+		search:       transactions.NewSearchTransactionsUseCase(db, getTransactionUC),
+		speedUp:      transactions.NewSpeedUpTxUseCase(getTransactionUC, jobUCs.retryTx),
+		callOff:      transactions.NewCallOffTxUseCase(getTransactionUC, jobUCs.retryTx),
 	}
 }
 
-func (u *transactionUseCases) SendContractTransaction() usecases.SendContractTxUseCase {
-	return u.sendContractTransaction
+func (u *transactionUseCases) SendContract() usecases.SendContractTxUseCase {
+	return u.sendContract
 }
 
-func (u *transactionUseCases) SendDeployTransaction() usecases.SendDeployTxUseCase {
-	return u.sendDeployTransaction
+func (u *transactionUseCases) SendDeploy() usecases.SendDeployTxUseCase {
+	return u.sendDeploy
 }
 
-func (u *transactionUseCases) SendTransaction() usecases.SendTxUseCase {
-	return u.sendTransaction
+func (u *transactionUseCases) Send() usecases.SendTxUseCase {
+	return u.send
 }
 
-func (u *transactionUseCases) GetTransaction() usecases.GetTxUseCase {
-	return u.getTransaction
+func (u *transactionUseCases) Get() usecases.GetTxUseCase {
+	return u.get
 }
 
-func (u *transactionUseCases) SearchTransactions() usecases.SearchTransactionsUseCase {
-	return u.searchTransactions
+func (u *transactionUseCases) Search() usecases.SearchTransactionsUseCase {
+	return u.search
 }
 
-func (u *transactionUseCases) SpeedUpTransaction() usecases.SpeedUpTxUseCase {
-	return u.speedUpTransactions
+func (u *transactionUseCases) SpeedUp() usecases.SpeedUpTxUseCase {
+	return u.speedUp
 }
 
-func (u *transactionUseCases) CallOffTransaction() usecases.CallOffTxUseCase {
-	return u.callOffTransactions
+func (u *transactionUseCases) CallOff() usecases.CallOffTxUseCase {
+	return u.callOff
 }

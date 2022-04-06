@@ -37,102 +37,102 @@ func (m *MockTransactionUseCases) EXPECT() *MockTransactionUseCasesMockRecorder 
 	return m.recorder
 }
 
-// SendContractTransaction mocks base method
-func (m *MockTransactionUseCases) SendContractTransaction() usecases.SendContractTxUseCase {
+// SendContract mocks base method
+func (m *MockTransactionUseCases) SendContract() usecases.SendContractTxUseCase {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendContractTransaction")
+	ret := m.ctrl.Call(m, "SendContract")
 	ret0, _ := ret[0].(usecases.SendContractTxUseCase)
 	return ret0
 }
 
-// SendContractTransaction indicates an expected call of SendContractTransaction
-func (mr *MockTransactionUseCasesMockRecorder) SendContractTransaction() *gomock.Call {
+// SendContract indicates an expected call of SendContract
+func (mr *MockTransactionUseCasesMockRecorder) SendContract() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendContractTransaction", reflect.TypeOf((*MockTransactionUseCases)(nil).SendContractTransaction))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendContract", reflect.TypeOf((*MockTransactionUseCases)(nil).SendContract))
 }
 
-// SendDeployTransaction mocks base method
-func (m *MockTransactionUseCases) SendDeployTransaction() usecases.SendDeployTxUseCase {
+// SendDeploy mocks base method
+func (m *MockTransactionUseCases) SendDeploy() usecases.SendDeployTxUseCase {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendDeployTransaction")
+	ret := m.ctrl.Call(m, "SendDeploy")
 	ret0, _ := ret[0].(usecases.SendDeployTxUseCase)
 	return ret0
 }
 
-// SendDeployTransaction indicates an expected call of SendDeployTransaction
-func (mr *MockTransactionUseCasesMockRecorder) SendDeployTransaction() *gomock.Call {
+// SendDeploy indicates an expected call of SendDeploy
+func (mr *MockTransactionUseCasesMockRecorder) SendDeploy() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendDeployTransaction", reflect.TypeOf((*MockTransactionUseCases)(nil).SendDeployTransaction))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendDeploy", reflect.TypeOf((*MockTransactionUseCases)(nil).SendDeploy))
 }
 
-// SendTransaction mocks base method
-func (m *MockTransactionUseCases) SendTransaction() usecases.SendTxUseCase {
+// Send mocks base method
+func (m *MockTransactionUseCases) Send() usecases.SendTxUseCase {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendTransaction")
+	ret := m.ctrl.Call(m, "Send")
 	ret0, _ := ret[0].(usecases.SendTxUseCase)
 	return ret0
 }
 
-// SendTransaction indicates an expected call of SendTransaction
-func (mr *MockTransactionUseCasesMockRecorder) SendTransaction() *gomock.Call {
+// Send indicates an expected call of Send
+func (mr *MockTransactionUseCasesMockRecorder) Send() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendTransaction", reflect.TypeOf((*MockTransactionUseCases)(nil).SendTransaction))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Send", reflect.TypeOf((*MockTransactionUseCases)(nil).Send))
 }
 
-// GetTransaction mocks base method
-func (m *MockTransactionUseCases) GetTransaction() usecases.GetTxUseCase {
+// Get mocks base method
+func (m *MockTransactionUseCases) Get() usecases.GetTxUseCase {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTransaction")
+	ret := m.ctrl.Call(m, "Get")
 	ret0, _ := ret[0].(usecases.GetTxUseCase)
 	return ret0
 }
 
-// GetTransaction indicates an expected call of GetTransaction
-func (mr *MockTransactionUseCasesMockRecorder) GetTransaction() *gomock.Call {
+// Get indicates an expected call of Get
+func (mr *MockTransactionUseCasesMockRecorder) Get() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransaction", reflect.TypeOf((*MockTransactionUseCases)(nil).GetTransaction))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockTransactionUseCases)(nil).Get))
 }
 
-// SearchTransactions mocks base method
-func (m *MockTransactionUseCases) SearchTransactions() usecases.SearchTransactionsUseCase {
+// Search mocks base method
+func (m *MockTransactionUseCases) Search() usecases.SearchTransactionsUseCase {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SearchTransactions")
+	ret := m.ctrl.Call(m, "Search")
 	ret0, _ := ret[0].(usecases.SearchTransactionsUseCase)
 	return ret0
 }
 
-// SearchTransactions indicates an expected call of SearchTransactions
-func (mr *MockTransactionUseCasesMockRecorder) SearchTransactions() *gomock.Call {
+// Search indicates an expected call of Search
+func (mr *MockTransactionUseCasesMockRecorder) Search() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchTransactions", reflect.TypeOf((*MockTransactionUseCases)(nil).SearchTransactions))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockTransactionUseCases)(nil).Search))
 }
 
-// SpeedUpTransaction mocks base method
-func (m *MockTransactionUseCases) SpeedUpTransaction() usecases.SpeedUpTxUseCase {
+// SpeedUp mocks base method
+func (m *MockTransactionUseCases) SpeedUp() usecases.SpeedUpTxUseCase {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SpeedUpTransaction")
+	ret := m.ctrl.Call(m, "SpeedUp")
 	ret0, _ := ret[0].(usecases.SpeedUpTxUseCase)
 	return ret0
 }
 
-// SpeedUpTransaction indicates an expected call of SpeedUpTransaction
-func (mr *MockTransactionUseCasesMockRecorder) SpeedUpTransaction() *gomock.Call {
+// SpeedUp indicates an expected call of SpeedUp
+func (mr *MockTransactionUseCasesMockRecorder) SpeedUp() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SpeedUpTransaction", reflect.TypeOf((*MockTransactionUseCases)(nil).SpeedUpTransaction))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SpeedUp", reflect.TypeOf((*MockTransactionUseCases)(nil).SpeedUp))
 }
 
-// CallOffTransaction mocks base method
-func (m *MockTransactionUseCases) CallOffTransaction() usecases.CallOffTxUseCase {
+// CallOff mocks base method
+func (m *MockTransactionUseCases) CallOff() usecases.CallOffTxUseCase {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CallOffTransaction")
+	ret := m.ctrl.Call(m, "CallOff")
 	ret0, _ := ret[0].(usecases.CallOffTxUseCase)
 	return ret0
 }
 
-// CallOffTransaction indicates an expected call of CallOffTransaction
-func (mr *MockTransactionUseCasesMockRecorder) CallOffTransaction() *gomock.Call {
+// CallOff indicates an expected call of CallOff
+func (mr *MockTransactionUseCasesMockRecorder) CallOff() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CallOffTransaction", reflect.TypeOf((*MockTransactionUseCases)(nil).CallOffTransaction))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CallOff", reflect.TypeOf((*MockTransactionUseCases)(nil).CallOff))
 }
 
 // MockGetTxUseCase is a mock of GetTxUseCase interface

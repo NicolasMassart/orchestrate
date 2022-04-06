@@ -36,74 +36,74 @@ func (m *MockChainUseCases) EXPECT() *MockChainUseCasesMockRecorder {
 	return m.recorder
 }
 
-// RegisterChain mocks base method
-func (m *MockChainUseCases) RegisterChain() usecases.RegisterChainUseCase {
+// Register mocks base method
+func (m *MockChainUseCases) Register() usecases.RegisterChainUseCase {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RegisterChain")
+	ret := m.ctrl.Call(m, "Register")
 	ret0, _ := ret[0].(usecases.RegisterChainUseCase)
 	return ret0
 }
 
-// RegisterChain indicates an expected call of RegisterChain
-func (mr *MockChainUseCasesMockRecorder) RegisterChain() *gomock.Call {
+// Register indicates an expected call of Register
+func (mr *MockChainUseCasesMockRecorder) Register() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterChain", reflect.TypeOf((*MockChainUseCases)(nil).RegisterChain))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockChainUseCases)(nil).Register))
 }
 
-// GetChain mocks base method
-func (m *MockChainUseCases) GetChain() usecases.GetChainUseCase {
+// Get mocks base method
+func (m *MockChainUseCases) Get() usecases.GetChainUseCase {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetChain")
+	ret := m.ctrl.Call(m, "Get")
 	ret0, _ := ret[0].(usecases.GetChainUseCase)
 	return ret0
 }
 
-// GetChain indicates an expected call of GetChain
-func (mr *MockChainUseCasesMockRecorder) GetChain() *gomock.Call {
+// Get indicates an expected call of Get
+func (mr *MockChainUseCasesMockRecorder) Get() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChain", reflect.TypeOf((*MockChainUseCases)(nil).GetChain))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockChainUseCases)(nil).Get))
 }
 
-// SearchChains mocks base method
-func (m *MockChainUseCases) SearchChains() usecases.SearchChainsUseCase {
+// Search mocks base method
+func (m *MockChainUseCases) Search() usecases.SearchChainsUseCase {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SearchChains")
+	ret := m.ctrl.Call(m, "Search")
 	ret0, _ := ret[0].(usecases.SearchChainsUseCase)
 	return ret0
 }
 
-// SearchChains indicates an expected call of SearchChains
-func (mr *MockChainUseCasesMockRecorder) SearchChains() *gomock.Call {
+// Search indicates an expected call of Search
+func (mr *MockChainUseCasesMockRecorder) Search() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchChains", reflect.TypeOf((*MockChainUseCases)(nil).SearchChains))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockChainUseCases)(nil).Search))
 }
 
-// UpdateChain mocks base method
-func (m *MockChainUseCases) UpdateChain() usecases.UpdateChainUseCase {
+// Update mocks base method
+func (m *MockChainUseCases) Update() usecases.UpdateChainUseCase {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateChain")
+	ret := m.ctrl.Call(m, "Update")
 	ret0, _ := ret[0].(usecases.UpdateChainUseCase)
 	return ret0
 }
 
-// UpdateChain indicates an expected call of UpdateChain
-func (mr *MockChainUseCasesMockRecorder) UpdateChain() *gomock.Call {
+// Update indicates an expected call of Update
+func (mr *MockChainUseCasesMockRecorder) Update() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateChain", reflect.TypeOf((*MockChainUseCases)(nil).UpdateChain))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockChainUseCases)(nil).Update))
 }
 
-// DeleteChain mocks base method
-func (m *MockChainUseCases) DeleteChain() usecases.DeleteChainUseCase {
+// Delete mocks base method
+func (m *MockChainUseCases) Delete() usecases.DeleteChainUseCase {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteChain")
+	ret := m.ctrl.Call(m, "Delete")
 	ret0, _ := ret[0].(usecases.DeleteChainUseCase)
 	return ret0
 }
 
-// DeleteChain indicates an expected call of DeleteChain
-func (mr *MockChainUseCasesMockRecorder) DeleteChain() *gomock.Call {
+// Delete indicates an expected call of Delete
+func (mr *MockChainUseCasesMockRecorder) Delete() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteChain", reflect.TypeOf((*MockChainUseCases)(nil).DeleteChain))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockChainUseCases)(nil).Delete))
 }
 
 // MockRegisterChainUseCase is a mock of RegisterChainUseCase interface

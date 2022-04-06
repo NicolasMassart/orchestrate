@@ -1,18 +1,18 @@
 package builder
 
 import (
-	"github.com/consensys/orchestrate/src/infra/ethclient"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/business/use-cases/chains"
 	"github.com/consensys/orchestrate/src/api/store"
+	"github.com/consensys/orchestrate/src/infra/ethclient"
 )
 
 type chainUseCases struct {
-	registerChainUC usecases.RegisterChainUseCase
-	updateChainUC   usecases.UpdateChainUseCase
-	getChainUC      usecases.GetChainUseCase
-	searchChainsUC  usecases.SearchChainsUseCase
-	deleteChainUC   usecases.DeleteChainUseCase
+	register usecases.RegisterChainUseCase
+	update   usecases.UpdateChainUseCase
+	get      usecases.GetChainUseCase
+	search   usecases.SearchChainsUseCase
+	delete   usecases.DeleteChainUseCase
 }
 
 func newChainUseCases(db store.DB, ec ethclient.Client) *chainUseCases {
@@ -20,30 +20,30 @@ func newChainUseCases(db store.DB, ec ethclient.Client) *chainUseCases {
 	getChainUC := chains.NewGetChainUseCase(db)
 
 	return &chainUseCases{
-		registerChainUC: chains.NewRegisterChainUseCase(db, searchChainsUC, ec),
-		updateChainUC:   chains.NewUpdateChainUseCase(db, getChainUC),
-		getChainUC:      getChainUC,
-		searchChainsUC:  searchChainsUC,
-		deleteChainUC:   chains.NewDeleteChainUseCase(db, getChainUC),
+		register: chains.NewRegisterChainUseCase(db, searchChainsUC, ec),
+		update:   chains.NewUpdateChainUseCase(db, getChainUC),
+		get:      getChainUC,
+		search:   searchChainsUC,
+		delete:   chains.NewDeleteChainUseCase(db, getChainUC),
 	}
 }
 
-func (u *chainUseCases) RegisterChain() usecases.RegisterChainUseCase {
-	return u.registerChainUC
+func (u *chainUseCases) Register() usecases.RegisterChainUseCase {
+	return u.register
 }
 
-func (u *chainUseCases) UpdateChain() usecases.UpdateChainUseCase {
-	return u.updateChainUC
+func (u *chainUseCases) Update() usecases.UpdateChainUseCase {
+	return u.update
 }
 
-func (u *chainUseCases) GetChain() usecases.GetChainUseCase {
-	return u.getChainUC
+func (u *chainUseCases) Get() usecases.GetChainUseCase {
+	return u.get
 }
 
-func (u *chainUseCases) SearchChains() usecases.SearchChainsUseCase {
-	return u.searchChainsUC
+func (u *chainUseCases) Search() usecases.SearchChainsUseCase {
+	return u.search
 }
 
-func (u *chainUseCases) DeleteChain() usecases.DeleteChainUseCase {
-	return u.deleteChainUC
+func (u *chainUseCases) Delete() usecases.DeleteChainUseCase {
+	return u.delete
 }

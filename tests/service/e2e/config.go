@@ -20,7 +20,6 @@ type Config struct {
 	Output   string
 	TestData *config.TestData
 	KafkaCfg *broker.Config
-	Topics   *broker.TopicConfig
 	Timeout  time.Duration
 }
 
@@ -33,7 +32,6 @@ func NewConfig(vipr *viper.Viper) (*Config, error) {
 	}
 
 	cfg.KafkaCfg = flags.NewKafkaConfig(vipr)
-	cfg.Topics = flags.NewKafkaTopicConfig(vipr)
 	cfg.Output = viper.GetString(OutputPathViperKey)
 	cfg.Timeout = viper.GetDuration(CucumberTimeoutViperKey)
 	cfg.Cucumber = &godog.Options{

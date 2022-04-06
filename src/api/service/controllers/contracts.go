@@ -51,7 +51,7 @@ func (c *ContractsController) getCatalog(rw http.ResponseWriter, request *http.R
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
-	names, err := c.ucs.GetContractsCatalog().Execute(ctx)
+	names, err := c.ucs.GetCatalog().Execute(ctx)
 
 	if err != nil {
 		httputil.WriteHTTPErrorResponse(rw, err)
@@ -94,13 +94,13 @@ func (c *ContractsController) register(rw http.ResponseWriter, request *http.Req
 		return
 	}
 
-	err = c.ucs.RegisterContract().Execute(ctx, contract)
+	err = c.ucs.Register().Execute(ctx, contract)
 	if err != nil {
 		httputil.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
-	contract, err = c.ucs.GetContract().Execute(ctx, contract.Name, contract.Tag)
+	contract, err = c.ucs.Get().Execute(ctx, contract.Name, contract.Tag)
 	if err != nil {
 		httputil.WriteHTTPErrorResponse(rw, err)
 		return
@@ -133,7 +133,7 @@ func (c *ContractsController) search(rw http.ResponseWriter, request *http.Reque
 		return
 	}
 
-	contract, err := c.ucs.SearchContract().Execute(ctx, req.CodeHash, req.Address)
+	contract, err := c.ucs.Search().Execute(ctx, req.CodeHash, req.Address)
 	if err != nil {
 		httputil.WriteHTTPErrorResponse(rw, err)
 		return
@@ -174,7 +174,7 @@ func (c *ContractsController) setCodeHash(rw http.ResponseWriter, request *http.
 		return
 	}
 
-	err = c.ucs.SetContractCodeHash().Execute(ctx, chainID, ethcommon.HexToAddress(address), req.CodeHash)
+	err = c.ucs.SetCodeHash().Execute(ctx, chainID, ethcommon.HexToAddress(address), req.CodeHash)
 	if err != nil {
 		httputil.WriteHTTPErrorResponse(rw, err)
 		return
@@ -240,7 +240,7 @@ func (c *ContractsController) getTags(rw http.ResponseWriter, request *http.Requ
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
-	tags, err := c.ucs.GetContractTags().Execute(ctx, mux.Vars(request)["name"])
+	tags, err := c.ucs.GetTags().Execute(ctx, mux.Vars(request)["name"])
 
 	if err != nil {
 		httputil.WriteHTTPErrorResponse(rw, err)
@@ -269,7 +269,7 @@ func (c *ContractsController) getContract(rw http.ResponseWriter, request *http.
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
-	contract, err := c.ucs.GetContract().Execute(ctx, mux.Vars(request)["name"], mux.Vars(request)["tag"])
+	contract, err := c.ucs.Get().Execute(ctx, mux.Vars(request)["name"], mux.Vars(request)["tag"])
 	if err != nil {
 		httputil.WriteHTTPErrorResponse(rw, err)
 		return

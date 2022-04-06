@@ -69,7 +69,7 @@ func (c *AccountsController) create(rw http.ResponseWriter, request *http.Reques
 		return
 	}
 
-	acc, err := c.ucs.CreateAccount().Execute(ctx, formatters.FormatCreateAccountRequest(req, c.storeName), nil, req.Chain,
+	acc, err := c.ucs.Create().Execute(ctx, formatters.FormatCreateAccountRequest(req, c.storeName), nil, req.Chain,
 		multitenancy.UserInfoValue(ctx))
 	if err != nil {
 		httputil.WriteHTTPErrorResponse(rw, err)
@@ -101,7 +101,7 @@ func (c *AccountsController) getOne(rw http.ResponseWriter, request *http.Reques
 		return
 	}
 
-	acc, err := c.ucs.GetAccount().Execute(ctx, *address, multitenancy.UserInfoValue(ctx))
+	acc, err := c.ucs.Get().Execute(ctx, *address, multitenancy.UserInfoValue(ctx))
 	if err != nil {
 		httputil.WriteHTTPErrorResponse(rw, err)
 		return
@@ -133,7 +133,7 @@ func (c *AccountsController) search(rw http.ResponseWriter, request *http.Reques
 		return
 	}
 
-	accs, err := c.ucs.SearchAccounts().Execute(ctx, filters, multitenancy.UserInfoValue(ctx))
+	accs, err := c.ucs.Search().Execute(ctx, filters, multitenancy.UserInfoValue(ctx))
 	if err != nil {
 		httputil.WriteHTTPErrorResponse(rw, err)
 		return
@@ -173,7 +173,7 @@ func (c *AccountsController) importKey(rw http.ResponseWriter, request *http.Req
 		return
 	}
 
-	acc, err := c.ucs.CreateAccount().Execute(ctx, formatters.FormatImportAccountRequest(req, c.storeName), req.PrivateKey, req.Chain,
+	acc, err := c.ucs.Create().Execute(ctx, formatters.FormatImportAccountRequest(req, c.storeName), req.PrivateKey, req.Chain,
 		multitenancy.UserInfoValue(ctx))
 	if err != nil {
 		httputil.WriteHTTPErrorResponse(rw, err)
@@ -217,7 +217,7 @@ func (c *AccountsController) update(rw http.ResponseWriter, request *http.Reques
 	}
 	acc.Address = *address
 
-	accRes, err := c.ucs.UpdateAccount().Execute(ctx, acc, multitenancy.UserInfoValue(ctx))
+	accRes, err := c.ucs.Update().Execute(ctx, acc, multitenancy.UserInfoValue(ctx))
 
 	if err != nil {
 		httputil.WriteHTTPErrorResponse(rw, err)
@@ -257,7 +257,7 @@ func (c *AccountsController) signMessage(rw http.ResponseWriter, request *http.R
 		return
 	}
 
-	_, err = c.ucs.GetAccount().Execute(ctx, *address, multitenancy.UserInfoValue(ctx))
+	_, err = c.ucs.Get().Execute(ctx, *address, multitenancy.UserInfoValue(ctx))
 	if err != nil {
 		httputil.WriteError(rw, fmt.Sprintf("account %s was not found", address), http.StatusBadRequest)
 		return
@@ -308,7 +308,7 @@ func (c *AccountsController) signTypedData(rw http.ResponseWriter, request *http
 		return
 	}
 
-	_, err = c.ucs.GetAccount().Execute(ctx, *address, multitenancy.UserInfoValue(ctx))
+	_, err = c.ucs.Get().Execute(ctx, *address, multitenancy.UserInfoValue(ctx))
 	if err != nil {
 		httputil.WriteError(rw, fmt.Sprintf("account %s was not found", address), http.StatusBadRequest)
 		return

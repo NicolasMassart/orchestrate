@@ -2,7 +2,6 @@ package jobs
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"github.com/consensys/orchestrate/pkg/utils"
@@ -34,20 +33,17 @@ func NewStartNextJobUseCase(db store.DB, startJobUC usecases.StartJobUseCase) us
 func (uc *startNextJobUseCase) Execute(ctx context.Context, jobUUID string, userInfo *multitenancy.UserInfo) error {
 	ctx = log.WithFields(ctx, log.Field("job", jobUUID))
 	logger := uc.logger.WithContext(ctx).WithField("job", jobUUID)
-	logger.Debug("starting job")
+
 	job, err := uc.db.Job().FindOneByUUID(ctx, jobUUID, userInfo.AllowedTenants, userInfo.Username, false)
 	if err != nil {
 		return errors.FromError(err).ExtendComponent(startNextJobComponent)
 	}
 
 	if job.NextJobUUID == "" {
-		errMsg := fmt.Sprintf("job %s does not have a next job to start", job.NextJobUUID)
-		logger.Error(errMsg)
-		return errors.DataError(errMsg)
+		return nil
 	}
-
-	logger = logger.WithField("next_job", job.NextJobUUID)
-	logger.Debug("start next job use-case")
+	logger = logger.WithField("next_job_uuid", job.NextJobUUID)
+	logger.Debug("starting next job")
 
 	nextJob, err := uc.db.Job().FindOneByUUID(ctx, job.NextJobUUID, userInfo.AllowedTenants, userInfo.Username, false)
 	if err != nil {

@@ -12,12 +12,12 @@ import (
 	"strings"
 	"testing"
 
-	apitypes "github.com/consensys/orchestrate/src/api/service/types"
-	"github.com/consensys/orchestrate/src/entities"
-	"github.com/consensys/orchestrate/src/entities/testdata"
-	apitestdata "github.com/consensys/orchestrate/src/api/service/types/testdata"
 	"github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/business/use-cases/mocks"
+	apitypes "github.com/consensys/orchestrate/src/api/service/types"
+	apitestdata "github.com/consensys/orchestrate/src/api/service/types/testdata"
+	"github.com/consensys/orchestrate/src/entities"
+	"github.com/consensys/orchestrate/src/entities/testdata"
 
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
@@ -46,23 +46,23 @@ type jobsCtrlTestSuite struct {
 
 var _ usecases.JobUseCases = &jobsCtrlTestSuite{}
 
-func (s jobsCtrlTestSuite) CreateJob() usecases.CreateJobUseCase {
+func (s jobsCtrlTestSuite) Create() usecases.CreateJobUseCase {
 	return s.createJobUC
 }
 
-func (s jobsCtrlTestSuite) GetJob() usecases.GetJobUseCase {
+func (s jobsCtrlTestSuite) Get() usecases.GetJobUseCase {
 	return s.getJobUC
 }
 
-func (s jobsCtrlTestSuite) StartJob() usecases.StartJobUseCase {
+func (s jobsCtrlTestSuite) Start() usecases.StartJobUseCase {
 	return s.startJobUC
 }
 
-func (s jobsCtrlTestSuite) ResendJobTx() usecases.ResendJobTxUseCase {
+func (s jobsCtrlTestSuite) ResendTx() usecases.ResendJobTxUseCase {
 	return s.resentJobTxUC
 }
 
-func (s jobsCtrlTestSuite) RetryJobTx() usecases.RetryJobTxUseCase {
+func (s jobsCtrlTestSuite) RetryTx() usecases.RetryJobTxUseCase {
 	return s.retryJobTxUC
 }
 
@@ -70,11 +70,11 @@ func (s jobsCtrlTestSuite) StartNextJob() usecases.StartNextJobUseCase {
 	return s.startNextJobUC
 }
 
-func (s jobsCtrlTestSuite) UpdateJob() usecases.UpdateJobUseCase {
+func (s jobsCtrlTestSuite) Update() usecases.UpdateJobUseCase {
 	return s.updateJobUC
 }
 
-func (s jobsCtrlTestSuite) SearchJobs() usecases.SearchJobsUseCase {
+func (s jobsCtrlTestSuite) Search() usecases.SearchJobsUseCase {
 	return s.searchJobUC
 }
 

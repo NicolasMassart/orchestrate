@@ -28,8 +28,9 @@ type AccountFilters struct {
 }
 
 type EventStreamFilters struct {
-	Names    []string `validate:"omitempty,unique"`
-	TenantID string   `validate:"omitempty"`
+	Names     []string `validate:"omitempty,unique"`
+	TenantID  string   `validate:"omitempty"`
+	ChainUUID string   `validate:"omitempty"`
 }
 
 type ChainFilters struct {

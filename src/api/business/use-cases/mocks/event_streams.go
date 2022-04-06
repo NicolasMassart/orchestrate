@@ -64,6 +64,20 @@ func (mr *MockEventStreamsUseCasesMockRecorder) Search() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockEventStreamsUseCases)(nil).Search))
 }
 
+// NotifyTransaction mocks base method
+func (m *MockEventStreamsUseCases) NotifyTransaction() usecases.NotifyTransactionUseCase {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NotifyTransaction")
+	ret0, _ := ret[0].(usecases.NotifyTransactionUseCase)
+	return ret0
+}
+
+// NotifyTransaction indicates an expected call of NotifyTransaction
+func (mr *MockEventStreamsUseCasesMockRecorder) NotifyTransaction() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyTransaction", reflect.TypeOf((*MockEventStreamsUseCases)(nil).NotifyTransaction))
+}
+
 // MockCreateEventStreamUseCase is a mock of CreateEventStreamUseCase interface
 type MockCreateEventStreamUseCase struct {
 	ctrl     *gomock.Controller
@@ -138,4 +152,41 @@ func (m *MockSearchEventStreamsUseCase) Execute(ctx context.Context, filters *en
 func (mr *MockSearchEventStreamsUseCaseMockRecorder) Execute(ctx, filters, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockSearchEventStreamsUseCase)(nil).Execute), ctx, filters, userInfo)
+}
+
+// MockNotifyTransactionUseCase is a mock of NotifyTransactionUseCase interface
+type MockNotifyTransactionUseCase struct {
+	ctrl     *gomock.Controller
+	recorder *MockNotifyTransactionUseCaseMockRecorder
+}
+
+// MockNotifyTransactionUseCaseMockRecorder is the mock recorder for MockNotifyTransactionUseCase
+type MockNotifyTransactionUseCaseMockRecorder struct {
+	mock *MockNotifyTransactionUseCase
+}
+
+// NewMockNotifyTransactionUseCase creates a new mock instance
+func NewMockNotifyTransactionUseCase(ctrl *gomock.Controller) *MockNotifyTransactionUseCase {
+	mock := &MockNotifyTransactionUseCase{ctrl: ctrl}
+	mock.recorder = &MockNotifyTransactionUseCaseMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockNotifyTransactionUseCase) EXPECT() *MockNotifyTransactionUseCaseMockRecorder {
+	return m.recorder
+}
+
+// Execute mocks base method
+func (m *MockNotifyTransactionUseCase) Execute(ctx context.Context, job *entities.Job, errStr string, userInfo *multitenancy.UserInfo) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Execute", ctx, job, errStr, userInfo)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Execute indicates an expected call of Execute
+func (mr *MockNotifyTransactionUseCaseMockRecorder) Execute(ctx, job, errStr, userInfo interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockNotifyTransactionUseCase)(nil).Execute), ctx, job, errStr, userInfo)
 }

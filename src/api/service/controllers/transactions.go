@@ -82,7 +82,7 @@ func (c *TransactionsController) send(rw http.ResponseWriter, request *http.Requ
 	}
 
 	txReq := formatters.FormatSendTxRequest(txRequest, request.Header.Get(IdempotencyKeyHeader))
-	txResponse, err := c.ucs.SendContractTransaction().Execute(ctx, txReq, multitenancy.UserInfoValue(ctx))
+	txResponse, err := c.ucs.SendContract().Execute(ctx, txReq, multitenancy.UserInfoValue(ctx))
 	if err != nil {
 		httputil.WriteHTTPErrorResponse(rw, err)
 		return
@@ -124,7 +124,7 @@ func (c *TransactionsController) deployContract(rw http.ResponseWriter, request 
 	}
 
 	txReq := formatters.FormatDeployContractRequest(txRequest, request.Header.Get(IdempotencyKeyHeader))
-	txResponse, err := c.ucs.SendDeployTransaction().Execute(ctx, txReq, multitenancy.UserInfoValue(ctx))
+	txResponse, err := c.ucs.SendDeploy().Execute(ctx, txReq, multitenancy.UserInfoValue(ctx))
 	if err != nil {
 		httputil.WriteHTTPErrorResponse(rw, err)
 		return
@@ -160,7 +160,7 @@ func (c *TransactionsController) sendRaw(rw http.ResponseWriter, request *http.R
 	}
 
 	txReq := formatters.FormatSendRawRequest(txRequest, request.Header.Get(IdempotencyKeyHeader))
-	txResponse, err := c.ucs.SendTransaction().Execute(ctx, txReq, nil, multitenancy.UserInfoValue(ctx))
+	txResponse, err := c.ucs.Send().Execute(ctx, txReq, nil, multitenancy.UserInfoValue(ctx))
 	if err != nil {
 		httputil.WriteHTTPErrorResponse(rw, err)
 		return
@@ -201,7 +201,7 @@ func (c *TransactionsController) transfer(rw http.ResponseWriter, request *http.
 	}
 
 	txReq := formatters.FormatTransferRequest(txRequest, request.Header.Get(IdempotencyKeyHeader))
-	txResponse, err := c.ucs.SendTransaction().Execute(ctx, txReq, nil, multitenancy.UserInfoValue(ctx))
+	txResponse, err := c.ucs.Send().Execute(ctx, txReq, nil, multitenancy.UserInfoValue(ctx))
 	if err != nil {
 		httputil.WriteHTTPErrorResponse(rw, err)
 		return
@@ -228,7 +228,7 @@ func (c *TransactionsController) getOne(rw http.ResponseWriter, request *http.Re
 
 	uuid := mux.Vars(request)["uuid"]
 
-	txRequest, err := c.ucs.GetTransaction().Execute(ctx, uuid, multitenancy.UserInfoValue(ctx))
+	txRequest, err := c.ucs.Get().Execute(ctx, uuid, multitenancy.UserInfoValue(ctx))
 	if err != nil {
 		httputil.WriteHTTPErrorResponse(rw, err)
 		return
@@ -259,7 +259,7 @@ func (c *TransactionsController) search(rw http.ResponseWriter, request *http.Re
 		return
 	}
 
-	txRequests, err := c.ucs.SearchTransactions().Execute(ctx, filters, multitenancy.UserInfoValue(ctx))
+	txRequests, err := c.ucs.Search().Execute(ctx, filters, multitenancy.UserInfoValue(ctx))
 	if err != nil {
 		httputil.WriteHTTPErrorResponse(rw, err)
 		return
@@ -305,7 +305,7 @@ func (c *TransactionsController) speedUp(rw http.ResponseWriter, req *http.Reque
 		}
 	}
 
-	txRequest, err := c.ucs.SpeedUpTransaction().Execute(ctx, uuid, boostValue, multitenancy.UserInfoValue(ctx))
+	txRequest, err := c.ucs.SpeedUp().Execute(ctx, uuid, boostValue, multitenancy.UserInfoValue(ctx))
 	if err != nil {
 		httputil.WriteHTTPErrorResponse(rw, err)
 		return
@@ -330,7 +330,7 @@ func (c *TransactionsController) callOff(rw http.ResponseWriter, request *http.R
 
 	uuid := mux.Vars(request)["uuid"]
 
-	txRequest, err := c.ucs.CallOffTransaction().Execute(ctx, uuid, multitenancy.UserInfoValue(ctx))
+	txRequest, err := c.ucs.CallOff().Execute(ctx, uuid, multitenancy.UserInfoValue(ctx))
 	if err != nil {
 		httputil.WriteHTTPErrorResponse(rw, err)
 		return

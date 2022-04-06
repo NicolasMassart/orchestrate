@@ -37,74 +37,74 @@ func (m *MockFaucetUseCases) EXPECT() *MockFaucetUseCasesMockRecorder {
 	return m.recorder
 }
 
-// RegisterFaucet mocks base method
-func (m *MockFaucetUseCases) RegisterFaucet() usecases.RegisterFaucetUseCase {
+// Register mocks base method
+func (m *MockFaucetUseCases) Register() usecases.RegisterFaucetUseCase {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RegisterFaucet")
+	ret := m.ctrl.Call(m, "Register")
 	ret0, _ := ret[0].(usecases.RegisterFaucetUseCase)
 	return ret0
 }
 
-// RegisterFaucet indicates an expected call of RegisterFaucet
-func (mr *MockFaucetUseCasesMockRecorder) RegisterFaucet() *gomock.Call {
+// Register indicates an expected call of Register
+func (mr *MockFaucetUseCasesMockRecorder) Register() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterFaucet", reflect.TypeOf((*MockFaucetUseCases)(nil).RegisterFaucet))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockFaucetUseCases)(nil).Register))
 }
 
-// UpdateFaucet mocks base method
-func (m *MockFaucetUseCases) UpdateFaucet() usecases.UpdateFaucetUseCase {
+// Update mocks base method
+func (m *MockFaucetUseCases) Update() usecases.UpdateFaucetUseCase {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateFaucet")
+	ret := m.ctrl.Call(m, "Update")
 	ret0, _ := ret[0].(usecases.UpdateFaucetUseCase)
 	return ret0
 }
 
-// UpdateFaucet indicates an expected call of UpdateFaucet
-func (mr *MockFaucetUseCasesMockRecorder) UpdateFaucet() *gomock.Call {
+// Update indicates an expected call of Update
+func (mr *MockFaucetUseCasesMockRecorder) Update() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFaucet", reflect.TypeOf((*MockFaucetUseCases)(nil).UpdateFaucet))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockFaucetUseCases)(nil).Update))
 }
 
-// GetFaucet mocks base method
-func (m *MockFaucetUseCases) GetFaucet() usecases.GetFaucetUseCase {
+// Get mocks base method
+func (m *MockFaucetUseCases) Get() usecases.GetFaucetUseCase {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetFaucet")
+	ret := m.ctrl.Call(m, "Get")
 	ret0, _ := ret[0].(usecases.GetFaucetUseCase)
 	return ret0
 }
 
-// GetFaucet indicates an expected call of GetFaucet
-func (mr *MockFaucetUseCasesMockRecorder) GetFaucet() *gomock.Call {
+// Get indicates an expected call of Get
+func (mr *MockFaucetUseCasesMockRecorder) Get() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFaucet", reflect.TypeOf((*MockFaucetUseCases)(nil).GetFaucet))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockFaucetUseCases)(nil).Get))
 }
 
-// SearchFaucets mocks base method
-func (m *MockFaucetUseCases) SearchFaucets() usecases.SearchFaucetsUseCase {
+// Search mocks base method
+func (m *MockFaucetUseCases) Search() usecases.SearchFaucetsUseCase {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SearchFaucets")
+	ret := m.ctrl.Call(m, "Search")
 	ret0, _ := ret[0].(usecases.SearchFaucetsUseCase)
 	return ret0
 }
 
-// SearchFaucets indicates an expected call of SearchFaucets
-func (mr *MockFaucetUseCasesMockRecorder) SearchFaucets() *gomock.Call {
+// Search indicates an expected call of Search
+func (mr *MockFaucetUseCasesMockRecorder) Search() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchFaucets", reflect.TypeOf((*MockFaucetUseCases)(nil).SearchFaucets))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockFaucetUseCases)(nil).Search))
 }
 
-// DeleteFaucet mocks base method
-func (m *MockFaucetUseCases) DeleteFaucet() usecases.DeleteFaucetUseCase {
+// Delete mocks base method
+func (m *MockFaucetUseCases) Delete() usecases.DeleteFaucetUseCase {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteFaucet")
+	ret := m.ctrl.Call(m, "Delete")
 	ret0, _ := ret[0].(usecases.DeleteFaucetUseCase)
 	return ret0
 }
 
-// DeleteFaucet indicates an expected call of DeleteFaucet
-func (mr *MockFaucetUseCasesMockRecorder) DeleteFaucet() *gomock.Call {
+// Delete indicates an expected call of Delete
+func (mr *MockFaucetUseCasesMockRecorder) Delete() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFaucet", reflect.TypeOf((*MockFaucetUseCases)(nil).DeleteFaucet))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockFaucetUseCases)(nil).Delete))
 }
 
 // MockRegisterFaucetUseCase is a mock of RegisterFaucetUseCase interface

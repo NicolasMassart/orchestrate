@@ -1,11 +1,12 @@
 package usecases
 
 type UseCases interface {
-	TransactionUseCases
-	ScheduleUseCases
-	JobUseCases
-	AccountUseCases
-	FaucetUseCases
-	ChainUseCases
-	ContractUseCases
+	Jobs() JobUseCases
+	Schedules() ScheduleUseCases
+	Transactions() TransactionUseCases
+	Faucets() FaucetUseCases
+	Chains() ChainUseCases
+	Contracts() ContractUseCases
+	Accounts() AccountUseCases
+	EventStreams() EventStreamsUseCases
 }

@@ -8,9 +8,9 @@ import (
 	"github.com/consensys/orchestrate/pkg/toolkit/app"
 	authjwt "github.com/consensys/orchestrate/pkg/toolkit/app/auth/jwt"
 	authkey "github.com/consensys/orchestrate/pkg/toolkit/app/auth/key"
-	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	ethclient "github.com/consensys/orchestrate/src/infra/ethclient/rpc"
 	"github.com/consensys/orchestrate/src/infra/postgres/gopg"
+	notifier "github.com/consensys/orchestrate/src/infra/push_notification/client"
 	qkmhttp "github.com/consensys/orchestrate/src/infra/quorum-key-manager/http"
 	nonclient "github.com/consensys/orchestrate/src/infra/quorum-key-manager/non-client"
 	"github.com/consensys/quorum-key-manager/pkg/client"
@@ -20,10 +20,7 @@ type Daemon struct {
 	*app.App
 }
 
-// New Utility function used to initialize a new service
 func New(ctx context.Context, cfg *Config) (*Daemon, error) {
-	logger := log.FromContext(ctx)
-
 	// Initialize infra dependencies
 	qkmClient, err := QKMClient(cfg)
 	if err != nil {
@@ -35,15 +32,19 @@ func New(ctx context.Context, cfg *Config) (*Daemon, error) {
 		return nil, err
 	}
 
-	authjwt.Init(ctx)
-	authkey.Init(ctx)
-	ethclient.Init(ctx)
-
 	clientProducer, err := broker.NewProducer(cfg.Kafka)
 	if err != nil {
 		return nil, err
 	}
-	logger.WithField("host", cfg.Kafka.URLs).Info("kafka producer client ready")
+
+	notifierClient, err := notifier.New(cfg.Kafka)
+	if err != nil {
+		return nil, err
+	}
+
+	authjwt.Init(ctx)
+	authkey.Init(ctx)
+	ethclient.Init(ctx)
 
 	api, err := NewAPI(
 		cfg,
@@ -54,16 +55,14 @@ func New(ctx context.Context, cfg *Config) (*Daemon, error) {
 		cfg.QKM.StoreName,
 		ethclient.GlobalClient(),
 		clientProducer,
-		cfg.KafkaTopics,
+		notifierClient,
 	)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &Daemon{
-		api,
-	}, nil
+	return &Daemon{api}, nil
 }
 
 func (d *Daemon) Run(ctx context.Context) error {

@@ -9,7 +9,6 @@ import (
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/infra/kafka"
-	"github.com/consensys/orchestrate/src/infra/kafka/proto"
 )
 
 type Producer struct {
@@ -38,28 +37,7 @@ func NewProducer(cfg *Config) (*Producer, error) {
 	return &Producer{syncProducer: p, client: client}, nil
 }
 
-func (p *Producer) SendTxResponse(topic string, txResponse *proto.TxResponse) error {
-	b, err := proto.Marshal(txResponse)
-	if err != nil {
-		errMsg := "failed to encode mined job response"
-		return errors.EncodingError(errMsg)
-	}
-
-	msg := &sarama.ProducerMessage{
-		Topic: topic,
-		Key:   sarama.StringEncoder(txResponse.Id),
-		Value: sarama.ByteEncoder(b),
-	}
-
-	_, _, err = p.syncProducer.SendMessage(msg)
-	if err != nil {
-		return errors.KafkaConnectionError("could not produce kafka message")
-	}
-
-	return nil
-}
-
-func (p *Producer) SendJobMessage(topic string, job *entities.Job, userInfo *multitenancy.UserInfo) error {
+func (p *Producer) SendJobMessage(topic string, job *entities.Job, userInfo *multitenancy.UserInfo) error { // TODO(dario): remove this function from the kakfa folder to an internal notifier
 	msg := &sarama.ProducerMessage{
 		Topic: topic,
 	}

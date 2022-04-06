@@ -5,13 +5,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/consensys/orchestrate/src/infra/push_notification/client"
+
 	orchestrateclient "github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/src/infra/ethclient"
 	rpcClient "github.com/consensys/orchestrate/src/infra/ethclient/rpc"
-	"github.com/consensys/orchestrate/src/infra/kafka/proto"
-	"github.com/consensys/orchestrate/src/infra/kafka/sarama"
 	"github.com/consensys/orchestrate/src/infra/kafka/testutils"
 	"github.com/consensys/orchestrate/tests/service/e2e/cucumber/alias"
 	"github.com/cucumber/godog"
@@ -30,11 +30,11 @@ type ScenarioContext struct {
 
 	aliases *alias.Registry
 
-	topics *sarama.TopicConfig
+	topic string
 
 	waitForEnvelope time.Duration
 
-	txResponses []*proto.TxResponse
+	txResponses []*client.TxResponse
 
 	// API
 	client orchestrateclient.OrchestrateClient
@@ -51,20 +51,20 @@ type ScenarioContext struct {
 func NewScenarioContext(
 	consumerTracker *testutils.ConsumerTracker,
 	httpClient *gohttp.Client,
-	client orchestrateclient.OrchestrateClient,
+	orchestrateClient orchestrateclient.OrchestrateClient,
 	aliasesReg *alias.Registry,
 	ec ethclient.Client,
-	topics *sarama.TopicConfig,
+	topic string,
 	waitFor time.Duration,
 ) *ScenarioContext {
 	sc := &ScenarioContext{
 		consumerTracker: consumerTracker,
 		httpClient:      httpClient,
 		aliases:         aliasesReg,
-		client:          client,
+		client:          orchestrateClient,
 		logger:          log.NewLogger().SetComponent("e2e.cucumber"),
 		ec:              ec,
-		topics:          topics,
+		topic:           topic,
 		waitForEnvelope: waitFor,
 		mux:             &sync.RWMutex{},
 	}
@@ -98,14 +98,14 @@ func (sc *ScenarioContext) preProcessTableStep(tableFunc stepTable) stepTable {
 	}
 }
 
-func InitializeScenario(s *godog.ScenarioContext, consumerTracker *testutils.ConsumerTracker, topics *sarama.TopicConfig, waitFor time.Duration) {
+func InitializeScenario(s *godog.ScenarioContext, consumerTracker *testutils.ConsumerTracker, topic string, waitFor time.Duration) {
 	sc := NewScenarioContext(
 		consumerTracker,
 		http.NewClient(http.NewDefaultConfig()),
 		orchestrateclient.GlobalClient(),
 		alias.GlobalAliasRegistry(),
 		rpcClient.GlobalClient(),
-		topics,
+		topic,
 		waitFor,
 	)
 

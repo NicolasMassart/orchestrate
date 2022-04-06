@@ -32,8 +32,6 @@ func InitFlags(f *pflag.FlagSet) {
 	GlobalData(f)
 	Timeout(f)
 	flags.KafkaConsumerFlags(f)
-	flags.KafkaTopicTxDecoded(f)
-	flags.KafkaTopicTxRecover(f)
 }
 
 const (

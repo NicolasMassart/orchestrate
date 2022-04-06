@@ -47,19 +47,19 @@ type accountsCtrlTestSuite struct {
 
 var _ usecases.AccountUseCases = &accountsCtrlTestSuite{}
 
-func (s *accountsCtrlTestSuite) CreateAccount() usecases.CreateAccountUseCase {
+func (s *accountsCtrlTestSuite) Create() usecases.CreateAccountUseCase {
 	return s.createAccountUC
 }
 
-func (s *accountsCtrlTestSuite) GetAccount() usecases.GetAccountUseCase {
+func (s *accountsCtrlTestSuite) Get() usecases.GetAccountUseCase {
 	return s.getAccountUC
 }
 
-func (s *accountsCtrlTestSuite) SearchAccounts() usecases.SearchAccountsUseCase {
+func (s *accountsCtrlTestSuite) Search() usecases.SearchAccountsUseCase {
 	return s.searchAccountUC
 }
 
-func (s *accountsCtrlTestSuite) UpdateAccount() usecases.UpdateAccountUseCase {
+func (s *accountsCtrlTestSuite) Update() usecases.UpdateAccountUseCase {
 	return s.updateAccountUC
 }
 

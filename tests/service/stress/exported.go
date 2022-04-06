@@ -5,6 +5,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/consensys/orchestrate/src/api"
+
 	"github.com/consensys/orchestrate/cmd/flags"
 	"github.com/consensys/orchestrate/pkg/backoff"
 	"github.com/consensys/orchestrate/pkg/errors"
@@ -45,14 +47,13 @@ func Start(ctx context.Context) error {
 	}
 
 	kafkaCfg := flags.NewKafkaConfig(viper.GetViper())
-	topicCfg := flags.NewKafkaTopicConfig(viper.GetViper())
 	httpClientCfg := http.NewConfig(viper.GetViper())
 	httpClient := http.NewClient(httpClientCfg)
 	backoffConf := orchestrateclient.NewConfigFromViper(viper.GetViper(),
 		backoff.IncrementalBackOff(time.Second, time.Second*5, time.Minute))
 	client := orchestrateclient.NewHTTPClient(httpClient, backoffConf)
 
-	consumerTracker, err := testutils.NewConsumerTracker(kafkaCfg, topicCfg)
+	consumerTracker, err := testutils.NewConsumerTracker(kafkaCfg, &api.TopicConfig{})
 	if err != nil {
 		return err
 	}
@@ -64,7 +65,7 @@ func Start(ctx context.Context) error {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
-		err := consumerTracker.Consume(ctx, []string{topicCfg.Decoded, topicCfg.Recover})
+		err := consumerTracker.Consume(ctx, []string{""})
 		if err != nil {
 			gerr = errors.CombineErrors(gerr, err)
 			logger.WithError(err).Error("error on consumer")

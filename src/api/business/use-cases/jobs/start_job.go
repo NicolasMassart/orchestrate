@@ -13,7 +13,6 @@ import (
 	"github.com/consensys/orchestrate/src/api/metrics"
 	"github.com/consensys/orchestrate/src/api/store"
 	"github.com/consensys/orchestrate/src/entities"
-	broker "github.com/consensys/orchestrate/src/infra/kafka/sarama"
 )
 
 const startJobComponent = "use-cases.start-job"
@@ -22,7 +21,7 @@ const startJobComponent = "use-cases.start-job"
 type startJobUseCase struct {
 	db            store.DB
 	kafkaProducer kafka.Producer
-	topicsCfg     *broker.TopicConfig
+	topicSender   string
 	metrics       metrics.TransactionSchedulerMetrics
 	logger        *log.Logger
 }
@@ -31,13 +30,13 @@ type startJobUseCase struct {
 func NewStartJobUseCase(
 	db store.DB,
 	kafkaProducer kafka.Producer,
-	topicsCfg *broker.TopicConfig,
+	topicSender string,
 	m metrics.TransactionSchedulerMetrics,
 ) usecases.StartJobUseCase {
 	return &startJobUseCase{
 		db:            db,
 		kafkaProducer: kafkaProducer,
-		topicsCfg:     topicsCfg,
+		topicSender:   topicSender,
 		metrics:       m,
 		logger:        log.NewLogger().SetComponent(startJobComponent),
 	}
@@ -69,7 +68,7 @@ func (uc *startJobUseCase) Execute(ctx context.Context, jobUUID string, userInfo
 
 	uc.addMetrics(time.Since(prevJobUpdateAt), curJob.Status, jobLog.Status, curJob.ChainUUID)
 
-	err = uc.kafkaProducer.SendJobMessage(uc.topicsCfg.Sender, curJob, userInfo)
+	err = uc.kafkaProducer.SendJobMessage(uc.topicSender, curJob, userInfo)
 	if err != nil {
 		logger.WithError(err).Error("failed to send start job envelope")
 		return err

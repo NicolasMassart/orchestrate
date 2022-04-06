@@ -253,6 +253,4 @@ func Flags(f *pflag.FlagSet) {
 
 	flags.KafkaFlags(f)
 	flags.KafkaConsumerFlags(f)
-	flags.KafkaTopicTxRecover(f)
-	flags.KafkaTopicTxDecoded(f)
 }

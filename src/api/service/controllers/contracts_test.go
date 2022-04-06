@@ -11,13 +11,13 @@ import (
 	"testing"
 
 	"encoding/json"
-	api "github.com/consensys/orchestrate/src/api/service/types"
-	"github.com/consensys/orchestrate/src/entities/testdata"
-	apitestdata "github.com/consensys/orchestrate/src/api/service/types/testdata"
 	"github.com/consensys/orchestrate/pkg/utils"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/business/use-cases/mocks"
 	"github.com/consensys/orchestrate/src/api/service/formatters"
+	api "github.com/consensys/orchestrate/src/api/service/types"
+	apitestdata "github.com/consensys/orchestrate/src/api/service/types/testdata"
+	"github.com/consensys/orchestrate/src/entities/testdata"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
@@ -39,26 +39,29 @@ type contractsCtrlTestSuite struct {
 
 var _ usecases.ContractUseCases = &contractsCtrlTestSuite{}
 
-func (s *contractsCtrlTestSuite) GetContractsCatalog() usecases.GetContractsCatalogUseCase {
+func (s *contractsCtrlTestSuite) GetCatalog() usecases.GetContractsCatalogUseCase {
 	return s.getContractsCatalog
 }
-func (s *contractsCtrlTestSuite) GetContract() usecases.GetContractUseCase {
+func (s *contractsCtrlTestSuite) Get() usecases.GetContractUseCase {
 	return s.getContract
 }
 func (s *contractsCtrlTestSuite) GetContractEvents() usecases.GetContractEventsUseCase {
 	return s.getContractEvents
 }
-func (s *contractsCtrlTestSuite) GetContractTags() usecases.GetContractTagsUseCase {
+func (s *contractsCtrlTestSuite) GetTags() usecases.GetContractTagsUseCase {
 	return s.getContractTags
 }
-func (s *contractsCtrlTestSuite) SetContractCodeHash() usecases.RegisterContractDeploymentUseCase {
+func (s *contractsCtrlTestSuite) SetCodeHash() usecases.RegisterContractDeploymentUseCase {
 	return s.registerContractEvent
 }
-func (s *contractsCtrlTestSuite) RegisterContract() usecases.RegisterContractUseCase {
+func (s *contractsCtrlTestSuite) Register() usecases.RegisterContractUseCase {
 	return s.registerContract
 }
-func (s *contractsCtrlTestSuite) SearchContract() usecases.SearchContractUseCase {
+func (s *contractsCtrlTestSuite) Search() usecases.SearchContractUseCase {
 	return s.searchContract
+}
+func (s *contractsCtrlTestSuite) DecodeLog() usecases.DecodeEventLogUseCase {
+	return nil
 }
 
 func TestContractController(t *testing.T) {

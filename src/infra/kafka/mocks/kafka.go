@@ -10,7 +10,6 @@ import (
 	multitenancy "github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	entities "github.com/consensys/orchestrate/src/entities"
 	kafka "github.com/consensys/orchestrate/src/infra/kafka"
-	proto "github.com/consensys/orchestrate/src/infra/kafka/proto"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -87,20 +86,6 @@ func (m *MockProducer) SendJobMessage(topic string, job *entities.Job, userInfo 
 func (mr *MockProducerMockRecorder) SendJobMessage(topic, job, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendJobMessage", reflect.TypeOf((*MockProducer)(nil).SendJobMessage), topic, job, userInfo)
-}
-
-// SendTxResponse mocks base method
-func (m *MockProducer) SendTxResponse(topic string, txResponse *proto.TxResponse) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendTxResponse", topic, txResponse)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SendTxResponse indicates an expected call of SendTxResponse
-func (mr *MockProducerMockRecorder) SendTxResponse(topic, txResponse interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendTxResponse", reflect.TypeOf((*MockProducer)(nil).SendTxResponse), topic, txResponse)
 }
 
 // Client mocks base method

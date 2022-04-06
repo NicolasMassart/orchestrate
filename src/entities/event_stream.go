@@ -9,7 +9,7 @@ type EventStreamStatus string
 
 var (
 	EventStreamChannelWebhook EventStreamChannel = "webhook"
-	// EventStreamChannelKafka EventStreamChannel = "kafka"
+	EventStreamChannelKafka   EventStreamChannel = "kafka"
 )
 
 var (
@@ -33,11 +33,17 @@ type EventStream struct {
 
 type Webhook struct {
 	URL     string            `json:"url"`
-	Method  string            `json:"method"`
-	Format  string            `json:"format"`
 	Headers map[string]string `json:"headers,omitempty"`
+}
+
+type Kafka struct {
+	Topic string `json:"topic"`
 }
 
 func (e *EventStream) WebHook() *Webhook {
 	return e.Specs.(*Webhook) // No need to verify the casting (assertion, not an exception)
+}
+
+func (e *EventStream) Kafka() *Kafka {
+	return e.Specs.(*Kafka) // No need to verify the casting (assertion, not an exception)
 }

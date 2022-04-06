@@ -12,7 +12,7 @@ type EventStream struct {
 	ID        int `pg:"alias:id"`
 	UUID      string
 	Name      string
-	Specs     interface{}
+	Specs     EventStreamSpecs
 	Channel   string
 	Status    string
 	Labels    map[string]string
@@ -23,11 +23,15 @@ type EventStream struct {
 	UpdatedAt time.Time `pg:"default:now()"`
 }
 
+type EventStreamSpecs struct {
+	WebHook *entities.Webhook `json:"webhook,omitempty"`
+	Kafka   interface{}       `json:"kafka,omitempty"`
+}
+
 func NewEventStream(eventStream *entities.EventStream) *EventStream {
-	return &EventStream{
+	es := &EventStream{
 		UUID:      eventStream.UUID,
 		Name:      eventStream.Name,
-		Specs:     eventStream.Specs,
 		Channel:   string(eventStream.Channel),
 		Status:    string(eventStream.Status),
 		ChainUUID: eventStream.ChainUUID,
@@ -37,6 +41,15 @@ func NewEventStream(eventStream *entities.EventStream) *EventStream {
 		CreatedAt: eventStream.CreatedAt,
 		UpdatedAt: eventStream.UpdatedAt,
 	}
+
+	switch eventStream.Channel {
+	case entities.EventStreamChannelWebhook:
+		es.Specs.WebHook = eventStream.WebHook()
+	case entities.EventStreamChannelKafka:
+		es.Specs.Kafka = eventStream.Specs
+	}
+
+	return es
 }
 
 func NewEventStreams(eventStreams []*EventStream) []*entities.EventStream {
@@ -49,7 +62,7 @@ func NewEventStreams(eventStreams []*EventStream) []*entities.EventStream {
 }
 
 func (e *EventStream) ToEntity() *entities.EventStream {
-	return &entities.EventStream{
+	es := &entities.EventStream{
 		UUID:      e.UUID,
 		Name:      e.Name,
 		ChainUUID: e.ChainUUID,
@@ -57,9 +70,17 @@ func (e *EventStream) ToEntity() *entities.EventStream {
 		OwnerID:   e.OwnerID,
 		Channel:   entities.EventStreamChannel(e.Channel),
 		Status:    entities.EventStreamStatus(e.Status),
-		Specs:     e.Specs,
 		Labels:    e.Labels,
 		CreatedAt: e.CreatedAt,
 		UpdatedAt: e.UpdatedAt,
 	}
+
+	switch es.Channel {
+	case entities.EventStreamChannelWebhook:
+		es.Specs = e.Specs.WebHook
+	case entities.EventStreamChannelKafka:
+		es.Specs = e.Specs.Kafka
+	}
+
+	return es
 }

@@ -11,11 +11,11 @@ import (
 //go:generate mockgen -source=faucets.go -destination=mocks/faucets.go -package=mocks
 
 type FaucetUseCases interface {
-	RegisterFaucet() RegisterFaucetUseCase
-	UpdateFaucet() UpdateFaucetUseCase
-	GetFaucet() GetFaucetUseCase
-	SearchFaucets() SearchFaucetsUseCase
-	DeleteFaucet() DeleteFaucetUseCase
+	Register() RegisterFaucetUseCase
+	Update() UpdateFaucetUseCase
+	Get() GetFaucetUseCase
+	Search() SearchFaucetsUseCase
+	Delete() DeleteFaucetUseCase
 }
 
 type RegisterFaucetUseCase interface {

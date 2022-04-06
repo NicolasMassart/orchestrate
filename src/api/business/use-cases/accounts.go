@@ -12,10 +12,10 @@ import (
 //go:generate mockgen -source=accounts.go -destination=mocks/accounts.go -package=mocks
 
 type AccountUseCases interface {
-	GetAccount() GetAccountUseCase
-	CreateAccount() CreateAccountUseCase
-	UpdateAccount() UpdateAccountUseCase
-	SearchAccounts() SearchAccountsUseCase
+	Get() GetAccountUseCase
+	Create() CreateAccountUseCase
+	Update() UpdateAccountUseCase
+	Search() SearchAccountsUseCase
 }
 
 type GetAccountUseCase interface {

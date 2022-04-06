@@ -12,16 +12,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/api/business/use-cases"
+	"github.com/consensys/orchestrate/src/entities"
 
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
-	apitypes "github.com/consensys/orchestrate/src/api/service/types"
-	"github.com/consensys/orchestrate/src/api/service/formatters"
-	"github.com/consensys/orchestrate/src/entities/testdata"
-	apitestdata "github.com/consensys/orchestrate/src/api/service/types/testdata"
 	"github.com/consensys/orchestrate/src/api/business/use-cases/mocks"
+	"github.com/consensys/orchestrate/src/api/service/formatters"
+	apitypes "github.com/consensys/orchestrate/src/api/service/types"
+	apitestdata "github.com/consensys/orchestrate/src/api/service/types/testdata"
+	"github.com/consensys/orchestrate/src/entities/testdata"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
@@ -44,31 +44,31 @@ type transactionsControllerTestSuite struct {
 	defaultRetryInterval  time.Duration
 }
 
-func (s *transactionsControllerTestSuite) SendContractTransaction() usecases.SendContractTxUseCase {
+func (s *transactionsControllerTestSuite) SendContract() usecases.SendContractTxUseCase {
 	return s.sendContractTxUseCase
 }
 
-func (s *transactionsControllerTestSuite) SendDeployTransaction() usecases.SendDeployTxUseCase {
+func (s *transactionsControllerTestSuite) SendDeploy() usecases.SendDeployTxUseCase {
 	return s.sendDeployTxUseCase
 }
 
-func (s *transactionsControllerTestSuite) SendTransaction() usecases.SendTxUseCase {
+func (s *transactionsControllerTestSuite) Send() usecases.SendTxUseCase {
 	return s.sendTxUseCase
 }
 
-func (s *transactionsControllerTestSuite) GetTransaction() usecases.GetTxUseCase {
+func (s *transactionsControllerTestSuite) Get() usecases.GetTxUseCase {
 	return s.getTxUseCase
 }
 
-func (s *transactionsControllerTestSuite) SearchTransactions() usecases.SearchTransactionsUseCase {
+func (s *transactionsControllerTestSuite) Search() usecases.SearchTransactionsUseCase {
 	return s.searchTxsUsecase
 }
 
-func (s *transactionsControllerTestSuite) SpeedUpTransaction() usecases.SpeedUpTxUseCase {
+func (s *transactionsControllerTestSuite) SpeedUp() usecases.SpeedUpTxUseCase {
 	return s.speedUpTxUseCase
 }
 
-func (s *transactionsControllerTestSuite) CallOffTransaction() usecases.CallOffTxUseCase {
+func (s *transactionsControllerTestSuite) CallOff() usecases.CallOffTxUseCase {
 	return s.callOffTxUseCase
 }
 
@@ -417,7 +417,7 @@ func (s *transactionsControllerTestSuite) TestSpeedUp() {
 		assert.Equal(t, string(expectedBody)+"\n", rw.Body.String())
 		assert.Equal(t, http.StatusOK, rw.Code)
 	})
-	
+
 	s.T().Run("should fail with 400 if boost value is lower than min", func(t *testing.T) {
 		urlPath := fmt.Sprintf("/transactions/%s/speed-up?boost=%f", uuid, 0.01)
 		rw := httptest.NewRecorder()

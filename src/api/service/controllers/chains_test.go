@@ -45,23 +45,23 @@ type chainsCtrlTestSuite struct {
 
 var _ usecases.ChainUseCases = &chainsCtrlTestSuite{}
 
-func (s *chainsCtrlTestSuite) RegisterChain() usecases.RegisterChainUseCase {
+func (s *chainsCtrlTestSuite) Register() usecases.RegisterChainUseCase {
 	return s.registerChainUC
 }
 
-func (s *chainsCtrlTestSuite) GetChain() usecases.GetChainUseCase {
+func (s *chainsCtrlTestSuite) Get() usecases.GetChainUseCase {
 	return s.getChainUC
 }
 
-func (s *chainsCtrlTestSuite) SearchChains() usecases.SearchChainsUseCase {
+func (s *chainsCtrlTestSuite) Search() usecases.SearchChainsUseCase {
 	return s.searchChainUC
 }
 
-func (s *chainsCtrlTestSuite) UpdateChain() usecases.UpdateChainUseCase {
+func (s *chainsCtrlTestSuite) Update() usecases.UpdateChainUseCase {
 	return s.updateChainUC
 }
 
-func (s *chainsCtrlTestSuite) DeleteChain() usecases.DeleteChainUseCase {
+func (s *chainsCtrlTestSuite) Delete() usecases.DeleteChainUseCase {
 	return s.deleteChainUC
 }
 

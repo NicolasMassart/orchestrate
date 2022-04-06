@@ -53,13 +53,13 @@ type Builder struct {
 
 func NewBuilder(ucs usecases.UseCases, keyManagerClient qkm.KeyManagerClient, qkmStoreID string) *Builder {
 	return &Builder{
-		txCtrl:        NewTransactionsController(ucs),
-		schedulesCtrl: NewSchedulesController(ucs),
-		jobsCtrl:      NewJobsController(ucs),
-		accountsCtrl:  NewAccountsController(ucs, keyManagerClient, qkmStoreID),
-		faucetsCtrl:   NewFaucetsController(ucs),
-		chainsCtrl:    NewChainsController(ucs),
-		contractsCtrl: NewContractsController(ucs),
+		txCtrl:        NewTransactionsController(ucs.Transactions()),
+		schedulesCtrl: NewSchedulesController(ucs.Schedules()),
+		jobsCtrl:      NewJobsController(ucs.Jobs()),
+		accountsCtrl:  NewAccountsController(ucs.Accounts(), keyManagerClient, qkmStoreID),
+		faucetsCtrl:   NewFaucetsController(ucs.Faucets()),
+		chainsCtrl:    NewChainsController(ucs.Chains()),
+		contractsCtrl: NewContractsController(ucs.Contracts()),
 	}
 }
 

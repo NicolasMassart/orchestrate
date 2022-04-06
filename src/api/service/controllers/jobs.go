@@ -59,7 +59,7 @@ func (c *JobsController) search(rw http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	jobRes, err := c.ucs.SearchJobs().Execute(ctx, filters, multitenancy.UserInfoValue(ctx))
+	jobRes, err := c.ucs.Search().Execute(ctx, filters, multitenancy.UserInfoValue(ctx))
 	if err != nil {
 		httputil.WriteHTTPErrorResponse(rw, err)
 		return
@@ -103,7 +103,7 @@ func (c *JobsController) create(rw http.ResponseWriter, request *http.Request) {
 	}
 
 	job := formatters.FormatJobCreateRequest(jobRequest)
-	jobRes, err := c.ucs.CreateJob().Execute(ctx, job, multitenancy.UserInfoValue(ctx))
+	jobRes, err := c.ucs.Create().Execute(ctx, job, multitenancy.UserInfoValue(ctx))
 	if err != nil {
 		httputil.WriteHTTPErrorResponse(rw, err)
 		return
@@ -129,7 +129,7 @@ func (c *JobsController) getOne(rw http.ResponseWriter, request *http.Request) {
 
 	uuid := mux.Vars(request)["uuid"]
 
-	jobRes, err := c.ucs.GetJob().Execute(ctx, uuid, multitenancy.UserInfoValue(ctx))
+	jobRes, err := c.ucs.Get().Execute(ctx, uuid, multitenancy.UserInfoValue(ctx))
 	if err != nil {
 		httputil.WriteHTTPErrorResponse(rw, err)
 		return
@@ -154,7 +154,7 @@ func (c *JobsController) start(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
 	jobUUID := mux.Vars(request)["uuid"]
-	err := c.ucs.StartJob().Execute(ctx, jobUUID, multitenancy.UserInfoValue(ctx))
+	err := c.ucs.Start().Execute(ctx, jobUUID, multitenancy.UserInfoValue(ctx))
 	if err != nil {
 		httputil.WriteHTTPErrorResponse(rw, err)
 		return
@@ -179,7 +179,7 @@ func (c *JobsController) resend(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
 	jobUUID := mux.Vars(request)["uuid"]
-	err := c.ucs.ResendJobTx().Execute(ctx, jobUUID, multitenancy.UserInfoValue(ctx))
+	err := c.ucs.ResendTx().Execute(ctx, jobUUID, multitenancy.UserInfoValue(ctx))
 	if err != nil {
 		httputil.WriteHTTPErrorResponse(rw, err)
 		return
@@ -216,7 +216,7 @@ func (c *JobsController) update(rw http.ResponseWriter, request *http.Request) {
 
 	job := formatters.FormatJobUpdateRequest(jobRequest)
 	job.UUID = mux.Vars(request)["uuid"]
-	jobRes, err := c.ucs.UpdateJob().Execute(ctx, job, jobRequest.Status, jobRequest.Message,
+	jobRes, err := c.ucs.Update().Execute(ctx, job, jobRequest.Status, jobRequest.Message,
 		multitenancy.UserInfoValue(ctx))
 
 	if err != nil {

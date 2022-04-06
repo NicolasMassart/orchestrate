@@ -3,8 +3,9 @@ package config
 import "github.com/ethereum/go-ethereum/common/hexutil"
 
 type TestData struct {
-	Nodes Nodes `json:"nodes"`
-	OIDC  *OIDC `json:"oidc"`
+	Nodes              Nodes  `json:"nodes"`
+	OIDC               *OIDC  `json:"oidc"`
+	NotificationsTopic string `json:"notificationsTopic"`
 }
 
 type Nodes struct {

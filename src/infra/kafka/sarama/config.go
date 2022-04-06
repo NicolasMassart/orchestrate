@@ -15,12 +15,6 @@ var rebalanceStrategy = map[string]sarama.BalanceStrategy{
 	"Sticky":     sarama.BalanceStrategySticky,
 }
 
-const (
-	DefaultTxDecodedTopic = "topic-tx-decoded"
-	DefaultTxRecoverTopic = "topic-tx-recover"
-	DefaultTxSenderTopic  = "topic-tx-sender"
-)
-
 type Config struct {
 	URLs              []string
 	Version           string
@@ -126,18 +120,4 @@ func (cfg *Config) getTLSConfig() (*tls.Config, error) {
 	tlsConfig.InsecureSkipVerify = cfg.TLSSkipVerify
 
 	return &tlsConfig, err
-}
-
-type TopicConfig struct {
-	Sender  string
-	Decoded string
-	Recover string
-}
-
-func NewDefaultTopicConfig() *TopicConfig {
-	return &TopicConfig{
-		Sender:  DefaultTxSenderTopic,
-		Recover: DefaultTxRecoverTopic,
-		Decoded: DefaultTxDecodedTopic,
-	}
 }

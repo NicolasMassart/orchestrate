@@ -971,3 +971,18 @@ func (mr *MockEventStreamAgentMockRecorder) Search(ctx, filters, tenants, ownerI
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockEventStreamAgent)(nil).Search), ctx, filters, tenants, ownerID)
 }
+
+// FindOneByTenantAndChain mocks base method
+func (m *MockEventStreamAgent) FindOneByTenantAndChain(ctx context.Context, tenantID, chainUUID string, tenants []string, ownerID string) (*entities.EventStream, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindOneByTenantAndChain", ctx, tenantID, chainUUID, tenants, ownerID)
+	ret0, _ := ret[0].(*entities.EventStream)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindOneByTenantAndChain indicates an expected call of FindOneByTenantAndChain
+func (mr *MockEventStreamAgentMockRecorder) FindOneByTenantAndChain(ctx, tenantID, chainUUID, tenants, ownerID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindOneByTenantAndChain", reflect.TypeOf((*MockEventStreamAgent)(nil).FindOneByTenantAndChain), ctx, tenantID, chainUUID, tenants, ownerID)
+}

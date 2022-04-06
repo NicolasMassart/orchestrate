@@ -6,6 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/consensys/orchestrate/src/api"
+
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
@@ -44,7 +46,7 @@ func Start(ctx context.Context, cfg *Config) error {
 		return err
 	}
 
-	consumerTracker, err := testutils.NewConsumerTracker(cfg.KafkaCfg, cfg.Topics)
+	consumerTracker, err := testutils.NewConsumerTracker(cfg.KafkaCfg, &api.TopicConfig{})
 	if err != nil {
 		return err
 	}
@@ -52,7 +54,7 @@ func Start(ctx context.Context, cfg *Config) error {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
-		err := consumerTracker.Consume(cctx, []string{cfg.Topics.Decoded, cfg.Topics.Recover})
+		err := consumerTracker.Consume(cctx, []string{cfg.TestData.NotificationsTopic})
 		if err != nil {
 			gerr = err
 			log.FromContext(cctx).WithError(err).Error("error on consumer")
@@ -70,7 +72,7 @@ func Start(ctx context.Context, cfg *Config) error {
 			WithField("output", cfg.Cucumber.Output).
 			Info("service ready")
 
-		err := cucumber.Run(cfg.Cucumber, consumerTracker, cfg.Topics, cfg.Timeout)
+		err := cucumber.Run(cfg.Cucumber, consumerTracker, cfg.TestData.NotificationsTopic, cfg.Timeout)
 		if err != nil {
 			gerr = err
 			logger.WithError(err).Error("error on cucumber")

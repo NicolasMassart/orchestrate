@@ -49,7 +49,7 @@ func (c *FaucetsController) search(rw http.ResponseWriter, request *http.Request
 		return
 	}
 
-	faucets, err := c.ucs.SearchFaucets().Execute(ctx, filters, multitenancy.UserInfoValue(ctx))
+	faucets, err := c.ucs.Search().Execute(ctx, filters, multitenancy.UserInfoValue(ctx))
 	if err != nil {
 		httputil.WriteHTTPErrorResponse(rw, err)
 		return
@@ -75,7 +75,7 @@ func (c *FaucetsController) getOne(rw http.ResponseWriter, request *http.Request
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
-	faucet, err := c.ucs.GetFaucet().Execute(ctx, mux.Vars(request)["uuid"], multitenancy.UserInfoValue(ctx))
+	faucet, err := c.ucs.Get().Execute(ctx, mux.Vars(request)["uuid"], multitenancy.UserInfoValue(ctx))
 	if err != nil {
 		httputil.WriteHTTPErrorResponse(rw, err)
 		return
@@ -107,7 +107,7 @@ func (c *FaucetsController) register(rw http.ResponseWriter, request *http.Reque
 		return
 	}
 
-	faucet, err := c.ucs.RegisterFaucet().Execute(ctx, formatters.FormatRegisterFaucetRequest(faucetRequest), multitenancy.UserInfoValue(ctx))
+	faucet, err := c.ucs.Register().Execute(ctx, formatters.FormatRegisterFaucetRequest(faucetRequest), multitenancy.UserInfoValue(ctx))
 	if err != nil {
 		httputil.WriteHTTPErrorResponse(rw, err)
 		return
@@ -142,7 +142,7 @@ func (c *FaucetsController) update(rw http.ResponseWriter, request *http.Request
 	}
 
 	uuid := mux.Vars(request)["uuid"]
-	faucet, err := c.ucs.UpdateFaucet().Execute(ctx, formatters.FormatUpdateFaucetRequest(faucetRequest, uuid),
+	faucet, err := c.ucs.Update().Execute(ctx, formatters.FormatUpdateFaucetRequest(faucetRequest, uuid),
 		multitenancy.UserInfoValue(ctx))
 	if err != nil {
 		httputil.WriteHTTPErrorResponse(rw, err)
@@ -166,7 +166,7 @@ func (c *FaucetsController) delete(rw http.ResponseWriter, request *http.Request
 	ctx := request.Context()
 
 	uuid := mux.Vars(request)["uuid"]
-	err := c.ucs.DeleteFaucet().Execute(ctx, uuid, multitenancy.UserInfoValue(ctx))
+	err := c.ucs.Delete().Execute(ctx, uuid, multitenancy.UserInfoValue(ctx))
 	if err != nil {
 		httputil.WriteHTTPErrorResponse(rw, err)
 		return

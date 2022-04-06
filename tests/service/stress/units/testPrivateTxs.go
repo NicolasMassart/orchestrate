@@ -60,7 +60,7 @@ func BatchPrivateTxsTest(ctx context.Context, cfg *WorkloadConfig, client orches
 		return err
 	}
 
-	_, err = consumerTracker.WaitForTxResponseInTxDecoded(ctx, tx.UUID, cfg.waitForEnvelopeTimeout)
+	_, err = consumerTracker.WaitForTxResponseInTopic(ctx, tx.UUID, "", cfg.waitForEnvelopeTimeout)
 	if err != nil {
 		if !errors.IsConnectionError(err) {
 			logger = logger.WithField("req", string(sReq))

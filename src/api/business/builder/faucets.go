@@ -7,41 +7,41 @@ import (
 )
 
 type faucetUseCases struct {
-	registerFaucetUC usecases.RegisterFaucetUseCase
-	updateFaucetUC   usecases.UpdateFaucetUseCase
-	getFaucetUC      usecases.GetFaucetUseCase
-	searchFaucetUC   usecases.SearchFaucetsUseCase
-	deleteFaucetUC   usecases.DeleteFaucetUseCase
+	register usecases.RegisterFaucetUseCase
+	update   usecases.UpdateFaucetUseCase
+	get      usecases.GetFaucetUseCase
+	search   usecases.SearchFaucetsUseCase
+	delete   usecases.DeleteFaucetUseCase
 }
 
 func newFaucetUseCases(db store.DB) *faucetUseCases {
-	searchFaucetsUC := faucets.NewSearchFaucets(db)
+	search := faucets.NewSearchFaucets(db)
 
 	return &faucetUseCases{
-		registerFaucetUC: faucets.NewRegisterFaucetUseCase(db, searchFaucetsUC),
-		updateFaucetUC:   faucets.NewUpdateFaucetUseCase(db),
-		getFaucetUC:      faucets.NewGetFaucetUseCase(db),
-		searchFaucetUC:   searchFaucetsUC,
-		deleteFaucetUC:   faucets.NewDeleteFaucetUseCase(db),
+		register: faucets.NewRegisterFaucetUseCase(db, search),
+		update:   faucets.NewUpdateFaucetUseCase(db),
+		get:      faucets.NewGetFaucetUseCase(db),
+		search:   search,
+		delete:   faucets.NewDeleteFaucetUseCase(db),
 	}
 }
 
-func (u *faucetUseCases) RegisterFaucet() usecases.RegisterFaucetUseCase {
-	return u.registerFaucetUC
+func (u *faucetUseCases) Register() usecases.RegisterFaucetUseCase {
+	return u.register
 }
 
-func (u *faucetUseCases) UpdateFaucet() usecases.UpdateFaucetUseCase {
-	return u.updateFaucetUC
+func (u *faucetUseCases) Update() usecases.UpdateFaucetUseCase {
+	return u.update
 }
 
-func (u *faucetUseCases) GetFaucet() usecases.GetFaucetUseCase {
-	return u.getFaucetUC
+func (u *faucetUseCases) Get() usecases.GetFaucetUseCase {
+	return u.get
 }
 
-func (u *faucetUseCases) SearchFaucets() usecases.SearchFaucetsUseCase {
-	return u.searchFaucetUC
+func (u *faucetUseCases) Search() usecases.SearchFaucetsUseCase {
+	return u.search
 }
 
-func (u *faucetUseCases) DeleteFaucet() usecases.DeleteFaucetUseCase {
-	return u.deleteFaucetUC
+func (u *faucetUseCases) Delete() usecases.DeleteFaucetUseCase {
+	return u.delete
 }

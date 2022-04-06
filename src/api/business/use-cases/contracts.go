@@ -12,13 +12,14 @@ import (
 //go:generate mockgen -source=contracts.go -destination=mocks/contracts.go -package=mocks
 
 type ContractUseCases interface {
-	GetContractsCatalog() GetContractsCatalogUseCase
-	GetContract() GetContractUseCase
+	GetCatalog() GetContractsCatalogUseCase
+	Get() GetContractUseCase
 	GetContractEvents() GetContractEventsUseCase
-	GetContractTags() GetContractTagsUseCase
-	SetContractCodeHash() RegisterContractDeploymentUseCase
-	RegisterContract() RegisterContractUseCase
-	SearchContract() SearchContractUseCase
+	GetTags() GetContractTagsUseCase
+	SetCodeHash() RegisterContractDeploymentUseCase
+	Register() RegisterContractUseCase
+	Search() SearchContractUseCase
+	DecodeLog() DecodeEventLogUseCase
 }
 
 type GetContractsCatalogUseCase interface {
@@ -50,5 +51,5 @@ type RegisterContractDeploymentUseCase interface {
 }
 
 type DecodeEventLogUseCase interface {
-	Execute(ctx context.Context, chainID string, eventLog *ethereum.Log) (*ethereum.Log, error)
+	Execute(ctx context.Context, chainUUID string, eventLog *ethereum.Log) (*ethereum.Log, error)
 }

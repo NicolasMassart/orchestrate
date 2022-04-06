@@ -193,7 +193,7 @@ func (s *jobsTestSuite) TestUpdate() {
 		require.NoError(s.T(), err)
 		msgJob, err := s.env.consumer.WaitForJob(ctx, job.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
 		require.NoError(s.T(), err)
-		
+
 		assert.Equal(s.T(), msgJob.UUID, job.UUID)
 
 		receipt := testdata2.FakeReceipt()
@@ -202,12 +202,8 @@ func (s *jobsTestSuite) TestUpdate() {
 			Receipt: receipt,
 		})
 		require.NoError(s.T(), err)
-		txResp, err := s.env.consumer.WaitForTxResponseInTxDecoded(ctx, job.ScheduleUUID, waitForEnvelopeTimeOut)
-		require.NoError(s.T(), err)
-		assert.Equal(s.T(), txResp.GetJobUUID(), job.UUID)
-		assert.Equal(s.T(), txResp.GetReceipt().TxHash, receipt.TxHash)
 	})
-	
+
 	s.T().Run("should update job to FAILED and notify", func(t *testing.T) {
 		req := testdata.FakeCreateJobRequest()
 		req.ScheduleUUID = schedule.UUID
@@ -220,16 +216,11 @@ func (s *jobsTestSuite) TestUpdate() {
 		require.NoError(s.T(), err)
 		msgJob, err := s.env.consumer.WaitForJob(ctx, job.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
 		require.NoError(s.T(), err)
-		
+
 		assert.Equal(s.T(), msgJob.UUID, job.UUID)
 
 		_, err = s.client.UpdateJob(ctx, job.UUID, &api.UpdateJobRequest{
-			Status:  entities.StatusFailed,
+			Status: entities.StatusFailed,
 		})
-
-		require.NoError(s.T(), err)
-		txResp, err := s.env.consumer.WaitForTxResponseInTxRecover(ctx, job.ScheduleUUID, waitForEnvelopeTimeOut)
-		require.NoError(s.T(), err)
-		assert.Equal(s.T(), txResp.GetJobUUID(), job.UUID)
 	})
 }

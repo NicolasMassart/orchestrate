@@ -13,10 +13,10 @@ import (
 	"github.com/cenkalti/backoff/v4"
 	backoffmock "github.com/consensys/orchestrate/pkg/backoff/mock"
 	"github.com/consensys/orchestrate/pkg/errors"
-	"github.com/consensys/orchestrate/src/infra/ethclient/types"
-	"github.com/consensys/orchestrate/src/infra/ethclient/testutils"
-	"github.com/consensys/orchestrate/src/infra/ethclient/utils"
 	pkgUtils "github.com/consensys/orchestrate/pkg/utils"
+	"github.com/consensys/orchestrate/src/infra/ethclient/testutils"
+	"github.com/consensys/orchestrate/src/infra/ethclient/types"
+	"github.com/consensys/orchestrate/src/infra/ethclient/utils"
 	eth "github.com/ethereum/go-ethereum"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -44,7 +44,6 @@ func TestProcessEthError(t *testing.T) {
 	err = ec.processEthError(&utils.JSONError{Message: "json-rpc: failed"})
 	assert.Equal(t, "BE000", errors.FromError(err).Hex(), "Error code should be correst")
 }
-
 
 func TestDo(t *testing.T) {
 	ec := newEthereumClient()
@@ -86,7 +85,7 @@ func TestCallWithRetry(t *testing.T) {
 	}, utils.ProcessResult(&raw), bckoff)
 	assert.Error(t, err, "#2 TestCallWithRetry should  error")
 	assert.False(t, bckoff.HasRetried(), "#2 Should have retried")
-	
+
 	// Test 3: invalid response body, should not retry
 	bckoff = &backoffmock.MockBackoff{}
 	ctx = testutils.NewContext(nil, 200, testutils.MakeRespBody([]byte(`"%@`), ""))
@@ -95,7 +94,7 @@ func TestCallWithRetry(t *testing.T) {
 	}, utils.ProcessResult(&raw), bckoff)
 	assert.Error(t, err, "#3 TestCallWithRetry should  error")
 	assert.False(t, bckoff.HasRetried(), "#3 Should not have retried")
-	
+
 	// Test 4: invalid response body with error status, should retry
 	bckoff = &backoffmock.MockBackoff{}
 	ctx = testutils.NewContext(nil, 400, testutils.MakeRespBody([]byte(`"%@`), ""))
@@ -592,7 +591,7 @@ func TestSendRawTransaction(t *testing.T) {
 	assert.Error(t, err, "#1 SendRawTransaction should  error")
 
 	// Test 2 without errorrandString
-	ctx = testutils.NewContext(nil, 200, testutils.MakeRespBody("0x" + pkgUtils.RandHexString(64), ""))
+	ctx = testutils.NewContext(nil, 200, testutils.MakeRespBody("0x"+pkgUtils.RandHexString(64), ""))
 	_, err = ec.SendRawTransaction(ctx, "test-endpoint", nil)
 	assert.NoError(t, err, "#2 SendRawTransaction should not error")
 
@@ -608,7 +607,7 @@ func TestSendTransaction(t *testing.T) {
 	// Test 1 with Error
 	ctx := testutils.NewContext(fmt.Errorf("test-error"), 0, nil)
 	_, err := ec.SendTransaction(ctx, "test-endpoint", &types.SendTxArgs{})
-	assert.Error(t, err, "#1 SendTransaction should  error")
+	assert.Error(t, err, "#1 Send should  error")
 }
 
 func TestSendRawPrivateTransaction(t *testing.T) {

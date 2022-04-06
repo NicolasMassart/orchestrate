@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"time"
 
+	pushnotification "github.com/consensys/orchestrate/src/infra/push_notification"
+
 	"github.com/consensys/orchestrate/src/infra/kafka"
 
 	"github.com/consensys/orchestrate/src/infra/postgres"
@@ -25,7 +27,6 @@ import (
 	"github.com/consensys/orchestrate/src/api/business/builder"
 	"github.com/consensys/orchestrate/src/api/metrics"
 	"github.com/consensys/orchestrate/src/api/service/controllers"
-	broker "github.com/consensys/orchestrate/src/infra/kafka/sarama"
 )
 
 func NewAPI(
@@ -36,7 +37,7 @@ func NewAPI(
 	qkmStoreID string,
 	ec ethclient.Client,
 	syncProducer kafka.Producer,
-	topicCfg *broker.TopicConfig,
+	notifierClient pushnotification.Notifier,
 ) (*app.App, error) {
 	// Metrics
 	var appMetrics metrics.TransactionSchedulerMetrics
@@ -46,7 +47,7 @@ func NewAPI(
 		appMetrics = metrics.NewTransactionSchedulerNopMetrics()
 	}
 
-	ucs := builder.NewUseCases(postgresstore.New(db), appMetrics, keyManagerClient, qkmStoreID, ec, syncProducer, topicCfg)
+	ucs := builder.NewUseCases(postgresstore.New(db), appMetrics, keyManagerClient, qkmStoreID, ec, syncProducer, cfg.KafkaTopics.Sender, notifierClient)
 
 	// Option of the API
 	apiHandlerOpt := app.HandlerOpt(reflect.TypeOf(&dynamic.API{}), controllers.NewBuilder(ucs, keyManagerClient, qkmStoreID))
@@ -96,7 +97,7 @@ func NewAPI(
 		apiHandlerOpt,
 		httpCacheOpt,
 		reverseProxyOpt,
-		app.ProviderOpt(NewProvider(ucs.SearchChains(), time.Second, cfg.Proxy.ProxyCacheTTL)),
+		app.ProviderOpt(NewProvider(ucs.Chains().Search(), time.Second, cfg.Proxy.ProxyCacheTTL)),
 	)
 }
 

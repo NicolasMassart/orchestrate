@@ -37,102 +37,102 @@ func (m *MockJobUseCases) EXPECT() *MockJobUseCasesMockRecorder {
 	return m.recorder
 }
 
-// CreateJob mocks base method
-func (m *MockJobUseCases) CreateJob() usecases.CreateJobUseCase {
+// Create mocks base method
+func (m *MockJobUseCases) Create() usecases.CreateJobUseCase {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateJob")
+	ret := m.ctrl.Call(m, "Create")
 	ret0, _ := ret[0].(usecases.CreateJobUseCase)
 	return ret0
 }
 
-// CreateJob indicates an expected call of CreateJob
-func (mr *MockJobUseCasesMockRecorder) CreateJob() *gomock.Call {
+// Create indicates an expected call of Create
+func (mr *MockJobUseCasesMockRecorder) Create() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateJob", reflect.TypeOf((*MockJobUseCases)(nil).CreateJob))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockJobUseCases)(nil).Create))
 }
 
-// GetJob mocks base method
-func (m *MockJobUseCases) GetJob() usecases.GetJobUseCase {
+// Get mocks base method
+func (m *MockJobUseCases) Get() usecases.GetJobUseCase {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetJob")
+	ret := m.ctrl.Call(m, "Get")
 	ret0, _ := ret[0].(usecases.GetJobUseCase)
 	return ret0
 }
 
-// GetJob indicates an expected call of GetJob
-func (mr *MockJobUseCasesMockRecorder) GetJob() *gomock.Call {
+// Get indicates an expected call of Get
+func (mr *MockJobUseCasesMockRecorder) Get() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetJob", reflect.TypeOf((*MockJobUseCases)(nil).GetJob))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockJobUseCases)(nil).Get))
 }
 
-// StartJob mocks base method
-func (m *MockJobUseCases) StartJob() usecases.StartJobUseCase {
+// Start mocks base method
+func (m *MockJobUseCases) Start() usecases.StartJobUseCase {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "StartJob")
+	ret := m.ctrl.Call(m, "Start")
 	ret0, _ := ret[0].(usecases.StartJobUseCase)
 	return ret0
 }
 
-// StartJob indicates an expected call of StartJob
-func (mr *MockJobUseCasesMockRecorder) StartJob() *gomock.Call {
+// Start indicates an expected call of Start
+func (mr *MockJobUseCasesMockRecorder) Start() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartJob", reflect.TypeOf((*MockJobUseCases)(nil).StartJob))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Start", reflect.TypeOf((*MockJobUseCases)(nil).Start))
 }
 
-// ResendJobTx mocks base method
-func (m *MockJobUseCases) ResendJobTx() usecases.ResendJobTxUseCase {
+// ResendTx mocks base method
+func (m *MockJobUseCases) ResendTx() usecases.ResendJobTxUseCase {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ResendJobTx")
+	ret := m.ctrl.Call(m, "ResendTx")
 	ret0, _ := ret[0].(usecases.ResendJobTxUseCase)
 	return ret0
 }
 
-// ResendJobTx indicates an expected call of ResendJobTx
-func (mr *MockJobUseCasesMockRecorder) ResendJobTx() *gomock.Call {
+// ResendTx indicates an expected call of ResendTx
+func (mr *MockJobUseCasesMockRecorder) ResendTx() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResendJobTx", reflect.TypeOf((*MockJobUseCases)(nil).ResendJobTx))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResendTx", reflect.TypeOf((*MockJobUseCases)(nil).ResendTx))
 }
 
-// RetryJobTx mocks base method
-func (m *MockJobUseCases) RetryJobTx() usecases.RetryJobTxUseCase {
+// RetryTx mocks base method
+func (m *MockJobUseCases) RetryTx() usecases.RetryJobTxUseCase {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RetryJobTx")
+	ret := m.ctrl.Call(m, "RetryTx")
 	ret0, _ := ret[0].(usecases.RetryJobTxUseCase)
 	return ret0
 }
 
-// RetryJobTx indicates an expected call of RetryJobTx
-func (mr *MockJobUseCasesMockRecorder) RetryJobTx() *gomock.Call {
+// RetryTx indicates an expected call of RetryTx
+func (mr *MockJobUseCasesMockRecorder) RetryTx() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RetryJobTx", reflect.TypeOf((*MockJobUseCases)(nil).RetryJobTx))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RetryTx", reflect.TypeOf((*MockJobUseCases)(nil).RetryTx))
 }
 
-// UpdateJob mocks base method
-func (m *MockJobUseCases) UpdateJob() usecases.UpdateJobUseCase {
+// Update mocks base method
+func (m *MockJobUseCases) Update() usecases.UpdateJobUseCase {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateJob")
+	ret := m.ctrl.Call(m, "Update")
 	ret0, _ := ret[0].(usecases.UpdateJobUseCase)
 	return ret0
 }
 
-// UpdateJob indicates an expected call of UpdateJob
-func (mr *MockJobUseCasesMockRecorder) UpdateJob() *gomock.Call {
+// Update indicates an expected call of Update
+func (mr *MockJobUseCasesMockRecorder) Update() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateJob", reflect.TypeOf((*MockJobUseCases)(nil).UpdateJob))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockJobUseCases)(nil).Update))
 }
 
-// SearchJobs mocks base method
-func (m *MockJobUseCases) SearchJobs() usecases.SearchJobsUseCase {
+// Search mocks base method
+func (m *MockJobUseCases) Search() usecases.SearchJobsUseCase {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SearchJobs")
+	ret := m.ctrl.Call(m, "Search")
 	ret0, _ := ret[0].(usecases.SearchJobsUseCase)
 	return ret0
 }
 
-// SearchJobs indicates an expected call of SearchJobs
-func (mr *MockJobUseCasesMockRecorder) SearchJobs() *gomock.Call {
+// Search indicates an expected call of Search
+func (mr *MockJobUseCasesMockRecorder) Search() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchJobs", reflect.TypeOf((*MockJobUseCases)(nil).SearchJobs))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockJobUseCases)(nil).Search))
 }
 
 // MockCreateJobUseCase is a mock of CreateJobUseCase interface
@@ -470,41 +470,4 @@ func (m *MockRetryJobTxUseCase) Execute(ctx context.Context, jobUUID string, gas
 func (mr *MockRetryJobTxUseCaseMockRecorder) Execute(ctx, jobUUID, gasIncrement, data, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockRetryJobTxUseCase)(nil).Execute), ctx, jobUUID, gasIncrement, data, userInfo)
-}
-
-// MockNotifyJobUpdateUseCase is a mock of NotifyJobUpdateUseCase interface
-type MockNotifyJobUpdateUseCase struct {
-	ctrl     *gomock.Controller
-	recorder *MockNotifyJobUpdateUseCaseMockRecorder
-}
-
-// MockNotifyJobUpdateUseCaseMockRecorder is the mock recorder for MockNotifyJobUpdateUseCase
-type MockNotifyJobUpdateUseCaseMockRecorder struct {
-	mock *MockNotifyJobUpdateUseCase
-}
-
-// NewMockNotifyJobUpdateUseCase creates a new mock instance
-func NewMockNotifyJobUpdateUseCase(ctrl *gomock.Controller) *MockNotifyJobUpdateUseCase {
-	mock := &MockNotifyJobUpdateUseCase{ctrl: ctrl}
-	mock.recorder = &MockNotifyJobUpdateUseCaseMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockNotifyJobUpdateUseCase) EXPECT() *MockNotifyJobUpdateUseCaseMockRecorder {
-	return m.recorder
-}
-
-// Execute mocks base method
-func (m *MockNotifyJobUpdateUseCase) Execute(ctx context.Context, job *entities.Job, errMsg error) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Execute", ctx, job, errMsg)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Execute indicates an expected call of Execute
-func (mr *MockNotifyJobUpdateUseCaseMockRecorder) Execute(ctx, job, errMsg interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockNotifyJobUpdateUseCase)(nil).Execute), ctx, job, errMsg)
 }

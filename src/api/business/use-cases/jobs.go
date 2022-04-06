@@ -11,13 +11,13 @@ import (
 //go:generate mockgen -source=jobs.go -destination=mocks/jobs.go -package=mocks
 
 type JobUseCases interface {
-	CreateJob() CreateJobUseCase
-	GetJob() GetJobUseCase
-	StartJob() StartJobUseCase
-	ResendJobTx() ResendJobTxUseCase
-	RetryJobTx() RetryJobTxUseCase
-	UpdateJob() UpdateJobUseCase
-	SearchJobs() SearchJobsUseCase
+	Create() CreateJobUseCase
+	Get() GetJobUseCase
+	Start() StartJobUseCase
+	ResendTx() ResendJobTxUseCase
+	RetryTx() RetryJobTxUseCase
+	Update() UpdateJobUseCase
+	Search() SearchJobsUseCase
 }
 
 type CreateJobUseCase interface {

@@ -1,27 +1,34 @@
 package builder
 
 import (
-	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
+	"github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/business/use-cases/event_streams"
 	"github.com/consensys/orchestrate/src/api/store"
+	"github.com/consensys/orchestrate/src/infra/push_notification"
 )
 
 type eventStreamUseCases struct {
-	createUC usecases.CreateEventStreamUseCase
-	searchUC usecases.SearchEventStreamsUseCase
+	create   usecases.CreateEventStreamUseCase
+	search   usecases.SearchEventStreamsUseCase
+	notifyTx usecases.NotifyTransactionUseCase
 }
 
-func newEventStreamUseCases(db store.EventStreamAgent) *eventStreamUseCases {
+func newEventStreamUseCases(db store.EventStreamAgent, notifier pushnotification.Notifier, contracts usecases.ContractUseCases) *eventStreamUseCases {
 	return &eventStreamUseCases{
-		createUC: streams.NewCreateUseCase(db),
-		searchUC: streams.NewSearchUseCase(db),
+		create:   streams.NewCreateUseCase(db),
+		search:   streams.NewSearchUseCase(db),
+		notifyTx: streams.NewNotifyTransactionUseCase(db, notifier, contracts.Search(), contracts.DecodeLog()),
 	}
 }
 
-func (u *accountUseCases) Search() usecases.SearchAccountsUseCase {
-	return u.searchAccountsUC
+func (u *eventStreamUseCases) Search() usecases.SearchEventStreamsUseCase {
+	return u.search
 }
 
-func (u *accountUseCases) Create() usecases.CreateAccountUseCase {
-	return u.createAccountUC
+func (u *eventStreamUseCases) Create() usecases.CreateEventStreamUseCase {
+	return u.create
+}
+
+func (u *eventStreamUseCases) NotifyTransaction() usecases.NotifyTransactionUseCase {
+	return u.notifyTx
 }

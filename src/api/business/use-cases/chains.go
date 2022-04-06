@@ -10,11 +10,11 @@ import (
 //go:generate mockgen -source=chains.go -destination=mocks/chains.go -package=mocks
 
 type ChainUseCases interface {
-	RegisterChain() RegisterChainUseCase
-	GetChain() GetChainUseCase
-	SearchChains() SearchChainsUseCase
-	UpdateChain() UpdateChainUseCase
-	DeleteChain() DeleteChainUseCase
+	Register() RegisterChainUseCase
+	Get() GetChainUseCase
+	Search() SearchChainsUseCase
+	Update() UpdateChainUseCase
+	Delete() DeleteChainUseCase
 }
 
 type RegisterChainUseCase interface {

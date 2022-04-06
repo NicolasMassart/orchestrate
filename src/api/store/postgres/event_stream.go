@@ -65,3 +65,40 @@ func (agent *PGEventStream) Search(ctx context.Context, filters *entities.EventS
 
 	return models.NewEventStreams(eventStreams), nil
 }
+
+func (agent *PGEventStream) FindOneByTenantAndChain(ctx context.Context, tenantID, chainUUID string, tenants []string, ownerID string) (*entities.EventStream, error) {
+	eventStream := &models.EventStream{}
+
+	// First, we check if an event stream for all chains is defined
+	err := agent.client.
+		ModelContext(ctx, eventStream).
+		Where("tenant_id = ?", tenantID).
+		WhereAllowedTenants("", tenants).
+		WhereAllowedOwner("", ownerID).
+		SelectOne()
+	if err != nil {
+		// If not found, we search for an event stream for the specified chain
+		if errors.IsNotFoundError(err) {
+			err = agent.client.
+				ModelContext(ctx, eventStream).
+				Where("tenant_id = ?", tenantID).
+				Where("chain_uuid = ?", chainUUID).
+				WhereAllowedTenants("", tenants).
+				WhereAllowedOwner("", ownerID).
+				SelectOne()
+			if err != nil {
+				if errors.IsNotFoundError(err) {
+					return nil, nil
+				}
+				errMsg := "failed to find one event stream by tenant and chain"
+				agent.logger.WithContext(ctx).WithError(err).Error(errMsg)
+				return nil, errors.FromError(err).SetMessage(errMsg)
+			}
+		}
+		errMsg := "failed to find one event stream by tenant"
+		agent.logger.WithContext(ctx).WithError(err).Error(errMsg)
+		return nil, errors.FromError(err).SetMessage(errMsg)
+	}
+
+	return eventStream.ToEntity(), nil
+}

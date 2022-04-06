@@ -8,6 +8,10 @@ import (
 	quorumkeymanager "github.com/consensys/orchestrate/src/infra/quorum-key-manager/http"
 )
 
+type TopicConfig struct {
+	Sender string
+}
+
 type Config struct {
 	App          *app.Config
 	Postgres     *gopg.Config
@@ -15,5 +19,5 @@ type Config struct {
 	Proxy        *proxy.Config
 	QKM          *quorumkeymanager.Config
 	Kafka        *sarama.Config
-	KafkaTopics  *sarama.TopicConfig
+	KafkaTopics  *TopicConfig
 }

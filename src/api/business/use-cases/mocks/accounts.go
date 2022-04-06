@@ -38,60 +38,60 @@ func (m *MockAccountUseCases) EXPECT() *MockAccountUseCasesMockRecorder {
 	return m.recorder
 }
 
-// GetAccount mocks base method
-func (m *MockAccountUseCases) GetAccount() usecases.GetAccountUseCase {
+// Get mocks base method
+func (m *MockAccountUseCases) Get() usecases.GetAccountUseCase {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAccount")
+	ret := m.ctrl.Call(m, "Get")
 	ret0, _ := ret[0].(usecases.GetAccountUseCase)
 	return ret0
 }
 
-// GetAccount indicates an expected call of GetAccount
-func (mr *MockAccountUseCasesMockRecorder) GetAccount() *gomock.Call {
+// Get indicates an expected call of Get
+func (mr *MockAccountUseCasesMockRecorder) Get() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccount", reflect.TypeOf((*MockAccountUseCases)(nil).GetAccount))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockAccountUseCases)(nil).Get))
 }
 
-// CreateAccount mocks base method
-func (m *MockAccountUseCases) CreateAccount() usecases.CreateAccountUseCase {
+// Create mocks base method
+func (m *MockAccountUseCases) Create() usecases.CreateAccountUseCase {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateAccount")
+	ret := m.ctrl.Call(m, "Create")
 	ret0, _ := ret[0].(usecases.CreateAccountUseCase)
 	return ret0
 }
 
-// CreateAccount indicates an expected call of CreateAccount
-func (mr *MockAccountUseCasesMockRecorder) CreateAccount() *gomock.Call {
+// Create indicates an expected call of Create
+func (mr *MockAccountUseCasesMockRecorder) Create() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAccount", reflect.TypeOf((*MockAccountUseCases)(nil).CreateAccount))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockAccountUseCases)(nil).Create))
 }
 
-// UpdateAccount mocks base method
-func (m *MockAccountUseCases) UpdateAccount() usecases.UpdateAccountUseCase {
+// Update mocks base method
+func (m *MockAccountUseCases) Update() usecases.UpdateAccountUseCase {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateAccount")
+	ret := m.ctrl.Call(m, "Update")
 	ret0, _ := ret[0].(usecases.UpdateAccountUseCase)
 	return ret0
 }
 
-// UpdateAccount indicates an expected call of UpdateAccount
-func (mr *MockAccountUseCasesMockRecorder) UpdateAccount() *gomock.Call {
+// Update indicates an expected call of Update
+func (mr *MockAccountUseCasesMockRecorder) Update() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAccount", reflect.TypeOf((*MockAccountUseCases)(nil).UpdateAccount))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockAccountUseCases)(nil).Update))
 }
 
-// SearchAccounts mocks base method
-func (m *MockAccountUseCases) SearchAccounts() usecases.SearchAccountsUseCase {
+// Search mocks base method
+func (m *MockAccountUseCases) Search() usecases.SearchAccountsUseCase {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SearchAccounts")
+	ret := m.ctrl.Call(m, "Search")
 	ret0, _ := ret[0].(usecases.SearchAccountsUseCase)
 	return ret0
 }
 
-// SearchAccounts indicates an expected call of SearchAccounts
-func (mr *MockAccountUseCasesMockRecorder) SearchAccounts() *gomock.Call {
+// Search indicates an expected call of Search
+func (mr *MockAccountUseCasesMockRecorder) Search() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchAccounts", reflect.TypeOf((*MockAccountUseCases)(nil).SearchAccounts))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockAccountUseCases)(nil).Search))
 }
 
 // MockGetAccountUseCase is a mock of GetAccountUseCase interface

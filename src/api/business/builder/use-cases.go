@@ -1,25 +1,25 @@
 package builder
 
 import (
-	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
+	"github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/business/use-cases/faucets"
 	"github.com/consensys/orchestrate/src/api/metrics"
 	"github.com/consensys/orchestrate/src/api/store"
 	"github.com/consensys/orchestrate/src/infra/ethclient"
 	"github.com/consensys/orchestrate/src/infra/kafka"
-	broker "github.com/consensys/orchestrate/src/infra/kafka/sarama"
+	"github.com/consensys/orchestrate/src/infra/push_notification"
 	qkmclient "github.com/consensys/quorum-key-manager/pkg/client"
 )
 
 type useCases struct {
-	*jobUseCases
-	*scheduleUseCases
-	*transactionUseCases
-	*faucetUseCases
-	*chainUseCases
-	*contractUseCases
-	*accountUseCases
-	*eventStreamUseCases
+	jobUseCases         usecases.JobUseCases
+	scheduleUseCases    usecases.ScheduleUseCases
+	transactionUseCases usecases.TransactionUseCases
+	faucetUseCases      usecases.FaucetUseCases
+	chainUseCases       usecases.ChainUseCases
+	contractUseCases    usecases.ContractUseCases
+	accountUseCases     usecases.AccountUseCases
+	eventStreamUseCases usecases.EventStreamsUseCases
 }
 
 func NewUseCases(
@@ -29,21 +29,28 @@ func NewUseCases(
 	qkmStoreID string,
 	ec ethclient.Client,
 	producer kafka.Producer,
-	topicsCfg *broker.TopicConfig,
+	topicSender string,
+	notifier pushnotification.Notifier,
 ) usecases.UseCases {
-
 	chainUseCases := newChainUseCases(db, ec)
 	contractUseCases := newContractUseCases(db)
 	faucetUseCases := newFaucetUseCases(db)
-	getFaucetCandidateUC := faucets.NewGetFaucetCandidateUseCase(faucetUseCases.SearchFaucets(), ec)
+	getFaucetCandidateUC := faucets.NewGetFaucetCandidateUseCase(faucetUseCases.Search(), ec)
 	scheduleUseCases := newScheduleUseCases(db)
-	jobUseCases := newJobUseCases(db, appMetrics, producer, topicsCfg, chainUseCases.GetChain(),
-		contractUseCases.SearchContract(), contractUseCases.DecodeLog(), qkmStoreID)
-	transactionUseCases := newTransactionUseCases(db, chainUseCases.SearchChains(), getFaucetCandidateUC,
-		scheduleUseCases, jobUseCases, contractUseCases.GetContract())
-	accountUseCases := newAccountUseCases(db, keyManagerClient, chainUseCases.SearchChains(),
-		transactionUseCases.SendTransaction(), getFaucetCandidateUC)
-	eventStreamUseCases := newEventStreamUseCases(db.EventStream())
+	eventStreamUseCases := newEventStreamUseCases(db.EventStream(), notifier, contractUseCases)
+	jobUseCases := newJobUseCases(
+		db,
+		appMetrics,
+		producer,
+		topicSender,
+		eventStreamUseCases,
+		chainUseCases,
+		qkmStoreID,
+	)
+	transactionUseCases := newTransactionUseCases(db, chainUseCases.Search(), getFaucetCandidateUC,
+		scheduleUseCases, jobUseCases, contractUseCases.Get())
+	accountUseCases := newAccountUseCases(db, keyManagerClient, chainUseCases.Search(),
+		transactionUseCases.Send(), getFaucetCandidateUC)
 
 	return &useCases{
 		jobUseCases:         jobUseCases,
@@ -55,4 +62,36 @@ func NewUseCases(
 		accountUseCases:     accountUseCases,
 		eventStreamUseCases: eventStreamUseCases,
 	}
+}
+
+func (ucs *useCases) Jobs() usecases.JobUseCases {
+	return ucs.jobUseCases
+}
+
+func (ucs *useCases) Schedules() usecases.ScheduleUseCases {
+	return ucs.scheduleUseCases
+}
+
+func (ucs *useCases) Transactions() usecases.TransactionUseCases {
+	return ucs.transactionUseCases
+}
+
+func (ucs *useCases) Faucets() usecases.FaucetUseCases {
+	return ucs.faucetUseCases
+}
+
+func (ucs *useCases) Chains() usecases.ChainUseCases {
+	return ucs.chainUseCases
+}
+
+func (ucs *useCases) Contracts() usecases.ContractUseCases {
+	return ucs.contractUseCases
+}
+
+func (ucs *useCases) Accounts() usecases.AccountUseCases {
+	return ucs.accountUseCases
+}
+
+func (ucs *useCases) EventStreams() usecases.EventStreamsUseCases {
+	return ucs.eventStreamUseCases
 }

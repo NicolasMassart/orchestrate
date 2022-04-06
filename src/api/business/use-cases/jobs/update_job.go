@@ -17,26 +17,25 @@ import (
 const updateJobComponent = "use-cases.update-job"
 
 type updateJobUseCase struct {
-	db                  store.DB
-	startNextJobUseCase usecases.StartNextJobUseCase
-	notifyMinedJob      usecases.NotifyMinedJob
-	notifyFailedJob     usecases.NotifyFailedJob
-	metrics             metrics.TransactionSchedulerMetrics
-	logger              *log.Logger
+	db             store.DB
+	startNextJobUC usecases.StartNextJobUseCase
+	notifyUC       usecases.NotifyTransactionUseCase
+	metrics        metrics.TransactionSchedulerMetrics
+	logger         *log.Logger
 }
 
-func NewUpdateJobUseCase(db store.DB,
-	startJobUC usecases.StartNextJobUseCase,
-	notifyMinedJob usecases.NotifyMinedJob,
-	notifyFailedJob usecases.NotifyFailedJob,
-	m metrics.TransactionSchedulerMetrics) usecases.UpdateJobUseCase {
+func NewUpdateJobUseCase(
+	db store.DB,
+	startNextJobUC usecases.StartNextJobUseCase,
+	m metrics.TransactionSchedulerMetrics,
+	notifyUC usecases.NotifyTransactionUseCase,
+) usecases.UpdateJobUseCase {
 	return &updateJobUseCase{
-		db:                  db,
-		notifyMinedJob:      notifyMinedJob,
-		notifyFailedJob:     notifyFailedJob,
-		startNextJobUseCase: startJobUC,
-		metrics:             m,
-		logger:              log.NewLogger().SetComponent(updateJobComponent),
+		db:             db,
+		notifyUC:       notifyUC,
+		startNextJobUC: startNextJobUC,
+		metrics:        m,
+		logger:         log.NewLogger().SetComponent(updateJobComponent),
 	}
 }
 
@@ -48,7 +47,7 @@ func (uc *updateJobUseCase) Execute(ctx context.Context, nextJob *entities.Job, 
 
 	prevJob, err := uc.db.Job().FindOneByUUID(ctx, nextJob.UUID, userInfo.AllowedTenants, userInfo.Username, false)
 	if err != nil {
-		return nil, err
+		return nil, errors.FromError(err).ExtendComponent(updateJobComponent)
 	}
 
 	if nextStatus != "" && isValidJobStatus(nextStatus) {
@@ -64,28 +63,25 @@ func (uc *updateJobUseCase) Execute(ctx context.Context, nextJob *entities.Job, 
 
 	job, err := uc.db.Job().FindOneByUUID(ctx, nextJob.UUID, userInfo.AllowedTenants, userInfo.Username, true)
 	if err != nil {
-		return nil, err
+		return nil, errors.FromError(err).ExtendComponent(updateJobComponent)
 	}
 
 	switch nextStatus {
 	case entities.StatusMined:
 		job.Receipt = nextJob.Receipt
-		err = uc.notifyMinedJob.Execute(ctx, job)
-	case entities.StatusFailed:
-		if job.InternalData.ParentJobUUID == "" {
-			err = uc.notifyFailedJob.Execute(ctx, job, nextStatusMsg)
-		}
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	if (nextStatus == entities.StatusMined || nextStatus == entities.StatusStored) && job.NextJobUUID != "" {
-		err = uc.startNextJobUseCase.Execute(ctx, job.UUID, userInfo)
+		err = uc.notifyUC.Execute(ctx, job, "", userInfo)
 		if err != nil {
 			return nil, errors.FromError(err).ExtendComponent(updateJobComponent)
 		}
+
+		err = uc.startNextJobUC.Execute(ctx, job.UUID, userInfo)
+	case entities.StatusFailed:
+		err = uc.notifyUC.Execute(ctx, job, nextStatusMsg, userInfo)
+	case entities.StatusStored:
+		err = uc.startNextJobUC.Execute(ctx, job.UUID, userInfo)
+	}
+	if err != nil {
+		return nil, errors.FromError(err).ExtendComponent(updateJobComponent)
 	}
 
 	return job, nil

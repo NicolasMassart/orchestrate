@@ -100,7 +100,7 @@ func (d *txSenderDaemon) Run(ctx context.Context) error {
 			// We retry once after consume exits to prevent entire stack to exit after kafka rebalance is triggered
 			err := backoff.RetryNotify(
 				func() error {
-					err := cGroup.Consume(cctx, []string{d.config.KafkaTopicTxSender}, listener)
+					err := cGroup.Consume(cctx, []string{d.config.ConsumerTopic}, listener)
 
 					// In this case, kafka rebalance was triggered and we want to retry
 					if err == nil && cctx.Err() == nil {

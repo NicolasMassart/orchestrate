@@ -1,17 +1,17 @@
 package builder
 
 import (
-	qkmclient "github.com/consensys/quorum-key-manager/pkg/client"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/business/use-cases/accounts"
 	"github.com/consensys/orchestrate/src/api/store"
+	qkmclient "github.com/consensys/quorum-key-manager/pkg/client"
 )
 
 type accountUseCases struct {
-	createAccountUC  usecases.CreateAccountUseCase
-	getAccountUC     usecases.GetAccountUseCase
-	searchAccountsUC usecases.SearchAccountsUseCase
-	updateAccountUC  usecases.UpdateAccountUseCase
+	create usecases.CreateAccountUseCase
+	get    usecases.GetAccountUseCase
+	search usecases.SearchAccountsUseCase
+	update usecases.UpdateAccountUseCase
 }
 
 func newAccountUseCases(
@@ -25,25 +25,25 @@ func newAccountUseCases(
 	fundAccountUC := accounts.NewFundAccountUseCase(searchChainsUC, sendTxUC, getFaucetCandidateUC)
 
 	return &accountUseCases{
-		createAccountUC:  accounts.NewCreateAccountUseCase(db, searchAccountsUC, fundAccountUC, keyManagerClient),
-		getAccountUC:     accounts.NewGetAccountUseCase(db),
-		searchAccountsUC: searchAccountsUC,
-		updateAccountUC:  accounts.NewUpdateAccountUseCase(db),
+		create: accounts.NewCreateAccountUseCase(db, searchAccountsUC, fundAccountUC, keyManagerClient),
+		get:    accounts.NewGetAccountUseCase(db),
+		search: searchAccountsUC,
+		update: accounts.NewUpdateAccountUseCase(db),
 	}
 }
 
-func (u *accountUseCases) GetAccount() usecases.GetAccountUseCase {
-	return u.getAccountUC
+func (u *accountUseCases) Get() usecases.GetAccountUseCase {
+	return u.get
 }
 
-func (u *accountUseCases) SearchAccounts() usecases.SearchAccountsUseCase {
-	return u.searchAccountsUC
+func (u *accountUseCases) Search() usecases.SearchAccountsUseCase {
+	return u.search
 }
 
-func (u *accountUseCases) CreateAccount() usecases.CreateAccountUseCase {
-	return u.createAccountUC
+func (u *accountUseCases) Create() usecases.CreateAccountUseCase {
+	return u.create
 }
 
-func (u *accountUseCases) UpdateAccount() usecases.UpdateAccountUseCase {
-	return u.updateAccountUC
+func (u *accountUseCases) Update() usecases.UpdateAccountUseCase {
+	return u.update
 }

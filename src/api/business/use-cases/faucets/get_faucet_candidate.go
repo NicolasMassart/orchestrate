@@ -21,7 +21,7 @@ type FaucetControl interface {
 	OnSelectedCandidate(ctx context.Context, faucet *entities.Faucet, beneficiary ethcommon.Address) error
 }
 
-// RegisterContract is a use case to register a new contract
+// Register is a use case to register a new contract
 type faucetCandidate struct {
 	chainStateReader ethclient.ChainStateReader
 	searchFaucets    usecases.SearchFaucetsUseCase

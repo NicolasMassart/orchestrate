@@ -3,74 +3,69 @@ package builder
 import (
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/business/use-cases/jobs"
-	"github.com/consensys/orchestrate/src/api/business/use-cases/notifications"
 	"github.com/consensys/orchestrate/src/api/metrics"
 	"github.com/consensys/orchestrate/src/api/store"
 	"github.com/consensys/orchestrate/src/infra/kafka"
-	broker "github.com/consensys/orchestrate/src/infra/kafka/sarama"
 )
 
 type jobUseCases struct {
-	createJob   usecases.CreateJobUseCase
-	getJob      usecases.GetJobUseCase
-	startJob    usecases.StartJobUseCase
-	resendJobTx usecases.ResendJobTxUseCase
-	retryJobTx  usecases.RetryJobTxUseCase
-	updateJob   usecases.UpdateJobUseCase
-	searchJobs  usecases.SearchJobsUseCase
+	create   usecases.CreateJobUseCase
+	get      usecases.GetJobUseCase
+	start    usecases.StartJobUseCase
+	resendTx usecases.ResendJobTxUseCase
+	retryTx  usecases.RetryJobTxUseCase
+	update   usecases.UpdateJobUseCase
+	search   usecases.SearchJobsUseCase
 }
 
 func newJobUseCases(
 	db store.DB,
 	appMetrics metrics.TransactionSchedulerMetrics,
 	producer kafka.Producer,
-	topicsCfg *broker.TopicConfig,
-	getChainUC usecases.GetChainUseCase,
-	searchContractUC usecases.SearchContractUseCase,
-	decodeLogUC usecases.DecodeEventLogUseCase,
+	topicSender string,
+	eventStreams usecases.EventStreamsUseCases,
+	chains usecases.ChainUseCases,
 	qkmStoreID string,
 ) *jobUseCases {
-	notifyMinedJobUC := notifications.NewNotifyMinedJobUseCase(db, searchContractUC, decodeLogUC, producer, topicsCfg)
-	notifyFailedJobUC := notifications.NewNotifyFailedJobUseCase(db, producer, topicsCfg)
-	startJobUC := jobs.NewStartJobUseCase(db, producer, topicsCfg, appMetrics)
+	startJobUC := jobs.NewStartJobUseCase(db, producer, topicSender, appMetrics)
 	startNextJobUC := jobs.NewStartNextJobUseCase(db, startJobUC)
-	createJobUC := jobs.NewCreateJobUseCase(db, getChainUC, qkmStoreID)
+	createJobUC := jobs.NewCreateJobUseCase(db, chains.Get(), qkmStoreID)
 
 	return &jobUseCases{
-		createJob:   createJobUC,
-		getJob:      jobs.NewGetJobUseCase(db),
-		searchJobs:  jobs.NewSearchJobsUseCase(db),
-		updateJob:   jobs.NewUpdateJobUseCase(db, startNextJobUC, notifyMinedJobUC, notifyFailedJobUC, appMetrics),
-		startJob:    startJobUC,
-		resendJobTx: jobs.NewResendJobTxUseCase(db, producer, topicsCfg),
-		retryJobTx:  jobs.NewRetryJobTxUseCase(db, createJobUC, startJobUC),
+		create:   createJobUC,
+		get:      jobs.NewGetJobUseCase(db),
+		search:   jobs.NewSearchJobsUseCase(db),
+		update:   jobs.NewUpdateJobUseCase(db, startNextJobUC, appMetrics, eventStreams.NotifyTransaction()),
+		start:    startJobUC,
+		resendTx: jobs.NewResendJobTxUseCase(db, producer, topicSender),
+		retryTx:  jobs.NewRetryJobTxUseCase(db, createJobUC, startJobUC),
 	}
 }
 
-func (u *jobUseCases) CreateJob() usecases.CreateJobUseCase {
-	return u.createJob
+func (u *jobUseCases) Create() usecases.CreateJobUseCase {
+	return u.create
 }
 
-func (u *jobUseCases) GetJob() usecases.GetJobUseCase {
-	return u.getJob
+func (u *jobUseCases) Get() usecases.GetJobUseCase {
+	return u.get
 }
 
-func (u *jobUseCases) SearchJobs() usecases.SearchJobsUseCase {
-	return u.searchJobs
+func (u *jobUseCases) Search() usecases.SearchJobsUseCase {
+	return u.search
 }
 
-func (u *jobUseCases) StartJob() usecases.StartJobUseCase {
-	return u.startJob
+func (u *jobUseCases) Start() usecases.StartJobUseCase {
+	return u.start
 }
 
-func (u *jobUseCases) ResendJobTx() usecases.ResendJobTxUseCase {
-	return u.resendJobTx
+func (u *jobUseCases) ResendTx() usecases.ResendJobTxUseCase {
+	return u.resendTx
 }
 
-func (u *jobUseCases) RetryJobTx() usecases.RetryJobTxUseCase {
-	return u.retryJobTx
+func (u *jobUseCases) RetryTx() usecases.RetryJobTxUseCase {
+	return u.retryTx
 }
 
-func (u *jobUseCases) UpdateJob() usecases.UpdateJobUseCase {
-	return u.updateJob
+func (u *jobUseCases) Update() usecases.UpdateJobUseCase {
+	return u.update
 }
