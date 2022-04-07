@@ -77,7 +77,7 @@ func (uc *fundAccountUseCase) Execute(ctx context.Context, account *entities.Acc
 		InternalData: &entities.InternalData{},
 	}
 
-	_, err = uc.sendTxUseCase.Execute(ctx, txRequest, nil, userInfo)
+	_, err = uc.sendTxUseCase.Execute(ctx, txRequest, nil, multitenancy.NewInternalAdminUser())
 	if err != nil {
 		return errors.FromError(err).ExtendComponent(fundAccountComponent)
 	}

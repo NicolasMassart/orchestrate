@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/consensys/orchestrate/pkg/toolkit/app/http/httputil"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"github.com/consensys/orchestrate/pkg/utils"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
@@ -54,9 +53,9 @@ func (c *AccountsController) Append(router *mux.Router) {
 // @Security     JWTAuth
 // @Param        request  body      api.CreateAccountRequest  true  "Account creation request"
 // @Success      200      {object}  api.AccountResponse       "Account object"
-// @Failure      400      {object}  httputil.ErrorResponse    "Invalid request"
-// @Failure      401      {object}  httputil.ErrorResponse    "Unauthorized"
-// @Failure      500      {object}  httputil.ErrorResponse    "Internal server error"
+// @Failure      400      {object}  infra.ErrorResponse    "Invalid request"
+// @Failure      401      {object}  infra.ErrorResponse    "Unauthorized"
+// @Failure      500      {object}  infra.ErrorResponse    "Internal server error"
 // @Router       /accounts [post]
 func (c *AccountsController) create(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
@@ -65,14 +64,14 @@ func (c *AccountsController) create(rw http.ResponseWriter, request *http.Reques
 	req := &api.CreateAccountRequest{}
 	err := infra.UnmarshalBody(request.Body, req)
 	if err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	acc, err := c.ucs.Create().Execute(ctx, formatters.FormatCreateAccountRequest(req, c.storeName), nil, req.Chain,
 		multitenancy.UserInfoValue(ctx))
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -87,9 +86,9 @@ func (c *AccountsController) create(rw http.ResponseWriter, request *http.Reques
 // @Security     JWTAuth
 // @Param        address  path      string                  true  "selected account address"
 // @Success      200      {object}  api.AccountResponse     "Account found"
-// @Failure      404      {object}  httputil.ErrorResponse  "Account not found"
-// @Failure      401      {object}  httputil.ErrorResponse  "Unauthorized"
-// @Failure      500      {object}  httputil.ErrorResponse  "Internal server error"
+// @Failure      404      {object}  infra.ErrorResponse  "Account not found"
+// @Failure      401      {object}  infra.ErrorResponse  "Unauthorized"
+// @Failure      500      {object}  infra.ErrorResponse  "Internal server error"
 // @Router       /accounts/{address} [get]
 func (c *AccountsController) getOne(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
@@ -97,13 +96,13 @@ func (c *AccountsController) getOne(rw http.ResponseWriter, request *http.Reques
 
 	address, err := utils.ParseHexToMixedCaseEthAddress(mux.Vars(request)["address"])
 	if err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	acc, err := c.ucs.Get().Execute(ctx, *address, multitenancy.UserInfoValue(ctx))
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -119,9 +118,9 @@ func (c *AccountsController) getOne(rw http.ResponseWriter, request *http.Reques
 // @Security     JWTAuth
 // @Param        aliases  query     []string                false  "List of account aliases"  collectionFormat(csv)
 // @Success      200      {array}   api.AccountResponse     "List of identities found"
-// @Failure      400      {object}  httputil.ErrorResponse  "Invalid filter in the request"
-// @Failure      401      {object}  httputil.ErrorResponse  "Unauthorized"
-// @Failure      500      {object}  httputil.ErrorResponse  "Internal server error"
+// @Failure      400      {object}  infra.ErrorResponse  "Invalid filter in the request"
+// @Failure      401      {object}  infra.ErrorResponse  "Unauthorized"
+// @Failure      500      {object}  infra.ErrorResponse  "Internal server error"
 // @Router       /accounts [get]
 func (c *AccountsController) search(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
@@ -129,13 +128,13 @@ func (c *AccountsController) search(rw http.ResponseWriter, request *http.Reques
 
 	filters, err := formatters.FormatAccountFilterRequest(request)
 	if err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	accs, err := c.ucs.Search().Execute(ctx, filters, multitenancy.UserInfoValue(ctx))
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -156,11 +155,11 @@ func (c *AccountsController) search(rw http.ResponseWriter, request *http.Reques
 // @Security     JWTAuth
 // @Param        request  body      api.ImportAccountRequest  true  "Account creation request"
 // @Success      200      {object}  api.AccountResponse       "Account object"
-// @Failure      400      {object}  httputil.ErrorResponse    "Invalid request"
-// @Failure      422      {object}  httputil.ErrorResponse    "Unprocessable entity"
-// @Failure      401      {object}  httputil.ErrorResponse    "Unauthorized"
-// @Failure      405      {object}  httputil.ErrorResponse    "Not allowed"
-// @Failure      500      {object}  httputil.ErrorResponse    "Internal server error"
+// @Failure      400      {object}  infra.ErrorResponse    "Invalid request"
+// @Failure      422      {object}  infra.ErrorResponse    "Unprocessable entity"
+// @Failure      401      {object}  infra.ErrorResponse    "Unauthorized"
+// @Failure      405      {object}  infra.ErrorResponse    "Not allowed"
+// @Failure      500      {object}  infra.ErrorResponse    "Internal server error"
 // @Router       /accounts/import [post]
 func (c *AccountsController) importKey(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
@@ -169,14 +168,14 @@ func (c *AccountsController) importKey(rw http.ResponseWriter, request *http.Req
 	req := &api.ImportAccountRequest{}
 	err := infra.UnmarshalBody(request.Body, req)
 	if err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	acc, err := c.ucs.Create().Execute(ctx, formatters.FormatImportAccountRequest(req, c.storeName), req.PrivateKey, req.Chain,
 		multitenancy.UserInfoValue(ctx))
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -193,10 +192,10 @@ func (c *AccountsController) importKey(rw http.ResponseWriter, request *http.Req
 // @Param        request  body      api.UpdateAccountRequest  true  "Account update request"
 // @Param        address  path      string                    true  "selected account address"
 // @Success      200      {object}  api.AccountResponse       "Account found"
-// @Failure      400      {object}  httputil.ErrorResponse    "Invalid request"
-// @Failure      401      {object}  httputil.ErrorResponse    "Unauthorized"
-// @Failure      404      {object}  httputil.ErrorResponse    "Account not found"
-// @Failure      500      {object}  httputil.ErrorResponse    "Internal server error"
+// @Failure      400      {object}  infra.ErrorResponse    "Invalid request"
+// @Failure      401      {object}  infra.ErrorResponse    "Unauthorized"
+// @Failure      404      {object}  infra.ErrorResponse    "Account not found"
+// @Failure      500      {object}  infra.ErrorResponse    "Internal server error"
 // @Router       /accounts/{address} [patch]
 func (c *AccountsController) update(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
@@ -205,14 +204,14 @@ func (c *AccountsController) update(rw http.ResponseWriter, request *http.Reques
 	accRequest := &api.UpdateAccountRequest{}
 	err := infra.UnmarshalBody(request.Body, accRequest)
 	if err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	acc := formatters.FormatUpdateAccountRequest(accRequest)
 	address, err := utils.ParseHexToMixedCaseEthAddress(mux.Vars(request)["address"])
 	if err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 	acc.Address = *address
@@ -220,7 +219,7 @@ func (c *AccountsController) update(rw http.ResponseWriter, request *http.Reques
 	accRes, err := c.ucs.Update().Execute(ctx, acc, multitenancy.UserInfoValue(ctx))
 
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -237,29 +236,29 @@ func (c *AccountsController) update(rw http.ResponseWriter, request *http.Reques
 // @Param        request  body      api.SignMessageRequest  true  "Payload to sign"
 // @Param        address  path      string                  true  "selected account address"
 // @Success      200      {string}  string                  "Signed payload"
-// @Failure      400      {object}  httputil.ErrorResponse  "Invalid request"
-// @Failure      401      {object}  httputil.ErrorResponse  "Unauthorized"
-// @Failure      404      {object}  httputil.ErrorResponse  "Account not found"
-// @Failure      500      {object}  httputil.ErrorResponse  "Internal server error"
+// @Failure      400      {object}  infra.ErrorResponse  "Invalid request"
+// @Failure      401      {object}  infra.ErrorResponse  "Unauthorized"
+// @Failure      404      {object}  infra.ErrorResponse  "Account not found"
+// @Failure      500      {object}  infra.ErrorResponse  "Internal server error"
 // @Router       /accounts/{address}/sign-message [post]
 func (c *AccountsController) signMessage(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 	payloadRequest := &api.SignMessageRequest{}
 	err := infra.UnmarshalBody(request.Body, payloadRequest)
 	if err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	address, err := utils.ParseHexToMixedCaseEthAddress(mux.Vars(request)["address"])
 	if err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	_, err = c.ucs.Get().Execute(ctx, *address, multitenancy.UserInfoValue(ctx))
 	if err != nil {
-		httputil.WriteError(rw, fmt.Sprintf("account %s was not found", address), http.StatusBadRequest)
+		infra.WriteError(rw, fmt.Sprintf("account %s was not found", address), http.StatusBadRequest)
 		return
 	}
 
@@ -272,7 +271,7 @@ func (c *AccountsController) signMessage(rw http.ResponseWriter, request *http.R
 		Message: payloadRequest.Message,
 	})
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -287,30 +286,30 @@ func (c *AccountsController) signMessage(rw http.ResponseWriter, request *http.R
 // @Param        request  body      api.SignTypedDataRequest  true  "Typed data to sign"
 // @Param        address  path      string                    true  "selected account address"
 // @Success      200      {string}  string                    "Signed payload"
-// @Failure      400      {object}  httputil.ErrorResponse    "Invalid request"
-// @Failure      401      {object}  httputil.ErrorResponse    "Unauthorized"
-// @Failure      404      {object}  httputil.ErrorResponse    "Account not found"
-// @Failure      422      {object}  httputil.ErrorResponse    "Invalid parameters"
-// @Failure      500      {object}  httputil.ErrorResponse    "Internal server error"
+// @Failure      400      {object}  infra.ErrorResponse    "Invalid request"
+// @Failure      401      {object}  infra.ErrorResponse    "Unauthorized"
+// @Failure      404      {object}  infra.ErrorResponse    "Account not found"
+// @Failure      422      {object}  infra.ErrorResponse    "Invalid parameters"
+// @Failure      500      {object}  infra.ErrorResponse    "Internal server error"
 // @Router       /accounts/{address}/sign-typed-data [post]
 func (c *AccountsController) signTypedData(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 	signRequest := &api.SignTypedDataRequest{}
 	err := infra.UnmarshalBody(request.Body, signRequest)
 	if err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	address, err := utils.ParseHexToMixedCaseEthAddress(mux.Vars(request)["address"])
 	if err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	_, err = c.ucs.Get().Execute(ctx, *address, multitenancy.UserInfoValue(ctx))
 	if err != nil {
-		httputil.WriteError(rw, fmt.Sprintf("account %s was not found", address), http.StatusBadRequest)
+		infra.WriteError(rw, fmt.Sprintf("account %s was not found", address), http.StatusBadRequest)
 		return
 	}
 
@@ -326,7 +325,7 @@ func (c *AccountsController) signTypedData(rw http.ResponseWriter, request *http
 		MessageType:     signRequest.MessageType,
 	})
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -339,22 +338,22 @@ func (c *AccountsController) signTypedData(rw http.ResponseWriter, request *http
 // @Accept       json
 // @Param        request  body  qkmutilstypes.VerifyTypedDataRequest  true  "Typed data to sign"
 // @Success      204
-// @Failure      400  {object}  httputil.ErrorResponse  "Invalid request"
-// @Failure      401  {object}  httputil.ErrorResponse  "Unauthorized"
-// @Failure      422  {object}  httputil.ErrorResponse  "Invalid parameters"
-// @Failure      500  {object}  httputil.ErrorResponse  "Internal server error"
+// @Failure      400  {object}  infra.ErrorResponse  "Invalid request"
+// @Failure      401  {object}  infra.ErrorResponse  "Unauthorized"
+// @Failure      422  {object}  infra.ErrorResponse  "Invalid parameters"
+// @Failure      500  {object}  infra.ErrorResponse  "Internal server error"
 // @Router       /accounts/verify-typed-data [post]
 func (c *AccountsController) verifyTypedDataSignature(rw http.ResponseWriter, request *http.Request) {
 	verifyRequest := &qkmutilstypes.VerifyTypedDataRequest{}
 	err := infra.UnmarshalBody(request.Body, verifyRequest)
 	if err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	err = c.keyManagerClient.VerifyTypedData(request.Context(), verifyRequest)
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -367,22 +366,22 @@ func (c *AccountsController) verifyTypedDataSignature(rw http.ResponseWriter, re
 // @Accept       json
 // @Param        request  body  qkmutilstypes.VerifyRequest  true  "signature and message to verify"
 // @Success      204
-// @Failure      400  {object}  httputil.ErrorResponse  "Invalid request"
-// @Failure      401  {object}  httputil.ErrorResponse  "Unauthorized"
-// @Failure      422  {object}  httputil.ErrorResponse  "Invalid parameters"
-// @Failure      500  {object}  httputil.ErrorResponse  "Internal server error"
+// @Failure      400  {object}  infra.ErrorResponse  "Invalid request"
+// @Failure      401  {object}  infra.ErrorResponse  "Unauthorized"
+// @Failure      422  {object}  infra.ErrorResponse  "Invalid parameters"
+// @Failure      500  {object}  infra.ErrorResponse  "Internal server error"
 // @Router       /accounts/verify-message [post]
 func (c *AccountsController) verifyMessageSignature(rw http.ResponseWriter, request *http.Request) {
 	verifyRequest := &qkmutilstypes.VerifyRequest{}
 	err := infra.UnmarshalBody(request.Body, verifyRequest)
 	if err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	err = c.keyManagerClient.VerifyMessage(request.Context(), verifyRequest)
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 

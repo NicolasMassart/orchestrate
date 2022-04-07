@@ -220,7 +220,7 @@ func newTxSender(txSenderConfig *txsender.Config, redisCli redis.Client, consume
 	httpClient := httputils.NewClient(httputils.NewDefaultConfig())
 	gock.InterceptClient(httpClient)
 
-	ec := ethclient.NewClient(testBackOff, httpClient)
+	ec := ethclient.NewClientWithBackOff(testBackOff, httpClient)
 	qkmClient := qkmclient.NewHTTPClient(httpClient, &qkmclient.Config{
 		URL: keyManagerURL,
 	})

@@ -1,21 +1,21 @@
 package testdata
 
 import (
-	"time"
+	"fmt"
 
-	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	api "github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/quorum-key-manager/pkg/common"
-	"github.com/gofrs/uuid"
 )
 
 func FakeRegisterChainRequest() *api.RegisterChainRequest {
 	return &api.RegisterChainRequest{
-		Name: "chain-"+common.RandString(5),
+		Name: "chain-" + common.RandString(5),
 		URLs: []string{"http://chain:8545"},
 		Listener: api.RegisterListenerRequest{
 			FromBlock:         "latest",
 			ExternalTxEnabled: false,
+			Depth:             uint64(common.RandInt(10)),
+			BackOffDuration:   fmt.Sprintf("%ds", common.RandIntRange(1, 10)),
 		},
 		PrivateTxManagerURL: "http://tessera-eea:8545",
 		Labels: map[string]string{
@@ -27,29 +27,15 @@ func FakeRegisterChainRequest() *api.RegisterChainRequest {
 
 func FakeUpdateChainRequest() *api.UpdateChainRequest {
 	return &api.UpdateChainRequest{
-		Name: "chain-"+common.RandString(5),
+		Name: "chain-" + common.RandString(5),
 		Listener: &api.UpdateListenerRequest{
-			CurrentBlock: 55,
+			CurrentBlock:      55,
+			ExternalTxEnabled: true,
+			Depth:             uint64(common.RandInt(10)),
+			BackOffDuration:   fmt.Sprintf("%ds", common.RandIntRange(1, 10)),
 		},
 		Labels: map[string]string{
 			"label3": common.RandString(5),
 		},
-	}
-}
-
-func FakeChainResponse() *api.ChainResponse {
-	return &api.ChainResponse{
-		UUID:                      uuid.Must(uuid.NewV4()).String(),
-		Name:                      "ganache",
-		TenantID:                  multitenancy.DefaultTenant,
-		URLs:                      []string{"http://ethereum-node:8545"},
-		ChainID:                   "888",
-		ListenerDepth:             0,
-		ListenerCurrentBlock:      0,
-		ListenerStartingBlock:     0,
-		ListenerBackOffDuration:   "5s",
-		ListenerExternalTxEnabled: false,
-		CreatedAt:                 time.Now(),
-		UpdatedAt:                 time.Now(),
 	}
 }

@@ -7,13 +7,13 @@ import (
 	"testing"
 
 	"github.com/consensys/orchestrate/pkg/errors"
+	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/sdk/client/mock"
-	testdata2 "github.com/consensys/orchestrate/src/api/service/types/testdata"
-	mock2 "github.com/consensys/orchestrate/src/infra/ethclient/mock"
 	apitypes "github.com/consensys/orchestrate/src/api/service/types"
+	testdata2 "github.com/consensys/orchestrate/src/api/service/types/testdata"
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/entities/testdata"
-	"github.com/consensys/orchestrate/pkg/utils"
+	mock2 "github.com/consensys/orchestrate/src/infra/ethclient/mock"
 	mocks2 "github.com/consensys/orchestrate/src/tx-sender/tx-sender/nonce/mocks"
 	"github.com/consensys/orchestrate/src/tx-sender/tx-sender/use-cases/mocks"
 	ethcommon "github.com/ethereum/go-ethereum/common"
@@ -47,7 +47,7 @@ func TestSendEth_Execute(t *testing.T) {
 		job.Transaction.Raw = raw
 		job.Transaction.Hash = &txHash
 
-		proxyURL := utils.GetProxyURL(chainRegistryURL, job.ChainUUID)
+		proxyURL := client.GetProxyURL(chainRegistryURL, job.ChainUUID)
 		ec.EXPECT().SendRawTransaction(gomock.Any(), proxyURL, job.Transaction.Raw).Return(txHash, nil)
 		nonceManager.EXPECT().IncrementNonce(gomock.Any(), job).Return(nil)
 		jobClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, gomock.Any()).DoAndReturn(func(ctx context.Context, jobUUID string, request *apitypes.UpdateJobRequest) (*apitypes.JobResponse, error) {
@@ -69,7 +69,7 @@ func TestSendEth_Execute(t *testing.T) {
 		job.Transaction.Raw = raw
 		job.Transaction.Hash = &txHash
 
-		proxyURL := utils.GetProxyURL(chainRegistryURL, job.ChainUUID)
+		proxyURL := client.GetProxyURL(chainRegistryURL, job.ChainUUID)
 		ec.EXPECT().SendRawTransaction(gomock.Any(), proxyURL, job.Transaction.Raw).Return(txHash, nil)
 		nonceManager.EXPECT().IncrementNonce(gomock.Any(), job).Return(nil)
 		jobClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, gomock.Any()).DoAndReturn(func(ctx context.Context, jobUUID string, request *apitypes.UpdateJobRequest) (*apitypes.JobResponse, error) {
@@ -92,7 +92,7 @@ func TestSendEth_Execute(t *testing.T) {
 		job.Transaction.Raw = raw
 		job.Transaction.Hash = &txHash
 
-		proxyURL := utils.GetProxyURL(chainRegistryURL, job.ChainUUID)
+		proxyURL := client.GetProxyURL(chainRegistryURL, job.ChainUUID)
 		ec.EXPECT().SendRawTransaction(gomock.Any(), proxyURL, job.Transaction.Raw).Return(txHash, nil)
 		nonceManager.EXPECT().IncrementNonce(gomock.Any(), job).Return(nil)
 		jobClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, gomock.Any()).DoAndReturn(func(ctx context.Context, jobUUID string, request *apitypes.UpdateJobRequest) (*apitypes.JobResponse, error) {
@@ -116,7 +116,7 @@ func TestSendEth_Execute(t *testing.T) {
 		job.Transaction.Raw = raw
 		job.Transaction.Hash = &txHash
 
-		proxyURL := utils.GetProxyURL(chainRegistryURL, job.ChainUUID)
+		proxyURL := client.GetProxyURL(chainRegistryURL, job.ChainUUID)
 		ec.EXPECT().SendRawTransaction(gomock.Any(), proxyURL, job.Transaction.Raw).Return(txHash, nil)
 		nonceManager.EXPECT().IncrementNonce(gomock.Any(), job).Return(nil)
 		jobClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, gomock.Any()).DoAndReturn(func(ctx context.Context, jobUUID string, request *apitypes.UpdateJobRequest) (*apitypes.JobResponse, error) {
@@ -182,7 +182,7 @@ func TestSendEth_Execute(t *testing.T) {
 		job.Transaction.Hash = &txHash
 
 		expectedErr := errors.InternalError("internal error")
-		proxyURL := utils.GetProxyURL(chainRegistryURL, job.ChainUUID)
+		proxyURL := client.GetProxyURL(chainRegistryURL, job.ChainUUID)
 		jobClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, gomock.Any()).DoAndReturn(func(ctx context.Context, jobUUID string, request *apitypes.UpdateJobRequest) (*apitypes.JobResponse, error) {
 			assert.Equal(t, request.Status, entities.StatusPending)
 			assert.Equal(t, request.Transaction.Hash, job.Transaction.Hash)

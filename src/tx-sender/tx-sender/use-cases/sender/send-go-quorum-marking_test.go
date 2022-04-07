@@ -7,13 +7,13 @@ import (
 	"testing"
 
 	"github.com/consensys/orchestrate/pkg/errors"
+	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/sdk/client/mock"
-	testdata2 "github.com/consensys/orchestrate/src/api/service/types/testdata"
-	mock2 "github.com/consensys/orchestrate/src/infra/ethclient/mock"
 	api "github.com/consensys/orchestrate/src/api/service/types"
+	testdata2 "github.com/consensys/orchestrate/src/api/service/types/testdata"
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/entities/testdata"
-	"github.com/consensys/orchestrate/pkg/utils"
+	mock2 "github.com/consensys/orchestrate/src/infra/ethclient/mock"
 	mocks2 "github.com/consensys/orchestrate/src/tx-sender/tx-sender/nonce/mocks"
 	"github.com/consensys/orchestrate/src/tx-sender/tx-sender/use-cases/mocks"
 	ethcommon "github.com/ethereum/go-ethereum/common"
@@ -48,7 +48,7 @@ func TestSendGoQuorumMarking_Execute(t *testing.T) {
 		job.Transaction.Raw = raw
 		job.Transaction.Hash = &txHash
 
-		proxyURL := utils.GetProxyURL(chainRegistryURL, job.ChainUUID)
+		proxyURL := client.GetProxyURL(chainRegistryURL, job.ChainUUID)
 		ec.EXPECT().SendQuorumRawPrivateTransaction(gomock.Any(), proxyURL, job.Transaction.Raw, job.Transaction.PrivateFor, nil, 0).
 			Return(txHash, nil)
 		nonceChecker.EXPECT().IncrementNonce(gomock.Any(), job).Return(nil)
@@ -73,7 +73,7 @@ func TestSendGoQuorumMarking_Execute(t *testing.T) {
 		job.Transaction.Raw = raw
 		job.Transaction.Hash = &txHash
 
-		proxyURL := utils.GetProxyURL(chainRegistryURL, job.ChainUUID)
+		proxyURL := client.GetProxyURL(chainRegistryURL, job.ChainUUID)
 		ec.EXPECT().SendQuorumRawPrivateTransaction(gomock.Any(), proxyURL, job.Transaction.Raw, job.Transaction.PrivateFor, nil, 0).
 			Return(txHash, nil)
 		nonceChecker.EXPECT().IncrementNonce(gomock.Any(), job).Return(nil)
@@ -98,7 +98,7 @@ func TestSendGoQuorumMarking_Execute(t *testing.T) {
 		job.Transaction.Raw = raw
 		job.Transaction.Hash = &txHash
 
-		proxyURL := utils.GetProxyURL(chainRegistryURL, job.ChainUUID)
+		proxyURL := client.GetProxyURL(chainRegistryURL, job.ChainUUID)
 		ec.EXPECT().SendQuorumRawPrivateTransaction(gomock.Any(), proxyURL, job.Transaction.Raw, job.Transaction.PrivateFor, nil, 0).
 			Return(txHash2, nil)
 		nonceChecker.EXPECT().IncrementNonce(gomock.Any(), job).Return(nil)
@@ -167,7 +167,7 @@ func TestSendGoQuorumMarking_Execute(t *testing.T) {
 		job.Transaction.Hash = &txHash
 
 		expectedErr := errors.InternalError("internal error")
-		proxyURL := utils.GetProxyURL(chainRegistryURL, job.ChainUUID)
+		proxyURL := client.GetProxyURL(chainRegistryURL, job.ChainUUID)
 		jobClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, gomock.Any()).DoAndReturn(func(ctx context.Context, jobUUID string, request *api.UpdateJobRequest) (*api.JobResponse, error) {
 			assert.Equal(t, request.Status, entities.StatusPending)
 			assert.Equal(t, request.Transaction.Hash, job.Transaction.Hash)

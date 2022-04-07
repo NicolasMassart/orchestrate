@@ -197,7 +197,7 @@ func isJobStatus(fl validator.FieldLevel) bool {
 func isGasIncrementLevel(fl validator.FieldLevel) bool {
 	if fl.Field().String() != "" {
 		switch fl.Field().String() {
-		case entities.GasIncrementVeryLow, entities.GasIncrementLow, entities.GasIncrementMedium, entities.GasIncrementHigh, entities.GasIncrementVeryHigh:
+		case entities.GasIncrementVeryLow.String(), entities.GasIncrementLow.String(), entities.GasIncrementMedium.String(), entities.GasIncrementHigh.String(), entities.GasIncrementVeryHigh.String():
 			return true
 		default:
 			return false

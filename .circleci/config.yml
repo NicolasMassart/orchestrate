@@ -350,12 +350,7 @@ jobs:
             make up
             echo "Wait 20 seconds for services to boot up correctly..."
             sleep 20
-            make e2e-ci
-            exitCode=$(docker inspect project_e2e_1 --format='{{.State.ExitCode}}')
-            exit $exitCode
-      - store_artifacts:
-          path: ./build/report/report.html
-          destination: report.html
+            make run-e2e
 
   run-e2e:
     docker:
@@ -389,15 +384,7 @@ jobs:
             CIRCLE_BUILD_IMAGE=${CIRCLE_BUILD_IMAGE}
             CIRCLE_BUILD_URL=${CIRCLE_BUILD_URL}
             CIRCLE_BUILD_NUM=${CIRCLE_BUILD_NUM}
-            ./build/bin/test e2e
-            exitCode=$(echo $?)
-            cd ./scripts/report
-            npm install
-            npm start
-            exit $exitCode
-      - store_artifacts:
-          path: ./scripts/report/report.html
-          destination: report.html
+            make run-e2e
 
   run-stress:
     docker:

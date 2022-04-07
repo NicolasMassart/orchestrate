@@ -42,7 +42,6 @@ func NewNotifyTransactionUseCase(
 
 func (uc *notifyTransactionUseCase) Execute(ctx context.Context, job *entities.Job, errStr string, userInfo *multitenancy.UserInfo) error {
 	ctx = log.WithFields(ctx, log.Field("job_uuid", job.UUID), log.Field("job_status", job.Status))
-	logger := uc.logger.WithContext(ctx)
 
 	eventStream, err := uc.db.FindOneByTenantAndChain(ctx, job.TenantID, job.ChainUUID, userInfo.AllowedTenants, userInfo.Username)
 	if err != nil {
@@ -50,7 +49,15 @@ func (uc *notifyTransactionUseCase) Execute(ctx context.Context, job *entities.J
 	}
 
 	if eventStream == nil {
-		return nil
+		// @TODO Remove once implementation is completed
+		eventStream = &entities.EventStream{
+			Status:  entities.EventStreamStatusLive,
+			Channel: entities.EventStreamChannelKafka,
+			Specs: &entities.Kafka{
+				Topic: "topic-tx-decoded",
+			},
+		}
+		// return nil
 	}
 
 	if eventStream.Status != entities.EventStreamStatusLive {
@@ -61,26 +68,39 @@ func (uc *notifyTransactionUseCase) Execute(ctx context.Context, job *entities.J
 		return nil
 	}
 
-	err = uc.attachContractData(ctx, job.Receipt)
-	if err != nil {
-		return errors.FromError(err).ExtendComponent(notifyTransactionComponent)
-	}
+	logger := uc.logger.WithContext(ctx).WithField("event_stream", eventStream.Name).
+		WithField("channel", eventStream.Channel)
+	if job.Status == entities.StatusMined {
+		if job.Receipt == nil {
+			errMsg := "missing required receipt for notification"
+			logger.Error(errMsg)
+			return errors.InvalidParameterError(errMsg)
+		}
 
-	for idx, l := range job.Receipt.Logs {
-		job.Receipt.Logs[idx], err = uc.decodeLogUC.Execute(ctx, job.ChainUUID, l)
+		err = uc.attachContractData(ctx, job.Receipt)
 		if err != nil {
 			return errors.FromError(err).ExtendComponent(notifyTransactionComponent)
+		}
+
+		for idx, l := range job.Receipt.Logs {
+			decodedLog, err2 := uc.decodeLogUC.Execute(ctx, job.ChainUUID, l)
+			if err2 != nil {
+				return errors.FromError(err2).ExtendComponent(notifyTransactionComponent)
+			}
+			if decodedLog != nil {
+				job.Receipt.Logs[idx] = decodedLog
+			}
 		}
 	}
 
 	err = uc.notifier.SendTxResponse(ctx, eventStream, job, errStr)
 	if err != nil {
 		errMsg := "failed to send notification"
-		logger.WithField("event_stream", eventStream.Name).WithField("channel", eventStream.Channel).WithError(err).Error(errMsg)
+		logger.WithError(err).Error(errMsg)
 		return errors.DependencyFailureError(errMsg).ExtendComponent(notifyTransactionComponent)
 	}
 
-	logger.WithField("event_stream", eventStream.Name).WithField("channel", eventStream.Channel).Debug("notification sent successfully")
+	logger.Debug("notification sent successfully")
 	return nil
 }
 

@@ -18,7 +18,7 @@ import (
 
 func newEEAClient() *Client {
 	newBackOff := func() backoff.BackOff { return pkgUtils.NewBackOff(testutils.TestConfig) }
-	return NewClient(newBackOff, &http.Client{
+	return NewClientWithBackOff(newBackOff, &http.Client{
 		Transport: testutils.MockRoundTripper{},
 	})
 }

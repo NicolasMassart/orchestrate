@@ -7,10 +7,10 @@ import (
 	"math/big"
 	"testing"
 
-	mock2 "github.com/consensys/orchestrate/src/infra/ethclient/mock"
+	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/entities/testdata"
-	"github.com/consensys/orchestrate/pkg/utils"
+	mock2 "github.com/consensys/orchestrate/src/infra/ethclient/mock"
 	"github.com/consensys/orchestrate/src/tx-sender/tx-sender/nonce/mocks"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -39,7 +39,7 @@ func TestCrafterTransaction_Execute(t *testing.T) {
 		job.Transaction.Gas = nil
 		job.Transaction.TransactionType = entities.LegacyTxType
 
-		proxyURL := utils.GetProxyURL(chainRegistryURL, job.ChainUUID)
+		proxyURL := client.GetProxyURL(chainRegistryURL, job.ChainUUID)
 		expectedGasPrice, _ := new(big.Int).SetString("1000", 10)
 		ec.EXPECT().SuggestGasPrice(gomock.Any(), proxyURL).Return(expectedGasPrice, nil)
 		ec.EXPECT().EstimateGas(gomock.Any(), proxyURL, gomock.Any()).Return(uint64(1000), nil)
@@ -58,7 +58,7 @@ func TestCrafterTransaction_Execute(t *testing.T) {
 		job.Transaction.Gas = nil
 		job.Transaction.GasPrice = nil
 
-		proxyURL := utils.GetProxyURL(chainRegistryURL, job.ChainUUID)
+		proxyURL := client.GetProxyURL(chainRegistryURL, job.ChainUUID)
 		expectedFeeHistory := testdata.FakeFeeHistory(nextBaseFee)
 		ec.EXPECT().FeeHistory(gomock.Any(), proxyURL, 1, "latest").Return(expectedFeeHistory, nil)
 		ec.EXPECT().EstimateGas(gomock.Any(), proxyURL, gomock.Any()).Return(uint64(1000), nil)
@@ -82,7 +82,7 @@ func TestCrafterTransaction_Execute(t *testing.T) {
 		job.Transaction.Gas = nil
 		job.InternalData.OneTimeKey = true
 
-		proxyURL := utils.GetProxyURL(chainRegistryURL, job.ChainUUID)
+		proxyURL := client.GetProxyURL(chainRegistryURL, job.ChainUUID)
 		expectedGasPrice, _ := new(big.Int).SetString("1000", 10)
 		ec.EXPECT().SuggestGasPrice(gomock.Any(), proxyURL).Return(expectedGasPrice, nil)
 		ec.EXPECT().EstimateGas(gomock.Any(), proxyURL, gomock.Any()).Return(uint64(1000), nil)
@@ -101,7 +101,7 @@ func TestCrafterTransaction_Execute(t *testing.T) {
 		job.Transaction.GasPrice = nil
 		job.Transaction.Gas = nil
 
-		proxyURL := utils.GetProxyURL(chainRegistryURL, job.ChainUUID)
+		proxyURL := client.GetProxyURL(chainRegistryURL, job.ChainUUID)
 		expectedContractAddr := ethcommon.HexToAddress("0x1")
 		expectedFeeHistory := testdata.FakeFeeHistory(nextBaseFee)
 		ec.EXPECT().FeeHistory(gomock.Any(), proxyURL, 1, "latest").Return(expectedFeeHistory, nil)
@@ -138,7 +138,7 @@ func TestCrafterTransaction_Execute(t *testing.T) {
 		job.Transaction.TransactionType = entities.DynamicFeeTxType
 		job.InternalData.ParentJobUUID = job.UUID
 
-		proxyURL := utils.GetProxyURL(chainRegistryURL, job.ChainUUID)
+		proxyURL := client.GetProxyURL(chainRegistryURL, job.ChainUUID)
 		expectedFeeHistory := testdata.FakeFeeHistory(nextBaseFee)
 		ec.EXPECT().FeeHistory(gomock.Any(), proxyURL, 1, "latest").Return(expectedFeeHistory, nil)
 

@@ -52,9 +52,9 @@ const (
 
 	// Ethereum error (class BEXXX)
 	Ethereum            uint64 = 11<<16 + 14<<12
-	NonceTooLow                = Ethereum + 1
-	InvalidNonceErr            = Ethereum + 2
-	KnownTransactionErr        = Ethereum + 3
+	NonceTooLow                = Ethereum + 1<<8 // Subclass BE1XX
+	InvalidNonceErr            = NonceTooLow + 1 // Subclass BE101
+	KnownTransactionErr        = Ethereum + 2<<8 // Subclass BE2xx
 
 	// Cryptographic operation error (class C0XXX)
 	CryptoOperation               uint64 = 12 << 16

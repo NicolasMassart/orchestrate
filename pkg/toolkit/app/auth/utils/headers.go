@@ -5,6 +5,7 @@ import (
 )
 
 const (
+	UserInfoHeader      = "X-UserInfo"
 	AuthorizationHeader = "Authorization"
 	APIKeyHeader        = "X-API-Key"
 	TenantIDHeader      = "X-Tenant-ID"

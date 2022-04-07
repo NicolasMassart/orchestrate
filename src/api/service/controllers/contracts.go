@@ -8,7 +8,6 @@ import (
 	infra "github.com/consensys/orchestrate/src/infra/api"
 
 	"github.com/consensys/orchestrate/pkg/errors"
-	"github.com/consensys/orchestrate/pkg/toolkit/app/http/httputil"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/service/formatters"
 	api "github.com/consensys/orchestrate/src/api/service/types"
@@ -45,7 +44,7 @@ func (c *ContractsController) Append(router *mux.Router) {
 // @Security     ApiKeyAuth
 // @Security     JWTAuth
 // @Success      200  {array}   string                  "Registered contract List"
-// @Failure      500  {object}  httputil.ErrorResponse  "Internal server error"
+// @Failure      500  {object}  infra.ErrorResponse  "Internal server error"
 // @Router       /contracts [get]
 func (c *ContractsController) getCatalog(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
@@ -54,7 +53,7 @@ func (c *ContractsController) getCatalog(rw http.ResponseWriter, request *http.R
 	names, err := c.ucs.GetCatalog().Execute(ctx)
 
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -73,9 +72,9 @@ func (c *ContractsController) getCatalog(rw http.ResponseWriter, request *http.R
 // @Security     JWTAuth
 // @Param        request  body      api.RegisterContractRequest                                                                                             true  "Contract register request"
 // @Success      200      {object}  api.ContractResponse{constructor=entities.ABIComponent,methods=[]entities.ABIComponent,events=[]entities.ABIComponent}  "Contract object"
-// @Failure      400      {object}  httputil.ErrorResponse                                                                                                  "Invalid request"
-// @Failure      401      {object}  httputil.ErrorResponse                                                                                                  "Unauthorized"
-// @Failure      500      {object}  httputil.ErrorResponse                                                                                                  "Internal server error"
+// @Failure      400      {object}  infra.ErrorResponse                                                                                                  "Invalid request"
+// @Failure      401      {object}  infra.ErrorResponse                                                                                                  "Unauthorized"
+// @Failure      500      {object}  infra.ErrorResponse                                                                                                  "Internal server error"
 // @Router       /contracts [post]
 func (c *ContractsController) register(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
@@ -84,25 +83,25 @@ func (c *ContractsController) register(rw http.ResponseWriter, request *http.Req
 	req := &api.RegisterContractRequest{}
 	err := infra.UnmarshalBody(request.Body, req)
 	if err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	contract, err := formatters.FormatRegisterContractRequest(req)
 	if err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	err = c.ucs.Register().Execute(ctx, contract)
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
 	contract, err = c.ucs.Get().Execute(ctx, contract.Name, contract.Tag)
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -119,9 +118,9 @@ func (c *ContractsController) register(rw http.ResponseWriter, request *http.Req
 // @Param        code_hash  query     string                  true  "contract code hash"
 // @Param        address    query     string                  true  "contract address"
 // @Success      200        {object}  api.ContractResponse{}  "Contract object"
-// @Failure      400        {object}  httputil.ErrorResponse  "Invalid request"
-// @Failure      401        {object}  httputil.ErrorResponse  "Unauthorized"
-// @Failure      500        {object}  httputil.ErrorResponse  "Internal server error"
+// @Failure      400        {object}  infra.ErrorResponse  "Invalid request"
+// @Failure      401        {object}  infra.ErrorResponse  "Unauthorized"
+// @Failure      500        {object}  infra.ErrorResponse  "Internal server error"
 // @Router       /contracts/search [get]
 func (c *ContractsController) search(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
@@ -129,13 +128,13 @@ func (c *ContractsController) search(rw http.ResponseWriter, request *http.Reque
 
 	req, err := formatters.FormatSearchContractRequest(request)
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
 	contract, err := c.ucs.Search().Execute(ctx, req.CodeHash, req.Address)
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -152,8 +151,8 @@ func (c *ContractsController) search(rw http.ResponseWriter, request *http.Reque
 // @Param        address   path      string                          true  "contract deployed address"
 // @Param        chain_id  path      string                          true  "network chain id"
 // @Success      200       {array}   string                          "List of events"
-// @Failure      400       {object}  httputil.ErrorResponse          "Invalid request"
-// @Failure      500       {object}  httputil.ErrorResponse          "Internal server error"
+// @Failure      400       {object}  infra.ErrorResponse          "Invalid request"
+// @Failure      500       {object}  infra.ErrorResponse          "Internal server error"
 // @Router       /contracts/accounts/{chain_id}/{address} [post]
 func (c *ContractsController) setCodeHash(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
@@ -163,20 +162,20 @@ func (c *ContractsController) setCodeHash(rw http.ResponseWriter, request *http.
 	address := mux.Vars(request)["address"]
 	if !ethcommon.IsHexAddress(address) {
 		err := errors.InvalidParameterError("expected valid address in path")
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	req := &api.SetContractCodeHashRequest{}
 	err := infra.UnmarshalBody(request.Body, req)
 	if err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	err = c.ucs.SetCodeHash().Execute(ctx, chainID, ethcommon.HexToAddress(address), req.CodeHash)
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -193,9 +192,9 @@ func (c *ContractsController) setCodeHash(rw http.ResponseWriter, request *http.
 // @Param        chain_id   path      string                                     true  "network chain id"
 // @Param        sign_hash  query     string                                     true  "event sigh hash value"
 // @Success      200        {object}  api.GetContractEventsBySignHashResponse{}  "List of events"
-// @Failure      400        {object}  httputil.ErrorResponse                     "Invalid request"
-// @Failure      404        {object}  httputil.ErrorResponse                     "Events not found"
-// @Failure      500        {object}  httputil.ErrorResponse                     "Internal server error"
+// @Failure      400        {object}  infra.ErrorResponse                     "Invalid request"
+// @Failure      404        {object}  infra.ErrorResponse                     "Events not found"
+// @Failure      500        {object}  infra.ErrorResponse                     "Internal server error"
 // @Router       /contracts/accounts/{chain_id}/{address}/events [get]
 func (c *ContractsController) getEvents(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
@@ -203,7 +202,7 @@ func (c *ContractsController) getEvents(rw http.ResponseWriter, request *http.Re
 
 	req, err := formatters.FormatGetContractEventsRequest(request)
 	if err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -211,7 +210,7 @@ func (c *ContractsController) getEvents(rw http.ResponseWriter, request *http.Re
 	address := mux.Vars(request)["address"]
 	if !ethcommon.IsHexAddress(address) {
 		err := errors.InvalidParameterError("expected valid address in path")
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -219,7 +218,7 @@ func (c *ContractsController) getEvents(rw http.ResponseWriter, request *http.Re
 		req.SigHash, req.IndexedInputCount)
 
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -233,8 +232,8 @@ func (c *ContractsController) getEvents(rw http.ResponseWriter, request *http.Re
 // @Security     ApiKeyAuth
 // @Security     JWTAuth
 // @Success      200  {array}   string                  "List of tags"
-// @Failure      404  {object}  httputil.ErrorResponse  "contract not found"
-// @Failure      500  {object}  httputil.ErrorResponse  "Internal server error"
+// @Failure      404  {object}  infra.ErrorResponse  "contract not found"
+// @Failure      500  {object}  infra.ErrorResponse  "Internal server error"
 // @Router       /contracts/{name} [get]
 func (c *ContractsController) getTags(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
@@ -243,7 +242,7 @@ func (c *ContractsController) getTags(rw http.ResponseWriter, request *http.Requ
 	tags, err := c.ucs.GetTags().Execute(ctx, mux.Vars(request)["name"])
 
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -262,8 +261,8 @@ func (c *ContractsController) getTags(rw http.ResponseWriter, request *http.Requ
 // @Param        name  path      string                                                                                                                  true  "solidity contract registered name"
 // @Param        tag   path      string                                                                                                                  true  "solidity contract registered tag"
 // @Success      200   {object}  api.ContractResponse{constructor=entities.ABIComponent,methods=[]entities.ABIComponent,events=[]entities.ABIComponent}  "Contract found"
-// @Failure      404   {object}  httputil.ErrorResponse                                                                                                  "Contract not found"
-// @Failure      500   {object}  httputil.ErrorResponse                                                                                                  "Internal server error"
+// @Failure      404   {object}  infra.ErrorResponse                                                                                                  "Contract not found"
+// @Failure      500   {object}  infra.ErrorResponse                                                                                                  "Internal server error"
 // @Router       /contracts/{name}/{tag} [get]
 func (c *ContractsController) getContract(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
@@ -271,7 +270,7 @@ func (c *ContractsController) getContract(rw http.ResponseWriter, request *http.
 
 	contract, err := c.ucs.Get().Execute(ctx, mux.Vars(request)["name"], mux.Vars(request)["tag"])
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 

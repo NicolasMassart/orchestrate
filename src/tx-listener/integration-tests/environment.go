@@ -209,7 +209,7 @@ func newEthClient(blockchainURL string) (ethclient2.MultiClient, error) {
 		return nil, err
 	}
 
-	ec := ethclient.NewClient(func() backoff.BackOff {
+	ec := ethclient.NewClientWithBackOff(func() backoff.BackOff {
 		return backoff.WithMaxRetries(backoff.NewConstantBackOff(time.Second), maxRecoveryDefault)
 	}, &http2.Client{
 		Transport: &http2.Transport{

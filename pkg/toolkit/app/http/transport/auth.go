@@ -21,7 +21,7 @@ func NewAuthHeadersTransport(jwt string) Middleware {
 }
 
 func (t *AuthHeadersTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	if authutils.GetAuthorizationHeader(req) == "" {
+	if authutils.GetAuthorizationHeader(req) == "" && t.auth != "" {
 		authutils.AddAuthorizationHeaderValue(req, t.auth)
 	}
 

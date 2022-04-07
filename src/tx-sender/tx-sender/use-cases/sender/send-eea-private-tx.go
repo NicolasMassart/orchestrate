@@ -6,7 +6,6 @@ import (
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
-	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/infra/ethclient"
 	"github.com/consensys/orchestrate/src/tx-sender/tx-sender/nonce"
@@ -90,7 +89,7 @@ func (uc *sendEEAPrivateTxUseCase) Execute(ctx context.Context, job *entities.Jo
 }
 
 func (uc *sendEEAPrivateTxUseCase) sendTx(ctx context.Context, job *entities.Job) (*ethcommon.Hash, error) {
-	proxyURL := utils.GetProxyURL(uc.chainRegistryURL, job.ChainUUID)
+	proxyURL := client.GetProxyURL(uc.chainRegistryURL, job.ChainUUID)
 	txHash, err := uc.ec.PrivDistributeRawTransaction(ctx, proxyURL, job.Transaction.Raw)
 	if err != nil {
 		errMsg := "cannot send EEA private transaction"

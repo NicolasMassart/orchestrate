@@ -1,9 +1,15 @@
 package entities
 
-const (
-	GasIncrementVeryLow  = "very-low"
-	GasIncrementLow      = "low"
-	GasIncrementMedium   = "medium"
-	GasIncrementHigh     = "high"
-	GasIncrementVeryHigh = "very-high"
+type GasIncrementLevel string
+
+var (
+	GasIncrementVeryLow  GasIncrementLevel = "very-low"
+	GasIncrementLow      GasIncrementLevel = "low"
+	GasIncrementMedium   GasIncrementLevel = "medium"
+	GasIncrementHigh     GasIncrementLevel = "high"
+	GasIncrementVeryHigh GasIncrementLevel = "very-high"
 )
+
+func (gil *GasIncrementLevel) String() string {
+	return string(*gil)
+}

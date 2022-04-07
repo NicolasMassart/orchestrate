@@ -22,6 +22,8 @@ func init() {
 	_ = viper.BindEnv(kafkaConsumerGroupHeartbeatIntervalViperKey, kafkaConsumerGroupHeartbeatIntervalEnv)
 	viper.SetDefault(kafkaConsumerGroupRebalanceTimeoutViperKey, kafkaConsumerGroupRebalanceTimeoutDefault)
 	_ = viper.BindEnv(kafkaConsumerGroupRebalanceTimeoutViperKey, kafkaConsumerGroupRebalanceTimeoutEnv)
+	viper.SetDefault(ConsumerGroupNameViperKey, consumerGroupNameDefault)
+	_ = viper.BindEnv(ConsumerGroupNameViperKey, consumerGroupNameEnv)
 }
 
 var rebalanceStrategy = map[string]sarama.BalanceStrategy{

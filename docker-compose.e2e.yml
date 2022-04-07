@@ -17,59 +17,17 @@ x-default-variables: &default-variables
   KAFKA_SASL_PASSWORD: ${KAFKA_SASL_PASSWORD-}
   KAFKA_TLS_ENABLED: ${KAFKA_TLS_ENABLED-false}
   KAFKA_TLS_INSECURE_SKIP_VERIFY: ${KAFKA_TLS_INSECURE_SKIP_VERIFY-false}
-  TOPIC_TX_SENDER: ${TOPIC_TX_SENDER-}
   TOPIC_TX_RECOVER: ${TOPIC_TX_RECOVER-}
   TOPIC_TX_DECODED: ${TOPIC_TX_DECODED-}
 
-x-container-common: &container-common
-  image: golang:1.16.9
-  restart: ${CONTAINER_RESTART-on-failure}
-  entrypoint: /bin/main
-  networks:
-    - orchestrate
-  tty: true
 
 services:
-  e2e:
-    <<: *container-common
-    environment:
-      <<: *default-variables
-      CUCUMBER_OUTPUTPATH: "/report/output/report.json"
-      CUCUMBER_PATHS: "/features"
-      ARTIFACTS_PATH: "/artifacts"
-      CUCUMBER_FORMAT: "cucumber"
-      CUCUMBER_CONCURRENCY: ${CUCUMBER_CONCURRENCY-}
-      CUCUMBER_TAGS: ${CUCUMBER_TAGS-}
-      TEST_GLOBAL_DATA: ${TEST_GLOBAL_DATA-}
-      CUCUMBER_STEPS_TIMEOUT: ${CUCUMBER_STEPS_TIMEOUT-30s}
-      KAFKA_CONSUMER_GROUP_NAME: ${KAFKA_CONSUMER_GROUP_NAME-e2e}
-    restart: "no"
-    command: e2e
-    volumes:
-      - ./build/bin/test:/bin/main
-      - ./build/report:/report/output
-      - ./tests/features:/features
-      - ./tests/artifacts:/artifacts
-      - ./scripts/deps/certificates:/certificates
-
-  report:
-    build: ./scripts/report
-    environment:
-      METADATA_TAG: ${CI_COMMIT_TAG-}
-      METADATA_BRANCH: ${CI_COMMIT_BRANCH-}
-      METADATA_COMMIT: ${CI_COMMIT_SHORT_SHA-}
-      METADATA_OS: ${CI_RUNNER_EXECUTABLE_ARCH-}
-      METADATA_RUNNER: ${CI_RUNNER_DESCRIPTION-}
-      METADATA_RUNNER_ID: ${CI_RUNNER_ID-}
-      METADATA_RUNNER_VERSION: ${CI_RUNNER_REVISION-}
-      CUCUMBER_INPUT: in/report.json
-      CUCUMBER_OUTPUT: out/report.html
-    volumes:
-      - ./build/report:/usr/src/app/in
-      - ./build/report:/usr/src/app/out
-
   stress:
-    <<: *container-common
+    image: golang:1.16.9
+    entrypoint: /bin/test
+    networks:
+      - orchestrate
+    tty: true
     environment:
       <<: *default-variables
       ARTIFACTS_PATH: "/artifacts"
@@ -81,7 +39,7 @@ services:
     restart: "no"
     command: stress
     volumes:
-      - ./build/bin/test:/bin/main
+      - ./build/bin/test:/bin/test
       - ./tests/artifacts:/artifacts
 
 networks:

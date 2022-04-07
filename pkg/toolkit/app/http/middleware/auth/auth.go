@@ -90,7 +90,7 @@ func (a *Auth) Handler(h http.Handler) http.Handler {
 		}
 
 		if userInfo != nil {
-			a.logger.Debugf("authentication succeeded %q", userInfo.AuthMode)
+			a.logger.WithField("mode", userInfo.AuthMode).Debug("authentication succeeded")
 			a.serveNext(rw, req.WithContext(multitenancy.WithUserInfo(authCtx, userInfo)), h)
 			return
 		}

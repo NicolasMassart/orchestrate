@@ -11,8 +11,8 @@ import (
 )
 
 type GasPriceParams struct {
-	Priority    string      `json:"priority,omitempty" validate:"isPriority" example:"very-high"` // Intended transaction velocity, default is `medium`. Transaction gas is adjusted depending on the velocity to optimize the mining time on user request.
-	RetryPolicy RetryParams `json:"retryPolicy,omitempty"`
+	Priority    entities.GasIncrementLevel `json:"priority,omitempty" validate:"isPriority" example:"very-high"` // Intended transaction velocity, default is `medium`. Transaction gas is adjusted depending on the velocity to optimize the mining time on user request.
+	RetryPolicy RetryParams                `json:"retryPolicy,omitempty"`
 }
 type RetryParams struct {
 	Interval  string  `json:"interval,omitempty" validate:"omitempty,minDuration=1s" example:"2m"` // Interval between different transaction retries.

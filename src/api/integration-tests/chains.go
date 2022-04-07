@@ -3,10 +3,10 @@
 package integrationtests
 
 import (
+	"net/http"
 	"testing"
 	"time"
 
-	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"github.com/consensys/orchestrate/src/api/service/types/testdata"
@@ -37,7 +37,6 @@ func (s *chainsTestSuite) TestRegister() {
 		assert.Equal(t, req.URLs, resp.URLs)
 		assert.Equal(t, multitenancy.DefaultTenant, resp.TenantID)
 		assert.Equal(t, req.Listener.ExternalTxEnabled, resp.ListenerExternalTxEnabled)
-		assert.Equal(t, "5s", resp.ListenerBackOffDuration)
 		assert.Equal(t, req.Listener.Depth, resp.ListenerDepth)
 		assert.Equal(t, req.Labels, resp.Labels)
 		assert.NotEmpty(t, resp.UUID)
@@ -62,7 +61,6 @@ func (s *chainsTestSuite) TestRegister() {
 		assert.Equal(t, req.URLs, resp.URLs)
 		assert.Equal(t, multitenancy.DefaultTenant, resp.TenantID)
 		assert.Equal(t, req.Listener.ExternalTxEnabled, resp.ListenerExternalTxEnabled)
-		assert.Equal(t, "5s", resp.ListenerBackOffDuration)
 		assert.Equal(t, req.Listener.Depth, resp.ListenerDepth)
 		assert.NotEmpty(t, resp.UUID)
 		assert.Greater(t, resp.ListenerStartingBlock, uint64(0))
@@ -86,7 +84,6 @@ func (s *chainsTestSuite) TestRegister() {
 		assert.Equal(t, req.URLs, resp.URLs)
 		assert.Equal(t, multitenancy.DefaultTenant, resp.TenantID)
 		assert.Equal(t, req.Listener.ExternalTxEnabled, resp.ListenerExternalTxEnabled)
-		assert.Equal(t, "5s", resp.ListenerBackOffDuration)
 		assert.Equal(t, req.Listener.Depth, resp.ListenerDepth)
 		assert.NotEmpty(t, resp.UUID)
 		assert.Equal(t, uint64(0), resp.ListenerStartingBlock)
@@ -110,7 +107,6 @@ func (s *chainsTestSuite) TestRegister() {
 		assert.Equal(t, req.URLs, resp.URLs)
 		assert.Equal(t, multitenancy.DefaultTenant, resp.TenantID)
 		assert.Equal(t, req.Listener.ExternalTxEnabled, resp.ListenerExternalTxEnabled)
-		assert.Equal(t, "5s", resp.ListenerBackOffDuration)
 		assert.Equal(t, req.Listener.Depth, resp.ListenerDepth)
 		assert.NotEmpty(t, resp.UUID)
 		assert.Equal(t, uint64(666), resp.ListenerStartingBlock)
@@ -127,7 +123,7 @@ func (s *chainsTestSuite) TestRegister() {
 		req.URLs = nil
 
 		_, err := s.client.RegisterChain(ctx, req)
-		assert.True(t, errors.IsInvalidFormatError(err))
+		assert.Equal(t, http.StatusBadRequest, err.(*client.HTTPErr).Code())
 	})
 
 	s.T().Run("should fail with 400 if invalid backoff duration", func(t *testing.T) {
@@ -135,7 +131,7 @@ func (s *chainsTestSuite) TestRegister() {
 		req.Listener.BackOffDuration = "invalidDuration"
 
 		_, err := s.client.RegisterChain(ctx, req)
-		assert.True(t, errors.IsInvalidFormatError(err))
+		assert.Equal(t, http.StatusBadRequest, err.(*client.HTTPErr).Code())
 	})
 
 	s.T().Run("should fail with 400 if invalid urls", func(t *testing.T) {
@@ -143,7 +139,7 @@ func (s *chainsTestSuite) TestRegister() {
 		req.URLs = []string{"invalidURL"}
 
 		_, err := s.client.RegisterChain(ctx, req)
-		assert.True(t, errors.IsInvalidFormatError(err))
+		assert.Equal(t, http.StatusBadRequest, err.(*client.HTTPErr).Code())
 	})
 
 	s.T().Run("should fail with 400 if invalid private tx manager url", func(t *testing.T) {
@@ -151,12 +147,12 @@ func (s *chainsTestSuite) TestRegister() {
 		req.PrivateTxManagerURL = "invalidURL"
 
 		_, err := s.client.RegisterChain(ctx, req)
-		assert.True(t, errors.IsInvalidFormatError(err))
+		assert.Equal(t, http.StatusBadRequest, err.(*client.HTTPErr).Code())
 	})
 
 	s.T().Run("should fail with 422 if URL is not reachable", func(t *testing.T) {
 		_, err := s.client.RegisterChain(ctx, testdata.FakeRegisterChainRequest())
-		assert.True(t, errors.IsInvalidParameterError(err))
+		assert.Equal(t, http.StatusUnprocessableEntity, err.(*client.HTTPErr).Code())
 	})
 
 	s.T().Run("should fail with 409 if chain with same name and tenant already exists", func(t *testing.T) {
@@ -167,7 +163,7 @@ func (s *chainsTestSuite) TestRegister() {
 		require.NoError(t, err)
 
 		_, err = s.client.RegisterChain(ctx, req)
-		assert.True(t, errors.IsAlreadyExistsError(err))
+		assert.Equal(t, http.StatusConflict, err.(*client.HTTPErr).Code())
 
 		err = s.client.DeleteChain(ctx, resp.UUID)
 		assert.NoError(t, err)

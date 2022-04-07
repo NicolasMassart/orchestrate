@@ -7,7 +7,6 @@ import (
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
-	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/infra/ethclient"
 	usecases "github.com/consensys/orchestrate/src/tx-sender/tx-sender/use-cases"
@@ -75,7 +74,7 @@ func (uc *sendETHRawTxUseCase) Execute(ctx context.Context, job *entities.Job) e
 }
 
 func (uc *sendETHRawTxUseCase) sendTx(ctx context.Context, job *entities.Job) (*ethcommon.Hash, error) {
-	proxyURL := utils.GetProxyURL(uc.chainRegistryURL, job.ChainUUID)
+	proxyURL := client.GetProxyURL(uc.chainRegistryURL, job.ChainUUID)
 	txHash, err := uc.ec.SendRawTransaction(ctx, proxyURL, job.Transaction.Raw)
 	if err != nil {
 		errMsg := "cannot send ethereum raw transaction"

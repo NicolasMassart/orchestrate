@@ -39,7 +39,7 @@ type ChainResponse struct {
 	OwnerID                   string            `json:"ownerID,omitempty" example:"foo"`                                                       // ID of the chain owner.
 	URLs                      []string          `json:"urls" example:"https://mainnet.infura.io/v3/a73136601e6f4924a0baa4ed880b535e"`          // URLs of Ethereum nodes connected to.
 	PrivateTxManagerURL       string            `json:"privateTxManagerURL,omitempty" validate:"url"  example:"http://go-quorum/tessera:9000"` // Private tx manager required by go-quorum for sending private txs
-	ChainID                   string            `json:"chainID" example:"2445"`                                                                // [Ethereum chain ID](https://besu.hyperledger.org/en/latest/Concepts/NetworkID-And-ChainID/).
+	ChainID                   uint64            `json:"chainID" example:"2445"`                                                                // [Ethereum chain ID](https://besu.hyperledger.org/en/latest/Concepts/NetworkID-And-ChainID/).
 	ListenerDepth             uint64            `json:"listenerDepth" example:"0"`                                                             // Block depth after which the Transaction Listener considers a block final and processes it.
 	ListenerCurrentBlock      uint64            `json:"listenerCurrentBlock" example:"0"`                                                      // Current block.
 	ListenerStartingBlock     uint64            `json:"listenerStartingBlock" example:"5000"`                                                  // Block at which the Transaction Listener starts processing transactions

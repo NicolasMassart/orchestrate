@@ -7,7 +7,6 @@ import (
 	"github.com/consensys/orchestrate/src/entities"
 	infra "github.com/consensys/orchestrate/src/infra/api"
 
-	"github.com/consensys/orchestrate/pkg/toolkit/app/http/httputil"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/service/formatters"
@@ -55,13 +54,13 @@ func (c *JobsController) search(rw http.ResponseWriter, request *http.Request) {
 
 	filters, err := formatters.FormatJobFilterRequest(request)
 	if err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	jobRes, err := c.ucs.Search().Execute(ctx, filters, multitenancy.UserInfoValue(ctx))
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -93,19 +92,19 @@ func (c *JobsController) create(rw http.ResponseWriter, request *http.Request) {
 	jobRequest := &api.CreateJobRequest{}
 	err := infra.UnmarshalBody(request.Body, jobRequest)
 	if err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	if err = jobRequest.Annotations.Validate(); err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	job := formatters.FormatJobCreateRequest(jobRequest)
 	jobRes, err := c.ucs.Create().Execute(ctx, job, multitenancy.UserInfoValue(ctx))
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -131,7 +130,7 @@ func (c *JobsController) getOne(rw http.ResponseWriter, request *http.Request) {
 
 	jobRes, err := c.ucs.Get().Execute(ctx, uuid, multitenancy.UserInfoValue(ctx))
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -156,7 +155,7 @@ func (c *JobsController) start(rw http.ResponseWriter, request *http.Request) {
 	jobUUID := mux.Vars(request)["uuid"]
 	err := c.ucs.Start().Execute(ctx, jobUUID, multitenancy.UserInfoValue(ctx))
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -181,7 +180,7 @@ func (c *JobsController) resend(rw http.ResponseWriter, request *http.Request) {
 	jobUUID := mux.Vars(request)["uuid"]
 	err := c.ucs.ResendTx().Execute(ctx, jobUUID, multitenancy.UserInfoValue(ctx))
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -210,7 +209,7 @@ func (c *JobsController) update(rw http.ResponseWriter, request *http.Request) {
 	jobRequest := &api.UpdateJobRequest{}
 	err := infra.UnmarshalBody(request.Body, jobRequest)
 	if err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -220,7 +219,7 @@ func (c *JobsController) update(rw http.ResponseWriter, request *http.Request) {
 		multitenancy.UserInfoValue(ctx))
 
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 

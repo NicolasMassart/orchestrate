@@ -6,7 +6,6 @@ import (
 	"net/url"
 
 	clientutils "github.com/consensys/orchestrate/pkg/toolkit/app/http/client-utils"
-	"github.com/consensys/orchestrate/pkg/toolkit/app/http/httputil"
 	"github.com/consensys/orchestrate/src/api/service/types"
 )
 
@@ -20,7 +19,7 @@ func (c *HTTPClient) RegisterContract(ctx context.Context, request *types.Regist
 			return err
 		}
 		defer clientutils.CloseResponse(response)
-		return httputil.ParseResponse(ctx, response, resp)
+		return parseResponse(ctx, response, resp)
 	})
 
 	return resp, err
@@ -37,7 +36,7 @@ func (c *HTTPClient) GetContract(ctx context.Context, name, tag string) (*types.
 		}
 
 		defer clientutils.CloseResponse(response)
-		return httputil.ParseResponse(ctx, response, resp)
+		return parseResponse(ctx, response, resp)
 	})
 
 	return resp, err
@@ -54,7 +53,7 @@ func (c *HTTPClient) GetContractsCatalog(ctx context.Context) ([]string, error) 
 		}
 
 		defer clientutils.CloseResponse(response)
-		return httputil.ParseResponse(ctx, response, &resp)
+		return parseResponse(ctx, response, &resp)
 	})
 
 	return resp, err
@@ -71,7 +70,7 @@ func (c *HTTPClient) GetContractTags(ctx context.Context, name string) ([]string
 		}
 
 		defer clientutils.CloseResponse(response)
-		return httputil.ParseResponse(ctx, response, &resp)
+		return parseResponse(ctx, response, &resp)
 	})
 
 	return resp, err
@@ -95,7 +94,7 @@ func (c *HTTPClient) SearchContract(ctx context.Context, req *types.SearchContra
 		}
 
 		defer clientutils.CloseResponse(response)
-		return httputil.ParseResponse(ctx, response, resp)
+		return parseResponse(ctx, response, resp)
 	})
 
 	return resp, err
@@ -115,7 +114,7 @@ func (c *HTTPClient) SetContractAddressCodeHash(ctx context.Context, address, ch
 		}
 
 		defer clientutils.CloseResponse(response)
-		_, err = httputil.ParseStringResponse(ctx, response)
+		_, err = parseStringResponse(ctx, response)
 		return err
 	})
 
@@ -133,7 +132,7 @@ func (c *HTTPClient) GetContractEvents(ctx context.Context, address, chainID str
 		}
 
 		defer clientutils.CloseResponse(response)
-		return httputil.ParseResponse(ctx, response, resp)
+		return parseResponse(ctx, response, resp)
 	})
 
 	return resp, err

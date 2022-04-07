@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/consensys/orchestrate/pkg/toolkit/app/http/httputil"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"github.com/consensys/orchestrate/src/api/service/formatters"
 	api "github.com/consensys/orchestrate/src/api/service/types"
@@ -45,13 +44,13 @@ func (c *FaucetsController) search(rw http.ResponseWriter, request *http.Request
 
 	filters, err := formatters.FormatFaucetFilters(request)
 	if err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	faucets, err := c.ucs.Search().Execute(ctx, filters, multitenancy.UserInfoValue(ctx))
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -77,7 +76,7 @@ func (c *FaucetsController) getOne(rw http.ResponseWriter, request *http.Request
 
 	faucet, err := c.ucs.Get().Execute(ctx, mux.Vars(request)["uuid"], multitenancy.UserInfoValue(ctx))
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -103,13 +102,13 @@ func (c *FaucetsController) register(rw http.ResponseWriter, request *http.Reque
 	faucetRequest := &api.RegisterFaucetRequest{}
 	err := infra.UnmarshalBody(request.Body, faucetRequest)
 	if err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	faucet, err := c.ucs.Register().Execute(ctx, formatters.FormatRegisterFaucetRequest(faucetRequest), multitenancy.UserInfoValue(ctx))
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -137,7 +136,7 @@ func (c *FaucetsController) update(rw http.ResponseWriter, request *http.Request
 	faucetRequest := &api.UpdateFaucetRequest{}
 	err := infra.UnmarshalBody(request.Body, faucetRequest)
 	if err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -145,7 +144,7 @@ func (c *FaucetsController) update(rw http.ResponseWriter, request *http.Request
 	faucet, err := c.ucs.Update().Execute(ctx, formatters.FormatUpdateFaucetRequest(faucetRequest, uuid),
 		multitenancy.UserInfoValue(ctx))
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -168,7 +167,7 @@ func (c *FaucetsController) delete(rw http.ResponseWriter, request *http.Request
 	uuid := mux.Vars(request)["uuid"]
 	err := c.ucs.Delete().Execute(ctx, uuid, multitenancy.UserInfoValue(ctx))
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 

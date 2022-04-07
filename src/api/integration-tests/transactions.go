@@ -4,19 +4,19 @@ package integrationtests
 
 import (
 	"context"
+	"net/http"
 	"testing"
 	"time"
 
-	api "github.com/consensys/orchestrate/src/api/service/types"
-
-	"github.com/consensys/orchestrate/pkg/errors"
-	"github.com/consensys/orchestrate/pkg/sdk/client"
 	clientutils "github.com/consensys/orchestrate/pkg/toolkit/app/http/client-utils"
 	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/consensys/orchestrate/src/api/service/controllers"
+	api "github.com/consensys/orchestrate/src/api/service/types"
+	ethcommon "github.com/ethereum/go-ethereum/common"
+
+	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/src/api/service/types/testdata"
 	"github.com/consensys/orchestrate/src/entities"
-	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -66,9 +66,9 @@ func (s *transactionsTestSuite) TestDeployContract() {
 		assert.Equal(t, txRequest.Params.From.Hex(), job.Transaction.From)
 		assert.Equal(t, entities.EthereumTransaction, job.Type)
 
-		msgJob, err := s.env.consumer.WaitForJob(ctx, job.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
-		require.NoError(t, err)
-		assert.Equal(t, job.UUID, msgJob.UUID)
+		msgJob, err := s.env.internalConsumer.WaitForJob(ctx, job.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
+		require.NoError(s.T(), err)
+		assert.Equal(t, msgJob.UUID, job.UUID)
 		assert.Equal(t, entities.EthereumTransaction, msgJob.Type)
 	})
 }
@@ -111,10 +111,10 @@ func (s *transactionsTestSuite) TestSendTransaction() {
 		assert.Equal(t, txRequest.Params.To.Hex(), job.Transaction.To)
 		assert.Equal(t, entities.EthereumTransaction, job.Type)
 
-		msgJob, err := s.env.consumer.WaitForJob(ctx, job.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
-		require.NoError(t, err)
+		msgJob, err := s.env.internalConsumer.WaitForJob(ctx, job.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
+		require.NoError(s.T(), err)
+		assert.Equal(t, msgJob.UUID, job.UUID)
 		assert.Equal(t, job.ScheduleUUID, msgJob.ScheduleUUID)
-		assert.Equal(t, job.UUID, msgJob.UUID)
 		assert.True(t, msgJob.InternalData.OneTimeKey)
 	})
 
@@ -158,7 +158,7 @@ func (s *transactionsTestSuite) TestSendTransaction() {
 
 		_, err := s.client.SendContractTransaction(ctx, txRequest)
 
-		assert.True(t, errors.IsInvalidFormatError(err))
+		assert.Equal(t, http.StatusBadRequest, err.(*client.HTTPErr).Code())
 	})
 
 	s.T().Run("should fail with 400 if from account is set and oneTimeKeyEnabled", func(t *testing.T) {
@@ -167,7 +167,7 @@ func (s *transactionsTestSuite) TestSendTransaction() {
 
 		_, err := s.client.SendContractTransaction(ctx, txRequest)
 
-		assert.True(t, errors.IsInvalidFormatError(err))
+		assert.Equal(t, http.StatusBadRequest, err.(*client.HTTPErr).Code())
 	})
 
 	s.T().Run("should fail if idempotency key is identical but different params", func(t *testing.T) {
@@ -185,7 +185,7 @@ func (s *transactionsTestSuite) TestSendTransaction() {
 		txRequest.Params.MethodSignature = "decreaseAllowance(address,uint256)"
 		txRequest.Params.Args = []interface{}{"0x905B88EFf8Bda1543d4d6f4aA05afef143D27E18", 1}
 		_, err = s.client.SendContractTransaction(rctx, txRequest)
-		assert.True(t, errors.IsConstraintViolatedError(err))
+		assert.Equal(t, http.StatusConflict, err.(*client.HTTPErr).Code())
 	})
 
 	s.T().Run("should fail with 422 if chains cannot be fetched", func(t *testing.T) {
@@ -194,7 +194,7 @@ func (s *transactionsTestSuite) TestSendTransaction() {
 
 		_, err := s.client.SendContractTransaction(ctx, txRequest)
 
-		assert.True(t, errors.IsInvalidParameterError(err))
+		assert.Equal(t, http.StatusUnprocessableEntity, err.(*client.HTTPErr).Code())
 	})
 
 	s.T().Run("should fail with 422 if account does not exist", func(t *testing.T) {
@@ -205,7 +205,7 @@ func (s *transactionsTestSuite) TestSendTransaction() {
 
 		_, err := s.client.SendContractTransaction(ctx, txRequest)
 
-		assert.True(t, errors.IsInvalidParameterError(err))
+		assert.Equal(t, http.StatusUnprocessableEntity, err.(*client.HTTPErr).Code())
 	})
 }
 
@@ -245,8 +245,8 @@ func (s *transactionsTestSuite) TestSendEEATransaction() {
 		assert.Equal(t, entities.StatusCreated, markingTxJob.Status)
 		assert.Equal(t, entities.EEAMarkingTransaction, markingTxJob.Type)
 
-		msgJob, err := s.env.consumer.WaitForJob(ctx, privTxJob.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
-		require.NoError(t, err)
+		msgJob, err := s.env.internalConsumer.WaitForJob(ctx, privTxJob.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
+		require.NoError(s.T(), err)
 		assert.Equal(t, privTxJob.UUID, msgJob.UUID)
 		assert.Equal(t, entities.EEAPrivateTransaction, msgJob.Type)
 	})
@@ -283,8 +283,8 @@ func (s *transactionsTestSuite) TestSendRawTransaction() {
 		assert.Equal(t, txRequest.Params.Raw.String(), job.Transaction.Raw)
 		assert.Equal(t, entities.EthereumRawTransaction, job.Type)
 
-		msgJob, err := s.env.consumer.WaitForJob(ctx, job.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
-		require.NoError(t, err)
+		msgJob, err := s.env.internalConsumer.WaitForJob(ctx, job.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
+		require.NoError(s.T(), err)
 		assert.Equal(t, job.ScheduleUUID, msgJob.ScheduleUUID)
 		assert.Equal(t, job.UUID, msgJob.UUID)
 		assert.Equal(t, entities.EthereumRawTransaction, msgJob.Type)
@@ -321,7 +321,7 @@ func (s *transactionsTestSuite) TestSendRawTransaction() {
 // 		assert.Equal(t, txRequest.Params.From.Hex(), job.Transaction.From.Hex())
 // 		assert.Equal(t, entities.EthereumTransaction, job.Type)
 //
-// 		evlp, err := s.env.consumer.WaitForMessage(job.ScheduleUUID, s.env.apiCfg.Sender, waitForEnvelopeTimeOut)
+// 		evlp, err := s.env.externalConsumer.waitForMessage(job.ScheduleUUID, s.env.apiCfg.Sender, waitForEnvelopeTimeOut)
 // 		if err != nil {
 // 			assert.Fail(t, err.Error())
 // 			return
@@ -367,9 +367,8 @@ func (s *transactionsTestSuite) TestSendGoQuorumTransaction() {
 		assert.Equal(t, entities.StatusCreated, markingTxJob.Status)
 		assert.Equal(t, entities.GoQuorumMarkingTransaction, markingTxJob.Type)
 
-		msgJob, err := s.env.consumer.WaitForJob(ctx, privTxJob.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
-		require.NoError(t, err)
-
+		msgJob, err := s.env.internalConsumer.WaitForJob(ctx, privTxJob.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
+		require.NoError(s.T(), err)
 		assert.Equal(t, privTxJob.UUID, msgJob.UUID)
 		assert.Equal(t, entities.GoQuorumPrivateTransaction, msgJob.Type)
 	})
@@ -390,7 +389,8 @@ func (s *transactionsTestSuite) TestSendCallOffTransaction() {
 	txDeployRequest.Params.ContractName = contractReq.Name
 	txResponse, err := s.client.SendDeployTransaction(ctx, txDeployRequest)
 	require.NoError(s.T(), err)
-	_, err = s.env.consumer.WaitForJob(ctx, txResponse.Jobs[0].UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
+
+	_, err = s.env.internalConsumer.WaitForJob(ctx, txResponse.Jobs[0].UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
 	require.NoError(s.T(), err)
 
 	// Emulate an update done by tx-sender after sending tx to blockchain
@@ -410,10 +410,10 @@ func (s *transactionsTestSuite) TestSendCallOffTransaction() {
 		require.True(t, len(txResponse.Jobs) > 1)
 		parentJob := txResponse.Jobs[len(txResponse.Jobs)-2]
 		callOffJob := txResponse.Jobs[len(txResponse.Jobs)-1]
-		
-		msgJob, err := s.env.consumer.WaitForJob(ctx, callOffJob.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
-		require.NoError(t, err)
-		
+
+		msgJob, err := s.env.internalConsumer.WaitForJob(ctx, callOffJob.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
+		require.NoError(s.T(), err)
+
 		assert.Equal(t, callOffJob.ParentJobUUID, parentJob.UUID)
 		assert.Empty(t, callOffJob.Transaction.Data)
 		assert.Equal(t, "0x2af8", callOffJob.Transaction.GasFeeCap)
@@ -436,7 +436,8 @@ func (s *transactionsTestSuite) TestSendSpeedUpTransaction() {
 	txDeployRequest.Params.ContractName = contractReq.Name
 	txResponse, err := s.client.SendDeployTransaction(ctx, txDeployRequest)
 	require.NoError(s.T(), err)
-	_, err = s.env.consumer.WaitForJob(ctx, txResponse.Jobs[0].UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
+
+	_, err = s.env.internalConsumer.WaitForJob(ctx, txResponse.Jobs[0].UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
 	require.NoError(s.T(), err)
 
 	// Emulate an update done by tx-sender after sending tx to blockchain
@@ -456,10 +457,10 @@ func (s *transactionsTestSuite) TestSendSpeedUpTransaction() {
 		require.True(t, len(txResponse.Jobs) > 1)
 		parentJob := txResponse.Jobs[len(txResponse.Jobs)-2]
 		speedUpJob := txResponse.Jobs[len(txResponse.Jobs)-1]
-		
-		msgJob, err := s.env.consumer.WaitForJob(ctx, speedUpJob.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
-		require.NoError(t, err)
-		
+
+		msgJob, err := s.env.internalConsumer.WaitForJob(ctx, speedUpJob.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
+		require.NoError(s.T(), err)
+
 		assert.Equal(t, speedUpJob.ParentJobUUID, parentJob.UUID)
 		assert.Equal(t, speedUpJob.Transaction.Data, parentJob.Transaction.Data)
 		assert.Equal(t, "0x2af8", speedUpJob.Transaction.GasFeeCap)

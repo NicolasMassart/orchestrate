@@ -4,11 +4,11 @@ package integrationtests
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"testing"
 
-	"encoding/json"
-	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/utils"
 	api "github.com/consensys/orchestrate/src/api/service/types"
@@ -76,7 +76,7 @@ func (s *contractsTestSuite) TestRegister() {
 
 		_, err := s.client.RegisterContract(ctx, txRequest)
 		assert.Error(t, err)
-		assert.True(t, errors.IsInvalidFormatError(err), err.Error())
+		assert.Equal(t, http.StatusBadRequest, err.(*client.HTTPErr).Code())
 	})
 
 	s.T().Run("should fail with encodingError if ABI payload is invalid", func(t *testing.T) {
@@ -85,7 +85,7 @@ func (s *contractsTestSuite) TestRegister() {
 
 		_, err := s.client.RegisterContract(ctx, txRequest)
 		assert.Error(t, err)
-		assert.True(t, errors.IsEncodingError(err), err.Error())
+		assert.Equal(t, http.StatusBadRequest, err.(*client.HTTPErr).Code())
 	})
 }
 
@@ -235,6 +235,6 @@ func (s *contractsTestSuite) TestCodeHash() {
 		})
 
 		assert.Error(t, err)
-		assert.True(t, errors.IsInvalidFormatError(err), "IsInvalidFormatError")
+		assert.Equal(t, http.StatusBadRequest, err.(*client.HTTPErr).Code())
 	})
 }

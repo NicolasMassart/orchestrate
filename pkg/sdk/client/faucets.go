@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	clientutils "github.com/consensys/orchestrate/pkg/toolkit/app/http/client-utils"
-	"github.com/consensys/orchestrate/pkg/toolkit/app/http/httputil"
 	"github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities"
 )
@@ -22,7 +21,7 @@ func (c *HTTPClient) GetFaucet(ctx context.Context, uuid string) (*types.FaucetR
 		}
 
 		defer clientutils.CloseResponse(response)
-		return httputil.ParseResponse(ctx, response, resp)
+		return parseResponse(ctx, response, resp)
 	})
 
 	return resp, err
@@ -51,7 +50,7 @@ func (c *HTTPClient) SearchFaucets(ctx context.Context, filters *entities.Faucet
 			return err
 		}
 		defer clientutils.CloseResponse(response)
-		return httputil.ParseResponse(ctx, response, &resp)
+		return parseResponse(ctx, response, &resp)
 	})
 
 	return resp, err
@@ -67,7 +66,7 @@ func (c *HTTPClient) RegisterFaucet(ctx context.Context, request *types.Register
 			return err
 		}
 		defer clientutils.CloseResponse(response)
-		return httputil.ParseResponse(ctx, response, resp)
+		return parseResponse(ctx, response, resp)
 	})
 
 	return resp, err
@@ -84,7 +83,7 @@ func (c *HTTPClient) UpdateFaucet(ctx context.Context, uuid string, request *typ
 		}
 
 		defer clientutils.CloseResponse(response)
-		return httputil.ParseResponse(ctx, response, resp)
+		return parseResponse(ctx, response, resp)
 	})
 
 	return resp, err
@@ -99,5 +98,5 @@ func (c *HTTPClient) DeleteFaucet(ctx context.Context, uuid string) error {
 	}
 
 	defer clientutils.CloseResponse(response)
-	return httputil.ParseEmptyBodyResponse(ctx, response)
+	return ParseEmptyBodyResponse(ctx, response)
 }

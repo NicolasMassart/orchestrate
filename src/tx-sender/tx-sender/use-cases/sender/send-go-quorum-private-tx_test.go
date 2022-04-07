@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	"github.com/consensys/orchestrate/pkg/errors"
+	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/sdk/client/mock"
-	"github.com/consensys/orchestrate/pkg/utils"
 	api "github.com/consensys/orchestrate/src/api/service/types"
 	testdata2 "github.com/consensys/orchestrate/src/api/service/types/testdata"
 	"github.com/consensys/orchestrate/src/entities"
@@ -39,7 +39,7 @@ func TestSendGoQuorumPrivate_Execute(t *testing.T) {
 		job.Transaction.Data = hexutil.MustDecode("0xfe378324abcde723")
 		enclaveKey, _ := base64.StdEncoding.DecodeString("ZW5jbGF2ZUtleQ==")
 
-		proxyURL := utils.GetProxyTesseraURL(chainRegistryURL, job.ChainUUID)
+		proxyURL := client.GetProxyTesseraURL(chainRegistryURL, job.ChainUUID)
 		
 		crafter.EXPECT().Execute(gomock.Any(), job)
 		ec.EXPECT().StoreRaw(gomock.Any(), proxyURL, job.Transaction.Data, job.Transaction.PrivateFrom).Return(enclaveKey, nil)
@@ -62,7 +62,7 @@ func TestSendGoQuorumPrivate_Execute(t *testing.T) {
 		job.Transaction.Data = hexutil.MustDecode("0xfe378324abcde723")
 		enclaveKey, _ := base64.StdEncoding.DecodeString("ZW5jbGF2ZUtleQ==")
 
-		proxyURL := utils.GetProxyTesseraURL(chainRegistryURL, job.ChainUUID)
+		proxyURL := client.GetProxyTesseraURL(chainRegistryURL, job.ChainUUID)
 		crafter.EXPECT().Execute(gomock.Any(), job)
 		expectedErr := errors.InternalError("internal_err")
 		ec.EXPECT().StoreRaw(gomock.Any(), proxyURL, job.Transaction.Data, job.Transaction.PrivateFrom).Return(enclaveKey, expectedErr)

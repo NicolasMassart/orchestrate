@@ -3,16 +3,16 @@
 package integrationtests
 
 import (
+	"net/http"
+	"testing"
+	"time"
+
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	testdata2 "github.com/consensys/orchestrate/pkg/types/ethereum/testdata"
 	api "github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/stretchr/testify/require"
 
-	"testing"
-	"time"
-
-	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/src/api/service/types/testdata"
 	"github.com/stretchr/testify/assert"
@@ -62,14 +62,14 @@ func (s *jobsTestSuite) TestCreate() {
 
 		_, err := s.client.CreateJob(ctx, req)
 		assert.Error(t, err)
-		assert.True(t, errors.IsInvalidFormatError(err))
+		assert.Equal(t, http.StatusBadRequest, err.(*client.HTTPErr).Code())
 	})
 
 	s.T().Run("should fail with 422 if chainUUID does not exist", func(t *testing.T) {
 		req := testdata.FakeCreateJobRequest()
 
 		_, err := s.client.CreateJob(ctx, req)
-		assert.True(t, errors.IsInvalidParameterError(err))
+		assert.Equal(t, http.StatusUnprocessableEntity, err.(*client.HTTPErr).Code())
 	})
 
 	s.T().Run("should fail with 422 if schedule does not exit", func(t *testing.T) {
@@ -77,7 +77,7 @@ func (s *jobsTestSuite) TestCreate() {
 		req.ChainUUID = s.chainUUID
 
 		_, err := s.client.CreateJob(ctx, req)
-		assert.True(t, errors.IsInvalidParameterError(err))
+		assert.Equal(t, http.StatusUnprocessableEntity, err.(*client.HTTPErr).Code())
 	})
 
 	s.T().Run("should fail with DependencyFailure if postgres is down", func(t *testing.T) {
@@ -144,7 +144,7 @@ func (s *jobsTestSuite) TestStart() {
 
 		err = s.client.StartJob(ctx, job.UUID)
 		require.NoError(t, err)
-		msgJob, err := s.env.consumer.WaitForJob(ctx, job.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
+		msgJob, err := s.env.internalConsumer.WaitForJob(ctx, job.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
 		require.NoError(s.T(), err)
 
 		assert.Equal(t, msgJob.UUID, job.UUID)
@@ -169,9 +169,8 @@ func (s *jobsTestSuite) TestStart() {
 
 		err = s.client.StartJob(ctx, job.UUID)
 		require.NoError(t, err)
-		msgJob, err := s.env.consumer.WaitForJob(ctx, job.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
+		msgJob, err := s.env.internalConsumer.WaitForJob(ctx, job.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
 		require.NoError(s.T(), err)
-
 		assert.Equal(t, msgJob.UUID, job.UUID)
 	})
 }
@@ -191,9 +190,8 @@ func (s *jobsTestSuite) TestUpdate() {
 
 		err = s.client.StartJob(ctx, job.UUID)
 		require.NoError(s.T(), err)
-		msgJob, err := s.env.consumer.WaitForJob(ctx, job.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
+		msgJob, err := s.env.internalConsumer.WaitForJob(ctx, job.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
 		require.NoError(s.T(), err)
-
 		assert.Equal(s.T(), msgJob.UUID, job.UUID)
 
 		receipt := testdata2.FakeReceipt()
@@ -202,6 +200,10 @@ func (s *jobsTestSuite) TestUpdate() {
 			Receipt: receipt,
 		})
 		require.NoError(s.T(), err)
+		
+		notification, err := s.env.externalConsumer.WaitForTxMinedNotification(ctx, job.ScheduleUUID, s.env.externalKafkaTopic, waitForEnvelopeTimeOut)
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), notification.UUID, job.ScheduleUUID)
 	})
 
 	s.T().Run("should update job to FAILED and notify", func(t *testing.T) {
@@ -214,13 +216,16 @@ func (s *jobsTestSuite) TestUpdate() {
 
 		err = s.client.StartJob(ctx, job.UUID)
 		require.NoError(s.T(), err)
-		msgJob, err := s.env.consumer.WaitForJob(ctx, job.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
+		msgJob, err := s.env.internalConsumer.WaitForJob(ctx, job.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
 		require.NoError(s.T(), err)
-
 		assert.Equal(s.T(), msgJob.UUID, job.UUID)
 
 		_, err = s.client.UpdateJob(ctx, job.UUID, &api.UpdateJobRequest{
 			Status: entities.StatusFailed,
 		})
+		
+		notification, err := s.env.externalConsumer.WaitForTxFailedNotification(ctx, job.ScheduleUUID, s.env.externalKafkaTopic, waitForEnvelopeTimeOut)
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), notification.UUID, job.ScheduleUUID)
 	})
 }

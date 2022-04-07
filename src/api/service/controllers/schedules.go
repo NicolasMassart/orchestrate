@@ -8,7 +8,6 @@ import (
 	"github.com/consensys/orchestrate/src/entities"
 	infra "github.com/consensys/orchestrate/src/infra/api"
 
-	"github.com/consensys/orchestrate/pkg/toolkit/app/http/httputil"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"github.com/consensys/orchestrate/src/api/service/formatters"
 	api "github.com/consensys/orchestrate/src/api/service/types"
@@ -51,13 +50,13 @@ func (c *SchedulesController) create(rw http.ResponseWriter, request *http.Reque
 	scheduleRequest := &api.CreateScheduleRequest{}
 	err := infra.UnmarshalBody(request.Body, scheduleRequest)
 	if err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	scheduleEntity, err := c.ucs.CreateSchedule().Execute(ctx, &entities.Schedule{}, multitenancy.UserInfoValue(ctx))
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -84,7 +83,7 @@ func (c *SchedulesController) getOne(rw http.ResponseWriter, request *http.Reque
 
 	scheduleEntity, err := c.ucs.GetSchedule().Execute(ctx, uuid, multitenancy.UserInfoValue(ctx))
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -107,7 +106,7 @@ func (c *SchedulesController) getAll(rw http.ResponseWriter, request *http.Reque
 
 	schedules, err := c.ucs.SearchSchedules().Execute(ctx, multitenancy.UserInfoValue(ctx))
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 

@@ -4,25 +4,35 @@ import (
 	"time"
 
 	"github.com/consensys/orchestrate/src/entities"
-	"github.com/gofrs/uuid"
 )
 
-var jobStatusToNotificationType = map[entities.JobStatus]string{
-	entities.StatusMined:  "transaction.mined",
-	entities.StatusFailed: "transaction.failed",
+type NotificationType string
+
+var (
+	TransactionMinedMessage  NotificationType = "transaction.mined"
+	TransactionFailedMessage NotificationType = "transaction.failed"
+)
+
+var jobStatusToNotificationType = map[entities.JobStatus]NotificationType{
+	entities.StatusMined:  TransactionMinedMessage,
+	entities.StatusFailed: TransactionFailedMessage,
+}
+
+func (n *NotificationType) String() string {
+	return string(*n)
 }
 
 type Notification struct {
-	UUID       string      `json:"uuid"`
-	Type       string      `json:"type"`
-	APIVersion string      `json:"apiVersion"`
-	Data       interface{} `json:"data,omitempty"`
-	CreatedAt  time.Time   `json:"createdAt"`
+	UUID       string           `json:"uuid"`
+	Type       NotificationType `json:"type"`
+	APIVersion string           `json:"apiVersion"`
+	Data       *TxResponse      `json:"data,omitempty"`
+	CreatedAt  time.Time        `json:"createdAt"`
 }
 
 func NewTxNotification(job *entities.Job, errStr string) *Notification {
 	return &Notification{
-		UUID:       uuid.Must(uuid.NewV4()).String(),
+		UUID:       job.ScheduleUUID,
 		Type:       jobStatusToNotificationType[job.Status],
 		APIVersion: "v1",
 		Data:       NewTxResponse(job, errStr),

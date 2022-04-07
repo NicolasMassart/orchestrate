@@ -42,7 +42,7 @@ func TestFundingAccount_Execute(t *testing.T) {
 		mockSearchChainsUC.EXPECT().Execute(gomock.Any(), &entities.ChainFilters{Names: []string{chainName}}, userInfo).
 			Return(chains, nil)
 		mockGetFaucetCandidate.EXPECT().Execute(gomock.Any(), account.Address, chains[0], userInfo).Return(faucet, nil)
-		mockSendTxUC.EXPECT().Execute(gomock.Any(), gomock.Any(), nil, userInfo).Return(nil, nil)
+		mockSendTxUC.EXPECT().Execute(gomock.Any(), gomock.Any(), nil, multitenancy.NewInternalAdminUser()).Return(nil, nil)
 
 		err := usecase.Execute(ctx, account, chainName, userInfo)
 
@@ -113,7 +113,7 @@ func TestFundingAccount_Execute(t *testing.T) {
 
 		mockSearchChainsUC.EXPECT().Execute(gomock.Any(), &entities.ChainFilters{Names: []string{chainName}}, userInfo).Return(chains, nil)
 		mockGetFaucetCandidate.EXPECT().Execute(gomock.Any(), account.Address, gomock.Any(), userInfo).Return(faucet, nil)
-		mockSendTxUC.EXPECT().Execute(gomock.Any(), gomock.Any(), nil, userInfo).Return(nil, expectedErr)
+		mockSendTxUC.EXPECT().Execute(gomock.Any(), gomock.Any(), nil, multitenancy.NewInternalAdminUser()).Return(nil, expectedErr)
 
 		err := usecase.Execute(ctx, account, chainName, userInfo)
 

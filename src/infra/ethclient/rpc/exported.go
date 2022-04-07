@@ -36,7 +36,7 @@ func Init(_ context.Context) {
 		httpCfg.AuthHeaderForward = false
 
 		// Set Client
-		client = NewClient(newBackOff, http.NewClient(httpCfg))
+		client = NewClientWithBackOff(newBackOff, http.NewClient(httpCfg))
 
 		logger.Info("ready")
 	})

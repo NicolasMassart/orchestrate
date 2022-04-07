@@ -47,7 +47,7 @@ func NewGetFaucetCandidateUseCase(
 }
 
 func (uc *faucetCandidate) Execute(ctx context.Context, account ethcommon.Address, chain *entities.Chain, userInfo *multitenancy.UserInfo) (*entities.Faucet, error) {
-	ctx = log.With(log.WithFields(ctx, log.Field("chain", chain.UUID), log.Field("account", account)), uc.logger)
+	ctx = log.With(log.WithFields(ctx, log.Field("chain", chain.UUID), log.Field("address", account)), uc.logger)
 	logger := uc.logger.WithContext(ctx)
 
 	faucets, err := uc.searchFaucets.Execute(ctx, &entities.FaucetFilters{ChainRule: chain.UUID}, userInfo)

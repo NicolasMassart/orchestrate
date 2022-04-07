@@ -29,7 +29,8 @@ type OrchestrateClient interface {
 }
 
 type ChainProxyClient interface {
-	ChainProxyURL(string) string
+	ChainProxyURL(chainUUID string) string
+	ChainTesseraProxyURL(chainUUID string) string
 }
 
 type TransactionClient interface {

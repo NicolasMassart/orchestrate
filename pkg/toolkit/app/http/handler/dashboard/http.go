@@ -10,7 +10,7 @@ import (
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http/config/runtime"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http/configwatcher/provider"
-	"github.com/consensys/orchestrate/pkg/toolkit/app/http/httputil"
+	"github.com/consensys/orchestrate/src/infra/api"
 	"github.com/gorilla/mux"
 	"github.com/traefik/traefik/v2/pkg/log"
 )
@@ -137,7 +137,7 @@ func (h *HTTP) ServeHTTPGetRouters(rw http.ResponseWriter, request *http.Request
 
 	pageInfo, err := pagination(request, len(results))
 	if err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		api.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -146,7 +146,7 @@ func (h *HTTP) ServeHTTPGetRouters(rw http.ResponseWriter, request *http.Request
 	err = json.NewEncoder(rw).Encode(results[pageInfo.startIndex:pageInfo.endIndex])
 	if err != nil {
 		log.FromContext(request.Context()).Error(err)
-		httputil.WriteError(rw, err.Error(), http.StatusInternalServerError)
+		api.WriteError(rw, err.Error(), http.StatusInternalServerError)
 	}
 }
 
@@ -157,7 +157,7 @@ func (h *HTTP) ServeHTTPGetRouter(rw http.ResponseWriter, request *http.Request)
 
 	router, ok := h.infos.Routers[routerID]
 	if !ok {
-		httputil.WriteError(rw, fmt.Sprintf("router not found: %s", routerID), http.StatusNotFound)
+		api.WriteError(rw, fmt.Sprintf("router not found: %s", routerID), http.StatusNotFound)
 		return
 	}
 
@@ -166,7 +166,7 @@ func (h *HTTP) ServeHTTPGetRouter(rw http.ResponseWriter, request *http.Request)
 	err := json.NewEncoder(rw).Encode(result)
 	if err != nil {
 		log.FromContext(request.Context()).Error(err)
-		httputil.WriteError(rw, err.Error(), http.StatusInternalServerError)
+		api.WriteError(rw, err.Error(), http.StatusInternalServerError)
 	}
 }
 
@@ -189,7 +189,7 @@ func (h *HTTP) ServeHTTPGetServices(rw http.ResponseWriter, request *http.Reques
 
 	pageInfo, err := pagination(request, len(results))
 	if err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		api.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -198,7 +198,7 @@ func (h *HTTP) ServeHTTPGetServices(rw http.ResponseWriter, request *http.Reques
 	err = json.NewEncoder(rw).Encode(results[pageInfo.startIndex:pageInfo.endIndex])
 	if err != nil {
 		log.FromContext(request.Context()).Error(err)
-		httputil.WriteError(rw, err.Error(), http.StatusInternalServerError)
+		api.WriteError(rw, err.Error(), http.StatusInternalServerError)
 	}
 }
 
@@ -209,7 +209,7 @@ func (h *HTTP) ServeHTTPGetService(rw http.ResponseWriter, request *http.Request
 
 	service, ok := h.infos.Services[serviceID]
 	if !ok {
-		httputil.WriteError(rw, fmt.Sprintf("service not found: %s", serviceID), http.StatusNotFound)
+		api.WriteError(rw, fmt.Sprintf("service not found: %s", serviceID), http.StatusNotFound)
 		return
 	}
 
@@ -218,7 +218,7 @@ func (h *HTTP) ServeHTTPGetService(rw http.ResponseWriter, request *http.Request
 	err := json.NewEncoder(rw).Encode(result)
 	if err != nil {
 		log.FromContext(request.Context()).Error(err)
-		httputil.WriteError(rw, err.Error(), http.StatusInternalServerError)
+		api.WriteError(rw, err.Error(), http.StatusInternalServerError)
 	}
 }
 
@@ -241,7 +241,7 @@ func (h *HTTP) ServeHTTPGetMiddlewares(rw http.ResponseWriter, request *http.Req
 
 	pageInfo, err := pagination(request, len(results))
 	if err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		api.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -250,7 +250,7 @@ func (h *HTTP) ServeHTTPGetMiddlewares(rw http.ResponseWriter, request *http.Req
 	err = json.NewEncoder(rw).Encode(results[pageInfo.startIndex:pageInfo.endIndex])
 	if err != nil {
 		log.FromContext(request.Context()).Error(err)
-		httputil.WriteError(rw, err.Error(), http.StatusInternalServerError)
+		api.WriteError(rw, err.Error(), http.StatusInternalServerError)
 	}
 }
 
@@ -261,7 +261,7 @@ func (h *HTTP) ServeHTTPGetMiddleware(rw http.ResponseWriter, request *http.Requ
 
 	middleware, ok := h.infos.Middlewares[middlewareID]
 	if !ok {
-		httputil.WriteError(rw, fmt.Sprintf("middleware not found: %s", middlewareID), http.StatusNotFound)
+		api.WriteError(rw, fmt.Sprintf("middleware not found: %s", middlewareID), http.StatusNotFound)
 		return
 	}
 
@@ -270,7 +270,7 @@ func (h *HTTP) ServeHTTPGetMiddleware(rw http.ResponseWriter, request *http.Requ
 	err := json.NewEncoder(rw).Encode(result)
 	if err != nil {
 		log.FromContext(request.Context()).Error(err)
-		httputil.WriteError(rw, err.Error(), http.StatusInternalServerError)
+		api.WriteError(rw, err.Error(), http.StatusInternalServerError)
 	}
 }
 

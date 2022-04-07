@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/consensys/orchestrate/pkg/errors"
+	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
-	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/infra/ethclient"
 	"github.com/consensys/orchestrate/src/tx-sender/store"
@@ -146,7 +146,7 @@ func (nc *Manager) IncrementNonce(ctx context.Context, job *entities.Job) error 
 }
 
 func (nc *Manager) fetchNonceFromChain(ctx context.Context, job *entities.Job) (n uint64, err error) {
-	url := utils.GetProxyURL(nc.chainRegistryURL, job.ChainUUID)
+	url := client.GetProxyURL(nc.chainRegistryURL, job.ChainUUID)
 
 	switch {
 	case job.Type == entities.EEAPrivateTransaction && job.Transaction.PrivacyGroupID != "":

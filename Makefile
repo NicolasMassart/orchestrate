@@ -61,19 +61,14 @@ lint-ci: ## Check linting
 	@misspell -error $(GOFILES)
 	@golangci-lint run
 
-run-e2e: gobuild-e2e
-	@rm -f build/report/report.html
+run-e2e:
+	go test -v -tags e2e ./tests/e2e
+
+e2e:
 	@docker-compose -f docker-compose.e2e.yml up -V e2e
 
-run-stress: gobuild-e2e
+run-stress: gobuild-test
 	@docker-compose -f docker-compose.e2e.yml up -V stress
-
-e2e-ci: run-e2e 
-	@docker-compose -f docker-compose.e2e.yml up --build report
-
-e2e: run-e2e
-	@docker-compose -f docker-compose.e2e.yml up --build report
-	@$(OPEN) build/report/report.html 2>/dev/null
 
 deploy-remote-env:
 	@bash ./scripts/deploy-remote-env.sh
@@ -153,8 +148,8 @@ bootstrap: ## Wait for dependencies to be ready
 bootstrap-deps: bootstrap ## Wait for dependencies to be ready
 	@bash scripts/bootstrap-deps.sh
 
-gobuild-e2e: ## Build Orchestrate e2e Docker image
-	@CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./build/bin/test ./tests/cmd
+gobuild-test: ## Build Orchestrate e2e Docker image
+	@CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./build/bin/test ./tests/stress/cmd
 
 orchestrate: gobuild ## Start Orchestrate
 	@docker-compose -f docker-compose.dev.yml up --force-recreate --build -d $(ORCH_SERVICES)

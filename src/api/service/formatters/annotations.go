@@ -10,7 +10,7 @@ import (
 func FormatAnnotationsToInternalData(annotations api.Annotations) *entities.InternalData {
 	internalData := &entities.InternalData{
 		OneTimeKey:        annotations.OneTimeKey,
-		Priority:          annotations.GasPricePolicy.Priority,
+		Priority:          annotations.GasPricePolicy.Priority.String(),
 		GasPriceIncrement: annotations.GasPricePolicy.RetryPolicy.Increment,
 		GasPriceLimit:     annotations.GasPricePolicy.RetryPolicy.Limit,
 		HasBeenRetried:    annotations.HasBeenRetried,
@@ -26,7 +26,7 @@ func FormatAnnotationsToInternalData(annotations api.Annotations) *entities.Inte
 
 func FormatInternalDataToAnnotations(data *entities.InternalData) api.Annotations {
 	gasPricePolicy := api.GasPriceParams{
-		Priority: data.Priority,
+		Priority: entities.GasIncrementLevel(data.Priority),
 		RetryPolicy: api.RetryParams{
 			Increment: data.GasPriceIncrement,
 			Limit:     data.GasPriceLimit,

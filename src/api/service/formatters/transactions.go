@@ -166,7 +166,7 @@ func FormatTransactionsFilterRequest(req *http.Request) (*entities.TransactionRe
 func buildInternalData(oneTimeKey bool, gasPricePolicy *types.GasPriceParams) *entities.InternalData {
 	internalData := &entities.InternalData{
 		OneTimeKey:        oneTimeKey,
-		Priority:          gasPricePolicy.Priority,
+		Priority:          gasPricePolicy.Priority.String(),
 		GasPriceIncrement: gasPricePolicy.RetryPolicy.Increment,
 		GasPriceLimit:     gasPricePolicy.RetryPolicy.Limit,
 	}

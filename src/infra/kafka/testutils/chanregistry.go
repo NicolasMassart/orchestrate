@@ -7,22 +7,22 @@ import (
 
 // ChanRegistry holds a set of indexed envelopes channels
 // and allows to dispatch envelope in those channels
-type ChanRegistry struct {
+type chanRegistry struct {
 	mux *sync.RWMutex
 
 	chans map[string]chan interface{}
 }
 
-// NewChanRegistry creates a new channel registry
-func NewChanRegistry() *ChanRegistry {
-	return &ChanRegistry{
+// newChanRegistry creates a new channel registry
+func newChanRegistry() *chanRegistry {
+	return &chanRegistry{
 		mux:   &sync.RWMutex{},
 		chans: make(map[string]chan interface{}),
 	}
 }
 
 // Register register a new channel
-func (r *ChanRegistry) Register(key string, ch chan interface{}) {
+func (r *chanRegistry) Register(key string, ch chan interface{}) {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
@@ -30,7 +30,7 @@ func (r *ChanRegistry) Register(key string, ch chan interface{}) {
 }
 
 // HasChan returns whether a channel is registered for the given key
-func (r *ChanRegistry) HasChan(key string) bool {
+func (r *chanRegistry) HasChan(key string) bool {
 	r.mux.RLock()
 	defer r.mux.RUnlock()
 
@@ -40,7 +40,7 @@ func (r *ChanRegistry) HasChan(key string) bool {
 }
 
 // HasChan returns whether a channel is registered for the given key
-func (r *ChanRegistry) GetChan(key string) chan interface{} {
+func (r *chanRegistry) GetChan(key string) chan interface{} {
 	r.mux.RLock()
 	defer r.mux.RUnlock()
 
@@ -53,7 +53,7 @@ func (r *ChanRegistry) GetChan(key string) chan interface{} {
 }
 
 // Send envelope to channel registered for key
-func (r *ChanRegistry) Send(key string, e interface{}) error {
+func (r *chanRegistry) Send(key string, e interface{}) error {
 	r.mux.RLock()
 	defer r.mux.RUnlock()
 

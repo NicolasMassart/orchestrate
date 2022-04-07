@@ -3,15 +3,15 @@
 package integrationtests
 
 import (
-	"github.com/consensys/orchestrate/pkg/sdk/client"
-	ethclient "github.com/consensys/orchestrate/src/infra/ethclient/rpc"
-	"github.com/consensys/orchestrate/src/api/service/types/testdata"
-	"github.com/consensys/orchestrate/pkg/utils"
-	"github.com/cenkalti/backoff/v4"
-	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/suite"
 	"testing"
 	"time"
+
+	"github.com/cenkalti/backoff/v4"
+	"github.com/consensys/orchestrate/pkg/sdk/client"
+	"github.com/consensys/orchestrate/src/api/service/types/testdata"
+	ethclient "github.com/consensys/orchestrate/src/infra/ethclient/rpc"
+	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 )
 
 type proxyTestSuite struct {
@@ -33,7 +33,7 @@ func (s *proxyTestSuite) TestProxy() {
 
 		err = backoff.RetryNotify(
 			func() error {
-				_, der := ethclient.GlobalClient().Network(ctx, utils.GetProxyURL(s.env.baseURL, chain.UUID))
+				_, der := ethclient.GlobalClient().Network(ctx, client.GetProxyURL(s.env.baseURL, chain.UUID))
 				return der
 			},
 			backoff.WithMaxRetries(backoff.NewConstantBackOff(2*time.Second), 5),

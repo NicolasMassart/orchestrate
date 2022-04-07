@@ -6,8 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/consensys/orchestrate/pkg/toolkit/app/http/httputil"
-
 	"github.com/consensys/orchestrate/src/entities"
 
 	"github.com/consensys/orchestrate/src/api/service/types"
@@ -28,7 +26,7 @@ func (c *HTTPClient) GetJob(ctx context.Context, jobUUID string) (*types.JobResp
 		}
 
 		defer clientutils.CloseResponse(response)
-		return httputil.ParseResponse(ctx, response, resp)
+		return parseResponse(ctx, response, resp)
 	})
 
 	return resp, err
@@ -46,7 +44,7 @@ func (c *HTTPClient) GetJobs(ctx context.Context) ([]*types.JobResponse, error) 
 		}
 
 		defer clientutils.CloseResponse(response)
-		return httputil.ParseResponse(ctx, response, &resp)
+		return parseResponse(ctx, response, &resp)
 	})
 
 	return resp, err
@@ -96,7 +94,7 @@ func (c *HTTPClient) SearchJob(ctx context.Context, filters *entities.JobFilters
 			return errors.FromError(err).SetMessage(errMessage).AppendReason(err.Error()).ExtendComponent(component)
 		}
 		defer clientutils.CloseResponse(response)
-		return httputil.ParseResponse(ctx, response, &resp)
+		return parseResponse(ctx, response, &resp)
 	})
 
 	return resp, err
@@ -113,7 +111,7 @@ func (c *HTTPClient) CreateJob(ctx context.Context, request *types.CreateJobRequ
 			return errors.FromError(err).SetMessage(errMessage).AppendReason(err.Error()).ExtendComponent(component)
 		}
 		defer clientutils.CloseResponse(response)
-		return httputil.ParseResponse(ctx, response, resp)
+		return parseResponse(ctx, response, resp)
 	})
 
 	return resp, err
@@ -130,7 +128,7 @@ func (c *HTTPClient) UpdateJob(ctx context.Context, jobUUID string, request *typ
 		}
 
 		defer clientutils.CloseResponse(response)
-		return httputil.ParseResponse(ctx, response, resp)
+		return parseResponse(ctx, response, resp)
 	})
 
 	return resp, err
@@ -146,7 +144,7 @@ func (c *HTTPClient) StartJob(ctx context.Context, jobUUID string) error {
 		}
 
 		defer clientutils.CloseResponse(response)
-		return httputil.ParseEmptyBodyResponse(ctx, response)
+		return ParseEmptyBodyResponse(ctx, response)
 	})
 }
 
@@ -160,6 +158,6 @@ func (c *HTTPClient) ResendJobTx(ctx context.Context, jobUUID string) error {
 		}
 
 		defer clientutils.CloseResponse(response)
-		return httputil.ParseEmptyBodyResponse(ctx, response)
+		return ParseEmptyBodyResponse(ctx, response)
 	})
 }

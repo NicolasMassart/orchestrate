@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/consensys/orchestrate/pkg/toolkit/app/http/httputil"
+	"github.com/consensys/orchestrate/src/infra/api"
 	"github.com/gorilla/mux"
 	traefikstatic "github.com/traefik/traefik/v2/pkg/config/static"
 	"github.com/traefik/traefik/v2/pkg/log"
@@ -51,7 +51,7 @@ func (h *EntryPoint) ServeHTTPGetEntryPoints(rw http.ResponseWriter, request *ht
 
 	pageInfo, err := pagination(request, len(results))
 	if err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		api.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -60,7 +60,7 @@ func (h *EntryPoint) ServeHTTPGetEntryPoints(rw http.ResponseWriter, request *ht
 	err = json.NewEncoder(rw).Encode(results[pageInfo.startIndex:pageInfo.endIndex])
 	if err != nil {
 		log.FromContext(request.Context()).Error(err)
-		httputil.WriteError(rw, err.Error(), http.StatusInternalServerError)
+		api.WriteError(rw, err.Error(), http.StatusInternalServerError)
 	}
 }
 
@@ -71,7 +71,7 @@ func (h *EntryPoint) ServeHTTPGetEntryPoint(rw http.ResponseWriter, request *htt
 
 	ep, ok := h.staticCfg.EntryPoints[entryPointID]
 	if !ok {
-		httputil.WriteError(rw, fmt.Sprintf("entry point not found: %s", entryPointID), http.StatusNotFound)
+		api.WriteError(rw, fmt.Sprintf("entry point not found: %s", entryPointID), http.StatusNotFound)
 		return
 	}
 
@@ -83,6 +83,6 @@ func (h *EntryPoint) ServeHTTPGetEntryPoint(rw http.ResponseWriter, request *htt
 	err := json.NewEncoder(rw).Encode(result)
 	if err != nil {
 		log.FromContext(request.Context()).Error(err)
-		httputil.WriteError(rw, err.Error(), http.StatusInternalServerError)
+		api.WriteError(rw, err.Error(), http.StatusInternalServerError)
 	}
 }

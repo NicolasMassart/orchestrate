@@ -2,25 +2,35 @@ package config
 
 import "github.com/ethereum/go-ethereum/common/hexutil"
 
-type TestData struct {
-	Nodes              Nodes  `json:"nodes"`
-	OIDC               *OIDC  `json:"oidc"`
-	NotificationsTopic string `json:"notificationsTopic"`
+type TestDataCfg struct {
+	Nodes        NodesCfg  `json:"nodes"`
+	OIDC         *OIDCCfg  `json:"oidc"`
+	UserInfo     *UserInfo `json:"userInfo"`
+	QKMStoreID   string    `json:"qkmStoreID"`
+	ArtifactPath string    `json:"artifacts"`
+	Timeout      string    `json:"timeout"`
+	KafkaTopic   string    `json:"topic"`
 }
 
-type Nodes struct {
-	Besu   []ChainData `json:"besu,omitempty"`
-	Quorum []ChainData `json:"quorum,omitempty"`
-	Geth   []ChainData `json:"geth,omitempty"`
+type UserInfo struct {
+	TenantID string `json:"tenantId"`
+	Username string `json:"username"`
 }
 
-type OIDC struct {
+type NodesCfg struct {
+	Besu     []ChainDataCfg `json:"besu,omitempty"`
+	GoQuorum []ChainDataCfg `json:"quorum,omitempty"`
+	Geth     []ChainDataCfg `json:"geth,omitempty"`
+}
+
+type OIDCCfg struct {
 	ClientID     string `json:"clientID"`
 	ClientSecret string `json:"clientSecret"`
 	TokenURL     string `json:"tokenURL"`
+	Audience     string `json:"audience"`
 }
 
-type ChainData struct {
+type ChainDataCfg struct {
 	URLs                []string        `json:"URLs,omitempty"`
 	PrivateAddress      []string        `json:"privateAddress,omitempty"`
 	FundedPublicKeys    []string        `json:"fundedPublicKeys,omitempty"`

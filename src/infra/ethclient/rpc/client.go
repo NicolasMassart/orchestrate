@@ -33,11 +33,21 @@ type Client struct {
 }
 
 // NewClient creates a new MultiClient
-func NewClient(newBackOff func() backoff.BackOff, client *http.Client) *Client {
+func NewClientWithBackOff(newBackOff func() backoff.BackOff, client *http.Client) *Client {
 	return &Client{
 		client: client,
 		pool: &sync.Pool{
 			New: func() interface{} { return newBackOff() },
+		},
+		idCounter: 0,
+	}
+}
+
+func NewClient(client *http.Client) *Client {
+	return &Client{
+		client: client,
+		pool: &sync.Pool{
+			New: func() interface{} { return backoff.WithMaxRetries(backoff.NewConstantBackOff(time.Second), 1) },
 		},
 		idCounter: 0,
 	}

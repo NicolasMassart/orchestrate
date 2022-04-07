@@ -6,7 +6,7 @@ import (
 	"reflect"
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http/config/runtime"
-	"github.com/consensys/orchestrate/pkg/toolkit/app/http/httputil"
+	"github.com/consensys/orchestrate/src/infra/api"
 	"github.com/gorilla/mux"
 	traefikstatic "github.com/traefik/traefik/v2/pkg/config/static"
 	"github.com/traefik/traefik/v2/pkg/log"
@@ -69,7 +69,7 @@ func (h *Overview) ServeHTTP(rw http.ResponseWriter, request *http.Request) {
 	err := json.NewEncoder(rw).Encode(result)
 	if err != nil {
 		log.FromContext(request.Context()).Error(err)
-		httputil.WriteError(rw, err.Error(), http.StatusInternalServerError)
+		api.WriteError(rw, err.Error(), http.StatusInternalServerError)
 	}
 }
 

@@ -247,7 +247,6 @@ services:
     restart: "on-failure"
     depends_on:
       - api
-      - kafka
       - postgres
     command: tx-listener run
 

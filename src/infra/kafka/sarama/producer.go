@@ -55,10 +55,11 @@ func (p *Producer) SendJobMessage(topic string, job *entities.Job, userInfo *mul
 	msg.Value = sarama.ByteEncoder(b)
 
 	if userInfo.AuthMode == multitenancy.AuthMethodJWT {
+		userInfoB, _ := encoding.Marshal(userInfo)
 		msg.Headers = []sarama.RecordHeader{
 			{
-				Key:   []byte(utils.AuthorizationHeader),
-				Value: []byte(userInfo.AuthValue),
+				Key:   []byte(utils.UserInfoHeader),
+				Value: userInfoB,
 			},
 		}
 	}

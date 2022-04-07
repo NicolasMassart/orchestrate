@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/consensys/orchestrate/pkg/toolkit/app/http/httputil"
 	"github.com/consensys/orchestrate/src/api/service/types"
 
 	clientutils "github.com/consensys/orchestrate/pkg/toolkit/app/http/client-utils"
@@ -21,7 +20,7 @@ func (c *HTTPClient) SendContractTransaction(ctx context.Context, txRequest *typ
 		}
 
 		defer clientutils.CloseResponse(response)
-		return httputil.ParseResponse(ctx, response, resp)
+		return parseResponse(ctx, response, resp)
 	})
 
 	return resp, err
@@ -38,7 +37,7 @@ func (c *HTTPClient) SendDeployTransaction(ctx context.Context, txRequest *types
 		}
 
 		defer clientutils.CloseResponse(response)
-		return httputil.ParseResponse(ctx, response, resp)
+		return parseResponse(ctx, response, resp)
 	})
 
 	return resp, err
@@ -55,7 +54,7 @@ func (c *HTTPClient) SendRawTransaction(ctx context.Context, txRequest *types.Ra
 		}
 
 		defer clientutils.CloseResponse(response)
-		return httputil.ParseResponse(ctx, response, resp)
+		return parseResponse(ctx, response, resp)
 	})
 
 	return resp, err
@@ -72,7 +71,7 @@ func (c *HTTPClient) SendTransferTransaction(ctx context.Context, txRequest *typ
 		}
 
 		defer clientutils.CloseResponse(response)
-		return httputil.ParseResponse(ctx, response, resp)
+		return parseResponse(ctx, response, resp)
 	})
 
 	return resp, err
@@ -89,7 +88,7 @@ func (c *HTTPClient) GetTxRequest(ctx context.Context, txRequestUUID string) (*t
 		}
 
 		defer clientutils.CloseResponse(response)
-		return httputil.ParseResponse(ctx, response, resp)
+		return parseResponse(ctx, response, resp)
 	})
 
 	return resp, err
@@ -106,7 +105,7 @@ func (c *HTTPClient) SendCallOffTransaction(ctx context.Context, txRequestUUID s
 		}
 
 		defer clientutils.CloseResponse(response)
-		return httputil.ParseResponse(ctx, response, resp)
+		return parseResponse(ctx, response, resp)
 	})
 
 	return resp, err
@@ -127,7 +126,7 @@ func (c *HTTPClient) SendSpeedUpTransaction(ctx context.Context, txRequestUUID s
 		}
 
 		defer clientutils.CloseResponse(response)
-		return httputil.ParseResponse(ctx, response, resp)
+		return parseResponse(ctx, response, resp)
 	})
 
 	return resp, err

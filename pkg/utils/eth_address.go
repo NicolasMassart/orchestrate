@@ -16,3 +16,8 @@ func ParseHexToMixedCaseEthAddress(address string) (*ethcommon.Address, error) {
 	addr := ethcommon.HexToAddress(address)
 	return &addr, nil
 }
+
+func HexToAddress(address string) *ethcommon.Address {
+	addr := ethcommon.HexToAddress(address)
+	return &addr
+}

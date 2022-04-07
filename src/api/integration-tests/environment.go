@@ -67,15 +67,17 @@ var envQKMHostPort string
 var envVaultHostPort string
 
 type IntegrationEnvironment struct {
-	ctx               context.Context
-	logger            log.Logger
-	api               *app.App
-	client            *docker.Client
-	consumer          *testutils.ConsumerTracker
-	baseURL           string
-	metricsURL        string
-	apiCfg            *api.Config
-	blockchainNodeURL string
+	ctx                context.Context
+	logger             log.Logger
+	api                *app.App
+	client             *docker.Client
+	internalConsumer   *testutils.InternalConsumerTracker
+	externalConsumer   *testutils.ExternalConsumerTracker
+	externalKafkaTopic string
+	baseURL            string
+	metricsURL         string
+	apiCfg             *api.Config
+	blockchainNodeURL  string
 }
 
 func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, error) {
@@ -178,13 +180,14 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	}
 
 	return &IntegrationEnvironment{
-		ctx:               ctx,
-		logger:            logger,
-		client:            dockerClient,
-		baseURL:           "http://localhost:" + envHTTPPort,
-		metricsURL:        "http://localhost:" + envMetricsPort,
-		apiCfg:            flags.NewAPIConfig(viper.GetViper()),
-		blockchainNodeURL: fmt.Sprintf("http://localhost:%s", envGanacheHostPort),
+		ctx:                ctx,
+		logger:             logger,
+		client:             dockerClient,
+		baseURL:            "http://localhost:" + envHTTPPort,
+		metricsURL:         "http://localhost:" + envMetricsPort,
+		apiCfg:             flags.NewAPIConfig(viper.GetViper()),
+		blockchainNodeURL:  fmt.Sprintf("http://localhost:%s", envGanacheHostPort),
+		externalKafkaTopic: "topic-tx-decoded",
 	}, nil
 }
 
@@ -290,22 +293,27 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 		return err
 	}
 
-	// Start Kafka consumer
-	env.consumer, err = testutils.NewConsumerTracker(env.apiCfg.Kafka, env.apiCfg.KafkaTopics)
+	// Start internal kafka consumer
+	env.internalConsumer, err = testutils.NewInternalConsumerTracker(env.apiCfg.Kafka)
 	if err != nil {
-		env.logger.WithError(err).Error("could initialize kafka consumer")
+		env.logger.WithError(err).Error("could initialize kafka internal Consumer")
 		return err
 	}
 
 	go func() {
-		err = env.consumer.Consume(ctx, []string{env.apiCfg.KafkaTopics.Sender})
+		_ = env.internalConsumer.Consume(ctx, []string{env.apiCfg.KafkaTopics.Sender})
 	}()
-	time.Sleep(time.Second * 5) // Wait for consumer to be ready
 
+	// Start external kafka consumer
+	env.externalConsumer, err = testutils.NewExternalConsumerTracker(env.apiCfg.Kafka)
 	if err != nil {
-		env.logger.WithError(err).Error("could not run Kafka consumer")
+		env.logger.WithError(err).Error("could initialize kafka external Consumer")
 		return err
 	}
+
+	go func() {
+		_ = env.externalConsumer.Consume(ctx, []string{env.externalKafkaTopic})
+	}()
 
 	// Start API
 	err = env.api.Start(ctx)
@@ -320,6 +328,9 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 		"api",
 		15*time.Second,
 	)
+
+	// Wait for consumers to be ready
+	time.Sleep(time.Second * 10)
 
 	return nil
 }

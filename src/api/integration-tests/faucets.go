@@ -3,10 +3,10 @@
 package integrationtests
 
 import (
+	"net/http"
 	"testing"
 	"time"
 
-	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/api/service/types/testdata"
@@ -73,7 +73,7 @@ func (s *faucetsTestSuite) TestRegister() {
 
 		_, err := s.client.RegisterFaucet(ctx, req)
 		require.Error(t, err)
-		assert.True(t, errors.IsInvalidParameterError(err))
+		assert.Equal(t, http.StatusUnprocessableEntity, err.(*client.HTTPErr).Code())
 	})
 
 	s.T().Run("should fail to register faucet with BadRequest if account does not exists", func(t *testing.T) {
@@ -82,7 +82,7 @@ func (s *faucetsTestSuite) TestRegister() {
 
 		_, err := s.client.RegisterFaucet(ctx, req)
 		require.Error(t, err)
-		assert.True(t, errors.IsInvalidParameterError(err))
+		assert.Equal(t, http.StatusUnprocessableEntity, err.(*client.HTTPErr).Code())
 	})
 
 	s.T().Run("should fail to register faucet with same name and tenant", func(t *testing.T) {
@@ -94,7 +94,7 @@ func (s *faucetsTestSuite) TestRegister() {
 		require.NoError(t, err)
 
 		_, err = s.client.RegisterFaucet(ctx, req)
-		assert.True(t, errors.IsAlreadyExistsError(err))
+		assert.Equal(t, http.StatusConflict, err.(*client.HTTPErr).Code())
 
 		err = s.client.DeleteFaucet(ctx, resp.UUID)
 		assert.NoError(t, err)
@@ -203,7 +203,7 @@ func (s *faucetsTestSuite) TestUpdate() {
 
 		_, err = s.client.UpdateFaucet(ctx, faucet.UUID, req2)
 		require.Error(t, err)
-		assert.True(t, errors.IsInvalidParameterError(err))
+		assert.Equal(t, http.StatusUnprocessableEntity, err.(*client.HTTPErr).Code())
 	})
 	
 	s.T().Run("should fail to update faucet if account does not exists", func(t *testing.T) {
@@ -212,7 +212,7 @@ func (s *faucetsTestSuite) TestUpdate() {
 
 		_, err = s.client.UpdateFaucet(ctx, faucet.UUID, req2)
 		require.Error(t, err)
-		assert.True(t, errors.IsInvalidParameterError(err))
+		assert.Equal(t, http.StatusUnprocessableEntity, err.(*client.HTTPErr).Code())
 	})
 }
 
@@ -281,12 +281,12 @@ func (s *faucetsTestSuite) TestSuccess_TxsWithFaucet() {
 		assert.Equal(t, txRequest.Params.To.Hex(), txJobRes.Transaction.To)
 		assert.Equal(t, entities.EthereumTransaction, txJobRes.Type)
 	
-		fctEvlp, err := s.env.consumer.WaitForJob(ctx, faucetJobRes.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
+		fctEvlp, err := s.env.internalConsumer.WaitForJob(ctx, faucetJobRes.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
 		require.NoError(t, err)
 		assert.Equal(t, faucetJobRes.ScheduleUUID, fctEvlp.ScheduleUUID)
 		assert.Equal(t, faucetJobRes.UUID, fctEvlp.UUID)
 	
-		jobEvlp, err := s.env.consumer.WaitForJob(ctx, txJobRes.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
+		jobEvlp, err := s.env.internalConsumer.WaitForJob(ctx, txJobRes.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
 		require.NoError(t, err)
 		assert.Equal(t, txJobRes.ScheduleUUID, jobEvlp.ScheduleUUID)
 		assert.Equal(t, txJobRes.UUID, jobEvlp.UUID)
@@ -320,12 +320,12 @@ func (s *faucetsTestSuite) TestSuccess_TxsWithFaucet() {
 		assert.Equal(t, "0x4c7aF4B315644848f400b7344A8e73Cf227812b4", txJob.Transaction.From)
 		assert.Equal(t, entities.EthereumRawTransaction, txJob.Type)
 	
-		fctEvlp, err := s.env.consumer.WaitForJob(ctx, faucetJob.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
+		fctEvlp, err := s.env.internalConsumer.WaitForJob(ctx, faucetJob.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
 		require.NoError(t, err)
 		assert.Equal(t, faucetJob.ScheduleUUID, fctEvlp.ScheduleUUID)
 		assert.Equal(t, faucetJob.UUID, fctEvlp.UUID)
 	
-		jobEvlp, err := s.env.consumer.WaitForJob(ctx, txJob.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
+		jobEvlp, err := s.env.internalConsumer.WaitForJob(ctx, txJob.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
 		require.NoError(t, err)
 		assert.Equal(t, txJob.ScheduleUUID, jobEvlp.ScheduleUUID)
 		assert.Equal(t, txJob.UUID, jobEvlp.UUID)

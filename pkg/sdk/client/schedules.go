@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/consensys/orchestrate/pkg/toolkit/app/http/httputil"
 	"github.com/consensys/orchestrate/src/api/service/types"
 
 	clientutils "github.com/consensys/orchestrate/pkg/toolkit/app/http/client-utils"
@@ -21,7 +20,7 @@ func (c *HTTPClient) CreateSchedule(ctx context.Context, request *types.CreateSc
 		}
 
 		defer clientutils.CloseResponse(response)
-		return httputil.ParseResponse(ctx, response, resp)
+		return parseResponse(ctx, response, resp)
 	})
 
 	return resp, err
@@ -38,7 +37,7 @@ func (c *HTTPClient) GetSchedule(ctx context.Context, scheduleUUID string) (*typ
 		}
 
 		defer clientutils.CloseResponse(response)
-		return httputil.ParseResponse(ctx, response, resp)
+		return parseResponse(ctx, response, resp)
 	})
 
 	return resp, err
@@ -55,7 +54,7 @@ func (c *HTTPClient) GetSchedules(ctx context.Context) ([]*types.ScheduleRespons
 		}
 
 		defer clientutils.CloseResponse(response)
-		return httputil.ParseResponse(ctx, response, &resp)
+		return parseResponse(ctx, response, &resp)
 	})
 
 	return resp, err

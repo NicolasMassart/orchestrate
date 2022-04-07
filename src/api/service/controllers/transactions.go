@@ -9,7 +9,6 @@ import (
 	api "github.com/consensys/orchestrate/src/api/service/types"
 	infra "github.com/consensys/orchestrate/src/infra/api"
 
-	"github.com/consensys/orchestrate/pkg/toolkit/app/http/httputil"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/service/formatters"
@@ -72,19 +71,19 @@ func (c *TransactionsController) send(rw http.ResponseWriter, request *http.Requ
 
 	txRequest := &api.SendTransactionRequest{}
 	if err := infra.UnmarshalBody(request.Body, txRequest); err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	if err := txRequest.Params.Validate(); err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	txReq := formatters.FormatSendTxRequest(txRequest, request.Header.Get(IdempotencyKeyHeader))
 	txResponse, err := c.ucs.SendContract().Execute(ctx, txReq, multitenancy.UserInfoValue(ctx))
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -114,19 +113,19 @@ func (c *TransactionsController) deployContract(rw http.ResponseWriter, request 
 
 	txRequest := &api.DeployContractRequest{}
 	if err := infra.UnmarshalBody(request.Body, txRequest); err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	if err := txRequest.Params.Validate(); err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	txReq := formatters.FormatDeployContractRequest(txRequest, request.Header.Get(IdempotencyKeyHeader))
 	txResponse, err := c.ucs.SendDeploy().Execute(ctx, txReq, multitenancy.UserInfoValue(ctx))
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -155,14 +154,14 @@ func (c *TransactionsController) sendRaw(rw http.ResponseWriter, request *http.R
 	txRequest := &api.RawTransactionRequest{}
 	err := infra.UnmarshalBody(request.Body, txRequest)
 	if err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	txReq := formatters.FormatSendRawRequest(txRequest, request.Header.Get(IdempotencyKeyHeader))
 	txResponse, err := c.ucs.Send().Execute(ctx, txReq, nil, multitenancy.UserInfoValue(ctx))
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -191,19 +190,19 @@ func (c *TransactionsController) transfer(rw http.ResponseWriter, request *http.
 	txRequest := &api.TransferRequest{}
 	err := infra.UnmarshalBody(request.Body, txRequest)
 	if err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	if err = txRequest.Params.Validate(); err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	txReq := formatters.FormatTransferRequest(txRequest, request.Header.Get(IdempotencyKeyHeader))
 	txResponse, err := c.ucs.Send().Execute(ctx, txReq, nil, multitenancy.UserInfoValue(ctx))
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -230,7 +229,7 @@ func (c *TransactionsController) getOne(rw http.ResponseWriter, request *http.Re
 
 	txRequest, err := c.ucs.Get().Execute(ctx, uuid, multitenancy.UserInfoValue(ctx))
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -255,13 +254,13 @@ func (c *TransactionsController) search(rw http.ResponseWriter, request *http.Re
 
 	filters, err := formatters.FormatTransactionsFilterRequest(request)
 	if err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	txRequests, err := c.ucs.Search().Execute(ctx, filters, multitenancy.UserInfoValue(ctx))
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -295,19 +294,19 @@ func (c *TransactionsController) speedUp(rw http.ResponseWriter, req *http.Reque
 	if boostInput != "" {
 		boostValue, err = strconv.ParseFloat(boostInput, 64)
 		if err != nil {
-			httputil.WriteHTTPErrorResponse(rw, errors.InvalidFormatError("expected float as incrementing value"))
+			infra.WriteHTTPErrorResponse(rw, errors.InvalidFormatError("expected float as incrementing value"))
 			return
 		}
 		if boostValue < MinBoostValue {
 			err = errors.InvalidFormatError("minimum boost value is %f", MinBoostValue)
-			httputil.WriteHTTPErrorResponse(rw, err)
+			infra.WriteHTTPErrorResponse(rw, err)
 			return
 		}
 	}
 
 	txRequest, err := c.ucs.SpeedUp().Execute(ctx, uuid, boostValue, multitenancy.UserInfoValue(ctx))
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -332,7 +331,7 @@ func (c *TransactionsController) callOff(rw http.ResponseWriter, request *http.R
 
 	txRequest, err := c.ucs.CallOff().Execute(ctx, uuid, multitenancy.UserInfoValue(ctx))
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 

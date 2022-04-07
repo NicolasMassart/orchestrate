@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	clientutils "github.com/consensys/orchestrate/pkg/toolkit/app/http/client-utils"
-	"github.com/consensys/orchestrate/pkg/toolkit/app/http/httputil"
 	"github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities"
 )
@@ -22,7 +21,7 @@ func (c *HTTPClient) GetChain(ctx context.Context, uuid string) (*types.ChainRes
 		}
 
 		defer clientutils.CloseResponse(response)
-		return httputil.ParseResponse(ctx, response, resp)
+		return parseResponse(ctx, response, resp)
 	})
 
 	return resp, err
@@ -47,7 +46,7 @@ func (c *HTTPClient) SearchChains(ctx context.Context, filters *entities.ChainFi
 			return err
 		}
 		defer clientutils.CloseResponse(response)
-		return httputil.ParseResponse(ctx, response, &resp)
+		return parseResponse(ctx, response, &resp)
 	})
 
 	return resp, err
@@ -63,7 +62,7 @@ func (c *HTTPClient) RegisterChain(ctx context.Context, request *types.RegisterC
 			return err
 		}
 		defer clientutils.CloseResponse(response)
-		return httputil.ParseResponse(ctx, response, resp)
+		return parseResponse(ctx, response, resp)
 	})
 
 	return resp, err
@@ -80,7 +79,7 @@ func (c *HTTPClient) UpdateChain(ctx context.Context, uuid string, request *type
 		}
 
 		defer clientutils.CloseResponse(response)
-		return httputil.ParseResponse(ctx, response, resp)
+		return parseResponse(ctx, response, resp)
 	})
 
 	return resp, err
@@ -95,5 +94,5 @@ func (c *HTTPClient) DeleteChain(ctx context.Context, uuid string) error {
 	}
 
 	defer clientutils.CloseResponse(response)
-	return httputil.ParseEmptyBodyResponse(ctx, response)
+	return ParseEmptyBodyResponse(ctx, response)
 }

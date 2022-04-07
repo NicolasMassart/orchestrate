@@ -11,7 +11,6 @@ import (
 	qkmtypes "github.com/consensys/quorum-key-manager/src/stores/api/types"
 
 	clientutils "github.com/consensys/orchestrate/pkg/toolkit/app/http/client-utils"
-	"github.com/consensys/orchestrate/pkg/toolkit/app/http/httputil"
 	"github.com/consensys/orchestrate/src/entities"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 )
@@ -26,7 +25,7 @@ func (c *HTTPClient) GetAccount(ctx context.Context, address ethcommon.Address) 
 	}
 
 	defer clientutils.CloseResponse(response)
-	if err := httputil.ParseResponse(ctx, response, resp); err != nil {
+	if err := parseResponse(ctx, response, resp); err != nil {
 		return nil, err
 	}
 
@@ -43,7 +42,7 @@ func (c *HTTPClient) CreateAccount(ctx context.Context, req *api.CreateAccountRe
 	}
 
 	defer clientutils.CloseResponse(response)
-	if err := httputil.ParseResponse(ctx, response, resp); err != nil {
+	if err := parseResponse(ctx, response, resp); err != nil {
 		return nil, err
 	}
 
@@ -60,7 +59,7 @@ func (c *HTTPClient) ImportAccount(ctx context.Context, req *api.ImportAccountRe
 	}
 
 	defer clientutils.CloseResponse(response)
-	if err := httputil.ParseResponse(ctx, response, resp); err != nil {
+	if err := parseResponse(ctx, response, resp); err != nil {
 		return nil, err
 	}
 
@@ -77,7 +76,7 @@ func (c *HTTPClient) UpdateAccount(ctx context.Context, address ethcommon.Addres
 	}
 
 	defer clientutils.CloseResponse(response)
-	if err := httputil.ParseResponse(ctx, response, resp); err != nil {
+	if err := parseResponse(ctx, response, resp); err != nil {
 		return nil, err
 	}
 
@@ -103,7 +102,7 @@ func (c *HTTPClient) SearchAccounts(ctx context.Context, filters *entities.Accou
 	}
 
 	defer clientutils.CloseResponse(response)
-	if err := httputil.ParseResponse(ctx, response, &resp); err != nil {
+	if err := parseResponse(ctx, response, &resp); err != nil {
 		return nil, err
 	}
 
@@ -119,7 +118,7 @@ func (c *HTTPClient) SignMessage(ctx context.Context, address ethcommon.Address,
 	}
 
 	defer clientutils.CloseResponse(response)
-	return httputil.ParseStringResponse(ctx, response)
+	return parseStringResponse(ctx, response)
 }
 
 func (c *HTTPClient) SignTypedData(ctx context.Context, address ethcommon.Address, request *qkmtypes.SignTypedDataRequest) (string, error) {
@@ -131,7 +130,7 @@ func (c *HTTPClient) SignTypedData(ctx context.Context, address ethcommon.Addres
 	}
 
 	defer clientutils.CloseResponse(response)
-	return httputil.ParseStringResponse(ctx, response)
+	return parseStringResponse(ctx, response)
 }
 
 func (c *HTTPClient) VerifyMessageSignature(ctx context.Context, request *utilstypes.VerifyRequest) error {
@@ -143,7 +142,7 @@ func (c *HTTPClient) VerifyMessageSignature(ctx context.Context, request *utilst
 	}
 
 	defer clientutils.CloseResponse(response)
-	return httputil.ParseEmptyBodyResponse(ctx, response)
+	return ParseEmptyBodyResponse(ctx, response)
 }
 
 func (c *HTTPClient) VerifyTypedDataSignature(ctx context.Context, request *utilstypes.VerifyTypedDataRequest) error {
@@ -155,5 +154,5 @@ func (c *HTTPClient) VerifyTypedDataSignature(ctx context.Context, request *util
 	}
 
 	defer clientutils.CloseResponse(response)
-	return httputil.ParseEmptyBodyResponse(ctx, response)
+	return ParseEmptyBodyResponse(ctx, response)
 }

@@ -66,7 +66,7 @@ func (uc *sendGoQuorumPrivateTxUseCase) Execute(ctx context.Context, job *entiti
 
 func (uc *sendGoQuorumPrivateTxUseCase) sendTx(ctx context.Context, job *entities.Job) (hexutil.Bytes, error) {
 	logger := uc.logger.WithContext(ctx)
-	proxyTessera := utils.GetProxyTesseraURL(uc.chainRegistryURL, job.ChainUUID)
+	proxyTessera := client.GetProxyTesseraURL(uc.chainRegistryURL, job.ChainUUID)
 
 	enclaveKey, err := uc.ec.StoreRaw(ctx, proxyTessera, job.Transaction.Data, job.Transaction.PrivateFrom)
 	if err != nil {

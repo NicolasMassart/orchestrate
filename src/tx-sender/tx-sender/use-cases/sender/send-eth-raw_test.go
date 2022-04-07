@@ -6,12 +6,12 @@ import (
 	"context"
 	"testing"
 
+	"github.com/consensys/orchestrate/pkg/sdk/client"
 	mock3 "github.com/consensys/orchestrate/pkg/sdk/client/mock"
-	mock2 "github.com/consensys/orchestrate/src/infra/ethclient/mock"
 	apitypes "github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/entities/testdata"
-	"github.com/consensys/orchestrate/pkg/utils"
+	mock2 "github.com/consensys/orchestrate/src/infra/ethclient/mock"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/golang/mock/gomock"
@@ -38,7 +38,7 @@ func TestSendETHRaw_Execute(t *testing.T) {
 		job.Transaction.Raw = raw
 		job.Transaction.Hash = &txHash
 
-		proxyURL := utils.GetProxyURL(chainRegistryURL, job.ChainUUID)
+		proxyURL := client.GetProxyURL(chainRegistryURL, job.ChainUUID)
 		ec.EXPECT().SendRawTransaction(gomock.Any(), proxyURL, raw).Return(txHash, nil)
 
 		jobClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, &apitypes.UpdateJobRequest{
@@ -57,7 +57,7 @@ func TestSendETHRaw_Execute(t *testing.T) {
 		job.Transaction.Hash = &txHash
 		job.Status = entities.StatusPending
 
-		proxyURL := utils.GetProxyURL(chainRegistryURL, job.ChainUUID)
+		proxyURL := client.GetProxyURL(chainRegistryURL, job.ChainUUID)
 		ec.EXPECT().SendRawTransaction(gomock.Any(), proxyURL, raw).Return(txHash, nil)
 
 		jobClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, &apitypes.UpdateJobRequest{
@@ -76,7 +76,7 @@ func TestSendETHRaw_Execute(t *testing.T) {
 		job.Transaction.Hash = &txHash
 
 		hash := "0x6621fbe1e2848446e38d99bfda159cdd83f555ae0ed7a4f3e1c3c79f7d6d74f2"
-		proxyURL := utils.GetProxyURL(chainRegistryURL, job.ChainUUID)
+		proxyURL := client.GetProxyURL(chainRegistryURL, job.ChainUUID)
 		ec.EXPECT().SendRawTransaction(gomock.Any(), proxyURL, raw).
 			Return(ethcommon.HexToHash(hash), nil)
 

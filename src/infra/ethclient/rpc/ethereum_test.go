@@ -27,7 +27,7 @@ import (
 
 func newEthereumClient() *Client {
 	newBackOff := func() backoff.BackOff { return pkgUtils.NewBackOff(testutils.TestConfig) }
-	ec := NewClient(newBackOff, &http.Client{
+	ec := NewClientWithBackOff(newBackOff, &http.Client{
 		Transport: testutils.MockRoundTripper{},
 	})
 	return ec
@@ -38,7 +38,7 @@ func TestProcessEthError(t *testing.T) {
 
 	// Nonce too low
 	err := ec.processEthError(&utils.JSONError{Message: "json-rpc: nonce too low"})
-	assert.Equal(t, "BE001", errors.FromError(err).Hex(), "Error code should be correst")
+	assert.Equal(t, "BE100", errors.FromError(err).Hex(), "Error code should be correst")
 
 	// Default
 	err = ec.processEthError(&utils.JSONError{Message: "json-rpc: failed"})

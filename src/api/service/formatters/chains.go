@@ -24,7 +24,7 @@ func FormatChainResponse(chain *entities.Chain) *types.ChainResponse {
 		OwnerID:                   chain.OwnerID,
 		URLs:                      chain.URLs,
 		PrivateTxManagerURL:       chain.PrivateTxManagerURL,
-		ChainID:                   chain.ChainID.String(),
+		ChainID:                   chain.ChainID.Uint64(),
 		ListenerDepth:             chain.ListenerDepth,
 		ListenerCurrentBlock:      chain.ListenerCurrentBlock,
 		ListenerStartingBlock:     chain.ListenerStartingBlock,
@@ -112,7 +112,6 @@ func FormatChainFiltersRequest(req *http.Request) (*entities.ChainFilters, error
 
 func ChainResponseToEntity(chain *types.ChainResponse) *entities.Chain {
 	// Cannot fail as the duration coming from a response is expected to be valid
-	chainID, _ := new(big.Int).SetString(chain.ChainID, 10)
 	listenerBackOffDuration, _ := time.ParseDuration(chain.ListenerBackOffDuration)
 	return &entities.Chain{
 		UUID:                      chain.UUID,
@@ -120,7 +119,7 @@ func ChainResponseToEntity(chain *types.ChainResponse) *entities.Chain {
 		TenantID:                  chain.TenantID,
 		OwnerID:                   chain.OwnerID,
 		URLs:                      chain.URLs,
-		ChainID:                   chainID,
+		ChainID:                   new(big.Int).SetUint64(chain.ChainID),
 		ListenerDepth:             chain.ListenerDepth,
 		ListenerCurrentBlock:      chain.ListenerCurrentBlock,
 		ListenerStartingBlock:     chain.ListenerStartingBlock,

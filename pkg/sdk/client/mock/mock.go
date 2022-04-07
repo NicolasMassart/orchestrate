@@ -707,32 +707,46 @@ func (mr *MockOrchestrateClientMockRecorder) SetContractAddressCodeHash(ctx, add
 }
 
 // GetContractEvents mocks base method
-func (m *MockOrchestrateClient) GetContractEvents(ctx context.Context, address, chainID string, req *types.GetContractEventsRequest) (*types.GetContractEventsBySignHashResponse, error) {
+func (m *MockOrchestrateClient) GetContractEvents(ctx context.Context, address, chainUUID string, req *types.GetContractEventsRequest) (*types.GetContractEventsBySignHashResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetContractEvents", ctx, address, chainID, req)
+	ret := m.ctrl.Call(m, "GetContractEvents", ctx, address, chainUUID, req)
 	ret0, _ := ret[0].(*types.GetContractEventsBySignHashResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetContractEvents indicates an expected call of GetContractEvents
-func (mr *MockOrchestrateClientMockRecorder) GetContractEvents(ctx, address, chainID, req interface{}) *gomock.Call {
+func (mr *MockOrchestrateClientMockRecorder) GetContractEvents(ctx, address, chainUUID, req interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContractEvents", reflect.TypeOf((*MockOrchestrateClient)(nil).GetContractEvents), ctx, address, chainID, req)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContractEvents", reflect.TypeOf((*MockOrchestrateClient)(nil).GetContractEvents), ctx, address, chainUUID, req)
 }
 
 // ChainProxyURL mocks base method
-func (m *MockOrchestrateClient) ChainProxyURL(arg0 string) string {
+func (m *MockOrchestrateClient) ChainProxyURL(chainUUID string) string {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ChainProxyURL", arg0)
+	ret := m.ctrl.Call(m, "ChainProxyURL", chainUUID)
 	ret0, _ := ret[0].(string)
 	return ret0
 }
 
 // ChainProxyURL indicates an expected call of ChainProxyURL
-func (mr *MockOrchestrateClientMockRecorder) ChainProxyURL(arg0 interface{}) *gomock.Call {
+func (mr *MockOrchestrateClientMockRecorder) ChainProxyURL(chainUUID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChainProxyURL", reflect.TypeOf((*MockOrchestrateClient)(nil).ChainProxyURL), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChainProxyURL", reflect.TypeOf((*MockOrchestrateClient)(nil).ChainProxyURL), chainUUID)
+}
+
+// ChainTesseraProxyURL mocks base method
+func (m *MockOrchestrateClient) ChainTesseraProxyURL(chainUUID string) string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ChainTesseraProxyURL", chainUUID)
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// ChainTesseraProxyURL indicates an expected call of ChainTesseraProxyURL
+func (mr *MockOrchestrateClientMockRecorder) ChainTesseraProxyURL(chainUUID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChainTesseraProxyURL", reflect.TypeOf((*MockOrchestrateClient)(nil).ChainTesseraProxyURL), chainUUID)
 }
 
 // MockChainProxyClient is a mock of ChainProxyClient interface
@@ -759,17 +773,31 @@ func (m *MockChainProxyClient) EXPECT() *MockChainProxyClientMockRecorder {
 }
 
 // ChainProxyURL mocks base method
-func (m *MockChainProxyClient) ChainProxyURL(arg0 string) string {
+func (m *MockChainProxyClient) ChainProxyURL(chainUUID string) string {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ChainProxyURL", arg0)
+	ret := m.ctrl.Call(m, "ChainProxyURL", chainUUID)
 	ret0, _ := ret[0].(string)
 	return ret0
 }
 
 // ChainProxyURL indicates an expected call of ChainProxyURL
-func (mr *MockChainProxyClientMockRecorder) ChainProxyURL(arg0 interface{}) *gomock.Call {
+func (mr *MockChainProxyClientMockRecorder) ChainProxyURL(chainUUID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChainProxyURL", reflect.TypeOf((*MockChainProxyClient)(nil).ChainProxyURL), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChainProxyURL", reflect.TypeOf((*MockChainProxyClient)(nil).ChainProxyURL), chainUUID)
+}
+
+// ChainTesseraProxyURL mocks base method
+func (m *MockChainProxyClient) ChainTesseraProxyURL(chainUUID string) string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ChainTesseraProxyURL", chainUUID)
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// ChainTesseraProxyURL indicates an expected call of ChainTesseraProxyURL
+func (mr *MockChainProxyClientMockRecorder) ChainTesseraProxyURL(chainUUID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChainTesseraProxyURL", reflect.TypeOf((*MockChainProxyClient)(nil).ChainTesseraProxyURL), chainUUID)
 }
 
 // MockTransactionClient is a mock of TransactionClient interface
@@ -1623,16 +1651,16 @@ func (mr *MockContractClientMockRecorder) SetContractAddressCodeHash(ctx, addres
 }
 
 // GetContractEvents mocks base method
-func (m *MockContractClient) GetContractEvents(ctx context.Context, address, chainID string, req *types.GetContractEventsRequest) (*types.GetContractEventsBySignHashResponse, error) {
+func (m *MockContractClient) GetContractEvents(ctx context.Context, address, chainUUID string, req *types.GetContractEventsRequest) (*types.GetContractEventsBySignHashResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetContractEvents", ctx, address, chainID, req)
+	ret := m.ctrl.Call(m, "GetContractEvents", ctx, address, chainUUID, req)
 	ret0, _ := ret[0].(*types.GetContractEventsBySignHashResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetContractEvents indicates an expected call of GetContractEvents
-func (mr *MockContractClientMockRecorder) GetContractEvents(ctx, address, chainID, req interface{}) *gomock.Call {
+func (mr *MockContractClientMockRecorder) GetContractEvents(ctx, address, chainUUID, req interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContractEvents", reflect.TypeOf((*MockContractClient)(nil).GetContractEvents), ctx, address, chainID, req)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContractEvents", reflect.TypeOf((*MockContractClient)(nil).GetContractEvents), ctx, address, chainUUID, req)
 }

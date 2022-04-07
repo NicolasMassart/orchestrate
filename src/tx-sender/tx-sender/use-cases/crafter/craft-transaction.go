@@ -4,6 +4,7 @@ import (
 	"context"
 	"math/big"
 
+	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/src/tx-sender/tx-sender/nonce"
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
@@ -101,7 +102,7 @@ func (uc *craftTxUseCase) craftEEAMarkingTx(ctx context.Context, job *entities.J
 	logger := uc.logger.WithContext(ctx)
 	logger.Debug("crafting EEA precompiled contract address")
 
-	proxyURL := utils.GetProxyURL(uc.chainRegistryURL, job.ChainUUID)
+	proxyURL := client.GetProxyURL(uc.chainRegistryURL, job.ChainUUID)
 	privPContractAddr, err := uc.ec.EEAPrivPrecompiledContractAddr(ctx, proxyURL)
 	if err != nil {
 		errMsg := "cannot retrieve EEA precompiled contract address"
@@ -147,7 +148,7 @@ func (uc *craftTxUseCase) craftGasEstimation(ctx context.Context, job *entities.
 		call.Data = hexutil.MustDecode("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")
 	}
 
-	proxyURL := utils.GetProxyURL(uc.chainRegistryURL, job.ChainUUID)
+	proxyURL := client.GetProxyURL(uc.chainRegistryURL, job.ChainUUID)
 	gasEstimated, err := uc.ec.EstimateGas(ctx, proxyURL, call)
 	if err != nil {
 		logger.WithError(err).Error(estimationGasError)
@@ -167,7 +168,7 @@ func (uc *craftTxUseCase) craftGasPrice(ctx context.Context, job *entities.Job) 
 		return nil
 	}
 
-	proxyURL := utils.GetProxyURL(uc.chainRegistryURL, job.ChainUUID)
+	proxyURL := client.GetProxyURL(uc.chainRegistryURL, job.ChainUUID)
 	gasPrice, err := uc.ec.SuggestGasPrice(ctx, proxyURL)
 	if err != nil {
 		logger.WithError(err).Error("cannot suggest gas price")
@@ -216,7 +217,7 @@ func (uc *craftTxUseCase) craftDynamicFeePrice(ctx context.Context, job *entitie
 		return nil
 	}
 
-	proxyURL := utils.GetProxyURL(uc.chainRegistryURL, job.ChainUUID)
+	proxyURL := client.GetProxyURL(uc.chainRegistryURL, job.ChainUUID)
 	feeHistory, err := uc.ec.FeeHistory(ctx, proxyURL, 1, "latest")
 	if err != nil {
 		logger.WithError(err).Debug("failed to fetch feeHistory. Fallback to craft GasPrice")

@@ -119,8 +119,8 @@ Environment variable: %q`, KafkaConsumerEnv)
 
 func retryMessageBackOff() backoff.BackOff {
 	bckOff := backoff.NewExponentialBackOff()
-	bckOff.MaxInterval = time.Second * 15
-	bckOff.MaxElapsedTime = time.Minute
+	bckOff.MaxInterval = time.Second * 5
+	bckOff.MaxElapsedTime = time.Second * 30
 	return bckOff
 }
 

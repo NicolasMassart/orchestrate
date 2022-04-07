@@ -6,7 +6,6 @@ import (
 
 	infra "github.com/consensys/orchestrate/src/infra/api"
 
-	"github.com/consensys/orchestrate/pkg/toolkit/app/http/httputil"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/service/formatters"
@@ -37,8 +36,8 @@ func (c *ChainsController) Append(router *mux.Router) {
 // @Security  ApiKeyAuth
 // @Security  JWTAuth
 // @Success   200  {array}   api.ChainResponse{privateTxManager=entities.PrivateTxManager}
-// @Failure   400  {object}  httputil.ErrorResponse  "Invalid request"
-// @Failure   500  {object}  httputil.ErrorResponse  "Internal server error"
+// @Failure   400  {object}  infra.ErrorResponse  "Invalid request"
+// @Failure   500  {object}  infra.ErrorResponse  "Internal server error"
 // @Router    /chains [get]
 func (c *ChainsController) search(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
@@ -46,13 +45,13 @@ func (c *ChainsController) search(rw http.ResponseWriter, request *http.Request)
 
 	filters, err := formatters.FormatChainFiltersRequest(request)
 	if err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	chains, err := c.ucs.Search().Execute(ctx, filters, multitenancy.UserInfoValue(ctx))
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -71,9 +70,9 @@ func (c *ChainsController) search(rw http.ResponseWriter, request *http.Request)
 // @Security  JWTAuth
 // @Param     uuid  path      string  true  "ID of the chain"
 // @Success   200   {object}  api.ChainResponse{}
-// @Failure   400   {object}  httputil.ErrorResponse  "Invalid request"
-// @Failure   404   {object}  httputil.ErrorResponse  "Chain not found"
-// @Failure   500   {object}  httputil.ErrorResponse  "Internal server error"
+// @Failure   400   {object}  infra.ErrorResponse  "Invalid request"
+// @Failure   404   {object}  infra.ErrorResponse  "Chain not found"
+// @Failure   500   {object}  infra.ErrorResponse  "Internal server error"
 // @Router    /chains/{uuid} [get]
 func (c *ChainsController) getOne(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
@@ -81,7 +80,7 @@ func (c *ChainsController) getOne(rw http.ResponseWriter, request *http.Request)
 
 	chain, err := c.ucs.Get().Execute(ctx, mux.Vars(request)["uuid"], multitenancy.UserInfoValue(ctx))
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -97,9 +96,9 @@ func (c *ChainsController) getOne(rw http.ResponseWriter, request *http.Request)
 // @Param     uuid     path      string                                                                                                   true  "ID of the chain"
 // @Param     request  body      api.UpdateChainRequest{listener=api.UpdateListenerRequest}  true  "Chain update request"
 // @Success   200      {object}  api.ChainResponse{}
-// @Failure   400      {object}  httputil.ErrorResponse  "Invalid request"
-// @Failure   404      {object}  httputil.ErrorResponse  "Chain not found"
-// @Failure   500      {object}  httputil.ErrorResponse  "Internal server error"
+// @Failure   400      {object}  infra.ErrorResponse  "Invalid request"
+// @Failure   404      {object}  infra.ErrorResponse  "Chain not found"
+// @Failure   500      {object}  infra.ErrorResponse  "Internal server error"
 // @Router    /chains/{uuid} [patch]
 func (c *ChainsController) update(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
@@ -108,19 +107,19 @@ func (c *ChainsController) update(rw http.ResponseWriter, request *http.Request)
 	chainRequest := &api.UpdateChainRequest{}
 	err := infra.UnmarshalBody(request.Body, chainRequest)
 	if err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	uuid := mux.Vars(request)["uuid"]
 	nextChain, err := formatters.FormatUpdateChainRequest(chainRequest, uuid)
 	if err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 	chain, err := c.ucs.Update().Execute(ctx, nextChain, multitenancy.UserInfoValue(ctx))
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -135,8 +134,8 @@ func (c *ChainsController) update(rw http.ResponseWriter, request *http.Request)
 // @Security  JWTAuth
 // @Param     request  body      api.RegisterChainRequest{listener=api.RegisterListenerRequest}  true  "Chain registration request."
 // @Success   200      {object}  api.ChainResponse{privateTxManager=entities.PrivateTxManager}
-// @Failure   400      {object}  httputil.ErrorResponse  "Invalid request"
-// @Failure   500      {object}  httputil.ErrorResponse  "Internal server error"
+// @Failure   400      {object}  infra.ErrorResponse  "Invalid request"
+// @Failure   500      {object}  infra.ErrorResponse  "Internal server error"
 // @Router    /chains [post]
 func (c *ChainsController) register(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
@@ -145,20 +144,20 @@ func (c *ChainsController) register(rw http.ResponseWriter, request *http.Reques
 	chainRequest := &api.RegisterChainRequest{}
 	err := infra.UnmarshalBody(request.Body, chainRequest)
 	if err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	fromLatest := chainRequest.Listener.FromBlock == "" || chainRequest.Listener.FromBlock == "latest"
 	chain, err := formatters.FormatRegisterChainRequest(chainRequest, fromLatest)
 	if err != nil {
-		httputil.WriteError(rw, err.Error(), http.StatusBadRequest)
+		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	chain, err = c.ucs.Register().Execute(ctx, chain, fromLatest, multitenancy.UserInfoValue(ctx))
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 
@@ -172,9 +171,9 @@ func (c *ChainsController) register(rw http.ResponseWriter, request *http.Reques
 // @Security  JWTAuth
 // @Param     uuid  path  string  true  "ID of the chain"
 // @Success   204
-// @Failure   400  {object}  httputil.ErrorResponse  "Invalid request"
-// @Failure   404  {object}  httputil.ErrorResponse  "Chain not found"
-// @Failure   500  {object}  httputil.ErrorResponse  "Internal server error"
+// @Failure   400  {object}  infra.ErrorResponse  "Invalid request"
+// @Failure   404  {object}  infra.ErrorResponse  "Chain not found"
+// @Failure   500  {object}  infra.ErrorResponse  "Internal server error"
 // @Router    /chains/{uuid} [delete]
 func (c *ChainsController) delete(rw http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
@@ -182,7 +181,7 @@ func (c *ChainsController) delete(rw http.ResponseWriter, request *http.Request)
 	uuid := mux.Vars(request)["uuid"]
 	err := c.ucs.Delete().Execute(ctx, uuid, multitenancy.UserInfoValue(ctx))
 	if err != nil {
-		httputil.WriteHTTPErrorResponse(rw, err)
+		infra.WriteHTTPErrorResponse(rw, err)
 		return
 	}
 

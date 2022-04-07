@@ -3,13 +3,14 @@
 package integrationtests
 
 import (
+	"net/http"
+	"testing"
+	"time"
+
 	"github.com/consensys/orchestrate/pkg/ethereum/account"
 	qkm "github.com/consensys/orchestrate/src/infra/quorum-key-manager/testutils"
 	utilstypes "github.com/consensys/quorum-key-manager/src/utils/api/types"
 	ethcommon "github.com/ethereum/go-ethereum/common"
-
-	"testing"
-	"time"
 
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	api "github.com/consensys/orchestrate/src/api/service/types"
@@ -17,14 +18,12 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/stretchr/testify/require"
 
-	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/consensys/orchestrate/src/api/service/types/testdata"
 	"github.com/consensys/orchestrate/src/entities"
 	entitiestestdata "github.com/consensys/orchestrate/src/entities/testdata"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	"github.com/traefik/traefik/v2/pkg/log"
 )
 
 type accountsTestSuite struct {
@@ -63,7 +62,7 @@ func (s *accountsTestSuite) TestCreate() {
 		_, err := s.client.CreateAccount(ctx, txRequest)
 		require.Error(s.T(), err)
 		// QKM StoreID does not exist
-		require.True(s.T(), errors.IsDependencyFailureError(err))
+		assert.Equal(t, http.StatusFailedDependency, err.(*client.HTTPErr).Code())
 	})
 
 	s.T().Run("should fail to create account with same alias", func(t *testing.T) {
@@ -74,8 +73,7 @@ func (s *accountsTestSuite) TestCreate() {
 
 		_, err = s.client.CreateAccount(ctx, txRequest)
 		assert.Error(s.T(), err)
-		log.WithoutContext().Errorf("%v", err)
-		assert.True(s.T(), errors.IsAlreadyExistsError(err))
+		assert.Equal(t, http.StatusConflict, err.(*client.HTTPErr).Code())
 	})
 
 	s.T().Run("should create account successfully and trigger funding transaction", func(t *testing.T) {
@@ -163,7 +161,7 @@ func (s *accountsTestSuite) TestImport() {
 
 		_, err = s.client.ImportAccount(ctx, txRequest)
 		require.Error(s.T(), err)
-		assert.True(s.T(), errors.IsAlreadyExistsError(err))
+		assert.Equal(t, http.StatusConflict, err.(*client.HTTPErr).Code())
 	})
 }
 

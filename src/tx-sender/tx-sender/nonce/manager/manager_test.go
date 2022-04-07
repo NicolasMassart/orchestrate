@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/consensys/orchestrate/pkg/errors"
+	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/consensys/orchestrate/src/entities/testdata"
 	mock2 "github.com/consensys/orchestrate/src/infra/ethclient/mock"
@@ -34,7 +35,7 @@ func TestNonceManager(t *testing.T) {
 
 		ns.EXPECT().GetLastSent(job.PartitionKey()).Return(uint64(0), errors.NotFoundError("error"))
 
-		url := utils.GetProxyURL(chainRegistryURL, job.ChainUUID)
+		url := client.GetProxyURL(chainRegistryURL, job.ChainUUID)
 		ec.EXPECT().PendingNonceAt(ctx, url, *job.Transaction.From).Return(expectedNonce, nil)
 
 		nonce, err := manager.GetNonce(ctx, job)

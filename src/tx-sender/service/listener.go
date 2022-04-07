@@ -5,12 +5,11 @@ import (
 	encoding "encoding/json"
 	"time"
 
-	client2 "github.com/consensys/quorum-key-manager/pkg/client"
-
 	"github.com/cenkalti/backoff/v4"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	authutils "github.com/consensys/orchestrate/pkg/toolkit/app/auth/utils"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
+	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"github.com/consensys/orchestrate/src/entities"
 	utils2 "github.com/consensys/orchestrate/src/tx-sender/tx-sender/utils"
 
@@ -29,7 +28,6 @@ type MessageListener struct {
 	retryBackOff backoff.BackOff
 	jobClient    client.JobClient
 	cancel       context.CancelFunc
-	err          error
 	logger       *log.Logger
 }
 
@@ -60,14 +58,13 @@ func (listener *MessageListener) Cleanup(session sarama.ConsumerGroupSession) er
 		listener.cancel()
 	}
 
-	return listener.err
+	return nil
 }
 
 func (listener *MessageListener) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	var ctx context.Context
 	ctx, listener.cancel = context.WithCancel(session.Context())
-	listener.err = listener.consumeClaimLoop(ctx, session, claim)
-	return listener.err
+	return listener.consumeClaimLoop(ctx, session, claim)
 }
 
 func (listener *MessageListener) consumeClaimLoop(ctx context.Context, session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
@@ -94,18 +91,19 @@ func (listener *MessageListener) consumeClaimLoop(ctx context.Context, session s
 
 			jlogger := logger.WithField("job", job.UUID).WithField("schedule", job.ScheduleUUID)
 			jlogger.WithField("timestamp", msg.Timestamp).Debug("message consumed")
-
-			ctx = log.With(ctx, jlogger)
+			cctx := log.With(ctx, jlogger)
 			for _, h := range msg.Headers {
-				if string(h.Key) == authutils.AuthorizationHeader {
-					ctx = appendAuthHeader(ctx, string(h.Value))
+				if string(h.Key) == authutils.UserInfoHeader {
+					userInfo := &multitenancy.UserInfo{}
+					_ = encoding.Unmarshal(h.Value, userInfo)
+					cctx = multitenancy.WithUserInfo(ctx, userInfo)
 				}
 			}
 
-			err = listener.processTask(ctx, job)
+			err = listener.processTask(cctx, job, jlogger)
 
 			if err != nil {
-				serr := utils2.UpdateJobStatus(ctx, listener.jobClient, job, entities.StatusFailed, err.Error(), nil)
+				serr := utils2.UpdateJobStatus(cctx, listener.jobClient, job, entities.StatusFailed, err.Error(), nil)
 				if serr != nil {
 					jlogger.WithError(serr).Error(errorProcessingMessage)
 					return serr
@@ -119,8 +117,7 @@ func (listener *MessageListener) consumeClaimLoop(ctx context.Context, session s
 	}
 }
 
-func (listener *MessageListener) processTask(ctx context.Context, job *entities.Job) error {
-	logger := log.FromContext(ctx)
+func (listener *MessageListener) processTask(ctx context.Context, job *entities.Job, logger *log.Logger) error {
 	return backoff.RetryNotify(
 		func() error {
 			err := listener.executeSendJob(ctx, job)
@@ -147,8 +144,11 @@ func (listener *MessageListener) processTask(ctx context.Context, job *entities.
 					return err
 				}
 			case errors.IsKnownTransactionError(err):
-				// Ignore
-				return nil
+				if job.InternalData.ParentJobUUID != "" {
+					logger.WithError(err).Warn("ignoring to send known transaction when it is a child job...")
+					return nil
+				}
+				return err
 			default:
 				serr = utils2.UpdateJobStatus(ctx, listener.jobClient, job,
 					entities.StatusFailed, err.Error(), nil)
@@ -203,10 +203,4 @@ func resetJobTx(job *entities.Job) {
 	job.Transaction.Nonce = nil
 	job.Transaction.Hash = nil
 	job.Transaction.Raw = nil
-}
-
-func appendAuthHeader(ctx context.Context, authHeader string) context.Context {
-	return context.WithValue(ctx, client2.RequestHeaderKey, map[string]string{
-		authutils.AuthorizationHeader: authHeader,
-	})
 }
