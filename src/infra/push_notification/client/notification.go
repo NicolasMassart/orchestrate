@@ -32,7 +32,7 @@ type Notification struct {
 
 func NewTxNotification(job *entities.Job, errStr string) *Notification {
 	return &Notification{
-		UUID:       job.ScheduleUUID,
+		UUID:       job.UUID,
 		Type:       jobStatusToNotificationType[job.Status],
 		APIVersion: "v1",
 		Data:       NewTxResponse(job, errStr),

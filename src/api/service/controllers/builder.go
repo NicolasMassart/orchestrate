@@ -25,6 +25,7 @@ import (
 // @description Faucets represent funded accounts (holding ETH) linked to specific chains, allowed to fund newly created accounts automatically for them to be able to send transactions.
 // @description Accounts represent Ethereum accounts (private keys). By usage of the generated cryptographic key pair, accounts can be used to sign/verify and to encrypt/decrypt messages.
 // @description Contracts represent Solidity contracts management.
+// @description Event Streams represent Event streams management.
 
 // @contact.name Contact ConsenSys Codefi Orchestrate
 // @contact.url https://consensys.net/codefi/orchestrate/contact
@@ -42,24 +43,26 @@ import (
 // @name Authorization
 
 type Builder struct {
-	txCtrl        *TransactionsController
-	schedulesCtrl *SchedulesController
-	jobsCtrl      *JobsController
-	accountsCtrl  *AccountsController
-	faucetsCtrl   *FaucetsController
-	chainsCtrl    *ChainsController
-	contractsCtrl *ContractsController
+	txCtrl           *TransactionsController
+	schedulesCtrl    *SchedulesController
+	jobsCtrl         *JobsController
+	accountsCtrl     *AccountsController
+	faucetsCtrl      *FaucetsController
+	chainsCtrl       *ChainsController
+	contractsCtrl    *ContractsController
+	eventStreamsCtrl *EventStreamsController
 }
 
 func NewBuilder(ucs usecases.UseCases, keyManagerClient qkm.KeyManagerClient, qkmStoreID string) *Builder {
 	return &Builder{
-		txCtrl:        NewTransactionsController(ucs.Transactions()),
-		schedulesCtrl: NewSchedulesController(ucs.Schedules()),
-		jobsCtrl:      NewJobsController(ucs.Jobs()),
-		accountsCtrl:  NewAccountsController(ucs.Accounts(), keyManagerClient, qkmStoreID),
-		faucetsCtrl:   NewFaucetsController(ucs.Faucets()),
-		chainsCtrl:    NewChainsController(ucs.Chains()),
-		contractsCtrl: NewContractsController(ucs.Contracts()),
+		txCtrl:           NewTransactionsController(ucs.Transactions()),
+		schedulesCtrl:    NewSchedulesController(ucs.Schedules()),
+		jobsCtrl:         NewJobsController(ucs.Jobs()),
+		accountsCtrl:     NewAccountsController(ucs.Accounts(), keyManagerClient, qkmStoreID),
+		faucetsCtrl:      NewFaucetsController(ucs.Faucets()),
+		chainsCtrl:       NewChainsController(ucs.Chains()),
+		contractsCtrl:    NewContractsController(ucs.Contracts()),
+		eventStreamsCtrl: NewEventStreamsController(ucs.EventStreams()),
 	}
 }
 
@@ -77,6 +80,7 @@ func (b *Builder) Build(_ context.Context, _ string, configuration interface{}, 
 	b.faucetsCtrl.Append(router)
 	b.chainsCtrl.Append(router)
 	b.contractsCtrl.Append(router)
+	b.eventStreamsCtrl.Append(router)
 
 	return router, nil
 }

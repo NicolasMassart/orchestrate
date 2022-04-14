@@ -3,9 +3,9 @@
 package api
 
 import (
-	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/consensys/orchestrate/src/api/proxy"
+	"github.com/consensys/orchestrate/src/entities"
 	"math"
 	"reflect"
 	"testing"
@@ -13,8 +13,8 @@ import (
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http/config/dynamic"
-	traefikdynamic "github.com/traefik/traefik/v2/pkg/config/dynamic"
 	"github.com/stretchr/testify/assert"
+	traefikdynamic "github.com/traefik/traefik/v2/pkg/config/dynamic"
 )
 
 func TestNewInternalConfig(t *testing.T) {
@@ -26,7 +26,7 @@ func TestNewInternalConfig(t *testing.T) {
 						EntryPoints: []string{http.DefaultHTTPAppEntryPoint},
 						Service:     "api",
 						Priority:    math.MaxInt32,
-						Rule:        "PathPrefix(`/transactions`) || PathPrefix(`/schedules`) || PathPrefix(`/jobs`) || PathPrefix(`/accounts`) || PathPrefix(`/faucets`) || PathPrefix(`/contracts`) || PathPrefix(`/chains`)",
+						Rule:        "PathPrefix(`/transactions`) || PathPrefix(`/schedules`) || PathPrefix(`/jobs`) || PathPrefix(`/accounts`) || PathPrefix(`/faucets`) || PathPrefix(`/contracts`) || PathPrefix(`/chains`) || PathPrefix(`/eventstreams`)",
 						Middlewares: []string{"base@logger-base", "auth@multitenancy"},
 					},
 				},

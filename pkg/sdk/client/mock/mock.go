@@ -43,7 +43,7 @@ func (m *MockOrchestrateClient) EXPECT() *MockOrchestrateClientMockRecorder {
 // SendContractTransaction mocks base method
 func (m *MockOrchestrateClient) SendContractTransaction(ctx context.Context, request *types.SendTransactionRequest) (*types.TransactionResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendContract", ctx, request)
+	ret := m.ctrl.Call(m, "SendContractTransaction", ctx, request)
 	ret0, _ := ret[0].(*types.TransactionResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -52,13 +52,13 @@ func (m *MockOrchestrateClient) SendContractTransaction(ctx context.Context, req
 // SendContractTransaction indicates an expected call of SendContractTransaction
 func (mr *MockOrchestrateClientMockRecorder) SendContractTransaction(ctx, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendContract", reflect.TypeOf((*MockOrchestrateClient)(nil).SendContractTransaction), ctx, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendContractTransaction", reflect.TypeOf((*MockOrchestrateClient)(nil).SendContractTransaction), ctx, request)
 }
 
 // SendDeployTransaction mocks base method
 func (m *MockOrchestrateClient) SendDeployTransaction(ctx context.Context, request *types.DeployContractRequest) (*types.TransactionResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendDeploy", ctx, request)
+	ret := m.ctrl.Call(m, "SendDeployTransaction", ctx, request)
 	ret0, _ := ret[0].(*types.TransactionResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -67,7 +67,7 @@ func (m *MockOrchestrateClient) SendDeployTransaction(ctx context.Context, reque
 // SendDeployTransaction indicates an expected call of SendDeployTransaction
 func (mr *MockOrchestrateClientMockRecorder) SendDeployTransaction(ctx, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendDeploy", reflect.TypeOf((*MockOrchestrateClient)(nil).SendDeployTransaction), ctx, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendDeployTransaction", reflect.TypeOf((*MockOrchestrateClient)(nil).SendDeployTransaction), ctx, request)
 }
 
 // SendRawTransaction mocks base method
@@ -193,7 +193,7 @@ func (mr *MockOrchestrateClientMockRecorder) CreateSchedule(ctx, request interfa
 // GetJob mocks base method
 func (m *MockOrchestrateClient) GetJob(ctx context.Context, jobUUID string) (*types.JobResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", ctx, jobUUID)
+	ret := m.ctrl.Call(m, "GetJob", ctx, jobUUID)
 	ret0, _ := ret[0].(*types.JobResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -202,7 +202,7 @@ func (m *MockOrchestrateClient) GetJob(ctx context.Context, jobUUID string) (*ty
 // GetJob indicates an expected call of GetJob
 func (mr *MockOrchestrateClientMockRecorder) GetJob(ctx, jobUUID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockOrchestrateClient)(nil).GetJob), ctx, jobUUID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetJob", reflect.TypeOf((*MockOrchestrateClient)(nil).GetJob), ctx, jobUUID)
 }
 
 // GetJobs mocks base method
@@ -223,7 +223,7 @@ func (mr *MockOrchestrateClientMockRecorder) GetJobs(ctx interface{}) *gomock.Ca
 // CreateJob mocks base method
 func (m *MockOrchestrateClient) CreateJob(ctx context.Context, request *types.CreateJobRequest) (*types.JobResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", ctx, request)
+	ret := m.ctrl.Call(m, "CreateJob", ctx, request)
 	ret0, _ := ret[0].(*types.JobResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -232,13 +232,13 @@ func (m *MockOrchestrateClient) CreateJob(ctx context.Context, request *types.Cr
 // CreateJob indicates an expected call of CreateJob
 func (mr *MockOrchestrateClientMockRecorder) CreateJob(ctx, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockOrchestrateClient)(nil).CreateJob), ctx, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateJob", reflect.TypeOf((*MockOrchestrateClient)(nil).CreateJob), ctx, request)
 }
 
 // UpdateJob mocks base method
 func (m *MockOrchestrateClient) UpdateJob(ctx context.Context, jobUUID string, request *types.UpdateJobRequest) (*types.JobResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", ctx, jobUUID, request)
+	ret := m.ctrl.Call(m, "UpdateJob", ctx, jobUUID, request)
 	ret0, _ := ret[0].(*types.JobResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -247,13 +247,13 @@ func (m *MockOrchestrateClient) UpdateJob(ctx context.Context, jobUUID string, r
 // UpdateJob indicates an expected call of UpdateJob
 func (mr *MockOrchestrateClientMockRecorder) UpdateJob(ctx, jobUUID, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockOrchestrateClient)(nil).UpdateJob), ctx, jobUUID, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateJob", reflect.TypeOf((*MockOrchestrateClient)(nil).UpdateJob), ctx, jobUUID, request)
 }
 
 // StartJob mocks base method
 func (m *MockOrchestrateClient) StartJob(ctx context.Context, jobUUID string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Start", ctx, jobUUID)
+	ret := m.ctrl.Call(m, "StartJob", ctx, jobUUID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -261,13 +261,13 @@ func (m *MockOrchestrateClient) StartJob(ctx context.Context, jobUUID string) er
 // StartJob indicates an expected call of StartJob
 func (mr *MockOrchestrateClientMockRecorder) StartJob(ctx, jobUUID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Start", reflect.TypeOf((*MockOrchestrateClient)(nil).StartJob), ctx, jobUUID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartJob", reflect.TypeOf((*MockOrchestrateClient)(nil).StartJob), ctx, jobUUID)
 }
 
 // ResendJobTx mocks base method
 func (m *MockOrchestrateClient) ResendJobTx(ctx context.Context, jobUUID string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ResendTx", ctx, jobUUID)
+	ret := m.ctrl.Call(m, "ResendJobTx", ctx, jobUUID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -275,7 +275,7 @@ func (m *MockOrchestrateClient) ResendJobTx(ctx context.Context, jobUUID string)
 // ResendJobTx indicates an expected call of ResendJobTx
 func (mr *MockOrchestrateClientMockRecorder) ResendJobTx(ctx, jobUUID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResendTx", reflect.TypeOf((*MockOrchestrateClient)(nil).ResendJobTx), ctx, jobUUID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResendJobTx", reflect.TypeOf((*MockOrchestrateClient)(nil).ResendJobTx), ctx, jobUUID)
 }
 
 // SearchJob mocks base method
@@ -325,7 +325,7 @@ func (mr *MockOrchestrateClientMockRecorder) Prometheus(arg0 interface{}) *gomoc
 // CreateAccount mocks base method
 func (m *MockOrchestrateClient) CreateAccount(ctx context.Context, request *types.CreateAccountRequest) (*types.AccountResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", ctx, request)
+	ret := m.ctrl.Call(m, "CreateAccount", ctx, request)
 	ret0, _ := ret[0].(*types.AccountResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -334,13 +334,13 @@ func (m *MockOrchestrateClient) CreateAccount(ctx context.Context, request *type
 // CreateAccount indicates an expected call of CreateAccount
 func (mr *MockOrchestrateClientMockRecorder) CreateAccount(ctx, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockOrchestrateClient)(nil).CreateAccount), ctx, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAccount", reflect.TypeOf((*MockOrchestrateClient)(nil).CreateAccount), ctx, request)
 }
 
 // SearchAccounts mocks base method
 func (m *MockOrchestrateClient) SearchAccounts(ctx context.Context, filters *entities.AccountFilters) ([]*types.AccountResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Search", ctx, filters)
+	ret := m.ctrl.Call(m, "SearchAccounts", ctx, filters)
 	ret0, _ := ret[0].([]*types.AccountResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -349,13 +349,13 @@ func (m *MockOrchestrateClient) SearchAccounts(ctx context.Context, filters *ent
 // SearchAccounts indicates an expected call of SearchAccounts
 func (mr *MockOrchestrateClientMockRecorder) SearchAccounts(ctx, filters interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockOrchestrateClient)(nil).SearchAccounts), ctx, filters)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchAccounts", reflect.TypeOf((*MockOrchestrateClient)(nil).SearchAccounts), ctx, filters)
 }
 
 // GetAccount mocks base method
 func (m *MockOrchestrateClient) GetAccount(ctx context.Context, address common.Address) (*types.AccountResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", ctx, address)
+	ret := m.ctrl.Call(m, "GetAccount", ctx, address)
 	ret0, _ := ret[0].(*types.AccountResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -364,7 +364,7 @@ func (m *MockOrchestrateClient) GetAccount(ctx context.Context, address common.A
 // GetAccount indicates an expected call of GetAccount
 func (mr *MockOrchestrateClientMockRecorder) GetAccount(ctx, address interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockOrchestrateClient)(nil).GetAccount), ctx, address)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccount", reflect.TypeOf((*MockOrchestrateClient)(nil).GetAccount), ctx, address)
 }
 
 // ImportAccount mocks base method
@@ -385,7 +385,7 @@ func (mr *MockOrchestrateClientMockRecorder) ImportAccount(ctx, request interfac
 // UpdateAccount mocks base method
 func (m *MockOrchestrateClient) UpdateAccount(ctx context.Context, address common.Address, request *types.UpdateAccountRequest) (*types.AccountResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", ctx, address, request)
+	ret := m.ctrl.Call(m, "UpdateAccount", ctx, address, request)
 	ret0, _ := ret[0].(*types.AccountResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -394,7 +394,7 @@ func (m *MockOrchestrateClient) UpdateAccount(ctx context.Context, address commo
 // UpdateAccount indicates an expected call of UpdateAccount
 func (mr *MockOrchestrateClientMockRecorder) UpdateAccount(ctx, address, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockOrchestrateClient)(nil).UpdateAccount), ctx, address, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAccount", reflect.TypeOf((*MockOrchestrateClient)(nil).UpdateAccount), ctx, address, request)
 }
 
 // SignMessage mocks base method
@@ -458,7 +458,7 @@ func (mr *MockOrchestrateClientMockRecorder) VerifyTypedDataSignature(ctx, reque
 // RegisterFaucet mocks base method
 func (m *MockOrchestrateClient) RegisterFaucet(ctx context.Context, request *types.RegisterFaucetRequest) (*types.FaucetResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Register", ctx, request)
+	ret := m.ctrl.Call(m, "RegisterFaucet", ctx, request)
 	ret0, _ := ret[0].(*types.FaucetResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -467,13 +467,13 @@ func (m *MockOrchestrateClient) RegisterFaucet(ctx context.Context, request *typ
 // RegisterFaucet indicates an expected call of RegisterFaucet
 func (mr *MockOrchestrateClientMockRecorder) RegisterFaucet(ctx, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockOrchestrateClient)(nil).RegisterFaucet), ctx, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterFaucet", reflect.TypeOf((*MockOrchestrateClient)(nil).RegisterFaucet), ctx, request)
 }
 
 // UpdateFaucet mocks base method
 func (m *MockOrchestrateClient) UpdateFaucet(ctx context.Context, uuid string, request *types.UpdateFaucetRequest) (*types.FaucetResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", ctx, uuid, request)
+	ret := m.ctrl.Call(m, "UpdateFaucet", ctx, uuid, request)
 	ret0, _ := ret[0].(*types.FaucetResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -482,13 +482,13 @@ func (m *MockOrchestrateClient) UpdateFaucet(ctx context.Context, uuid string, r
 // UpdateFaucet indicates an expected call of UpdateFaucet
 func (mr *MockOrchestrateClientMockRecorder) UpdateFaucet(ctx, uuid, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockOrchestrateClient)(nil).UpdateFaucet), ctx, uuid, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFaucet", reflect.TypeOf((*MockOrchestrateClient)(nil).UpdateFaucet), ctx, uuid, request)
 }
 
 // GetFaucet mocks base method
 func (m *MockOrchestrateClient) GetFaucet(ctx context.Context, uuid string) (*types.FaucetResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", ctx, uuid)
+	ret := m.ctrl.Call(m, "GetFaucet", ctx, uuid)
 	ret0, _ := ret[0].(*types.FaucetResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -497,13 +497,13 @@ func (m *MockOrchestrateClient) GetFaucet(ctx context.Context, uuid string) (*ty
 // GetFaucet indicates an expected call of GetFaucet
 func (mr *MockOrchestrateClientMockRecorder) GetFaucet(ctx, uuid interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockOrchestrateClient)(nil).GetFaucet), ctx, uuid)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFaucet", reflect.TypeOf((*MockOrchestrateClient)(nil).GetFaucet), ctx, uuid)
 }
 
 // SearchFaucets mocks base method
 func (m *MockOrchestrateClient) SearchFaucets(ctx context.Context, filters *entities.FaucetFilters) ([]*types.FaucetResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Search", ctx, filters)
+	ret := m.ctrl.Call(m, "SearchFaucets", ctx, filters)
 	ret0, _ := ret[0].([]*types.FaucetResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -512,13 +512,13 @@ func (m *MockOrchestrateClient) SearchFaucets(ctx context.Context, filters *enti
 // SearchFaucets indicates an expected call of SearchFaucets
 func (mr *MockOrchestrateClientMockRecorder) SearchFaucets(ctx, filters interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockOrchestrateClient)(nil).SearchFaucets), ctx, filters)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchFaucets", reflect.TypeOf((*MockOrchestrateClient)(nil).SearchFaucets), ctx, filters)
 }
 
 // DeleteFaucet mocks base method
 func (m *MockOrchestrateClient) DeleteFaucet(ctx context.Context, uuid string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", ctx, uuid)
+	ret := m.ctrl.Call(m, "DeleteFaucet", ctx, uuid)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -526,13 +526,13 @@ func (m *MockOrchestrateClient) DeleteFaucet(ctx context.Context, uuid string) e
 // DeleteFaucet indicates an expected call of DeleteFaucet
 func (mr *MockOrchestrateClientMockRecorder) DeleteFaucet(ctx, uuid interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockOrchestrateClient)(nil).DeleteFaucet), ctx, uuid)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFaucet", reflect.TypeOf((*MockOrchestrateClient)(nil).DeleteFaucet), ctx, uuid)
 }
 
 // RegisterChain mocks base method
 func (m *MockOrchestrateClient) RegisterChain(ctx context.Context, request *types.RegisterChainRequest) (*types.ChainResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Register", ctx, request)
+	ret := m.ctrl.Call(m, "RegisterChain", ctx, request)
 	ret0, _ := ret[0].(*types.ChainResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -541,13 +541,13 @@ func (m *MockOrchestrateClient) RegisterChain(ctx context.Context, request *type
 // RegisterChain indicates an expected call of RegisterChain
 func (mr *MockOrchestrateClientMockRecorder) RegisterChain(ctx, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockOrchestrateClient)(nil).RegisterChain), ctx, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterChain", reflect.TypeOf((*MockOrchestrateClient)(nil).RegisterChain), ctx, request)
 }
 
 // UpdateChain mocks base method
 func (m *MockOrchestrateClient) UpdateChain(ctx context.Context, uuid string, request *types.UpdateChainRequest) (*types.ChainResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", ctx, uuid, request)
+	ret := m.ctrl.Call(m, "UpdateChain", ctx, uuid, request)
 	ret0, _ := ret[0].(*types.ChainResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -556,13 +556,13 @@ func (m *MockOrchestrateClient) UpdateChain(ctx context.Context, uuid string, re
 // UpdateChain indicates an expected call of UpdateChain
 func (mr *MockOrchestrateClientMockRecorder) UpdateChain(ctx, uuid, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockOrchestrateClient)(nil).UpdateChain), ctx, uuid, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateChain", reflect.TypeOf((*MockOrchestrateClient)(nil).UpdateChain), ctx, uuid, request)
 }
 
 // GetChain mocks base method
 func (m *MockOrchestrateClient) GetChain(ctx context.Context, uuid string) (*types.ChainResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", ctx, uuid)
+	ret := m.ctrl.Call(m, "GetChain", ctx, uuid)
 	ret0, _ := ret[0].(*types.ChainResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -571,13 +571,13 @@ func (m *MockOrchestrateClient) GetChain(ctx context.Context, uuid string) (*typ
 // GetChain indicates an expected call of GetChain
 func (mr *MockOrchestrateClientMockRecorder) GetChain(ctx, uuid interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockOrchestrateClient)(nil).GetChain), ctx, uuid)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChain", reflect.TypeOf((*MockOrchestrateClient)(nil).GetChain), ctx, uuid)
 }
 
 // SearchChains mocks base method
 func (m *MockOrchestrateClient) SearchChains(ctx context.Context, filters *entities.ChainFilters) ([]*types.ChainResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Search", ctx, filters)
+	ret := m.ctrl.Call(m, "SearchChains", ctx, filters)
 	ret0, _ := ret[0].([]*types.ChainResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -586,13 +586,13 @@ func (m *MockOrchestrateClient) SearchChains(ctx context.Context, filters *entit
 // SearchChains indicates an expected call of SearchChains
 func (mr *MockOrchestrateClientMockRecorder) SearchChains(ctx, filters interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockOrchestrateClient)(nil).SearchChains), ctx, filters)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchChains", reflect.TypeOf((*MockOrchestrateClient)(nil).SearchChains), ctx, filters)
 }
 
 // DeleteChain mocks base method
 func (m *MockOrchestrateClient) DeleteChain(ctx context.Context, uuid string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", ctx, uuid)
+	ret := m.ctrl.Call(m, "DeleteChain", ctx, uuid)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -600,13 +600,13 @@ func (m *MockOrchestrateClient) DeleteChain(ctx context.Context, uuid string) er
 // DeleteChain indicates an expected call of DeleteChain
 func (mr *MockOrchestrateClientMockRecorder) DeleteChain(ctx, uuid interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockOrchestrateClient)(nil).DeleteChain), ctx, uuid)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteChain", reflect.TypeOf((*MockOrchestrateClient)(nil).DeleteChain), ctx, uuid)
 }
 
 // RegisterContract mocks base method
 func (m *MockOrchestrateClient) RegisterContract(ctx context.Context, req *types.RegisterContractRequest) (*types.ContractResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Register", ctx, req)
+	ret := m.ctrl.Call(m, "RegisterContract", ctx, req)
 	ret0, _ := ret[0].(*types.ContractResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -615,7 +615,7 @@ func (m *MockOrchestrateClient) RegisterContract(ctx context.Context, req *types
 // RegisterContract indicates an expected call of RegisterContract
 func (mr *MockOrchestrateClientMockRecorder) RegisterContract(ctx, req interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockOrchestrateClient)(nil).RegisterContract), ctx, req)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterContract", reflect.TypeOf((*MockOrchestrateClient)(nil).RegisterContract), ctx, req)
 }
 
 // DeregisterContract mocks base method
@@ -635,7 +635,7 @@ func (mr *MockOrchestrateClientMockRecorder) DeregisterContract(ctx, name, tag i
 // GetContract mocks base method
 func (m *MockOrchestrateClient) GetContract(ctx context.Context, name, tag string) (*types.ContractResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", ctx, name, tag)
+	ret := m.ctrl.Call(m, "GetContract", ctx, name, tag)
 	ret0, _ := ret[0].(*types.ContractResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -644,13 +644,13 @@ func (m *MockOrchestrateClient) GetContract(ctx context.Context, name, tag strin
 // GetContract indicates an expected call of GetContract
 func (mr *MockOrchestrateClientMockRecorder) GetContract(ctx, name, tag interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockOrchestrateClient)(nil).GetContract), ctx, name, tag)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContract", reflect.TypeOf((*MockOrchestrateClient)(nil).GetContract), ctx, name, tag)
 }
 
 // SearchContract mocks base method
 func (m *MockOrchestrateClient) SearchContract(ctx context.Context, req *types.SearchContractRequest) (*types.ContractResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Search", ctx, req)
+	ret := m.ctrl.Call(m, "SearchContract", ctx, req)
 	ret0, _ := ret[0].(*types.ContractResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -659,13 +659,13 @@ func (m *MockOrchestrateClient) SearchContract(ctx context.Context, req *types.S
 // SearchContract indicates an expected call of SearchContract
 func (mr *MockOrchestrateClientMockRecorder) SearchContract(ctx, req interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockOrchestrateClient)(nil).SearchContract), ctx, req)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchContract", reflect.TypeOf((*MockOrchestrateClient)(nil).SearchContract), ctx, req)
 }
 
 // GetContractsCatalog mocks base method
 func (m *MockOrchestrateClient) GetContractsCatalog(ctx context.Context) ([]string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetCatalog", ctx)
+	ret := m.ctrl.Call(m, "GetContractsCatalog", ctx)
 	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -674,13 +674,13 @@ func (m *MockOrchestrateClient) GetContractsCatalog(ctx context.Context) ([]stri
 // GetContractsCatalog indicates an expected call of GetContractsCatalog
 func (mr *MockOrchestrateClientMockRecorder) GetContractsCatalog(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCatalog", reflect.TypeOf((*MockOrchestrateClient)(nil).GetContractsCatalog), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContractsCatalog", reflect.TypeOf((*MockOrchestrateClient)(nil).GetContractsCatalog), ctx)
 }
 
 // GetContractTags mocks base method
 func (m *MockOrchestrateClient) GetContractTags(ctx context.Context, name string) ([]string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTags", ctx, name)
+	ret := m.ctrl.Call(m, "GetContractTags", ctx, name)
 	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -689,7 +689,7 @@ func (m *MockOrchestrateClient) GetContractTags(ctx context.Context, name string
 // GetContractTags indicates an expected call of GetContractTags
 func (mr *MockOrchestrateClientMockRecorder) GetContractTags(ctx, name interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTags", reflect.TypeOf((*MockOrchestrateClient)(nil).GetContractTags), ctx, name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContractTags", reflect.TypeOf((*MockOrchestrateClient)(nil).GetContractTags), ctx, name)
 }
 
 // SetContractAddressCodeHash mocks base method
@@ -747,6 +747,110 @@ func (m *MockOrchestrateClient) ChainTesseraProxyURL(chainUUID string) string {
 func (mr *MockOrchestrateClientMockRecorder) ChainTesseraProxyURL(chainUUID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChainTesseraProxyURL", reflect.TypeOf((*MockOrchestrateClient)(nil).ChainTesseraProxyURL), chainUUID)
+}
+
+// CreateWebhookEventStream mocks base method
+func (m *MockOrchestrateClient) CreateWebhookEventStream(ctx context.Context, request *types.CreateWebhookEventStreamRequest) (*types.EventStreamResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateWebhookEventStream", ctx, request)
+	ret0, _ := ret[0].(*types.EventStreamResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateWebhookEventStream indicates an expected call of CreateWebhookEventStream
+func (mr *MockOrchestrateClientMockRecorder) CreateWebhookEventStream(ctx, request interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateWebhookEventStream", reflect.TypeOf((*MockOrchestrateClient)(nil).CreateWebhookEventStream), ctx, request)
+}
+
+// CreateKafkaEventStream mocks base method
+func (m *MockOrchestrateClient) CreateKafkaEventStream(ctx context.Context, request *types.CreateKafkaEventStreamRequest) (*types.EventStreamResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateKafkaEventStream", ctx, request)
+	ret0, _ := ret[0].(*types.EventStreamResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateKafkaEventStream indicates an expected call of CreateKafkaEventStream
+func (mr *MockOrchestrateClientMockRecorder) CreateKafkaEventStream(ctx, request interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateKafkaEventStream", reflect.TypeOf((*MockOrchestrateClient)(nil).CreateKafkaEventStream), ctx, request)
+}
+
+// UpdateWebhookEventStream mocks base method
+func (m *MockOrchestrateClient) UpdateWebhookEventStream(ctx context.Context, uuid string, request *types.UpdateWebhookEventStreamRequest) (*types.EventStreamResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateWebhookEventStream", ctx, uuid, request)
+	ret0, _ := ret[0].(*types.EventStreamResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateWebhookEventStream indicates an expected call of UpdateWebhookEventStream
+func (mr *MockOrchestrateClientMockRecorder) UpdateWebhookEventStream(ctx, uuid, request interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateWebhookEventStream", reflect.TypeOf((*MockOrchestrateClient)(nil).UpdateWebhookEventStream), ctx, uuid, request)
+}
+
+// UpdateKafkaEventStream mocks base method
+func (m *MockOrchestrateClient) UpdateKafkaEventStream(ctx context.Context, uuid string, request *types.UpdateKafkaEventStreamRequest) (*types.EventStreamResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateKafkaEventStream", ctx, uuid, request)
+	ret0, _ := ret[0].(*types.EventStreamResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateKafkaEventStream indicates an expected call of UpdateKafkaEventStream
+func (mr *MockOrchestrateClientMockRecorder) UpdateKafkaEventStream(ctx, uuid, request interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateKafkaEventStream", reflect.TypeOf((*MockOrchestrateClient)(nil).UpdateKafkaEventStream), ctx, uuid, request)
+}
+
+// GetEventStream mocks base method
+func (m *MockOrchestrateClient) GetEventStream(ctx context.Context, uuid string) (*types.EventStreamResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetEventStream", ctx, uuid)
+	ret0, _ := ret[0].(*types.EventStreamResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetEventStream indicates an expected call of GetEventStream
+func (mr *MockOrchestrateClientMockRecorder) GetEventStream(ctx, uuid interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEventStream", reflect.TypeOf((*MockOrchestrateClient)(nil).GetEventStream), ctx, uuid)
+}
+
+// SearchEventStreams mocks base method
+func (m *MockOrchestrateClient) SearchEventStreams(ctx context.Context, filters *entities.EventStreamFilters) ([]*types.EventStreamResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SearchEventStreams", ctx, filters)
+	ret0, _ := ret[0].([]*types.EventStreamResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SearchEventStreams indicates an expected call of SearchEventStreams
+func (mr *MockOrchestrateClientMockRecorder) SearchEventStreams(ctx, filters interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchEventStreams", reflect.TypeOf((*MockOrchestrateClient)(nil).SearchEventStreams), ctx, filters)
+}
+
+// DeleteEventStream mocks base method
+func (m *MockOrchestrateClient) DeleteEventStream(ctx context.Context, uuid string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteEventStream", ctx, uuid)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteEventStream indicates an expected call of DeleteEventStream
+func (mr *MockOrchestrateClientMockRecorder) DeleteEventStream(ctx, uuid interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteEventStream", reflect.TypeOf((*MockOrchestrateClient)(nil).DeleteEventStream), ctx, uuid)
 }
 
 // MockChainProxyClient is a mock of ChainProxyClient interface
@@ -826,7 +930,7 @@ func (m *MockTransactionClient) EXPECT() *MockTransactionClientMockRecorder {
 // SendContractTransaction mocks base method
 func (m *MockTransactionClient) SendContractTransaction(ctx context.Context, request *types.SendTransactionRequest) (*types.TransactionResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendContract", ctx, request)
+	ret := m.ctrl.Call(m, "SendContractTransaction", ctx, request)
 	ret0, _ := ret[0].(*types.TransactionResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -835,13 +939,13 @@ func (m *MockTransactionClient) SendContractTransaction(ctx context.Context, req
 // SendContractTransaction indicates an expected call of SendContractTransaction
 func (mr *MockTransactionClientMockRecorder) SendContractTransaction(ctx, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendContract", reflect.TypeOf((*MockTransactionClient)(nil).SendContractTransaction), ctx, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendContractTransaction", reflect.TypeOf((*MockTransactionClient)(nil).SendContractTransaction), ctx, request)
 }
 
 // SendDeployTransaction mocks base method
 func (m *MockTransactionClient) SendDeployTransaction(ctx context.Context, request *types.DeployContractRequest) (*types.TransactionResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendDeploy", ctx, request)
+	ret := m.ctrl.Call(m, "SendDeployTransaction", ctx, request)
 	ret0, _ := ret[0].(*types.TransactionResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -850,7 +954,7 @@ func (m *MockTransactionClient) SendDeployTransaction(ctx context.Context, reque
 // SendDeployTransaction indicates an expected call of SendDeployTransaction
 func (mr *MockTransactionClientMockRecorder) SendDeployTransaction(ctx, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendDeploy", reflect.TypeOf((*MockTransactionClient)(nil).SendDeployTransaction), ctx, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendDeployTransaction", reflect.TypeOf((*MockTransactionClient)(nil).SendDeployTransaction), ctx, request)
 }
 
 // SendRawTransaction mocks base method
@@ -1022,7 +1126,7 @@ func (m *MockJobClient) EXPECT() *MockJobClientMockRecorder {
 // GetJob mocks base method
 func (m *MockJobClient) GetJob(ctx context.Context, jobUUID string) (*types.JobResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", ctx, jobUUID)
+	ret := m.ctrl.Call(m, "GetJob", ctx, jobUUID)
 	ret0, _ := ret[0].(*types.JobResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -1031,7 +1135,7 @@ func (m *MockJobClient) GetJob(ctx context.Context, jobUUID string) (*types.JobR
 // GetJob indicates an expected call of GetJob
 func (mr *MockJobClientMockRecorder) GetJob(ctx, jobUUID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockJobClient)(nil).GetJob), ctx, jobUUID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetJob", reflect.TypeOf((*MockJobClient)(nil).GetJob), ctx, jobUUID)
 }
 
 // GetJobs mocks base method
@@ -1052,7 +1156,7 @@ func (mr *MockJobClientMockRecorder) GetJobs(ctx interface{}) *gomock.Call {
 // CreateJob mocks base method
 func (m *MockJobClient) CreateJob(ctx context.Context, request *types.CreateJobRequest) (*types.JobResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", ctx, request)
+	ret := m.ctrl.Call(m, "CreateJob", ctx, request)
 	ret0, _ := ret[0].(*types.JobResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -1061,13 +1165,13 @@ func (m *MockJobClient) CreateJob(ctx context.Context, request *types.CreateJobR
 // CreateJob indicates an expected call of CreateJob
 func (mr *MockJobClientMockRecorder) CreateJob(ctx, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockJobClient)(nil).CreateJob), ctx, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateJob", reflect.TypeOf((*MockJobClient)(nil).CreateJob), ctx, request)
 }
 
 // UpdateJob mocks base method
 func (m *MockJobClient) UpdateJob(ctx context.Context, jobUUID string, request *types.UpdateJobRequest) (*types.JobResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", ctx, jobUUID, request)
+	ret := m.ctrl.Call(m, "UpdateJob", ctx, jobUUID, request)
 	ret0, _ := ret[0].(*types.JobResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -1076,13 +1180,13 @@ func (m *MockJobClient) UpdateJob(ctx context.Context, jobUUID string, request *
 // UpdateJob indicates an expected call of UpdateJob
 func (mr *MockJobClientMockRecorder) UpdateJob(ctx, jobUUID, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockJobClient)(nil).UpdateJob), ctx, jobUUID, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateJob", reflect.TypeOf((*MockJobClient)(nil).UpdateJob), ctx, jobUUID, request)
 }
 
 // StartJob mocks base method
 func (m *MockJobClient) StartJob(ctx context.Context, jobUUID string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Start", ctx, jobUUID)
+	ret := m.ctrl.Call(m, "StartJob", ctx, jobUUID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -1090,13 +1194,13 @@ func (m *MockJobClient) StartJob(ctx context.Context, jobUUID string) error {
 // StartJob indicates an expected call of StartJob
 func (mr *MockJobClientMockRecorder) StartJob(ctx, jobUUID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Start", reflect.TypeOf((*MockJobClient)(nil).StartJob), ctx, jobUUID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartJob", reflect.TypeOf((*MockJobClient)(nil).StartJob), ctx, jobUUID)
 }
 
 // ResendJobTx mocks base method
 func (m *MockJobClient) ResendJobTx(ctx context.Context, jobUUID string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ResendTx", ctx, jobUUID)
+	ret := m.ctrl.Call(m, "ResendJobTx", ctx, jobUUID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -1104,7 +1208,7 @@ func (m *MockJobClient) ResendJobTx(ctx context.Context, jobUUID string) error {
 // ResendJobTx indicates an expected call of ResendJobTx
 func (mr *MockJobClientMockRecorder) ResendJobTx(ctx, jobUUID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResendTx", reflect.TypeOf((*MockJobClient)(nil).ResendJobTx), ctx, jobUUID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResendJobTx", reflect.TypeOf((*MockJobClient)(nil).ResendJobTx), ctx, jobUUID)
 }
 
 // SearchJob mocks base method
@@ -1200,7 +1304,7 @@ func (m *MockAccountClient) EXPECT() *MockAccountClientMockRecorder {
 // CreateAccount mocks base method
 func (m *MockAccountClient) CreateAccount(ctx context.Context, request *types.CreateAccountRequest) (*types.AccountResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", ctx, request)
+	ret := m.ctrl.Call(m, "CreateAccount", ctx, request)
 	ret0, _ := ret[0].(*types.AccountResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -1209,13 +1313,13 @@ func (m *MockAccountClient) CreateAccount(ctx context.Context, request *types.Cr
 // CreateAccount indicates an expected call of CreateAccount
 func (mr *MockAccountClientMockRecorder) CreateAccount(ctx, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockAccountClient)(nil).CreateAccount), ctx, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAccount", reflect.TypeOf((*MockAccountClient)(nil).CreateAccount), ctx, request)
 }
 
 // SearchAccounts mocks base method
 func (m *MockAccountClient) SearchAccounts(ctx context.Context, filters *entities.AccountFilters) ([]*types.AccountResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Search", ctx, filters)
+	ret := m.ctrl.Call(m, "SearchAccounts", ctx, filters)
 	ret0, _ := ret[0].([]*types.AccountResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -1224,13 +1328,13 @@ func (m *MockAccountClient) SearchAccounts(ctx context.Context, filters *entitie
 // SearchAccounts indicates an expected call of SearchAccounts
 func (mr *MockAccountClientMockRecorder) SearchAccounts(ctx, filters interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockAccountClient)(nil).SearchAccounts), ctx, filters)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchAccounts", reflect.TypeOf((*MockAccountClient)(nil).SearchAccounts), ctx, filters)
 }
 
 // GetAccount mocks base method
 func (m *MockAccountClient) GetAccount(ctx context.Context, address common.Address) (*types.AccountResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", ctx, address)
+	ret := m.ctrl.Call(m, "GetAccount", ctx, address)
 	ret0, _ := ret[0].(*types.AccountResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -1239,7 +1343,7 @@ func (m *MockAccountClient) GetAccount(ctx context.Context, address common.Addre
 // GetAccount indicates an expected call of GetAccount
 func (mr *MockAccountClientMockRecorder) GetAccount(ctx, address interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockAccountClient)(nil).GetAccount), ctx, address)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccount", reflect.TypeOf((*MockAccountClient)(nil).GetAccount), ctx, address)
 }
 
 // ImportAccount mocks base method
@@ -1260,7 +1364,7 @@ func (mr *MockAccountClientMockRecorder) ImportAccount(ctx, request interface{})
 // UpdateAccount mocks base method
 func (m *MockAccountClient) UpdateAccount(ctx context.Context, address common.Address, request *types.UpdateAccountRequest) (*types.AccountResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", ctx, address, request)
+	ret := m.ctrl.Call(m, "UpdateAccount", ctx, address, request)
 	ret0, _ := ret[0].(*types.AccountResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -1269,7 +1373,7 @@ func (m *MockAccountClient) UpdateAccount(ctx context.Context, address common.Ad
 // UpdateAccount indicates an expected call of UpdateAccount
 func (mr *MockAccountClientMockRecorder) UpdateAccount(ctx, address, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockAccountClient)(nil).UpdateAccount), ctx, address, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAccount", reflect.TypeOf((*MockAccountClient)(nil).UpdateAccount), ctx, address, request)
 }
 
 // SignMessage mocks base method
@@ -1356,7 +1460,7 @@ func (m *MockFaucetClient) EXPECT() *MockFaucetClientMockRecorder {
 // RegisterFaucet mocks base method
 func (m *MockFaucetClient) RegisterFaucet(ctx context.Context, request *types.RegisterFaucetRequest) (*types.FaucetResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Register", ctx, request)
+	ret := m.ctrl.Call(m, "RegisterFaucet", ctx, request)
 	ret0, _ := ret[0].(*types.FaucetResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -1365,13 +1469,13 @@ func (m *MockFaucetClient) RegisterFaucet(ctx context.Context, request *types.Re
 // RegisterFaucet indicates an expected call of RegisterFaucet
 func (mr *MockFaucetClientMockRecorder) RegisterFaucet(ctx, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockFaucetClient)(nil).RegisterFaucet), ctx, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterFaucet", reflect.TypeOf((*MockFaucetClient)(nil).RegisterFaucet), ctx, request)
 }
 
 // UpdateFaucet mocks base method
 func (m *MockFaucetClient) UpdateFaucet(ctx context.Context, uuid string, request *types.UpdateFaucetRequest) (*types.FaucetResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", ctx, uuid, request)
+	ret := m.ctrl.Call(m, "UpdateFaucet", ctx, uuid, request)
 	ret0, _ := ret[0].(*types.FaucetResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -1380,13 +1484,13 @@ func (m *MockFaucetClient) UpdateFaucet(ctx context.Context, uuid string, reques
 // UpdateFaucet indicates an expected call of UpdateFaucet
 func (mr *MockFaucetClientMockRecorder) UpdateFaucet(ctx, uuid, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockFaucetClient)(nil).UpdateFaucet), ctx, uuid, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFaucet", reflect.TypeOf((*MockFaucetClient)(nil).UpdateFaucet), ctx, uuid, request)
 }
 
 // GetFaucet mocks base method
 func (m *MockFaucetClient) GetFaucet(ctx context.Context, uuid string) (*types.FaucetResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", ctx, uuid)
+	ret := m.ctrl.Call(m, "GetFaucet", ctx, uuid)
 	ret0, _ := ret[0].(*types.FaucetResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -1395,13 +1499,13 @@ func (m *MockFaucetClient) GetFaucet(ctx context.Context, uuid string) (*types.F
 // GetFaucet indicates an expected call of GetFaucet
 func (mr *MockFaucetClientMockRecorder) GetFaucet(ctx, uuid interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockFaucetClient)(nil).GetFaucet), ctx, uuid)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFaucet", reflect.TypeOf((*MockFaucetClient)(nil).GetFaucet), ctx, uuid)
 }
 
 // SearchFaucets mocks base method
 func (m *MockFaucetClient) SearchFaucets(ctx context.Context, filters *entities.FaucetFilters) ([]*types.FaucetResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Search", ctx, filters)
+	ret := m.ctrl.Call(m, "SearchFaucets", ctx, filters)
 	ret0, _ := ret[0].([]*types.FaucetResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -1410,13 +1514,13 @@ func (m *MockFaucetClient) SearchFaucets(ctx context.Context, filters *entities.
 // SearchFaucets indicates an expected call of SearchFaucets
 func (mr *MockFaucetClientMockRecorder) SearchFaucets(ctx, filters interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockFaucetClient)(nil).SearchFaucets), ctx, filters)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchFaucets", reflect.TypeOf((*MockFaucetClient)(nil).SearchFaucets), ctx, filters)
 }
 
 // DeleteFaucet mocks base method
 func (m *MockFaucetClient) DeleteFaucet(ctx context.Context, uuid string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", ctx, uuid)
+	ret := m.ctrl.Call(m, "DeleteFaucet", ctx, uuid)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -1424,7 +1528,7 @@ func (m *MockFaucetClient) DeleteFaucet(ctx context.Context, uuid string) error 
 // DeleteFaucet indicates an expected call of DeleteFaucet
 func (mr *MockFaucetClientMockRecorder) DeleteFaucet(ctx, uuid interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockFaucetClient)(nil).DeleteFaucet), ctx, uuid)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFaucet", reflect.TypeOf((*MockFaucetClient)(nil).DeleteFaucet), ctx, uuid)
 }
 
 // MockChainClient is a mock of ChainClient interface
@@ -1453,7 +1557,7 @@ func (m *MockChainClient) EXPECT() *MockChainClientMockRecorder {
 // RegisterChain mocks base method
 func (m *MockChainClient) RegisterChain(ctx context.Context, request *types.RegisterChainRequest) (*types.ChainResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Register", ctx, request)
+	ret := m.ctrl.Call(m, "RegisterChain", ctx, request)
 	ret0, _ := ret[0].(*types.ChainResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -1462,13 +1566,13 @@ func (m *MockChainClient) RegisterChain(ctx context.Context, request *types.Regi
 // RegisterChain indicates an expected call of RegisterChain
 func (mr *MockChainClientMockRecorder) RegisterChain(ctx, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockChainClient)(nil).RegisterChain), ctx, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterChain", reflect.TypeOf((*MockChainClient)(nil).RegisterChain), ctx, request)
 }
 
 // UpdateChain mocks base method
 func (m *MockChainClient) UpdateChain(ctx context.Context, uuid string, request *types.UpdateChainRequest) (*types.ChainResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", ctx, uuid, request)
+	ret := m.ctrl.Call(m, "UpdateChain", ctx, uuid, request)
 	ret0, _ := ret[0].(*types.ChainResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -1477,13 +1581,13 @@ func (m *MockChainClient) UpdateChain(ctx context.Context, uuid string, request 
 // UpdateChain indicates an expected call of UpdateChain
 func (mr *MockChainClientMockRecorder) UpdateChain(ctx, uuid, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockChainClient)(nil).UpdateChain), ctx, uuid, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateChain", reflect.TypeOf((*MockChainClient)(nil).UpdateChain), ctx, uuid, request)
 }
 
 // GetChain mocks base method
 func (m *MockChainClient) GetChain(ctx context.Context, uuid string) (*types.ChainResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", ctx, uuid)
+	ret := m.ctrl.Call(m, "GetChain", ctx, uuid)
 	ret0, _ := ret[0].(*types.ChainResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -1492,13 +1596,13 @@ func (m *MockChainClient) GetChain(ctx context.Context, uuid string) (*types.Cha
 // GetChain indicates an expected call of GetChain
 func (mr *MockChainClientMockRecorder) GetChain(ctx, uuid interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockChainClient)(nil).GetChain), ctx, uuid)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChain", reflect.TypeOf((*MockChainClient)(nil).GetChain), ctx, uuid)
 }
 
 // SearchChains mocks base method
 func (m *MockChainClient) SearchChains(ctx context.Context, filters *entities.ChainFilters) ([]*types.ChainResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Search", ctx, filters)
+	ret := m.ctrl.Call(m, "SearchChains", ctx, filters)
 	ret0, _ := ret[0].([]*types.ChainResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -1507,13 +1611,13 @@ func (m *MockChainClient) SearchChains(ctx context.Context, filters *entities.Ch
 // SearchChains indicates an expected call of SearchChains
 func (mr *MockChainClientMockRecorder) SearchChains(ctx, filters interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockChainClient)(nil).SearchChains), ctx, filters)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchChains", reflect.TypeOf((*MockChainClient)(nil).SearchChains), ctx, filters)
 }
 
 // DeleteChain mocks base method
 func (m *MockChainClient) DeleteChain(ctx context.Context, uuid string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", ctx, uuid)
+	ret := m.ctrl.Call(m, "DeleteChain", ctx, uuid)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -1521,7 +1625,7 @@ func (m *MockChainClient) DeleteChain(ctx context.Context, uuid string) error {
 // DeleteChain indicates an expected call of DeleteChain
 func (mr *MockChainClientMockRecorder) DeleteChain(ctx, uuid interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockChainClient)(nil).DeleteChain), ctx, uuid)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteChain", reflect.TypeOf((*MockChainClient)(nil).DeleteChain), ctx, uuid)
 }
 
 // MockContractClient is a mock of ContractClient interface
@@ -1550,7 +1654,7 @@ func (m *MockContractClient) EXPECT() *MockContractClientMockRecorder {
 // RegisterContract mocks base method
 func (m *MockContractClient) RegisterContract(ctx context.Context, req *types.RegisterContractRequest) (*types.ContractResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Register", ctx, req)
+	ret := m.ctrl.Call(m, "RegisterContract", ctx, req)
 	ret0, _ := ret[0].(*types.ContractResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -1559,7 +1663,7 @@ func (m *MockContractClient) RegisterContract(ctx context.Context, req *types.Re
 // RegisterContract indicates an expected call of RegisterContract
 func (mr *MockContractClientMockRecorder) RegisterContract(ctx, req interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockContractClient)(nil).RegisterContract), ctx, req)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterContract", reflect.TypeOf((*MockContractClient)(nil).RegisterContract), ctx, req)
 }
 
 // DeregisterContract mocks base method
@@ -1579,7 +1683,7 @@ func (mr *MockContractClientMockRecorder) DeregisterContract(ctx, name, tag inte
 // GetContract mocks base method
 func (m *MockContractClient) GetContract(ctx context.Context, name, tag string) (*types.ContractResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", ctx, name, tag)
+	ret := m.ctrl.Call(m, "GetContract", ctx, name, tag)
 	ret0, _ := ret[0].(*types.ContractResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -1588,13 +1692,13 @@ func (m *MockContractClient) GetContract(ctx context.Context, name, tag string) 
 // GetContract indicates an expected call of GetContract
 func (mr *MockContractClientMockRecorder) GetContract(ctx, name, tag interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockContractClient)(nil).GetContract), ctx, name, tag)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContract", reflect.TypeOf((*MockContractClient)(nil).GetContract), ctx, name, tag)
 }
 
 // SearchContract mocks base method
 func (m *MockContractClient) SearchContract(ctx context.Context, req *types.SearchContractRequest) (*types.ContractResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Search", ctx, req)
+	ret := m.ctrl.Call(m, "SearchContract", ctx, req)
 	ret0, _ := ret[0].(*types.ContractResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -1603,13 +1707,13 @@ func (m *MockContractClient) SearchContract(ctx context.Context, req *types.Sear
 // SearchContract indicates an expected call of SearchContract
 func (mr *MockContractClientMockRecorder) SearchContract(ctx, req interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockContractClient)(nil).SearchContract), ctx, req)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchContract", reflect.TypeOf((*MockContractClient)(nil).SearchContract), ctx, req)
 }
 
 // GetContractsCatalog mocks base method
 func (m *MockContractClient) GetContractsCatalog(ctx context.Context) ([]string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetCatalog", ctx)
+	ret := m.ctrl.Call(m, "GetContractsCatalog", ctx)
 	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -1618,13 +1722,13 @@ func (m *MockContractClient) GetContractsCatalog(ctx context.Context) ([]string,
 // GetContractsCatalog indicates an expected call of GetContractsCatalog
 func (mr *MockContractClientMockRecorder) GetContractsCatalog(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCatalog", reflect.TypeOf((*MockContractClient)(nil).GetContractsCatalog), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContractsCatalog", reflect.TypeOf((*MockContractClient)(nil).GetContractsCatalog), ctx)
 }
 
 // GetContractTags mocks base method
 func (m *MockContractClient) GetContractTags(ctx context.Context, name string) ([]string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTags", ctx, name)
+	ret := m.ctrl.Call(m, "GetContractTags", ctx, name)
 	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -1633,7 +1737,7 @@ func (m *MockContractClient) GetContractTags(ctx context.Context, name string) (
 // GetContractTags indicates an expected call of GetContractTags
 func (mr *MockContractClientMockRecorder) GetContractTags(ctx, name interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTags", reflect.TypeOf((*MockContractClient)(nil).GetContractTags), ctx, name)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContractTags", reflect.TypeOf((*MockContractClient)(nil).GetContractTags), ctx, name)
 }
 
 // SetContractAddressCodeHash mocks base method
@@ -1663,4 +1767,131 @@ func (m *MockContractClient) GetContractEvents(ctx context.Context, address, cha
 func (mr *MockContractClientMockRecorder) GetContractEvents(ctx, address, chainUUID, req interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContractEvents", reflect.TypeOf((*MockContractClient)(nil).GetContractEvents), ctx, address, chainUUID, req)
+}
+
+// MockEventStreamClient is a mock of EventStreamClient interface
+type MockEventStreamClient struct {
+	ctrl     *gomock.Controller
+	recorder *MockEventStreamClientMockRecorder
+}
+
+// MockEventStreamClientMockRecorder is the mock recorder for MockEventStreamClient
+type MockEventStreamClientMockRecorder struct {
+	mock *MockEventStreamClient
+}
+
+// NewMockEventStreamClient creates a new mock instance
+func NewMockEventStreamClient(ctrl *gomock.Controller) *MockEventStreamClient {
+	mock := &MockEventStreamClient{ctrl: ctrl}
+	mock.recorder = &MockEventStreamClientMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockEventStreamClient) EXPECT() *MockEventStreamClientMockRecorder {
+	return m.recorder
+}
+
+// CreateWebhookEventStream mocks base method
+func (m *MockEventStreamClient) CreateWebhookEventStream(ctx context.Context, request *types.CreateWebhookEventStreamRequest) (*types.EventStreamResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateWebhookEventStream", ctx, request)
+	ret0, _ := ret[0].(*types.EventStreamResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateWebhookEventStream indicates an expected call of CreateWebhookEventStream
+func (mr *MockEventStreamClientMockRecorder) CreateWebhookEventStream(ctx, request interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateWebhookEventStream", reflect.TypeOf((*MockEventStreamClient)(nil).CreateWebhookEventStream), ctx, request)
+}
+
+// CreateKafkaEventStream mocks base method
+func (m *MockEventStreamClient) CreateKafkaEventStream(ctx context.Context, request *types.CreateKafkaEventStreamRequest) (*types.EventStreamResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateKafkaEventStream", ctx, request)
+	ret0, _ := ret[0].(*types.EventStreamResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateKafkaEventStream indicates an expected call of CreateKafkaEventStream
+func (mr *MockEventStreamClientMockRecorder) CreateKafkaEventStream(ctx, request interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateKafkaEventStream", reflect.TypeOf((*MockEventStreamClient)(nil).CreateKafkaEventStream), ctx, request)
+}
+
+// UpdateWebhookEventStream mocks base method
+func (m *MockEventStreamClient) UpdateWebhookEventStream(ctx context.Context, uuid string, request *types.UpdateWebhookEventStreamRequest) (*types.EventStreamResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateWebhookEventStream", ctx, uuid, request)
+	ret0, _ := ret[0].(*types.EventStreamResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateWebhookEventStream indicates an expected call of UpdateWebhookEventStream
+func (mr *MockEventStreamClientMockRecorder) UpdateWebhookEventStream(ctx, uuid, request interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateWebhookEventStream", reflect.TypeOf((*MockEventStreamClient)(nil).UpdateWebhookEventStream), ctx, uuid, request)
+}
+
+// UpdateKafkaEventStream mocks base method
+func (m *MockEventStreamClient) UpdateKafkaEventStream(ctx context.Context, uuid string, request *types.UpdateKafkaEventStreamRequest) (*types.EventStreamResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateKafkaEventStream", ctx, uuid, request)
+	ret0, _ := ret[0].(*types.EventStreamResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateKafkaEventStream indicates an expected call of UpdateKafkaEventStream
+func (mr *MockEventStreamClientMockRecorder) UpdateKafkaEventStream(ctx, uuid, request interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateKafkaEventStream", reflect.TypeOf((*MockEventStreamClient)(nil).UpdateKafkaEventStream), ctx, uuid, request)
+}
+
+// GetEventStream mocks base method
+func (m *MockEventStreamClient) GetEventStream(ctx context.Context, uuid string) (*types.EventStreamResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetEventStream", ctx, uuid)
+	ret0, _ := ret[0].(*types.EventStreamResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetEventStream indicates an expected call of GetEventStream
+func (mr *MockEventStreamClientMockRecorder) GetEventStream(ctx, uuid interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEventStream", reflect.TypeOf((*MockEventStreamClient)(nil).GetEventStream), ctx, uuid)
+}
+
+// SearchEventStreams mocks base method
+func (m *MockEventStreamClient) SearchEventStreams(ctx context.Context, filters *entities.EventStreamFilters) ([]*types.EventStreamResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SearchEventStreams", ctx, filters)
+	ret0, _ := ret[0].([]*types.EventStreamResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SearchEventStreams indicates an expected call of SearchEventStreams
+func (mr *MockEventStreamClientMockRecorder) SearchEventStreams(ctx, filters interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchEventStreams", reflect.TypeOf((*MockEventStreamClient)(nil).SearchEventStreams), ctx, filters)
+}
+
+// DeleteEventStream mocks base method
+func (m *MockEventStreamClient) DeleteEventStream(ctx context.Context, uuid string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteEventStream", ctx, uuid)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteEventStream indicates an expected call of DeleteEventStream
+func (mr *MockEventStreamClientMockRecorder) DeleteEventStream(ctx, uuid interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteEventStream", reflect.TypeOf((*MockEventStreamClient)(nil).DeleteEventStream), ctx, uuid)
 }

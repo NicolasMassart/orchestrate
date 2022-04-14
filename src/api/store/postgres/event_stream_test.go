@@ -5,8 +5,10 @@ package postgres
 import (
 	"context"
 	"github.com/consensys/orchestrate/pkg/errors"
+	"github.com/consensys/orchestrate/src/api/store/models"
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/entities/testdata"
+	"github.com/consensys/orchestrate/src/infra/postgres"
 	"github.com/consensys/orchestrate/src/infra/postgres/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -143,6 +145,121 @@ func (s *pgEventStreamTestSuite) TestSearch() {
 
 		accounts, err := s.dataAgent.Search(ctx, &entities.EventStreamFilters{}, tenants, owner)
 		assert.Empty(t, accounts)
+		assert.True(t, errors.IsPostgresConnectionError(err))
+	})
+}
+
+func (s *pgEventStreamTestSuite) TestFindOneByUUID() {
+	ctx := context.Background()
+	ctrl := gomock.NewController(s.T())
+	defer ctrl.Finish()
+
+	tenants := []string{"tenant"}
+	owner := "owner"
+	uuid := "uuid"
+
+	s.T().Run("should find one successfully", func(t *testing.T) {
+		mockQuery := mocks.NewMockQuery(ctrl)
+		expectedEventStream := testdata.FakeWebhookEventStream()
+
+		s.mockPGClient.EXPECT().ModelContext(ctx, gomock.Any()).DoAndReturn(func(ctx context.Context, mdls ...interface{}) postgres.Query {
+			assert.Equal(t, &models.EventStream{}, mdls[0].(*models.EventStream))
+
+			fakeModel := models.NewEventStream(expectedEventStream)
+			mdls[0].(*models.EventStream).ChainUUID = fakeModel.ChainUUID
+			mdls[0].(*models.EventStream).UUID = fakeModel.UUID
+			mdls[0].(*models.EventStream).Channel = fakeModel.Channel
+			mdls[0].(*models.EventStream).Specs = fakeModel.Specs
+			mdls[0].(*models.EventStream).Status = fakeModel.Status
+			mdls[0].(*models.EventStream).Labels = fakeModel.Labels
+			mdls[0].(*models.EventStream).Name = fakeModel.Name
+			mdls[0].(*models.EventStream).TenantID = fakeModel.TenantID
+			mdls[0].(*models.EventStream).UpdatedAt = fakeModel.UpdatedAt
+			mdls[0].(*models.EventStream).CreatedAt = fakeModel.CreatedAt
+
+			return mockQuery
+		})
+		mockQuery.EXPECT().Where("uuid = ?", uuid).Return(mockQuery)
+		mockQuery.EXPECT().WhereAllowedTenants("", tenants).Return(mockQuery)
+		mockQuery.EXPECT().WhereAllowedOwner("", owner).Return(mockQuery)
+		mockQuery.EXPECT().SelectOne().Return(nil)
+
+		es, err := s.dataAgent.FindOneByUUID(ctx, uuid, tenants, owner)
+		require.NoError(t, err)
+
+		assert.Equal(t, expectedEventStream.CreatedAt, es.CreatedAt)
+		assert.Equal(t, expectedEventStream.UpdatedAt, es.UpdatedAt)
+		assert.Equal(t, expectedEventStream.WebHook(), es.WebHook())
+		assert.Equal(t, expectedEventStream.UUID, es.UUID)
+		assert.Equal(t, expectedEventStream.Status, es.Status)
+		assert.Equal(t, expectedEventStream.TenantID, es.TenantID)
+		assert.Equal(t, expectedEventStream.Labels, es.Labels)
+		assert.Equal(t, expectedEventStream.Channel, es.Channel)
+		assert.Equal(t, expectedEventStream.Name, es.Name)
+	})
+
+	s.T().Run("should fail with same error if Select fails with NotFoundError", func(t *testing.T) {
+		expectedErr := errors.NotFoundError("error")
+		mockQuery := mocks.NewMockQuery(ctrl)
+
+		s.mockPGClient.EXPECT().ModelContext(ctx, gomock.Any()).Return(mockQuery)
+		mockQuery.EXPECT().Where("uuid = ?", uuid).Return(mockQuery)
+		mockQuery.EXPECT().WhereAllowedTenants("", tenants).Return(mockQuery)
+		mockQuery.EXPECT().WhereAllowedOwner("", owner).Return(mockQuery)
+		mockQuery.EXPECT().SelectOne().Return(expectedErr)
+
+		account, err := s.dataAgent.FindOneByUUID(ctx, uuid, tenants, owner)
+		assert.Nil(t, account)
+		assert.True(t, errors.IsNotFoundError(err))
+	})
+
+	s.T().Run("should fail with same error if Select fails", func(t *testing.T) {
+		expectedErr := errors.PostgresConnectionError("error")
+		mockQuery := mocks.NewMockQuery(ctrl)
+
+		s.mockPGClient.EXPECT().ModelContext(ctx, gomock.Any()).Return(mockQuery)
+		mockQuery.EXPECT().Where("uuid = ?", uuid).Return(mockQuery)
+		mockQuery.EXPECT().WhereAllowedTenants("", tenants).Return(mockQuery)
+		mockQuery.EXPECT().WhereAllowedOwner("", owner).Return(mockQuery)
+		mockQuery.EXPECT().SelectOne().Return(expectedErr)
+
+		account, err := s.dataAgent.FindOneByUUID(ctx, uuid, tenants, owner)
+		assert.Nil(t, account)
+		assert.True(t, errors.IsPostgresConnectionError(err))
+	})
+}
+
+func (s *pgEventStreamTestSuite) TestDelete() {
+	ctx := context.Background()
+	ctrl := gomock.NewController(s.T())
+	defer ctrl.Finish()
+	tenants := []string{"tenant"}
+	owner := "owner"
+
+	s.T().Run("should delete successfully", func(t *testing.T) {
+		mockQuery := mocks.NewMockQuery(ctrl)
+
+		s.mockPGClient.EXPECT().ModelContext(ctx, gomock.Any()).Return(mockQuery)
+		mockQuery.EXPECT().Where("uuid = ?", "uuid").Return(mockQuery)
+		mockQuery.EXPECT().WhereAllowedTenants("", tenants).Return(mockQuery)
+		mockQuery.EXPECT().WhereAllowedOwner("", owner).Return(mockQuery)
+		mockQuery.EXPECT().Delete().Return(nil)
+
+		err := s.dataAgent.Delete(ctx, "uuid", tenants, owner)
+		require.NoError(t, err)
+	})
+
+	s.T().Run("should fail with same error if Delete fails", func(t *testing.T) {
+		expectedErr := errors.PostgresConnectionError("error")
+		mockQuery := mocks.NewMockQuery(ctrl)
+
+		s.mockPGClient.EXPECT().ModelContext(ctx, gomock.Any()).Return(mockQuery)
+		mockQuery.EXPECT().Where("uuid = ?", "uuid").Return(mockQuery)
+		mockQuery.EXPECT().WhereAllowedTenants("", tenants).Return(mockQuery)
+		mockQuery.EXPECT().WhereAllowedOwner("", owner).Return(mockQuery)
+		mockQuery.EXPECT().Delete().Return(expectedErr)
+
+		err := s.dataAgent.Delete(ctx, "uuid", tenants, owner)
 		assert.True(t, errors.IsPostgresConnectionError(err))
 	})
 }

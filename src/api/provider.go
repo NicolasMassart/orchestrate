@@ -35,7 +35,7 @@ func NewInternalProvider() provider.Provider {
 func newInternalConfig() *dynamic.Configuration {
 	cfg := dynamic.NewConfig()
 
-	pathPrefix := []string{"/transactions", "/schedules", "/jobs", "/accounts", "/faucets", "/contracts", "/chains"}
+	pathPrefix := []string{"/transactions", "/schedules", "/jobs", "/accounts", "/faucets", "/contracts", "/chains", "/eventstreams"}
 	for idx, path := range pathPrefix {
 		pathPrefix[idx] = fmt.Sprintf("PathPrefix(`%s`)", path)
 	}

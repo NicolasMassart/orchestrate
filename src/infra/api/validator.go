@@ -220,6 +220,19 @@ func isKeyType(fl validator.FieldLevel) bool {
 	return true
 }
 
+func isEventStreamStatus(fl validator.FieldLevel) bool {
+	if fl.Field().String() != "" {
+		switch fl.Field().String() {
+		case string(entities.EventStreamStatusLive), string(entities.EventStreamStatusPaused):
+			return true
+		default:
+			return false
+		}
+	}
+
+	return true
+}
+
 func init() {
 	if validate != nil {
 		return
@@ -240,6 +253,7 @@ func init() {
 	_ = validate.RegisterValidation("isKeyType", isKeyType)
 	_ = validate.RegisterValidation("isTransactionType", isTransactionType)
 	_ = validate.RegisterValidation("isPrivacyFlag", isPrivacyFlag)
+	_ = validate.RegisterValidation("isEventStreamStatus", isEventStreamStatus)
 }
 
 func GetValidator() *validator.Validate {

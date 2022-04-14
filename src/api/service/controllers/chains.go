@@ -13,7 +13,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// Hack for swagger generation
 type ChainsController struct {
 	ucs usecases.ChainUseCases
 }

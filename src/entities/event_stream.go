@@ -13,8 +13,8 @@ var (
 )
 
 var (
-	EventStreamStatusLive EventStreamStatus = "LIVE"
-	// EventStreamStatusPAUSED EventStreamStatus = "PAUSED"
+	EventStreamStatusLive   EventStreamStatus = "LIVE"
+	EventStreamStatusPaused EventStreamStatus = "PAUSED"
 )
 
 type EventStream struct {

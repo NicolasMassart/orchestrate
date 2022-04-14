@@ -49,15 +49,7 @@ func (uc *notifyTransactionUseCase) Execute(ctx context.Context, job *entities.J
 	}
 
 	if eventStream == nil {
-		// @TODO Remove once implementation is completed
-		eventStream = &entities.EventStream{
-			Status:  entities.EventStreamStatusLive,
-			Channel: entities.EventStreamChannelKafka,
-			Specs: &entities.Kafka{
-				Topic: "topic-tx-decoded",
-			},
-		}
-		// return nil
+		return nil
 	}
 
 	if eventStream.Status != entities.EventStreamStatusLive {
@@ -68,8 +60,7 @@ func (uc *notifyTransactionUseCase) Execute(ctx context.Context, job *entities.J
 		return nil
 	}
 
-	logger := uc.logger.WithContext(ctx).WithField("event_stream", eventStream.Name).
-		WithField("channel", eventStream.Channel)
+	logger := uc.logger.WithContext(ctx).WithField("event_stream", eventStream.Name).WithField("channel", eventStream.Channel)
 	if job.Status == entities.StatusMined {
 		if job.Receipt == nil {
 			errMsg := "missing required receipt for notification"

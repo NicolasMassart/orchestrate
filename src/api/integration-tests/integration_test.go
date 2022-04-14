@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 package integrationtests
@@ -124,6 +125,13 @@ func (s *apiTestSuite) TestAPI_Chains() {
 
 func (s *apiTestSuite) TestAPI_Faucets() {
 	testSuite := new(faucetsTestSuite)
+	testSuite.env = s.env
+	testSuite.client = s.client
+	suite.Run(s.T(), testSuite)
+}
+
+func (s *apiTestSuite) TestAPI_EventStreams() {
+	testSuite := new(eventStreamsTestSuite)
 	testSuite.env = s.env
 	testSuite.client = s.client
 	suite.Run(s.T(), testSuite)

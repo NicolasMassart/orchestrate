@@ -26,6 +26,7 @@ type OrchestrateClient interface {
 	ChainClient
 	ContractClient
 	ChainProxyClient
+	EventStreamClient
 }
 
 type ChainProxyClient interface {
@@ -101,4 +102,14 @@ type ContractClient interface {
 	GetContractTags(ctx context.Context, name string) ([]string, error)
 	SetContractAddressCodeHash(ctx context.Context, address, chainID string, req *types.SetContractCodeHashRequest) error
 	GetContractEvents(ctx context.Context, address, chainUUID string, req *types.GetContractEventsRequest) (*types.GetContractEventsBySignHashResponse, error)
+}
+
+type EventStreamClient interface {
+	CreateWebhookEventStream(ctx context.Context, request *types.CreateWebhookEventStreamRequest) (*types.EventStreamResponse, error)
+	CreateKafkaEventStream(ctx context.Context, request *types.CreateKafkaEventStreamRequest) (*types.EventStreamResponse, error)
+	UpdateWebhookEventStream(ctx context.Context, uuid string, request *types.UpdateWebhookEventStreamRequest) (*types.EventStreamResponse, error)
+	UpdateKafkaEventStream(ctx context.Context, uuid string, request *types.UpdateKafkaEventStreamRequest) (*types.EventStreamResponse, error)
+	GetEventStream(ctx context.Context, uuid string) (*types.EventStreamResponse, error)
+	SearchEventStreams(ctx context.Context, filters *entities.EventStreamFilters) ([]*types.EventStreamResponse, error)
+	DeleteEventStream(ctx context.Context, uuid string) error
 }

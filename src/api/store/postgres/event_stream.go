@@ -55,6 +55,9 @@ func (agent *PGEventStream) Search(ctx context.Context, filters *entities.EventS
 	if filters.TenantID != "" {
 		q = q.Where("tenant_id = ?", filters.TenantID)
 	}
+	if filters.ChainUUID != "" {
+		q = q.Where("chain_uuid = ?", filters.ChainUUID)
+	}
 
 	err := q.WhereAllowedTenants("", tenants).WhereAllowedOwner("", ownerID).Order("id ASC").Select()
 	if err != nil && !errors.IsNotFoundError(err) {
@@ -101,4 +104,57 @@ func (agent *PGEventStream) FindOneByTenantAndChain(ctx context.Context, tenantI
 	}
 
 	return eventStream.ToEntity(), nil
+}
+
+func (agent *PGEventStream) FindOneByUUID(ctx context.Context, eventStreamUUID string, tenants []string, ownerID string) (*entities.EventStream, error) {
+	model := &models.EventStream{}
+	err := agent.client.ModelContext(ctx, model).
+		Where("uuid = ?", eventStreamUUID).
+		WhereAllowedTenants("", tenants).
+		WhereAllowedOwner("", ownerID).
+		SelectOne()
+	if err != nil {
+		if errors.IsNotFoundError(err) {
+			return nil, errors.FromError(err).SetMessage("event stream not found")
+		}
+
+		errMessage := "failed to select event stream"
+		agent.logger.WithContext(ctx).WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
+	}
+
+	return model.ToEntity(), nil
+}
+
+func (agent *PGEventStream) Update(ctx context.Context, eventStream *entities.EventStream, tenants []string, ownerID string) (*entities.EventStream, error) {
+	model := models.NewEventStream(eventStream)
+	model.UpdatedAt = time.Now().UTC()
+
+	err := agent.client.ModelContext(ctx, model).
+		Where("uuid = ?", eventStream.UUID).
+		WhereAllowedTenants("", tenants).
+		WhereAllowedOwner("", ownerID).
+		UpdateNotZero()
+	if err != nil {
+		errMessage := "failed to update event stream"
+		agent.logger.WithContext(ctx).WithError(err).Error(errMessage)
+		return nil, errors.FromError(err).SetMessage(errMessage)
+	}
+
+	return model.ToEntity(), nil
+}
+
+func (agent *PGEventStream) Delete(ctx context.Context, eventStreamUUID string, tenants []string, ownerID string) error {
+	err := agent.client.ModelContext(ctx, &models.EventStream{}).
+		Where("uuid = ?", eventStreamUUID).
+		WhereAllowedTenants("", tenants).
+		WhereAllowedOwner("", ownerID).
+		Delete()
+	if err != nil {
+		errMessage := "failed to delete event stream"
+		agent.logger.WithContext(ctx).WithError(err).Error(errMessage)
+		return errors.FromError(err).SetMessage(errMessage)
+	}
+
+	return nil
 }

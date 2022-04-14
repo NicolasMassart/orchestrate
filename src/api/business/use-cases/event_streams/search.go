@@ -26,11 +26,11 @@ func NewSearchUseCase(db store.EventStreamAgent) usecases.SearchEventStreamsUseC
 }
 
 func (uc *searchUseCase) Execute(ctx context.Context, filters *entities.EventStreamFilters, userInfo *multitenancy.UserInfo) ([]*entities.EventStream, error) {
-	accs, err := uc.db.Search(ctx, filters, userInfo.AllowedTenants, userInfo.Username)
+	es, err := uc.db.Search(ctx, filters, userInfo.AllowedTenants, userInfo.Username)
 	if err != nil {
 		return nil, errors.FromError(err).ExtendComponent(searchEventStreamsComponent)
 	}
 
 	uc.logger.WithContext(ctx).Debug("event streams found successfully")
-	return accs, nil
+	return es, nil
 }

@@ -36,6 +36,20 @@ func (m *MockEventStreamsUseCases) EXPECT() *MockEventStreamsUseCasesMockRecorde
 	return m.recorder
 }
 
+// Get mocks base method
+func (m *MockEventStreamsUseCases) Get() usecases.GetEventStreamUseCase {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get")
+	ret0, _ := ret[0].(usecases.GetEventStreamUseCase)
+	return ret0
+}
+
+// Get indicates an expected call of Get
+func (mr *MockEventStreamsUseCasesMockRecorder) Get() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockEventStreamsUseCases)(nil).Get))
+}
+
 // Create mocks base method
 func (m *MockEventStreamsUseCases) Create() usecases.CreateEventStreamUseCase {
 	m.ctrl.T.Helper()
@@ -48,6 +62,20 @@ func (m *MockEventStreamsUseCases) Create() usecases.CreateEventStreamUseCase {
 func (mr *MockEventStreamsUseCasesMockRecorder) Create() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockEventStreamsUseCases)(nil).Create))
+}
+
+// Update mocks base method
+func (m *MockEventStreamsUseCases) Update() usecases.UpdateEventStreamUseCase {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update")
+	ret0, _ := ret[0].(usecases.UpdateEventStreamUseCase)
+	return ret0
+}
+
+// Update indicates an expected call of Update
+func (mr *MockEventStreamsUseCasesMockRecorder) Update() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockEventStreamsUseCases)(nil).Update))
 }
 
 // Search mocks base method
@@ -78,6 +106,58 @@ func (mr *MockEventStreamsUseCasesMockRecorder) NotifyTransaction() *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyTransaction", reflect.TypeOf((*MockEventStreamsUseCases)(nil).NotifyTransaction))
 }
 
+// Delete mocks base method
+func (m *MockEventStreamsUseCases) Delete() usecases.DeleteEventStreamUseCase {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete")
+	ret0, _ := ret[0].(usecases.DeleteEventStreamUseCase)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete
+func (mr *MockEventStreamsUseCasesMockRecorder) Delete() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockEventStreamsUseCases)(nil).Delete))
+}
+
+// MockGetEventStreamUseCase is a mock of GetEventStreamUseCase interface
+type MockGetEventStreamUseCase struct {
+	ctrl     *gomock.Controller
+	recorder *MockGetEventStreamUseCaseMockRecorder
+}
+
+// MockGetEventStreamUseCaseMockRecorder is the mock recorder for MockGetEventStreamUseCase
+type MockGetEventStreamUseCaseMockRecorder struct {
+	mock *MockGetEventStreamUseCase
+}
+
+// NewMockGetEventStreamUseCase creates a new mock instance
+func NewMockGetEventStreamUseCase(ctrl *gomock.Controller) *MockGetEventStreamUseCase {
+	mock := &MockGetEventStreamUseCase{ctrl: ctrl}
+	mock.recorder = &MockGetEventStreamUseCaseMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockGetEventStreamUseCase) EXPECT() *MockGetEventStreamUseCaseMockRecorder {
+	return m.recorder
+}
+
+// Execute mocks base method
+func (m *MockGetEventStreamUseCase) Execute(ctx context.Context, uuid string, userInfo *multitenancy.UserInfo) (*entities.EventStream, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Execute", ctx, uuid, userInfo)
+	ret0, _ := ret[0].(*entities.EventStream)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Execute indicates an expected call of Execute
+func (mr *MockGetEventStreamUseCaseMockRecorder) Execute(ctx, uuid, userInfo interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockGetEventStreamUseCase)(nil).Execute), ctx, uuid, userInfo)
+}
+
 // MockCreateEventStreamUseCase is a mock of CreateEventStreamUseCase interface
 type MockCreateEventStreamUseCase struct {
 	ctrl     *gomock.Controller
@@ -102,18 +182,56 @@ func (m *MockCreateEventStreamUseCase) EXPECT() *MockCreateEventStreamUseCaseMoc
 }
 
 // Execute mocks base method
-func (m *MockCreateEventStreamUseCase) Execute(ctx context.Context, eventStream *entities.EventStream, userInfo *multitenancy.UserInfo) (*entities.EventStream, error) {
+func (m *MockCreateEventStreamUseCase) Execute(ctx context.Context, eventStream *entities.EventStream, chainName string, userInfo *multitenancy.UserInfo) (*entities.EventStream, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Execute", ctx, eventStream, userInfo)
+	ret := m.ctrl.Call(m, "Execute", ctx, eventStream, chainName, userInfo)
 	ret0, _ := ret[0].(*entities.EventStream)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Execute indicates an expected call of Execute
-func (mr *MockCreateEventStreamUseCaseMockRecorder) Execute(ctx, eventStream, userInfo interface{}) *gomock.Call {
+func (mr *MockCreateEventStreamUseCaseMockRecorder) Execute(ctx, eventStream, chainName, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockCreateEventStreamUseCase)(nil).Execute), ctx, eventStream, userInfo)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockCreateEventStreamUseCase)(nil).Execute), ctx, eventStream, chainName, userInfo)
+}
+
+// MockUpdateEventStreamUseCase is a mock of UpdateEventStreamUseCase interface
+type MockUpdateEventStreamUseCase struct {
+	ctrl     *gomock.Controller
+	recorder *MockUpdateEventStreamUseCaseMockRecorder
+}
+
+// MockUpdateEventStreamUseCaseMockRecorder is the mock recorder for MockUpdateEventStreamUseCase
+type MockUpdateEventStreamUseCaseMockRecorder struct {
+	mock *MockUpdateEventStreamUseCase
+}
+
+// NewMockUpdateEventStreamUseCase creates a new mock instance
+func NewMockUpdateEventStreamUseCase(ctrl *gomock.Controller) *MockUpdateEventStreamUseCase {
+	mock := &MockUpdateEventStreamUseCase{ctrl: ctrl}
+	mock.recorder = &MockUpdateEventStreamUseCaseMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockUpdateEventStreamUseCase) EXPECT() *MockUpdateEventStreamUseCaseMockRecorder {
+	return m.recorder
+}
+
+// Execute mocks base method
+func (m *MockUpdateEventStreamUseCase) Execute(ctx context.Context, eventStream *entities.EventStream, chainName string, userInfo *multitenancy.UserInfo) (*entities.EventStream, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Execute", ctx, eventStream, chainName, userInfo)
+	ret0, _ := ret[0].(*entities.EventStream)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Execute indicates an expected call of Execute
+func (mr *MockUpdateEventStreamUseCaseMockRecorder) Execute(ctx, eventStream, chainName, userInfo interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockUpdateEventStreamUseCase)(nil).Execute), ctx, eventStream, chainName, userInfo)
 }
 
 // MockSearchEventStreamsUseCase is a mock of SearchEventStreamsUseCase interface
@@ -189,4 +307,41 @@ func (m *MockNotifyTransactionUseCase) Execute(ctx context.Context, job *entitie
 func (mr *MockNotifyTransactionUseCaseMockRecorder) Execute(ctx, job, errStr, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockNotifyTransactionUseCase)(nil).Execute), ctx, job, errStr, userInfo)
+}
+
+// MockDeleteEventStreamUseCase is a mock of DeleteEventStreamUseCase interface
+type MockDeleteEventStreamUseCase struct {
+	ctrl     *gomock.Controller
+	recorder *MockDeleteEventStreamUseCaseMockRecorder
+}
+
+// MockDeleteEventStreamUseCaseMockRecorder is the mock recorder for MockDeleteEventStreamUseCase
+type MockDeleteEventStreamUseCaseMockRecorder struct {
+	mock *MockDeleteEventStreamUseCase
+}
+
+// NewMockDeleteEventStreamUseCase creates a new mock instance
+func NewMockDeleteEventStreamUseCase(ctrl *gomock.Controller) *MockDeleteEventStreamUseCase {
+	mock := &MockDeleteEventStreamUseCase{ctrl: ctrl}
+	mock.recorder = &MockDeleteEventStreamUseCaseMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockDeleteEventStreamUseCase) EXPECT() *MockDeleteEventStreamUseCaseMockRecorder {
+	return m.recorder
+}
+
+// Execute mocks base method
+func (m *MockDeleteEventStreamUseCase) Execute(ctx context.Context, uuid string, userInfo *multitenancy.UserInfo) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Execute", ctx, uuid, userInfo)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Execute indicates an expected call of Execute
+func (mr *MockDeleteEventStreamUseCaseMockRecorder) Execute(ctx, uuid, userInfo interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockDeleteEventStreamUseCase)(nil).Execute), ctx, uuid, userInfo)
 }

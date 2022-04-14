@@ -12,7 +12,7 @@ type EventStream struct {
 	ID        int `pg:"alias:id"`
 	UUID      string
 	Name      string
-	Specs     EventStreamSpecs
+	Specs     *EventStreamSpecs
 	Channel   string
 	Status    string
 	Labels    map[string]string
@@ -25,7 +25,7 @@ type EventStream struct {
 
 type EventStreamSpecs struct {
 	WebHook *entities.Webhook `json:"webhook,omitempty"`
-	Kafka   interface{}       `json:"kafka,omitempty"`
+	Kafka   *entities.Kafka   `json:"kafka,omitempty"`
 }
 
 func NewEventStream(eventStream *entities.EventStream) *EventStream {
@@ -42,11 +42,17 @@ func NewEventStream(eventStream *entities.EventStream) *EventStream {
 		UpdatedAt: eventStream.UpdatedAt,
 	}
 
-	switch eventStream.Channel {
-	case entities.EventStreamChannelWebhook:
-		es.Specs.WebHook = eventStream.WebHook()
-	case entities.EventStreamChannelKafka:
-		es.Specs.Kafka = eventStream.Specs
+	if eventStream.Specs != nil {
+		switch eventStream.Channel {
+		case entities.EventStreamChannelWebhook:
+			es.Specs = &EventStreamSpecs{
+				WebHook: eventStream.WebHook(),
+			}
+		case entities.EventStreamChannelKafka:
+			es.Specs = &EventStreamSpecs{
+				Kafka: eventStream.Kafka(),
+			}
+		}
 	}
 
 	return es
@@ -75,11 +81,13 @@ func (e *EventStream) ToEntity() *entities.EventStream {
 		UpdatedAt: e.UpdatedAt,
 	}
 
-	switch es.Channel {
-	case entities.EventStreamChannelWebhook:
-		es.Specs = e.Specs.WebHook
-	case entities.EventStreamChannelKafka:
-		es.Specs = e.Specs.Kafka
+	if e.Specs != nil {
+		switch es.Channel {
+		case entities.EventStreamChannelWebhook:
+			es.Specs = e.Specs.WebHook
+		case entities.EventStreamChannelKafka:
+			es.Specs = e.Specs.Kafka
+		}
 	}
 
 	return es

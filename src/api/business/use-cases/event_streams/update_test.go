@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCreate(t *testing.T) {
+func TestUpdate(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -28,9 +28,9 @@ func TestCreate(t *testing.T) {
 	chainName := "chain"
 	chain := testdata.FakeChain()
 
-	usecase := NewCreateUseCase(mockDB, searchChainsUC)
+	usecase := NewUpdateUseCase(mockDB, searchChainsUC)
 
-	t.Run("should create new event stream successfully: Webhook", func(t *testing.T) {
+	t.Run("should update event stream successfully", func(t *testing.T) {
 		eventStream := testdata.FakeWebhookEventStream()
 		eventStream.TenantID = userInfo.TenantID
 		eventStream.OwnerID = userInfo.Username
@@ -42,7 +42,8 @@ func TestCreate(t *testing.T) {
 			userInfo.AllowedTenants,
 			userInfo.Username,
 		).Return([]*entities.EventStream{}, nil)
-		mockDB.EXPECT().Insert(gomock.Any(), gomock.Any()).Return(eventStream, nil)
+		mockDB.EXPECT().Update(gomock.Any(), eventStream, userInfo.AllowedTenants, userInfo.Username).Return(eventStream, nil)
+		mockDB.EXPECT().FindOneByUUID(gomock.Any(), eventStream.UUID, userInfo.AllowedTenants, userInfo.Username).Return(eventStream, nil)
 
 		resp, err := usecase.Execute(ctx, eventStream, chainName, userInfo)
 
@@ -66,7 +67,7 @@ func TestCreate(t *testing.T) {
 		searchChainsUC.EXPECT().Execute(gomock.Any(), &entities.ChainFilters{Names: []string{chainName}}, userInfo).Return(nil, expectedErr)
 
 		_, err := usecase.Execute(ctx, eventStream, chainName, userInfo)
-		assert.Equal(t, errors.FromError(expectedErr).ExtendComponent(createEventStreamComponent), err)
+		assert.Equal(t, errors.FromError(expectedErr).ExtendComponent(updateEventStreamComponent), err)
 	})
 
 	t.Run("should fail with same error if search event streams fails", func(t *testing.T) {
@@ -77,7 +78,7 @@ func TestCreate(t *testing.T) {
 		mockDB.EXPECT().Search(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, expectedErr)
 
 		_, err := usecase.Execute(ctx, eventStream, chainName, userInfo)
-		assert.Equal(t, errors.FromError(expectedErr).ExtendComponent(createEventStreamComponent), err)
+		assert.Equal(t, errors.FromError(expectedErr).ExtendComponent(updateEventStreamComponent), err)
 	})
 
 	t.Run("should fail with AlreadyExistsError if search event streams returns values", func(t *testing.T) {
@@ -92,17 +93,32 @@ func TestCreate(t *testing.T) {
 		assert.True(t, errors.IsAlreadyExistsError(err))
 	})
 
-	t.Run("should fail with same error if cannot insert event stream", func(t *testing.T) {
+	t.Run("should fail with same error if cannot update event stream", func(t *testing.T) {
 		expectedErr := errors.NotFoundError("error")
 		eventStream := testdata.FakeWebhookEventStream()
 
 		searchChainsUC.EXPECT().Execute(gomock.Any(), &entities.ChainFilters{Names: []string{chainName}}, userInfo).Return([]*entities.Chain{chain}, nil)
 		mockDB.EXPECT().Search(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return([]*entities.EventStream{}, nil)
-		mockDB.EXPECT().Insert(gomock.Any(), gomock.Any()).Return(nil, expectedErr)
+		mockDB.EXPECT().Update(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, expectedErr)
 
 		_, err := usecase.Execute(ctx, eventStream, chainName, userInfo)
 
 		assert.Error(t, err)
-		assert.Equal(t, errors.FromError(expectedErr).ExtendComponent(createEventStreamComponent), err)
+		assert.Equal(t, errors.FromError(expectedErr).ExtendComponent(updateEventStreamComponent), err)
+	})
+
+	t.Run("should fail with same error if cannot get event stream", func(t *testing.T) {
+		expectedErr := errors.NotFoundError("error")
+		eventStream := testdata.FakeWebhookEventStream()
+
+		searchChainsUC.EXPECT().Execute(gomock.Any(), &entities.ChainFilters{Names: []string{chainName}}, userInfo).Return([]*entities.Chain{chain}, nil)
+		mockDB.EXPECT().Search(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return([]*entities.EventStream{}, nil)
+		mockDB.EXPECT().Update(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(eventStream, nil)
+		mockDB.EXPECT().FindOneByUUID(gomock.Any(), eventStream.UUID, userInfo.AllowedTenants, userInfo.Username).Return(nil, expectedErr)
+
+		_, err := usecase.Execute(ctx, eventStream, chainName, userInfo)
+
+		assert.Error(t, err)
+		assert.Equal(t, errors.FromError(expectedErr).ExtendComponent(updateEventStreamComponent), err)
 	})
 }

@@ -972,6 +972,21 @@ func (mr *MockEventStreamAgentMockRecorder) Search(ctx, filters, tenants, ownerI
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockEventStreamAgent)(nil).Search), ctx, filters, tenants, ownerID)
 }
 
+// FindOneByUUID mocks base method
+func (m *MockEventStreamAgent) FindOneByUUID(ctx context.Context, uuid string, tenants []string, ownerID string) (*entities.EventStream, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindOneByUUID", ctx, uuid, tenants, ownerID)
+	ret0, _ := ret[0].(*entities.EventStream)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindOneByUUID indicates an expected call of FindOneByUUID
+func (mr *MockEventStreamAgentMockRecorder) FindOneByUUID(ctx, uuid, tenants, ownerID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindOneByUUID", reflect.TypeOf((*MockEventStreamAgent)(nil).FindOneByUUID), ctx, uuid, tenants, ownerID)
+}
+
 // FindOneByTenantAndChain mocks base method
 func (m *MockEventStreamAgent) FindOneByTenantAndChain(ctx context.Context, tenantID, chainUUID string, tenants []string, ownerID string) (*entities.EventStream, error) {
 	m.ctrl.T.Helper()
@@ -985,4 +1000,33 @@ func (m *MockEventStreamAgent) FindOneByTenantAndChain(ctx context.Context, tena
 func (mr *MockEventStreamAgentMockRecorder) FindOneByTenantAndChain(ctx, tenantID, chainUUID, tenants, ownerID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindOneByTenantAndChain", reflect.TypeOf((*MockEventStreamAgent)(nil).FindOneByTenantAndChain), ctx, tenantID, chainUUID, tenants, ownerID)
+}
+
+// Delete mocks base method
+func (m *MockEventStreamAgent) Delete(ctx context.Context, uuid string, tenants []string, ownerID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", ctx, uuid, tenants, ownerID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete
+func (mr *MockEventStreamAgentMockRecorder) Delete(ctx, uuid, tenants, ownerID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockEventStreamAgent)(nil).Delete), ctx, uuid, tenants, ownerID)
+}
+
+// Update mocks base method
+func (m *MockEventStreamAgent) Update(ctx context.Context, eventStream *entities.EventStream, tenants []string, ownerID string) (*entities.EventStream, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update", ctx, eventStream, tenants, ownerID)
+	ret0, _ := ret[0].(*entities.EventStream)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Update indicates an expected call of Update
+func (mr *MockEventStreamAgentMockRecorder) Update(ctx, eventStream, tenants, ownerID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockEventStreamAgent)(nil).Update), ctx, eventStream, tenants, ownerID)
 }

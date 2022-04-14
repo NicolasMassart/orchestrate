@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "ConsenSys Codefi Orchestrate API. Enables dynamic management of transactions, identities, chains, faucets and contracts.\nTransaction Requests are an abstraction over schedules and jobs representing one or more transactions executed on the Blockchain network\nSchedules are ordered lists of jobs executed in a predefined sequence\nJobs represent single transaction flows executed on the Blockchain network\nChains represent list of endpoints pointing to a Blockchain network\nFaucets represent funded accounts (holding ETH) linked to specific chains, allowed to fund newly created accounts automatically for them to be able to send transactions.\nAccounts represent Ethereum accounts (private keys). By usage of the generated cryptographic key pair, accounts can be used to sign/verify and to encrypt/decrypt messages.\nContracts represent Solidity contracts management.",
+        "description": "ConsenSys Codefi Orchestrate API. Enables dynamic management of transactions, identities, chains, faucets and contracts.\nTransaction Requests are an abstraction over schedules and jobs representing one or more transactions executed on the Blockchain network\nSchedules are ordered lists of jobs executed in a predefined sequence\nJobs represent single transaction flows executed on the Blockchain network\nChains represent list of endpoints pointing to a Blockchain network\nFaucets represent funded accounts (holding ETH) linked to specific chains, allowed to fund newly created accounts automatically for them to be able to send transactions.\nAccounts represent Ethereum accounts (private keys). By usage of the generated cryptographic key pair, accounts can be used to sign/verify and to encrypt/decrypt messages.\nContracts represent Solidity contracts management.\nEvent Streams represent Event streams management.",
         "title": "Orchestrate API",
         "contact": {
             "name": "Contact ConsenSys Codefi Orchestrate",
@@ -61,19 +61,19 @@
                     "400": {
                         "description": "Invalid filter in the request",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -119,19 +119,19 @@
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -179,31 +179,31 @@
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "405": {
                         "description": "Not allowed",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "422": {
                         "description": "Unprocessable entity",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -237,25 +237,25 @@
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "422": {
                         "description": "Invalid parameters",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -289,25 +289,25 @@
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "422": {
                         "description": "Invalid parameters",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -350,19 +350,19 @@
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Account not found",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -415,25 +415,25 @@
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Account not found",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -488,25 +488,25 @@
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Account not found",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -553,31 +553,31 @@
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Account not found",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "422": {
                         "description": "Invalid parameters",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -625,13 +625,13 @@
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -700,13 +700,13 @@
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -748,19 +748,19 @@
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Chain not found",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -797,19 +797,19 @@
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Chain not found",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -873,19 +873,19 @@
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Chain not found",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -922,7 +922,7 @@
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -992,19 +992,19 @@
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -1066,13 +1066,13 @@
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -1129,19 +1129,19 @@
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Events not found",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -1194,19 +1194,19 @@
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -1243,13 +1243,13 @@
                     "404": {
                         "description": "contract not found",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -1323,13 +1323,459 @@
                     "404": {
                         "description": "Contract not found",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/eventstreams": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    },
+                    {
+                        "JWTAuth": []
+                    }
+                ],
+                "description": "Get a list of filtered event streams",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Streams"
+                ],
+                "summary": "Search event streams by provided filters",
+                "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "List of event stream names",
+                        "name": "names",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Chain UUID",
+                        "name": "chain_uuid",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tenant ID",
+                        "name": "tenant_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of event streams found",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/types.EventStreamResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid filter in the request",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/eventstreams/kafka": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    },
+                    {
+                        "JWTAuth": []
+                    }
+                ],
+                "description": "Creates a new Kafka Event stream",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Streams"
+                ],
+                "summary": "Creates a new Kafka Event stream",
+                "parameters": [
+                    {
+                        "description": "Kafka Event stream creation request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.CreateKafkaEventStreamRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Event stream object",
+                        "schema": {
+                            "$ref": "#/definitions/types.EventStreamResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/eventstreams/kafka/{uuid}": {
+            "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    },
+                    {
+                        "JWTAuth": []
+                    }
+                ],
+                "description": "Update a specific Kafka event stream by uuid",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Streams"
+                ],
+                "summary": "Update Kafka event stream by uuid",
+                "parameters": [
+                    {
+                        "description": "Kafka Event stream update request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.UpdateKafkaEventStreamRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "event stream uuid",
+                        "name": "uuid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Event stream found",
+                        "schema": {
+                            "$ref": "#/definitions/types.EventStreamResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Account not found",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/eventstreams/webhooks": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    },
+                    {
+                        "JWTAuth": []
+                    }
+                ],
+                "description": "Creates a new Webhook Event stream",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Streams"
+                ],
+                "summary": "Creates a new Webhook Event stream",
+                "parameters": [
+                    {
+                        "description": "Webhook Event stream creation request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.CreateWebhookEventStreamRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Event stream object",
+                        "schema": {
+                            "$ref": "#/definitions/types.EventStreamResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/eventstreams/webhooks/{uuid}": {
+            "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    },
+                    {
+                        "JWTAuth": []
+                    }
+                ],
+                "description": "Update a specific Webhook event stream by uuid",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Streams"
+                ],
+                "summary": "Update Webhook event stream by uuid",
+                "parameters": [
+                    {
+                        "description": "Webhook Event stream update request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.UpdateWebhookEventStreamRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "event stream uuid",
+                        "name": "uuid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Event stream found",
+                        "schema": {
+                            "$ref": "#/definitions/types.EventStreamResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Account not found",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/eventstreams/{uuid}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    },
+                    {
+                        "JWTAuth": []
+                    }
+                ],
+                "description": "Fetch a single event stream by uuid",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Streams"
+                ],
+                "summary": "Fetch an event stream by uuid",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "event stream uuid",
+                        "name": "address",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Event stream found",
+                        "schema": {
+                            "$ref": "#/definitions/types.EventStreamResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Event stream not found",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    },
+                    {
+                        "JWTAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event Streams"
+                ],
+                "summary": "Deletes an event stream by uuid",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "uuid of the event stream",
+                        "name": "uuid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Event Stream not found",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -1365,13 +1811,13 @@
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -1416,19 +1862,19 @@
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "422": {
                         "description": "Unprocessable entity",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -1462,13 +1908,13 @@
                     "404": {
                         "description": "Faucet not found",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -1502,19 +1948,19 @@
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Faucet not found",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -1566,25 +2012,25 @@
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Faucet not found",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "422": {
                         "description": "Unprocessable entity",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -1642,13 +2088,13 @@
                     "400": {
                         "description": "Invalid filter in the request",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -1694,19 +2140,19 @@
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "422": {
                         "description": "Unprocessable parameters were sent",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -1749,13 +2195,13 @@
                     "404": {
                         "description": "Job not found",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -1801,25 +2247,25 @@
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Job not found",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "409": {
                         "description": "Job in invalid state for the given status update",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -1859,13 +2305,13 @@
                     "404": {
                         "description": "Job not found",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -1905,13 +2351,13 @@
                     "404": {
                         "description": "Job not found",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -1948,7 +2394,7 @@
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -2009,19 +2455,19 @@
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "422": {
                         "description": "Unprocessable parameters were sent",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -2064,13 +2510,13 @@
                     "404": {
                         "description": "Schedule not found",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -2122,13 +2568,13 @@
                     "400": {
                         "description": "Invalid filter in the request",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -2212,25 +2658,25 @@
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "409": {
                         "description": "Already existing transaction",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "422": {
                         "description": "Unprocessable parameters were sent",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -2314,25 +2760,25 @@
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "409": {
                         "description": "Already existing transaction",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "422": {
                         "description": "Unprocessable parameters were sent",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -2404,25 +2850,25 @@
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "409": {
                         "description": "Already existing transaction",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "422": {
                         "description": "Unprocessable parameters were sent",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -2506,25 +2952,25 @@
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "409": {
                         "description": "Already existing transaction",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "422": {
                         "description": "Unprocessable parameters were sent",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -2567,13 +3013,13 @@
                     "404": {
                         "description": "Transaction request not found",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -2610,13 +3056,13 @@
                     "404": {
                         "description": "Transaction request not found",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -2659,13 +3105,13 @@
                     "404": {
                         "description": "Transaction request not found",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
+                            "$ref": "#/definitions/api.ErrorResponse"
                         }
                     }
                 }
@@ -2673,6 +3119,19 @@
         }
     },
     "definitions": {
+        "api.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 24000
+                },
+                "message": {
+                    "type": "string",
+                    "example": "error message"
+                }
+            }
+        },
         "entities.ABIComponent": {
             "type": "object",
             "properties": {
@@ -2931,19 +3390,6 @@
                 }
             }
         },
-        "httputil.ErrorResponse": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "integer",
-                    "example": 24000
-                },
-                "message": {
-                    "type": "string",
-                    "example": "error message"
-                }
-            }
-        },
         "types.ABIComponentResponse": {
             "type": "object",
             "properties": {
@@ -3049,8 +3495,8 @@
             "properties": {
                 "chainID": {
                     "description": "[Ethereum chain ID](https://besu.hyperledger.org/en/latest/Concepts/NetworkID-And-ChainID/).",
-                    "type": "string",
-                    "example": "2445"
+                    "type": "integer",
+                    "example": 2445
                 },
                 "createdAt": {
                     "description": "Date and time at which the chain was registered.",
@@ -3255,8 +3701,68 @@
                 }
             }
         },
+        "types.CreateKafkaEventStreamRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "topic"
+            ],
+            "properties": {
+                "chain": {
+                    "type": "string",
+                    "example": "mainnet"
+                },
+                "labels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "type": "string",
+                    "example": "my-kafka-stream"
+                },
+                "topic": {
+                    "type": "string",
+                    "example": "my-notification-topic"
+                }
+            }
+        },
         "types.CreateScheduleRequest": {
             "type": "object"
+        },
+        "types.CreateWebhookEventStreamRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "url"
+            ],
+            "properties": {
+                "chain": {
+                    "type": "string",
+                    "example": "mainnet"
+                },
+                "headers": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "labels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "type": "string",
+                    "example": "my-webhook-stream"
+                },
+                "url": {
+                    "type": "string",
+                    "example": "https://my-event-steam-endpoint.com"
+                }
+            }
         },
         "types.DeployContractParams": {
             "type": "object",
@@ -3609,14 +4115,58 @@
                 }
             }
         },
+        "types.EventStreamResponse": {
+            "type": "object",
+            "properties": {
+                "chain_uuid": {
+                    "type": "string",
+                    "example": "b4374e6f-b28a-4bad-b4fe-bda36eaf849c"
+                },
+                "channel": {
+                    "type": "string",
+                    "example": "webhook"
+                },
+                "createdAt": {
+                    "type": "string",
+                    "example": "2020-07-09T12:35:42.115395Z"
+                },
+                "labels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "type": "string",
+                    "example": "my-stream"
+                },
+                "ownerID": {
+                    "type": "string",
+                    "example": "foo"
+                },
+                "specs": {
+                    "type": "object"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "LIVE"
+                },
+                "tenantID": {
+                    "type": "string",
+                    "example": "foo"
+                },
+                "updatedAt": {
+                    "type": "string",
+                    "example": "2020-07-09T12:35:42.115395Z"
+                },
+                "uuid": {
+                    "type": "string",
+                    "example": "b4374e6f-b28a-4bad-b4fe-bda36eaf849c"
+                }
+            }
+        },
         "types.FaucetResponse": {
             "type": "object",
-            "required": [
-                "amount",
-                "cooldown",
-                "maxBalance",
-                "name"
-            ],
             "properties": {
                 "amount": {
                     "description": "Amount, in Wei, sent to the beneficiary on each funding transaction.",
@@ -4506,6 +5056,36 @@
                 }
             }
         },
+        "types.UpdateKafkaEventStreamRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "chain": {
+                    "type": "string",
+                    "example": "mainnet"
+                },
+                "labels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "type": "string",
+                    "example": "my-kafka-stream"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "PAUSED"
+                },
+                "topic": {
+                    "type": "string",
+                    "example": "my-notification-topic"
+                }
+            }
+        },
         "types.UpdateListenerRequest": {
             "type": "object",
             "properties": {
@@ -4528,6 +5108,43 @@
                     "description": "Whether to listen to external transactions not crafted by Orchestrate (default `false`).",
                     "type": "boolean",
                     "example": false
+                }
+            }
+        },
+        "types.UpdateWebhookEventStreamRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "url"
+            ],
+            "properties": {
+                "chain": {
+                    "type": "string",
+                    "example": "mainnet"
+                },
+                "headers": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "labels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "type": "string",
+                    "example": "my-kafka-stream"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "PAUSED"
+                },
+                "url": {
+                    "type": "string",
+                    "example": "https://my-event-steam-endpoint.com"
                 }
             }
         },

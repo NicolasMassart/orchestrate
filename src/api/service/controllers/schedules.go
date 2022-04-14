@@ -39,9 +39,9 @@ func (c *SchedulesController) Append(router *mux.Router) {
 // @Security     JWTAuth
 // @Param        request  body      api.CreateScheduleRequest                     true  "Schedule creation request"
 // @Success      200      {object}  api.ScheduleResponse{jobs=[]api.JobResponse}  "Created schedule"
-// @Failure      400      {object}  httputil.ErrorResponse                        "Invalid request"
-// @Failure      422      {object}  httputil.ErrorResponse                        "Unprocessable parameters were sent"
-// @Failure      500      {object}  httputil.ErrorResponse                        "Internal server error"
+// @Failure      400      {object}  infra.ErrorResponse                        "Invalid request"
+// @Failure      422      {object}  infra.ErrorResponse                        "Unprocessable parameters were sent"
+// @Failure      500      {object}  infra.ErrorResponse                        "Internal server error"
 // @Router       /schedules [post]
 func (c *SchedulesController) create(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
@@ -72,8 +72,8 @@ func (c *SchedulesController) create(rw http.ResponseWriter, request *http.Reque
 // @Security     JWTAuth
 // @Param        uuid  path      string                  true  "UUID of the schedule"
 // @Success      200   {object}  api.ScheduleResponse    "Schedule found"
-// @Failure      404   {object}  httputil.ErrorResponse  "Schedule not found"
-// @Failure      500   {object}  httputil.ErrorResponse  "Internal server error"
+// @Failure      404   {object}  infra.ErrorResponse  "Schedule not found"
+// @Failure      500   {object}  infra.ErrorResponse  "Internal server error"
 // @Router       /schedules/{uuid} [get]
 func (c *SchedulesController) getOne(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
@@ -98,7 +98,7 @@ func (c *SchedulesController) getOne(rw http.ResponseWriter, request *http.Reque
 // @Security     ApiKeyAuth
 // @Security     JWTAuth
 // @Success      200  {array}   api.ScheduleResponse    "List of schedules found"
-// @Failure      500  {object}  httputil.ErrorResponse  "Internal server error"
+// @Failure      500  {object}  infra.ErrorResponse  "Internal server error"
 // @Router       /schedules [get]
 func (c *SchedulesController) getAll(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")

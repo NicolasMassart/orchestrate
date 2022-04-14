@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 package integrationtests
@@ -19,7 +20,6 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-// jobsTestSuite is a test suite for Jobs controller
 type jobsTestSuite struct {
 	suite.Suite
 	client    client.OrchestrateClient
@@ -177,7 +177,14 @@ func (s *jobsTestSuite) TestStart() {
 
 func (s *jobsTestSuite) TestUpdate() {
 	ctx := s.env.ctx
+
 	schedule, err := s.client.CreateSchedule(ctx, &api.CreateScheduleRequest{})
+	require.NoError(s.T(), err)
+
+	_, err = s.client.CreateKafkaEventStream(ctx, &api.CreateKafkaEventStreamRequest{
+		Name:  "integration-test-event-stream-kafka",
+		Topic: s.env.externalKafkaTopic,
+	})
 	require.NoError(s.T(), err)
 
 	s.T().Run("should update job to MINED and notify", func(t *testing.T) {
@@ -200,10 +207,9 @@ func (s *jobsTestSuite) TestUpdate() {
 			Receipt: receipt,
 		})
 		require.NoError(s.T(), err)
-		
-		notification, err := s.env.externalConsumer.WaitForTxMinedNotification(ctx, job.ScheduleUUID, s.env.externalKafkaTopic, waitForEnvelopeTimeOut)
+
+		_, err = s.env.externalConsumer.WaitForTxMinedNotification(ctx, job.UUID, s.env.externalKafkaTopic, waitForEnvelopeTimeOut)
 		require.NoError(s.T(), err)
-		assert.Equal(s.T(), notification.UUID, job.ScheduleUUID)
 	})
 
 	s.T().Run("should update job to FAILED and notify", func(t *testing.T) {
@@ -223,9 +229,8 @@ func (s *jobsTestSuite) TestUpdate() {
 		_, err = s.client.UpdateJob(ctx, job.UUID, &api.UpdateJobRequest{
 			Status: entities.StatusFailed,
 		})
-		
-		notification, err := s.env.externalConsumer.WaitForTxFailedNotification(ctx, job.ScheduleUUID, s.env.externalKafkaTopic, waitForEnvelopeTimeOut)
+
+		_, err = s.env.externalConsumer.WaitForTxFailedNotification(ctx, job.UUID, s.env.externalKafkaTopic, waitForEnvelopeTimeOut)
 		require.NoError(s.T(), err)
-		assert.Equal(s.T(), notification.UUID, job.ScheduleUUID)
 	})
 }

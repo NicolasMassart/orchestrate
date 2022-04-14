@@ -37,7 +37,7 @@ func NewUseCases(
 	faucetUseCases := newFaucetUseCases(db)
 	getFaucetCandidateUC := faucets.NewGetFaucetCandidateUseCase(faucetUseCases.Search(), ec)
 	scheduleUseCases := newScheduleUseCases(db)
-	eventStreamUseCases := newEventStreamUseCases(db.EventStream(), notifier, contractUseCases)
+	eventStreamUseCases := newEventStreamUseCases(db.EventStream(), notifier, contractUseCases, chainUseCases)
 	jobUseCases := newJobUseCases(
 		db,
 		appMetrics,

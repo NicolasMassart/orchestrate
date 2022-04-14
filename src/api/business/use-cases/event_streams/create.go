@@ -2,6 +2,7 @@ package streams
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
@@ -14,44 +15,60 @@ import (
 const createEventStreamComponent = "use-cases.create-event_stream"
 
 type createUseCase struct {
-	db     store.EventStreamAgent
-	logger *log.Logger
+	db             store.EventStreamAgent
+	searchChainsUC usecases.SearchChainsUseCase
+	logger         *log.Logger
 }
 
-func NewCreateUseCase(db store.EventStreamAgent) usecases.CreateEventStreamUseCase {
+func NewCreateUseCase(db store.EventStreamAgent, searchChainsUC usecases.SearchChainsUseCase) usecases.CreateEventStreamUseCase {
 	return &createUseCase{
-		db:     db,
-		logger: log.NewLogger().SetComponent(createEventStreamComponent),
+		db:             db,
+		searchChainsUC: searchChainsUC,
+		logger:         log.NewLogger().SetComponent(createEventStreamComponent),
 	}
 }
 
-func (uc *createUseCase) Execute(ctx context.Context, eventStream *entities.EventStream, userInfo *multitenancy.UserInfo) (*entities.EventStream, error) {
+func (uc *createUseCase) Execute(ctx context.Context, eventStream *entities.EventStream, chainName string, userInfo *multitenancy.UserInfo) (*entities.EventStream, error) {
 	ctx = log.WithFields(ctx, log.Field("name", eventStream.Name))
 	logger := uc.logger.WithContext(ctx)
 
 	logger.Debug("creating new event stream")
 
-	eventStreams, err := uc.db.Search(
-		ctx,
-		&entities.EventStreamFilters{Names: []string{eventStream.Name}, TenantID: userInfo.TenantID},
-		userInfo.AllowedTenants,
-		userInfo.Username,
-	)
+	filter := &entities.EventStreamFilters{Names: []string{eventStream.Name}, TenantID: userInfo.TenantID}
+	if chainName != "" {
+		chains, err := uc.searchChainsUC.Execute(ctx, &entities.ChainFilters{Names: []string{chainName}}, userInfo)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(chains) == 0 {
+			errMessage := fmt.Sprintf("chain '%s' does not exist", chainName)
+			uc.logger.WithContext(ctx).Error(errMessage)
+			return nil, errors.InvalidParameterError(errMessage).ExtendComponent(createEventStreamComponent)
+		}
+
+		filter.ChainUUID = chains[0].UUID
+		eventStream.ChainUUID = chains[0].UUID
+	}
+
+	eventStreams, err := uc.db.Search(ctx, filter, userInfo.AllowedTenants, userInfo.Username)
 	if err != nil {
 		return nil, errors.FromError(err).ExtendComponent(createEventStreamComponent)
 	}
 
 	if len(eventStreams) > 0 {
-		errMsg := "name already exists"
+		errMsg := "event stream already exists"
 		logger.Error(errMsg)
 		return nil, errors.AlreadyExistsError(errMsg).ExtendComponent(createEventStreamComponent)
 	}
 
+	eventStream.TenantID = userInfo.TenantID
+	eventStream.OwnerID = userInfo.Username
 	e, err := uc.db.Insert(ctx, eventStream)
 	if err != nil {
 		return nil, errors.FromError(err).ExtendComponent(createEventStreamComponent)
 	}
 
-	logger.WithField("name", e.Name).Info("event stream created successfully")
+	logger.WithField("event_stream_uuid", e.UUID).Info("event stream created successfully")
 	return e, nil
 }
