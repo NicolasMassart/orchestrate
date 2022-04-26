@@ -20,9 +20,9 @@ func New(msg provider.Message) *Provider {
 	}
 }
 
-func (p *Provider) Provide(ctx context.Context, msgs chan<- provider.Message) error {
+func (p *Provider) Provide(_ context.Context, msgs chan<- provider.Message) error {
 	p.logger.WithField("provider", fmt.Sprintf("%T", p)).
-		Debug("start providing")
+		Trace("start providing")
 	msgs <- p.msg
 	return nil
 }

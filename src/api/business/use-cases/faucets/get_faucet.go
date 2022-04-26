@@ -37,6 +37,6 @@ func (uc *getFaucetUseCase) Execute(ctx context.Context, uuid string, userInfo *
 		return nil, errors.FromError(err).ExtendComponent(getFaucetComponent)
 	}
 
-	logger.Debug("faucet found successfully")
+	logger.Trace("faucet found successfully")
 	return faucet, nil
 }

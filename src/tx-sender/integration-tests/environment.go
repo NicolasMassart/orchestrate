@@ -15,8 +15,8 @@ import (
 	httputils "github.com/consensys/orchestrate/pkg/toolkit/app/http"
 	"github.com/consensys/orchestrate/pkg/utils"
 	ethclient "github.com/consensys/orchestrate/src/infra/ethclient/rpc"
-	"github.com/consensys/orchestrate/src/infra/kafka"
-	"github.com/consensys/orchestrate/src/infra/kafka/sarama"
+	"github.com/consensys/orchestrate/src/infra/messenger"
+	msgkafka "github.com/consensys/orchestrate/src/infra/messenger/kafka"
 	"github.com/consensys/orchestrate/src/infra/redis"
 	"github.com/consensys/orchestrate/src/infra/redis/redigo"
 	txsender "github.com/consensys/orchestrate/src/tx-sender"
@@ -47,15 +47,15 @@ var envKafkaHostPort string
 var envMetricsPort string
 
 type IntegrationEnvironment struct {
-	ctx         context.Context
-	logger      log.Logger
-	txSender    *app.App
-	client      *docker.Client
-	producer    kafka.Producer
-	metricsURL  string
-	ns          store.NonceSender
-	redis       redis.Client
-	txSenderCfg *txsender.Config
+	ctx             context.Context
+	logger          log.Logger
+	txSender        *app.App
+	client          *docker.Client
+	messengerClient messenger.Producer
+	metricsURL      string
+	ns              store.NonceSender
+	redis           redis.Client
+	txSenderCfg     *txsender.Config
 }
 
 func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, error) {
@@ -158,20 +158,15 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 		return err
 	}
 
-	consumer, err := sarama.NewConsumer(env.txSenderCfg.Kafka)
-	if err != nil {
-		return err
-	}
-
 	// Create app
 	env.txSenderCfg.BckOff = testBackOff()
-	env.txSender, err = newTxSender(env.txSenderCfg, env.redis, consumer)
+	env.txSender, err = newTxSender(env.txSenderCfg, env.redis)
 	if err != nil {
 		env.logger.WithError(err).Error("could not initialize tx-sender")
 		return err
 	}
 
-	env.producer, err = sarama.NewProducer(env.txSenderCfg.Kafka)
+	env.messengerClient, err = msgkafka.NewProducer(env.txSenderCfg.Kafka)
 	if err != nil {
 		env.logger.WithError(err).Error("could not initialize kafka producer")
 		return err
@@ -215,7 +210,7 @@ func (env *IntegrationEnvironment) Teardown(ctx context.Context) {
 	}
 }
 
-func newTxSender(txSenderConfig *txsender.Config, redisCli redis.Client, consumer kafka.Consumer) (*app.App, error) {
+func newTxSender(txSenderConfig *txsender.Config, redisCli redis.Client) (*app.App, error) {
 	// Initialize dependencies
 	httpClient := httputils.NewClient(httputils.NewDefaultConfig())
 	gock.InterceptClient(httpClient)
@@ -232,7 +227,6 @@ func newTxSender(txSenderConfig *txsender.Config, redisCli redis.Client, consume
 	txSenderConfig.NonceMaxRecovery = maxRecoveryDefault
 
 	return txsender.NewTxSender(txSenderConfig,
-		[]kafka.Consumer{consumer},
 		qkmClient,
 		apiClient,
 		ec,

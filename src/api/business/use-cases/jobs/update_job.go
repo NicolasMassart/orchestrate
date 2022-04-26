@@ -12,16 +12,19 @@ import (
 	"github.com/consensys/orchestrate/src/api/metrics"
 	"github.com/consensys/orchestrate/src/api/store"
 	"github.com/consensys/orchestrate/src/entities"
+	"github.com/consensys/orchestrate/src/infra/messenger"
 )
 
 const updateJobComponent = "use-cases.update-job"
 
 type updateJobUseCase struct {
-	db             store.DB
-	startNextJobUC usecases.StartNextJobUseCase
-	notifyUC       usecases.NotifyTransactionUseCase
-	metrics        metrics.TransactionSchedulerMetrics
-	logger         *log.Logger
+	db              store.DB
+	startNextJobUC  usecases.StartNextJobUseCase
+	notifyUC        usecases.NotifyTransactionUseCase
+	metrics         metrics.TransactionSchedulerMetrics
+	txListenerTopic string
+	messenger       messenger.Producer
+	logger          *log.Logger
 }
 
 func NewUpdateJobUseCase(
@@ -29,13 +32,17 @@ func NewUpdateJobUseCase(
 	startNextJobUC usecases.StartNextJobUseCase,
 	m metrics.TransactionSchedulerMetrics,
 	notifyUC usecases.NotifyTransactionUseCase,
+	messengerClient messenger.Producer,
+	txListenerTopic string,
 ) usecases.UpdateJobUseCase {
 	return &updateJobUseCase{
-		db:             db,
-		notifyUC:       notifyUC,
-		startNextJobUC: startNextJobUC,
-		metrics:        m,
-		logger:         log.NewLogger().SetComponent(updateJobComponent),
+		db:              db,
+		notifyUC:        notifyUC,
+		startNextJobUC:  startNextJobUC,
+		metrics:         m,
+		txListenerTopic: txListenerTopic,
+		messenger:       messengerClient,
+		logger:          log.NewLogger().SetComponent(updateJobComponent),
 	}
 }
 
@@ -67,6 +74,13 @@ func (uc *updateJobUseCase) Execute(ctx context.Context, nextJob *entities.Job, 
 	}
 
 	switch nextStatus {
+	case entities.StatusPending:
+		err = uc.messenger.SendJobMessage(uc.txListenerTopic, job, userInfo)
+		if err != nil {
+			errMsg := "failed to send pending job to tx-listener"
+			uc.logger.WithError(err).Error(errMsg)
+			return nil, errors.FromError(err).SetMessage(errMsg)
+		}
 	case entities.StatusMined:
 		job.Receipt = nextJob.Receipt
 		err = uc.notifyUC.Execute(ctx, job, "", userInfo)
@@ -149,7 +163,7 @@ func (uc *updateJobUseCase) updateJob(ctx context.Context, job *entities.Job, st
 		return errors.FromError(err).ExtendComponent(updateJobComponent)
 	}
 
-	uc.logger.WithField("job", job.UUID).WithField("status", status).Debug("updated job successfully")
+	uc.logger.WithField("job", job.UUID).WithField("status", status).Info("updated job successfully")
 	return nil
 }
 

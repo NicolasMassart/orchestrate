@@ -39,7 +39,7 @@ func (m *chainInMemory) Get(_ context.Context, chainUUID string) (*entities.Chai
 		return chain, nil
 	}
 
-	return nil, errors.NotFoundError("chain %q is not found", chainUUID)
+	return nil, nil
 }
 
 func (m *chainInMemory) Update(_ context.Context, chain *entities.Chain) error {

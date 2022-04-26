@@ -7,6 +7,7 @@ package mocks
 import (
 	context "context"
 	entities "github.com/consensys/orchestrate/src/entities"
+	store "github.com/consensys/orchestrate/src/tx-listener/store"
 	common "github.com/ethereum/go-ethereum/common"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
@@ -253,6 +254,20 @@ func (mr *MockRetrySessionsMockRecorder) Add(ctx, sessID, job interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockRetrySessions)(nil).Add), ctx, sessID, job)
 }
 
+// Has mocks base method
+func (m *MockRetrySessions) Has(ctx context.Context, sessID string) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Has", ctx, sessID)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// Has indicates an expected call of Has
+func (mr *MockRetrySessionsMockRecorder) Has(ctx, sessID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Has", reflect.TypeOf((*MockRetrySessions)(nil).Has), ctx, sessID)
+}
+
 // Remove mocks base method
 func (m *MockRetrySessions) Remove(ctx context.Context, sessID string) error {
 	m.ctrl.T.Helper()
@@ -309,4 +324,69 @@ func (m *MockRetrySessions) DeletePerChainUUID(ctx context.Context, chainUUID st
 func (mr *MockRetrySessionsMockRecorder) DeletePerChainUUID(ctx, chainUUID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePerChainUUID", reflect.TypeOf((*MockRetrySessions)(nil).DeletePerChainUUID), ctx, chainUUID)
+}
+
+// MockState is a mock of State interface
+type MockState struct {
+	ctrl     *gomock.Controller
+	recorder *MockStateMockRecorder
+}
+
+// MockStateMockRecorder is the mock recorder for MockState
+type MockStateMockRecorder struct {
+	mock *MockState
+}
+
+// NewMockState creates a new mock instance
+func NewMockState(ctrl *gomock.Controller) *MockState {
+	mock := &MockState{ctrl: ctrl}
+	mock.recorder = &MockStateMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockState) EXPECT() *MockStateMockRecorder {
+	return m.recorder
+}
+
+// ChainState mocks base method
+func (m *MockState) ChainState() store.Chain {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ChainState")
+	ret0, _ := ret[0].(store.Chain)
+	return ret0
+}
+
+// ChainState indicates an expected call of ChainState
+func (mr *MockStateMockRecorder) ChainState() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChainState", reflect.TypeOf((*MockState)(nil).ChainState))
+}
+
+// PendingJobState mocks base method
+func (m *MockState) PendingJobState() store.PendingJob {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PendingJobState")
+	ret0, _ := ret[0].(store.PendingJob)
+	return ret0
+}
+
+// PendingJobState indicates an expected call of PendingJobState
+func (mr *MockStateMockRecorder) PendingJobState() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PendingJobState", reflect.TypeOf((*MockState)(nil).PendingJobState))
+}
+
+// RetrySessionsState mocks base method
+func (m *MockState) RetrySessionsState() store.RetrySessions {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RetrySessionsState")
+	ret0, _ := ret[0].(store.RetrySessions)
+	return ret0
+}
+
+// RetrySessionsState indicates an expected call of RetrySessionsState
+func (mr *MockStateMockRecorder) RetrySessionsState() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RetrySessionsState", reflect.TypeOf((*MockState)(nil).RetrySessionsState))
 }

@@ -98,30 +98,8 @@ func (s *chainsCtrlTestSuite) TestRegister() {
 			NewRequest(http.MethodPost, chainsEndpoint, bytes.NewReader(requestBytes)).
 			WithContext(s.ctx)
 
-		expectedChain, _ := formatters.FormatRegisterChainRequest(req, true)
-		s.registerChainUC.EXPECT().Execute(gomock.Any(), expectedChain, true, s.userInfo).Return(chain, nil)
-
-		s.router.ServeHTTP(rw, httpRequest)
-
-		response := formatters.FormatChainResponse(chain)
-		expectedBody, _ := json.Marshal(response)
-		assert.Equal(t, string(expectedBody)+"\n", rw.Body.String())
-		assert.Equal(t, http.StatusOK, rw.Code)
-	})
-
-	s.T().Run("should execute request successfully from specified starting block", func(t *testing.T) {
-		req := apitestdata.FakeRegisterChainRequest()
-		req.Listener.FromBlock = "555"
-		requestBytes, _ := json.Marshal(req)
-		chain := testdata.FakeChain()
-		rw := httptest.NewRecorder()
-
-		httpRequest := httptest.
-			NewRequest(http.MethodPost, chainsEndpoint, bytes.NewReader(requestBytes)).
-			WithContext(s.ctx)
-
-		expectedChain, _ := formatters.FormatRegisterChainRequest(req, false)
-		s.registerChainUC.EXPECT().Execute(gomock.Any(), expectedChain, false, s.userInfo).Return(chain, nil)
+		expectedChain, _ := formatters.FormatRegisterChainRequest(req)
+		s.registerChainUC.EXPECT().Execute(gomock.Any(), expectedChain, s.userInfo).Return(chain, nil)
 
 		s.router.ServeHTTP(rw, httpRequest)
 
@@ -154,7 +132,7 @@ func (s *chainsCtrlTestSuite) TestRegister() {
 			NewRequest(http.MethodPost, chainsEndpoint, bytes.NewReader(requestBytes)).
 			WithContext(s.ctx)
 
-		s.registerChainUC.EXPECT().Execute(gomock.Any(), gomock.Any(), true, s.userInfo).Return(nil, fmt.Errorf("error"))
+		s.registerChainUC.EXPECT().Execute(gomock.Any(), gomock.Any(), s.userInfo).Return(nil, fmt.Errorf("error"))
 
 		s.router.ServeHTTP(rw, httpRequest)
 		assert.Equal(t, http.StatusInternalServerError, rw.Code)

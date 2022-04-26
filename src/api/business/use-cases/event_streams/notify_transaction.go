@@ -11,7 +11,7 @@ import (
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/store"
 	"github.com/consensys/orchestrate/src/entities"
-	pushnotification "github.com/consensys/orchestrate/src/infra/push_notification"
+	"github.com/consensys/orchestrate/src/infra/notifier"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
@@ -19,7 +19,8 @@ const notifyTransactionComponent = "use-cases.notify_transaction"
 
 type notifyTransactionUseCase struct {
 	db               store.EventStreamAgent
-	notifier         pushnotification.Notifier
+	kafkaNotifier    notifier.Producer
+	webhookNotifier  notifier.Producer
 	searchContractUC usecases.SearchContractUseCase
 	decodeLogUC      usecases.DecodeEventLogUseCase
 	logger           *log.Logger
@@ -27,13 +28,14 @@ type notifyTransactionUseCase struct {
 
 func NewNotifyTransactionUseCase(
 	db store.EventStreamAgent,
-	notifier pushnotification.Notifier,
+	kafkaNotifier, webhookNotifier notifier.Producer,
 	searchContractUC usecases.SearchContractUseCase,
 	decodeLogUC usecases.DecodeEventLogUseCase,
 ) usecases.NotifyTransactionUseCase {
 	return &notifyTransactionUseCase{
 		db:               db,
-		notifier:         notifier,
+		kafkaNotifier:    kafkaNotifier,
+		webhookNotifier:  webhookNotifier,
 		searchContractUC: searchContractUC,
 		decodeLogUC:      decodeLogUC,
 		logger:           log.NewLogger().SetComponent(notifyTransactionComponent),
@@ -41,7 +43,7 @@ func NewNotifyTransactionUseCase(
 }
 
 func (uc *notifyTransactionUseCase) Execute(ctx context.Context, job *entities.Job, errStr string, userInfo *multitenancy.UserInfo) error {
-	ctx = log.WithFields(ctx, log.Field("job_uuid", job.UUID), log.Field("job_status", job.Status))
+	ctx = log.WithFields(ctx, log.Field("id", job.ScheduleUUID))
 
 	eventStream, err := uc.db.FindOneByTenantAndChain(ctx, job.TenantID, job.ChainUUID, userInfo.AllowedTenants, userInfo.Username)
 	if err != nil {
@@ -84,7 +86,15 @@ func (uc *notifyTransactionUseCase) Execute(ctx context.Context, job *entities.J
 		}
 	}
 
-	err = uc.notifier.SendTxResponse(ctx, eventStream, job, errStr)
+	switch eventStream.Channel {
+	case entities.EventStreamChannelKafka:
+		err = uc.kafkaNotifier.SendTxResponse(ctx, eventStream, job, errStr)
+	case entities.EventStreamChannelWebhook:
+		err = uc.webhookNotifier.SendTxResponse(ctx, eventStream, job, errStr)
+	default:
+		return errors.DataCorruptedError("invalid event stream channel")
+	}
+
 	if err != nil {
 		errMsg := "failed to send notification"
 		logger.WithError(err).Error(errMsg)

@@ -154,8 +154,8 @@ func (app *App) init(_ context.Context) error {
 	if err != nil {
 		return err
 	}
-	app.logger.WithField("conf", string(conf)).Debug("loaded app configuration")
-	app.logger.WithField("metrics", app.cfg.Metrics.Modules()).Info("activated metric modules")
+	app.logger.WithField("conf", string(conf)).Trace("loaded app configuration")
+	app.logger.WithField("metrics", app.cfg.Metrics.Modules()).Debug("activated metric modules")
 	var tcpreg tcpmetrics.TPCMetrics
 	if app.cfg.HTTP != nil {
 		if app.cfg.Metrics.IsActive(tcpmetrics.ModuleName) {
@@ -257,7 +257,7 @@ func (app *App) Start(ctx context.Context) error {
 
 	app.isReady = true
 
-	app.logger.Info("started")
+	app.logger.Info("application started")
 	return nil
 }
 
@@ -277,11 +277,11 @@ signalLoop:
 		case sig := <-signals:
 			switch sig {
 			case syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT:
-				app.logger.WithField("sig", sig.String()).Info("signal intercepted")
+				app.logger.WithField("sig", sig.String()).Debug("signal intercepted")
 				break signalLoop
 			case syscall.SIGPIPE:
 				// Ignore random broken pipe
-				app.logger.WithField("sig", sig.String()).Info("signal intercepted (ignored)")
+				app.logger.WithField("sig", sig.String()).Trace("signal intercepted (ignored)")
 			}
 		case err = <-app.Errors():
 			if err != nil && err != context.Canceled && err != nethttp.ErrServerClosed {

@@ -25,16 +25,17 @@ import (
 
 type txSentryTestSuite struct {
 	suite.Suite
-	env    *Environment
-	ctx    context.Context
-	cancel context.CancelFunc
+	env        *Environment
+	ctx        context.Context
+	cancel     context.CancelFunc
+	kafkaTopic string
 }
 
 func TestTxSentry(t *testing.T) {
 	s := new(txSentryTestSuite)
 	s.ctx, s.cancel = context.WithCancel(context.Background())
 	defer s.cancel()
-	
+
 	var err error
 	s.env, err = NewEnvironment(s.ctx, s.cancel)
 	require.NoError(t, err)
@@ -50,6 +51,18 @@ func TestTxSentry(t *testing.T) {
 	suite.Run(t, s)
 }
 
+func (s *txSentryTestSuite) SetupSuite() {
+	err := s.env.Start()
+	require.NoError(s.T(), err)
+	s.env.Logger.Info("setup test suite has completed")
+}
+
+func (s *txSentryTestSuite) TearDownSuite() {
+	err := s.env.Stop()
+	require.NoError(s.T(), err)
+	s.env.Logger.Info("setup test teardown has completed")
+}
+
 func (s *txSentryTestSuite) TestTxSentry_Successful() {
 	faucetAcc, err := pkgutils.ImportOrFetchAccount(s.ctx, s.env.Client, s.env.TestData.Nodes.Geth[0].FundedPublicKeys[0], &types.ImportAccountRequest{
 		Alias:      "faucet-geth-" + common.RandString(5),
@@ -57,21 +70,14 @@ func (s *txSentryTestSuite) TestTxSentry_Successful() {
 	})
 	require.NoError(s.T(), err)
 
-	chainRes, err := pkgutils.RegisterChainAndWaitForProxy(s.ctx, s.env.Client, s.env.EthClient, &types.RegisterChainRequest{
-		Name: "chain-geth-" + common.RandString(5),
-		URLs: s.env.TestData.Nodes.Geth[0].URLs,
-	})
+	gethChain, _, err := s.env.createChainWithStream("chain-geth-"+common.RandString(5), s.env.TestData.Nodes.Geth[0].URLs, "")
 	require.NoError(s.T(), err)
-	defer func() {
-		err := s.env.Client.DeleteChain(s.ctx, chainRes.UUID)
-		require.NoError(s.T(), err)
-	}()
 
 	spammerAcc, err := s.env.Client.CreateAccount(s.ctx, &types.CreateAccountRequest{})
 	require.NoError(s.T(), err)
 
 	faucetSpammerTxRes, err := s.env.Client.SendTransferTransaction(s.ctx, &types.TransferRequest{
-		ChainName: chainRes.Name,
+		ChainName: gethChain.Name,
 		Params: types.TransferParams{
 			From:  ethcommon.HexToAddress(faucetAcc.Address),
 			To:    ethcommon.HexToAddress(spammerAcc.Address),
@@ -79,7 +85,7 @@ func (s *txSentryTestSuite) TestTxSentry_Successful() {
 		},
 	})
 	require.NoError(s.T(), err)
-	_, err = s.env.KafkaConsumer.WaitForTxMinedNotification(s.ctx, faucetSpammerTxRes.UUID, s.env.TestData.KafkaTopic, s.env.WaitForTxResponseTTL)
+	_, err = s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, faucetSpammerTxRes.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
 	require.NoError(s.T(), err)
 
 	// Run in loop to simulate an active network
@@ -93,7 +99,7 @@ func (s *txSentryTestSuite) TestTxSentry_Successful() {
 				break
 			}
 			spammerTx, err := s.env.Client.SendTransferTransaction(s.ctx, &types.TransferRequest{
-				ChainName: chainRes.Name,
+				ChainName: gethChain.Name,
 				Params: types.TransferParams{
 					From:  ethcommon.HexToAddress(spammerAcc.Address),
 					To:    ethcommon.HexToAddress(faucetAcc.Address),
@@ -101,7 +107,7 @@ func (s *txSentryTestSuite) TestTxSentry_Successful() {
 				},
 			})
 			require.NoError(s.T(), err)
-			_, err = s.env.KafkaConsumer.WaitForTxMinedNotification(s.ctx, spammerTx.UUID, s.env.TestData.KafkaTopic, s.env.WaitForTxResponseTTL)
+			_, err = s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, spammerTx.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
 			assert.NoError(s.T(), err)
 		}
 	}()
@@ -112,7 +118,7 @@ func (s *txSentryTestSuite) TestTxSentry_Successful() {
 		require.NoError(s.T(), err)
 
 		faucetTxRes, err := s.env.Client.SendTransferTransaction(s.ctx, &types.TransferRequest{
-			ChainName: chainRes.Name,
+			ChainName: gethChain.Name,
 			Params: types.TransferParams{
 				From:  ethcommon.HexToAddress(faucetAcc.Address),
 				To:    ethcommon.HexToAddress(testAcc.Address),
@@ -120,11 +126,11 @@ func (s *txSentryTestSuite) TestTxSentry_Successful() {
 			},
 		})
 		require.NoError(s.T(), err)
-		_, err = s.env.KafkaConsumer.WaitForTxMinedNotification(s.ctx, faucetTxRes.UUID, s.env.TestData.KafkaTopic, s.env.WaitForTxResponseTTL)
+		_, err = s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, faucetTxRes.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
 		require.NoError(s.T(), err)
 
 		txOne, err := s.env.Client.SendTransferTransaction(s.ctx, &types.TransferRequest{
-			ChainName: chainRes.Name,
+			ChainName: gethChain.Name,
 			Params: types.TransferParams{
 				From:  ethcommon.HexToAddress(testAcc.Address),
 				To:    ethcommon.HexToAddress(faucetAcc.Address),
@@ -141,7 +147,7 @@ func (s *txSentryTestSuite) TestTxSentry_Successful() {
 		})
 		require.NoError(s.T(), err)
 
-		txOneRes, err := s.env.KafkaConsumer.WaitForTxMinedNotification(s.ctx, txOne.UUID, s.env.TestData.KafkaTopic, s.env.WaitForTxResponseTTL)
+		txOneRes, err := s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, txOne.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
 		require.NoError(s.T(), err)
 		require.Equal(t, uint64(1), txOneRes.Data.Job.Receipt.Status)
 
@@ -173,7 +179,7 @@ func (s *txSentryTestSuite) TestTxSentry_Successful() {
 		require.NoError(s.T(), err)
 
 		faucetTxRes, err := s.env.Client.SendTransferTransaction(s.ctx, &types.TransferRequest{
-			ChainName: chainRes.Name,
+			ChainName: gethChain.Name,
 			Params: types.TransferParams{
 				From:  ethcommon.HexToAddress(faucetAcc.Address),
 				To:    ethcommon.HexToAddress(testAcc.Address),
@@ -181,11 +187,11 @@ func (s *txSentryTestSuite) TestTxSentry_Successful() {
 			},
 		})
 		require.NoError(s.T(), err)
-		_, err = s.env.KafkaConsumer.WaitForTxMinedNotification(s.ctx, faucetTxRes.UUID, s.env.TestData.KafkaTopic, s.env.WaitForTxResponseTTL)
+		_, err = s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, faucetTxRes.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
 		require.NoError(s.T(), err)
 
 		txOne, err := s.env.Client.SendTransferTransaction(s.ctx, &types.TransferRequest{
-			ChainName: chainRes.Name,
+			ChainName: gethChain.Name,
 			Params: types.TransferParams{
 				From:  ethcommon.HexToAddress(testAcc.Address),
 				To:    ethcommon.HexToAddress(faucetAcc.Address),
@@ -200,7 +206,7 @@ func (s *txSentryTestSuite) TestTxSentry_Successful() {
 		})
 		require.NoError(s.T(), err)
 
-		txOneRes, err := s.env.KafkaConsumer.WaitForTxMinedNotification(s.ctx, txOne.UUID, s.env.TestData.KafkaTopic, s.env.WaitForTxResponseTTL)
+		txOneRes, err := s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, txOne.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
 		require.NoError(s.T(), err)
 		require.Equal(t, uint64(1), txOneRes.Data.Job.Receipt.Status)
 
@@ -271,7 +277,7 @@ func (s *txSentryTestSuite) TestTxSentry_Failure() {
 		})
 
 		require.NoError(s.T(), err)
-		_, err = s.env.KafkaConsumer.WaitForTxMinedNotification(s.ctx, txRes.UUID, s.env.TestData.KafkaTopic, time.Second*(types.SentryMaxRetries+5))
+		_, err = s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, txRes.UUID, s.env.KafkaTopic, time.Second*(types.SentryMaxRetries+5))
 		require.Error(t, err)
 
 		finalTxReqStatus, err := s.env.Client.GetTxRequest(s.ctx, txRes.UUID)

@@ -35,6 +35,6 @@ func (uc *getAccountUseCase) Execute(ctx context.Context, address ethcommon.Addr
 		return nil, errors.FromError(err).ExtendComponent(getAccountComponent)
 	}
 
-	logger.Debug("account found successfully")
+	logger.Trace("account found successfully")
 	return acc, nil
 }

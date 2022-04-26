@@ -19,6 +19,24 @@ type txSenderTestSuite struct {
 	err error
 }
 
+func TestTxSender(t *testing.T) {
+	s := new(txSenderTestSuite)
+	ctx, cancel := context.WithCancel(context.Background())
+
+	s.env, s.err = NewIntegrationEnvironment(ctx)
+	if s.err != nil {
+		t.Errorf(s.err.Error())
+		return
+	}
+
+	sig := utils.NewSignalListener(func(signal os.Signal) {
+		cancel()
+	})
+	defer sig.Close()
+
+	suite.Run(t, s)
+}
+
 func (s *txSenderTestSuite) SetupSuite() {
 	err := integrationtest.StartEnvironment(s.env.ctx, s.env)
 	if err != nil {
@@ -40,23 +58,6 @@ func (s *txSenderTestSuite) TearDownSuite() {
 	}
 }
 
-func TestTxSender(t *testing.T) {
-	s := new(txSenderTestSuite)
-	ctx, cancel := context.WithCancel(context.Background())
-
-	s.env, s.err = NewIntegrationEnvironment(ctx)
-	if s.err != nil {
-		t.Errorf(s.err.Error())
-		return
-	}
-
-	sig := utils.NewSignalListener(func(signal os.Signal) {
-		cancel()
-	})
-	defer sig.Close()
-
-	suite.Run(t, s)
-}
 
 func (s *txSenderTestSuite) TestEthereum() {
 	if s.err != nil {

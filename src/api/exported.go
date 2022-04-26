@@ -2,15 +2,16 @@ package api
 
 import (
 	"context"
-
-	broker "github.com/consensys/orchestrate/src/infra/kafka/sarama"
+	"net/http"
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app"
 	authjwt "github.com/consensys/orchestrate/pkg/toolkit/app/auth/jwt"
 	authkey "github.com/consensys/orchestrate/pkg/toolkit/app/auth/key"
 	ethclient "github.com/consensys/orchestrate/src/infra/ethclient/rpc"
+	messenger "github.com/consensys/orchestrate/src/infra/messenger/kafka"
+	kafkanotifier "github.com/consensys/orchestrate/src/infra/notifier/kafka"
+	webhooknotifier "github.com/consensys/orchestrate/src/infra/notifier/webhook"
 	"github.com/consensys/orchestrate/src/infra/postgres/gopg"
-	notifier "github.com/consensys/orchestrate/src/infra/push_notification/client"
 	qkmhttp "github.com/consensys/orchestrate/src/infra/quorum-key-manager/http"
 	nonclient "github.com/consensys/orchestrate/src/infra/quorum-key-manager/non-client"
 	"github.com/consensys/quorum-key-manager/pkg/client"
@@ -32,12 +33,12 @@ func New(ctx context.Context, cfg *Config) (*Daemon, error) {
 		return nil, err
 	}
 
-	clientProducer, err := broker.NewProducer(cfg.Kafka)
+	messengerClient, err := messenger.NewProducer(cfg.Kafka)
 	if err != nil {
 		return nil, err
 	}
 
-	notifierClient, err := notifier.New(cfg.Kafka)
+	kafkaNotifierClient, err := kafkanotifier.NewProducer(cfg.Kafka)
 	if err != nil {
 		return nil, err
 	}
@@ -54,8 +55,9 @@ func New(ctx context.Context, cfg *Config) (*Daemon, error) {
 		qkmClient,
 		cfg.QKM.StoreName,
 		ethclient.GlobalClient(),
-		clientProducer,
-		notifierClient,
+		messengerClient,
+		kafkaNotifierClient,
+		webhooknotifier.NewProducer(http.DefaultClient),
 	)
 
 	if err != nil {

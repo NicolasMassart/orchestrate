@@ -42,7 +42,7 @@ func (b *Builder) Build(_ context.Context, _ string, configuration interface{}) 
 
 	cManager := newManager(b.cache, cfg.TTL)
 	logger := log.NewLogger().SetComponent(component)
-	logger.Debug("middleware built successfully")
+	logger.Trace("middleware built successfully")
 
 	m := newHTTPCache(cManager, b.cacheReq, b.cacheRes, cfg.KeySuffix, logger)
 	return m.Handler, nil, nil
@@ -107,7 +107,7 @@ func (cm *HTTPCache) Handler(h http.Handler) http.Handler {
 					logger.WithError(err).Error("failed to write cache")
 				}
 
-				logger.Debug("response was pull from cache")
+				logger.Trace("response was pull from cache")
 				return
 			}
 		}
@@ -158,7 +158,7 @@ func (cm *HTTPCache) cacheRequest(ctx context.Context, req *http.Request) (c boo
 
 func (cm *HTTPCache) cacheResponse(ctx context.Context, res *http.Response) bool {
 	if res.StatusCode != 200 {
-		cm.logger.WithField("status", res.StatusCode).Debug("skip responses with status code different than 200")
+		cm.logger.WithField("status", res.StatusCode).Trace("skip responses with status code different than 200")
 		return false
 	}
 

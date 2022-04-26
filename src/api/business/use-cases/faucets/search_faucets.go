@@ -34,6 +34,6 @@ func (uc *searchFaucetsUseCase) Execute(ctx context.Context, filters *entities.F
 		return nil, errors.FromError(err).ExtendComponent(searchFaucetsComponent)
 	}
 
-	uc.logger.Debug("faucets found successfully")
+	uc.logger.Trace("faucets found successfully")
 	return faucets, nil
 }

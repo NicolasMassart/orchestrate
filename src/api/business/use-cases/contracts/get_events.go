@@ -35,7 +35,7 @@ func (uc *getEventsUseCase) Execute(ctx context.Context, chainID string, address
 		return "", nil, errors.FromError(err).ExtendComponent(getEventsComponent)
 	}
 	if contractEvent != nil {
-		logger.Debug("events were fetched successfully")
+		logger.Trace("events were fetched successfully")
 		return contractEvent.ABI, nil, nil
 	}
 
@@ -51,6 +51,6 @@ func (uc *getEventsUseCase) Execute(ctx context.Context, chainID string, address
 		eventsABI = append(eventsABI, e.ABI)
 	}
 
-	logger.Debug("default events were fetched successfully")
+	logger.Trace("default events were fetched successfully")
 	return "", eventsABI, nil
 }

@@ -18,7 +18,7 @@ type ChainUseCases interface {
 }
 
 type RegisterChainUseCase interface {
-	Execute(ctx context.Context, chain *entities.Chain, fromLatest bool, userInfo *multitenancy.UserInfo) (*entities.Chain, error)
+	Execute(ctx context.Context, chain *entities.Chain, userInfo *multitenancy.UserInfo) (*entities.Chain, error)
 }
 
 type GetChainUseCase interface {

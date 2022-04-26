@@ -27,7 +27,7 @@ func New(poll func(ctx context.Context) (provider.Message, error), refresh time.
 
 func (p *Provider) Provide(ctx context.Context, msgs chan<- provider.Message) error {
 	logger := p.logger.WithContext(ctx).WithField("provider", fmt.Sprintf("%T", p))
-	logger.Info("start providing")
+	logger.Trace("start providing")
 
 	operation := func() error {
 		ticker := time.NewTicker(p.refresh)
@@ -42,7 +42,7 @@ func (p *Provider) Provide(ctx context.Context, msgs chan<- provider.Message) er
 
 				msgs <- msg
 			case <-ctx.Done():
-				logger.Info("stopped providing")
+				logger.Debug("stopped providing")
 				return nil
 			}
 		}

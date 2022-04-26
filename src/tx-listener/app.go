@@ -3,8 +3,11 @@ package txlistener
 import (
 	"context"
 
+	backoff2 "github.com/cenkalti/backoff/v4"
 	"github.com/consensys/orchestrate/src/infra/ethclient"
-	listener "github.com/consensys/orchestrate/src/tx-listener/service/listener/data-pullers"
+	"github.com/consensys/orchestrate/src/infra/messenger"
+	"github.com/consensys/orchestrate/src/infra/messenger/kafka"
+	"github.com/consensys/orchestrate/src/tx-listener/service"
 	"github.com/consensys/orchestrate/src/tx-listener/tx-listener/builder"
 	"github.com/prometheus/client_golang/prometheus"
 
@@ -16,58 +19,76 @@ import (
 )
 
 type Service struct {
-	App *app.App
-	cfg *Config
+	cfg      *Config
+	consumer messenger.Consumer
+	logger   *log.Logger
 }
 
 func NewTxlistener(cfg *Config,
 	apiClient orchestrateclient.OrchestrateClient,
 	ethClient ethclient.MultiClient,
 	listenerMetrics prometheus.Collector,
-) (*Service, error) {
-	appli, err := app.New(cfg.App, ReadinessOpt(apiClient), app.MetricsOpt(listenerMetrics))
+) (*app.App, error) {
+	logger := log.NewLogger()
+
+	state := builder.NewStoreState()
+	contractUCs := builder.NewContractUseCases(apiClient, ethClient, state, logger)
+	jobUCs := builder.NewJobUseCases(apiClient, ethClient, contractUCs, state, logger)
+	chainUCs := builder.NewChainUseCases(jobUCs, state, logger)
+	sessionMngrs := builder.NewSessionManagers(apiClient, ethClient, jobUCs, chainUCs, state, logger)
+
+	// Create service layer consumer
+	bckOff := backoff2.NewConstantBackOff(cfg.RetryInterval) // @TODO Replace by config
+	msgConsumerHandler := service.NewMessageConsumerHandler(jobUCs.PendingJobUseCase(), sessionMngrs.ChainSessionManager(),
+		sessionMngrs.TxSentrySessionManager(), bckOff)
+
+	msgConsumer, err := kafka.NewMessageConsumer(cfg.Kafka, []string{cfg.ConsumerTopic}, msgConsumerHandler)
 	if err != nil {
 		return nil, err
 	}
 
-	logger := log.NewLogger()
+	txListenerSrv := &Service{
+		cfg:      cfg,
+		consumer: msgConsumer,
+		logger:   logger,
+	}
 
-	ucs := builder.NewEventUseCases(apiClient, ethClient, logger)
+	appli, err := app.New(cfg.App, readinessOpt(apiClient, msgConsumer), app.MetricsOpt(listenerMetrics))
+	if err != nil {
+		return nil, err
+	}
 
-	txlistener := listener.TxlistenerService(apiClient, ethClient, ucs.AddChainUseCase(), ucs.UpdateChainUseCase(),
-		ucs.DeleteChainUseCase(), cfg.RefreshInterval, logger)
-	chainBlocksListener := listener.ChainBlockListener(apiClient, txlistener, ethClient,
-		ucs.ChainBlockTxsUseCase(), logger)
-	chainPendingJobListener := listener.ChainPendingJobsListener(apiClient, txlistener, ucs.PendingJobUseCase(),
-		cfg.RefreshInterval, logger)
+	appli.RegisterDaemon(txListenerSrv)
 
-	appli.RegisterDaemon(txlistener)
-	appli.RegisterDaemon(chainBlocksListener)
-	appli.RegisterDaemon(chainPendingJobListener)
-	return &Service{
-		appli, cfg,
-	}, nil
+	return appli, nil
 }
 
-func (s *Service) Start(ctx context.Context) error {
-	var err error
+func (s *Service) Run(ctx context.Context) error {
+	s.logger.Debug("starting tx-consumer service...")
 	if s.cfg.IsMultiTenancyEnabled {
 		ctx = multitenancy.WithUserInfo(
 			authutils.WithAPIKey(ctx, s.cfg.HTTPClient.XAPIKey),
 			multitenancy.NewInternalAdminUser())
 	}
 
-	err = s.App.Run(ctx)
+	// @TODO Support multiple consumer as it is in tx-sender
+	err := s.consumer.Consume(ctx)
+	if err != nil {
+		// @TODO Exit gracefully in case of context canceled
+		s.logger.WithError(err).Error("service exited with errors")
+	}
+
 	return err
 }
 
-func (s *Service) Stop(ctx context.Context) error {
-	return s.App.Stop(ctx)
+func (s *Service) Close() error {
+	return s.consumer.Close()
 }
 
-func ReadinessOpt(client orchestrateclient.OrchestrateClient) app.Option {
+func readinessOpt(client orchestrateclient.OrchestrateClient, kafkaConsumer messenger.Consumer) app.Option {
 	return func(ap *app.App) error {
 		ap.AddReadinessCheck("api", client.Checker())
+		ap.AddReadinessCheck("kafka", kafkaConsumer.Checker)
 		return nil
 	}
 }

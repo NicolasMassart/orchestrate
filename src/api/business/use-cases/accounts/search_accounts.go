@@ -31,6 +31,6 @@ func (uc *searchAccountsUseCase) Execute(ctx context.Context, filters *entities.
 		return nil, errors.FromError(err).ExtendComponent(searchAccountsComponent)
 	}
 
-	uc.logger.WithContext(ctx).Debug("accounts found successfully")
+	uc.logger.WithContext(ctx).Trace("accounts found successfully")
 	return accs, nil
 }

@@ -7,6 +7,9 @@
 
 ### ⚠ BREAKING CHANGES
 * Redefined notification message format
+* Renamed chain listening attribute from `backOffDuration` to `blockTimeDuration`
+* Removed chain listening external transaction feature. 
+* Removed chain listening attribute `fromBlock`.
 
 ## v21.12.5 (2022-03-30)
 ### 🛠 Bug fixes

@@ -35,6 +35,6 @@ func (uc *searchJobsUseCase) Execute(ctx context.Context, filters *entities.JobF
 		return nil, errors.FromError(err).ExtendComponent(searchJobsComponent)
 	}
 
-	uc.logger.Debug("jobs found successfully")
+	uc.logger.Trace("jobs found successfully")
 	return jobs, nil
 }

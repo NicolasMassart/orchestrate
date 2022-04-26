@@ -199,7 +199,7 @@ func (c *EventStreamsController) updateKafka(rw http.ResponseWriter, request *ht
 		return
 	}
 
-	es, err := c.ucs.Update().Execute(ctx, req.ToEntity(mux.Vars(request)["uuid"]), req.Chain, multitenancy.UserInfoValue(ctx))
+	es, err := c.ucs.Update().Execute(ctx, req.ToEntity(mux.Vars(request)["uuid"]), multitenancy.UserInfoValue(ctx))
 
 	if err != nil {
 		infra.WriteHTTPErrorResponse(rw, err)
@@ -235,7 +235,7 @@ func (c *EventStreamsController) updateWebhook(rw http.ResponseWriter, request *
 		return
 	}
 
-	es, err := c.ucs.Update().Execute(ctx, req.ToEntity(mux.Vars(request)["uuid"]), req.Chain, multitenancy.UserInfoValue(ctx))
+	es, err := c.ucs.Update().Execute(ctx, req.ToEntity(mux.Vars(request)["uuid"]), multitenancy.UserInfoValue(ctx))
 
 	if err != nil {
 		infra.WriteHTTPErrorResponse(rw, err)

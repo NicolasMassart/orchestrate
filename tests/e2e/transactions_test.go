@@ -4,7 +4,6 @@ package e2e
 
 import (
 	"context"
-	"math/big"
 	"net/http"
 	"os"
 	"testing"
@@ -26,9 +25,9 @@ import (
 
 type transactionTestSuite struct {
 	suite.Suite
-	env    *Environment
-	ctx    context.Context
-	cancel context.CancelFunc
+	env     *Environment
+	ctx     context.Context
+	cancel  context.CancelFunc
 }
 
 func TestTransactions(t *testing.T) {
@@ -50,23 +49,27 @@ func TestTransactions(t *testing.T) {
 	suite.Run(t, s)
 }
 
+func (s *transactionTestSuite) SetupSuite() {
+	err := s.env.Start()
+	require.NoError(s.T(), err)
+	s.env.Logger.Info("setup test suite has completed")
+}
+
+func (s *transactionTestSuite) TearDownSuite() {
+	err := s.env.Stop()
+	require.NoError(s.T(), err)
+	s.env.Logger.Info("setup test teardown has completed")
+}
+
 func (s *transactionTestSuite) TestTransferTransactions() {
+	gethChain, _, err := s.env.createChainWithStream("chain-geth-"+common.RandString(5), s.env.TestData.Nodes.Geth[0].URLs, "")
+	require.NoError(s.T(), err)
+	
 	sourceAcc, err := pkgutils.ImportOrFetchAccount(s.ctx, s.env.Client, s.env.TestData.Nodes.Geth[0].FundedPublicKeys[0], &types.ImportAccountRequest{
 		Alias:      "source-acc-" + common.RandString(5),
 		PrivateKey: s.env.TestData.Nodes.Geth[0].FundedPrivateKeys[0],
 	})
 	require.NoError(s.T(), err)
-
-	chainRes, err := pkgutils.RegisterChainAndWaitForProxy(s.ctx, s.env.Client, s.env.EthClient, &types.RegisterChainRequest{
-		Name: "chain-geth-" + common.RandString(5),
-		URLs: s.env.TestData.Nodes.Geth[0].URLs,
-	})
-
-	require.NoError(s.T(), err)
-	defer func() {
-		err := s.env.Client.DeleteChain(s.ctx, chainRes.UUID)
-		require.NoError(s.T(), err)
-	}()
 
 	s.T().Run("as a user I want to send a transaction and be notified when ready", func(t *testing.T) {
 		newAccRes, err := s.env.Client.CreateAccount(s.ctx, &types.CreateAccountRequest{})
@@ -78,17 +81,17 @@ func (s *transactionTestSuite) TestTransferTransactions() {
 			Value: utils.HexToBigInt("0x16345785D8A0000"),
 		}
 		transactionRes, err := s.env.Client.SendTransferTransaction(s.ctx, &types.TransferRequest{
-			ChainName: chainRes.Name,
+			ChainName: gethChain.Name,
 			Params:    transferParams,
 		})
 		require.NoError(t, err)
 
-		txRes, err := s.env.KafkaConsumer.WaitForTxMinedNotification(s.ctx, transactionRes.UUID, s.env.TestData.KafkaTopic, s.env.WaitForTxResponseTTL)
+		txRes, err := s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, transactionRes.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
 		require.NoError(t, err)
-		assert.Equal(t, txRes.Data.Job.Transaction.From, sourceAcc.Address)
-		assert.Equal(t, txRes.Data.Job.Transaction.To, newAccRes.Address)
+		assert.Equal(t, txRes.Data.Job.Transaction.From.String(), sourceAcc.Address)
+		assert.Equal(t, txRes.Data.Job.Transaction.To.String(), newAccRes.Address)
 
-		balance, err := s.env.EthClient.BalanceAt(s.ctx, s.env.Client.ChainProxyURL(chainRes.UUID), ethcommon.HexToAddress(newAccRes.Address), nil)
+		balance, err := s.env.EthClient.BalanceAt(s.ctx, s.env.Client.ChainProxyURL(gethChain.UUID), ethcommon.HexToAddress(newAccRes.Address), nil)
 		require.NoError(t, err)
 		assert.Equal(t, transferParams.Value.String(), hexutil.EncodeBig(balance))
 	})
@@ -103,13 +106,13 @@ func (s *transactionTestSuite) TestTransferTransactions() {
 			Value: utils.HexToBigInt("0x16345785D8A0000"),
 		}
 		transactionRes, err := s.env.Client.SendTransferTransaction(s.ctx, &types.TransferRequest{
-			ChainName: chainRes.Name,
+			ChainName: gethChain.Name,
 			Params:    transferParams,
 		})
 
 		require.NoError(t, err)
 
-		txRes, err := s.env.KafkaConsumer.WaitForTxFailedNotification(s.ctx, transactionRes.UUID, s.env.TestData.KafkaTopic, s.env.WaitForTxResponseTTL)
+		txRes, err := s.env.ConsumerTracker.WaitForTxFailedNotification(s.ctx, transactionRes.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
 		require.NoError(t, err)
 		require.NotNil(t, txRes)
 	})
@@ -123,7 +126,7 @@ func (s *transactionTestSuite) TestTransferTransactions() {
 			To:   ethcommon.HexToAddress(sourceAcc.Address),
 		}
 		_, err = s.env.Client.SendTransferTransaction(s.ctx, &types.TransferRequest{
-			ChainName: chainRes.Name,
+			ChainName: gethChain.Name,
 			Params:    transferParams,
 		})
 
@@ -133,16 +136,8 @@ func (s *transactionTestSuite) TestTransferTransactions() {
 }
 
 func (s *transactionTestSuite) TestContractTransactions() {
-	chainRes, err := pkgutils.RegisterChainAndWaitForProxy(s.ctx, s.env.Client, s.env.EthClient, &types.RegisterChainRequest{
-		Name: "chain-besu-" + common.RandString(5),
-		URLs: s.env.TestData.Nodes.Besu[0].URLs,
-	})
-
+	besuChain, _, err := s.env.createChainWithStream("chain-besu-"+common.RandString(5), s.env.TestData.Nodes.Besu[0].URLs, "")
 	require.NoError(s.T(), err)
-	defer func() {
-		err := s.env.Client.DeleteChain(s.ctx, chainRes.UUID)
-		require.NoError(s.T(), err)
-	}()
 
 	newAcc, err := s.env.Client.CreateAccount(s.ctx, &types.CreateAccountRequest{})
 	require.NoError(s.T(), err)
@@ -161,7 +156,7 @@ func (s *transactionTestSuite) TestContractTransactions() {
 		require.NoError(s.T(), err)
 
 		txRes, err := s.env.Client.SendDeployTransaction(s.ctx, &types.DeployContractRequest{
-			ChainName: chainRes.Name,
+			ChainName: besuChain.Name,
 			Labels:    txLabels,
 			Params: types.DeployContractParams{
 				From:         utils.HexToAddress(newAcc.Address),
@@ -170,12 +165,12 @@ func (s *transactionTestSuite) TestContractTransactions() {
 		})
 		require.NoError(t, err)
 
-		deployTxRes, err := s.env.KafkaConsumer.WaitForTxMinedNotification(s.ctx, txRes.UUID, s.env.TestData.KafkaTopic, s.env.WaitForTxResponseTTL)
+		deployTxRes, err := s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, txRes.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
 		require.NoError(t, err)
 		require.Equal(t, uint64(1), deployTxRes.Data.Job.Receipt.Status)
 
 		txRes, err = s.env.Client.SendContractTransaction(s.ctx, &types.SendTransactionRequest{
-			ChainName: chainRes.Name,
+			ChainName: besuChain.Name,
 			Labels:    txLabels,
 			Params: types.TransactionParams{
 				From:            utils.HexToAddress(newAcc.Address),
@@ -187,7 +182,7 @@ func (s *transactionTestSuite) TestContractTransactions() {
 		})
 		require.NoError(t, err)
 
-		contractTxRes, err := s.env.KafkaConsumer.WaitForTxMinedNotification(s.ctx, txRes.UUID, s.env.TestData.KafkaTopic, s.env.WaitForTxResponseTTL)
+		contractTxRes, err := s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, txRes.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
 		require.NoError(t, err)
 		assert.Equal(t, uint64(1), contractTxRes.Data.Job.Receipt.Status)
 		assert.NotEmpty(t, contractTxRes.Data.Job.Receipt.Logs)
@@ -207,7 +202,7 @@ func (s *transactionTestSuite) TestContractTransactions() {
 		require.NoError(s.T(), err)
 
 		txRes, err := s.env.Client.SendDeployTransaction(s.ctx, &types.DeployContractRequest{
-			ChainName: chainRes.Name,
+			ChainName: besuChain.Name,
 			Labels:    txLabels,
 			Params: types.DeployContractParams{
 				From:         utils.HexToAddress(newAcc.Address),
@@ -216,12 +211,12 @@ func (s *transactionTestSuite) TestContractTransactions() {
 		})
 		require.NoError(t, err)
 
-		deployTxRes, err := s.env.KafkaConsumer.WaitForTxMinedNotification(s.ctx, txRes.UUID, s.env.TestData.KafkaTopic, s.env.WaitForTxResponseTTL)
+		deployTxRes, err := s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, txRes.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
 		require.NoError(t, err)
 		require.Equal(t, uint64(1), deployTxRes.Data.Job.Receipt.Status)
 
 		txRes, err = s.env.Client.SendContractTransaction(s.ctx, &types.SendTransactionRequest{
-			ChainName: chainRes.Name,
+			ChainName: besuChain.Name,
 			Labels:    txLabels,
 			Params: types.TransactionParams{
 				From:            utils.HexToAddress(newAcc.Address),
@@ -233,7 +228,7 @@ func (s *transactionTestSuite) TestContractTransactions() {
 		})
 		require.NoError(t, err)
 
-		contractTxRes, err := s.env.KafkaConsumer.WaitForTxMinedNotification(s.ctx, txRes.UUID, s.env.TestData.KafkaTopic, s.env.WaitForTxResponseTTL)
+		contractTxRes, err := s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, txRes.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
 		require.NoError(t, err)
 		assert.Equal(t, uint64(1), contractTxRes.Data.Job.Receipt.Status)
 		require.NotEmpty(t, contractTxRes.Data.Job.Receipt.Logs)
@@ -252,7 +247,7 @@ func (s *transactionTestSuite) TestContractTransactions() {
 		require.NoError(s.T(), err)
 
 		txRes, err := s.env.Client.SendDeployTransaction(s.ctx, &types.DeployContractRequest{
-			ChainName: chainRes.Name,
+			ChainName: besuChain.Name,
 			Labels:    txLabels,
 			Params: types.DeployContractParams{
 				OneTimeKey:   true,
@@ -261,7 +256,7 @@ func (s *transactionTestSuite) TestContractTransactions() {
 		})
 		require.NoError(t, err)
 
-		deployTxRes, err := s.env.KafkaConsumer.WaitForTxMinedNotification(s.ctx, txRes.UUID, s.env.TestData.KafkaTopic, s.env.WaitForTxResponseTTL)
+		deployTxRes, err := s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, txRes.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
 		require.NoError(t, err)
 		assert.Equal(t, uint64(1), deployTxRes.Data.Job.Receipt.Status)
 	})
@@ -277,7 +272,7 @@ func (s *transactionTestSuite) TestContractTransactions() {
 		require.NoError(s.T(), err)
 
 		txRes, err := s.env.Client.SendDeployTransaction(s.ctx, &types.DeployContractRequest{
-			ChainName: chainRes.Name,
+			ChainName: besuChain.Name,
 			Labels:    txLabels,
 			Params: types.DeployContractParams{
 				From:         utils.HexToAddress(newAcc.Address),
@@ -287,7 +282,7 @@ func (s *transactionTestSuite) TestContractTransactions() {
 		})
 		require.NoError(t, err)
 
-		deployTxRes, err := s.env.KafkaConsumer.WaitForTxMinedNotification(s.ctx, txRes.UUID, s.env.TestData.KafkaTopic, s.env.WaitForTxResponseTTL)
+		deployTxRes, err := s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, txRes.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
 		require.NoError(t, err)
 		require.Equal(t, uint64(1), deployTxRes.Data.Job.Receipt.Status)
 		require.NotEmpty(t, deployTxRes.Data.Job.Receipt.ContractAddress)
@@ -304,7 +299,7 @@ func (s *transactionTestSuite) TestContractTransactions() {
 		require.NoError(s.T(), err)
 
 		_, err := s.env.Client.SendDeployTransaction(s.ctx, &types.DeployContractRequest{
-			ChainName: chainRes.Name,
+			ChainName: besuChain.Name,
 			Labels:    txLabels,
 			Params: types.DeployContractParams{
 				From:         utils.HexToAddress(newAcc.Address),
@@ -318,18 +313,10 @@ func (s *transactionTestSuite) TestContractTransactions() {
 }
 
 func (s *transactionTestSuite) TestRawTransactions() {
-	chainRes, err := pkgutils.RegisterChainAndWaitForProxy(s.ctx, s.env.Client, s.env.EthClient, &types.RegisterChainRequest{
-		Name: "chain-go-quorum-" + common.RandString(5),
-		URLs: s.env.TestData.Nodes.GoQuorum[0].URLs,
-	})
+	goQuorumChain, _, err := s.env.createChainWithStream("chain-go-quorum-"+common.RandString(5), s.env.TestData.Nodes.GoQuorum[0].URLs, "")
 	require.NoError(s.T(), err)
-	chainID := new(big.Int).SetUint64(chainRes.ChainID)
-	defer func() {
-		err := s.env.Client.DeleteChain(s.ctx, chainRes.UUID)
-		require.NoError(s.T(), err)
-	}()
-
-	gasPrice, err := s.env.EthClient.SuggestGasPrice(s.ctx, s.env.Client.ChainProxyURL(chainRes.UUID))
+		
+	gasPrice, err := s.env.EthClient.SuggestGasPrice(s.ctx, s.env.Client.ChainProxyURL(goQuorumChain.UUID))
 	require.NoError(s.T(), err)
 
 	privKey, err := ethcrypto.GenerateKey()
@@ -346,27 +333,27 @@ func (s *transactionTestSuite) TestRawTransactions() {
 			Data:            hexutil.MustDecode("0x"),
 		}
 
-		signedRaw, _, err := crypto.SignTransaction(privKey, ethTransaction, chainID)
+		signedRaw, _, err := crypto.SignTransaction(privKey, ethTransaction, goQuorumChain.ChainID)
 		require.NoError(s.T(), err)
 
 		txRes, err := s.env.Client.SendRawTransaction(s.ctx, &types.RawTransactionRequest{
-			ChainName: chainRes.Name,
+			ChainName: goQuorumChain.Name,
 			Params: types.RawTransactionParams{
 				Raw: signedRaw,
 			},
 		})
 
 		require.NoError(s.T(), err)
-		deployTxRes, err := s.env.KafkaConsumer.WaitForTxMinedNotification(s.ctx, txRes.UUID, s.env.TestData.KafkaTopic, s.env.WaitForTxResponseTTL)
+		deployTxRes, err := s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, txRes.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
 		require.NoError(t, err)
 		require.Equal(t, uint64(1), deployTxRes.Data.Job.Receipt.Status)
 	})
-	
+
 	s.T().Run("when an user sends a raw transaction with invalid arguments", func(t *testing.T) {
 		require.NoError(s.T(), err)
 
 		_, err := s.env.Client.SendRawTransaction(s.ctx, &types.RawTransactionRequest{
-			ChainName: chainRes.Name,
+			ChainName: goQuorumChain.Name,
 			Params: types.RawTransactionParams{
 				Raw: nil,
 			},

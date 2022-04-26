@@ -13,6 +13,7 @@ import (
 	"github.com/consensys/orchestrate/src/api/store"
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/entities/testdata"
+	mocks3 "github.com/consensys/orchestrate/src/infra/messenger/mocks"
 
 	"github.com/consensys/orchestrate/src/api/store/mocks"
 	"github.com/golang/mock/gomock"
@@ -29,6 +30,9 @@ func TestUpdateJob_Execute(t *testing.T) {
 	startNextJobUC := mocks2.NewMockStartNextJobUseCase(ctrl)
 	metrics := mock.NewMockTransactionSchedulerMetrics(ctrl)
 	notifyTxUC := mocks2.NewMockNotifyTransactionUseCase(ctrl)
+	
+	txListenerTopic := "tx-listener-topic"
+	kafkaProducer := mocks3.NewMockProducer(ctrl)
 
 	jobsLatencyHistogram := mock2.NewMockHistogram(ctrl)
 	jobsLatencyHistogram.EXPECT().With(gomock.Any()).AnyTimes().Return(jobsLatencyHistogram)
@@ -48,7 +52,7 @@ func TestUpdateJob_Execute(t *testing.T) {
 	mockDB.EXPECT().Chain().Return(chainDA).AnyTimes()
 
 	userInfo := multitenancy.NewUserInfo("tenantOne", "username")
-	usecase := NewUpdateJobUseCase(mockDB, startNextJobUC, metrics, notifyTxUC)
+	usecase := NewUpdateJobUseCase(mockDB, startNextJobUC, metrics, notifyTxUC, kafkaProducer, txListenerTopic)
 
 	ctx := context.Background()
 
@@ -59,6 +63,7 @@ func TestUpdateJob_Execute(t *testing.T) {
 		jobDA.EXPECT().FindOneByUUID(gomock.Any(), jobEntity.UUID, userInfo.AllowedTenants, userInfo.Username, gomock.Any()).
 			Times(2).Return(jobEntity, nil)
 
+		kafkaProducer.EXPECT().SendJobMessage(txListenerTopic, jobEntity, userInfo)
 		jobDA.EXPECT().Update(gomock.Any(), gomock.Any(), gomock.Any()).
 			DoAndReturn(func(ctx context.Context, job *entities.Job, log *entities.Log) error {
 				assert.Equal(t, jobEntity.UUID, job.UUID)

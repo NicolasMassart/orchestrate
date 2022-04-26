@@ -30,6 +30,6 @@ func (uc *getTagsUseCase) Execute(ctx context.Context, name string) ([]string, e
 		return nil, errors.FromError(err).ExtendComponent(getTagsComponent)
 	}
 
-	uc.logger.WithContext(ctx).Debug("get tags executed successfully")
+	uc.logger.WithContext(ctx).Trace("get tags executed successfully")
 	return names, nil
 }

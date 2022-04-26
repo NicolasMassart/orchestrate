@@ -34,7 +34,7 @@ func (b *Builder) Build(ctx context.Context, name string, configuration interfac
 		log.NewLogger().WithContext(ctx).SetComponent(component).
 			WithField("middleware", name).
 			WithField("type", fmt.Sprintf("%T", configuration)).
-			Debug("building middleware")
+			Trace("building middleware")
 
 		h, err = NewHandler(cfg.ToTraefikType())
 		if err != nil {

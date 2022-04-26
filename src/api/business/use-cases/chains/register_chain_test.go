@@ -8,11 +8,9 @@ import (
 	"testing"
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
-	"github.com/consensys/orchestrate/src/infra/ethclient/mock"
-	"github.com/ethereum/go-ethereum/core/types"
-
 	mocks2 "github.com/consensys/orchestrate/src/api/business/use-cases/mocks"
 	"github.com/consensys/orchestrate/src/entities"
+	"github.com/consensys/orchestrate/src/infra/ethclient/mock"
 
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/src/api/store/mocks"
@@ -48,33 +46,10 @@ func TestRegisterChain_Execute(t *testing.T) {
 		mockEthClient.EXPECT().Network(gomock.Any(), chain.URLs[0]).Return(big.NewInt(888), nil)
 		chainAgent.EXPECT().Insert(gomock.Any(), chain).Return(nil)
 
-		resp, err := usecase.Execute(ctx, chain, false, userInfo)
+		resp, err := usecase.Execute(ctx, chain, userInfo)
 
 		assert.NoError(t, err)
 		assert.Equal(t, chain, resp)
-	})
-
-	t.Run("should execute use case successfully from latest block", func(t *testing.T) {
-		chain := testdata.FakeChain()
-		chain.TenantID = userInfo.TenantID
-		chain.OwnerID = userInfo.Username
-		chainTip := big.NewInt(1)
-
-		mockSearchChainsUC.EXPECT().Execute(gomock.Any(), &entities.ChainFilters{Names: []string{chain.Name}, TenantID: userInfo.TenantID}, userInfo).
-			Return([]*entities.Chain{}, nil)
-		mockEthClient.EXPECT().Network(gomock.Any(), chain.URLs[0]).
-			Return(big.NewInt(888), nil)
-		mockEthClient.EXPECT().HeaderByNumber(gomock.Any(), chain.URLs[0], nil).
-			Return(&types.Header{
-				Number: chainTip,
-			}, nil)
-		chainAgent.EXPECT().Insert(gomock.Any(), gomock.Any()).Return(nil)
-
-		resp, err := usecase.Execute(ctx, chain, true, userInfo)
-
-		assert.NoError(t, err)
-		assert.Equal(t, uint64(1), resp.ListenerStartingBlock)
-		assert.Equal(t, uint64(1), resp.ListenerCurrentBlock)
 	})
 
 	t.Run("should execute use case successfully with private tx manager", func(t *testing.T) {
@@ -87,7 +62,7 @@ func TestRegisterChain_Execute(t *testing.T) {
 		mockEthClient.EXPECT().Network(gomock.Any(), chain.URLs[0]).Return(big.NewInt(888), nil)
 		chainAgent.EXPECT().Insert(gomock.Any(), gomock.Any()).Return(nil)
 
-		resp, err := usecase.Execute(ctx, chain, false, userInfo)
+		resp, err := usecase.Execute(ctx, chain, userInfo)
 
 		assert.NoError(t, err)
 		assert.Equal(t, chain, resp)
@@ -100,7 +75,7 @@ func TestRegisterChain_Execute(t *testing.T) {
 			Execute(gomock.Any(), &entities.ChainFilters{Names: []string{chain.Name}, TenantID: userInfo.TenantID}, userInfo).
 			Return([]*entities.Chain{chain}, nil)
 
-		resp, err := usecase.Execute(ctx, chain, false, userInfo)
+		resp, err := usecase.Execute(ctx, chain, userInfo)
 
 		assert.Nil(t, resp)
 		assert.True(t, errors.IsAlreadyExistsError(err))
@@ -115,7 +90,7 @@ func TestRegisterChain_Execute(t *testing.T) {
 		mockSearchChainsUC.EXPECT().Execute(gomock.Any(), &entities.ChainFilters{Names: []string{chain.Name}, TenantID: userInfo.TenantID},
 			userInfo).Return(nil, expectedErr)
 
-		resp, err := usecase.Execute(ctx, chain, false, userInfo)
+		resp, err := usecase.Execute(ctx, chain, userInfo)
 
 		assert.Nil(t, resp)
 		assert.Error(t, err)
@@ -133,7 +108,7 @@ func TestRegisterChain_Execute(t *testing.T) {
 		mockEthClient.EXPECT().Network(gomock.Any(), chain.URLs[0]).Return(big.NewInt(888), nil)
 		chainAgent.EXPECT().Insert(gomock.Any(), gomock.Any()).Return(expectedErr)
 
-		resp, err := usecase.Execute(ctx, chain, false, userInfo)
+		resp, err := usecase.Execute(ctx, chain, userInfo)
 
 		assert.Nil(t, resp)
 		assert.Error(t, err)

@@ -28,16 +28,22 @@ func newRunCommand() *cobra.Command {
 		},
 	}
 
-	flags.TxlistenerFlags(runCmd.Flags())
+	flags.TxListenerFlags(runCmd.Flags())
 
 	return runCmd
 }
 
 func run(cmd *cobra.Command, _ []string) error {
-	srv, err := txlistener.New(cmd.Context(), flags.NewTxlistenerConfig(viper.GetViper()))
+	ctx := cmd.Context()
+	app, err := txlistener.New(ctx, flags.NewTxListenerConfig(viper.GetViper()))
 	if err != nil {
 		return err
 	}
 
-	return srv.Start(cmd.Context())
+	err = app.Run(ctx)
+	if err != nil {
+		return errors.CombineErrors(cmdErr, err)
+	}
+
+	return nil
 }

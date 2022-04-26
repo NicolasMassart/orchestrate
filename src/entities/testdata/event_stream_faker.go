@@ -20,7 +20,7 @@ func fakeEventStream() *entities.EventStream {
 func FakeWebhookEventStream() *entities.EventStream {
 	eventStrean := fakeEventStream()
 	eventStrean.Channel = entities.EventStreamChannelWebhook
-	eventStrean.Specs = &entities.Webhook{
+	eventStrean.Specs = &entities.EventStreamWebhookSpec{
 		URL: "https://mywebhook/1",
 		Headers: map[string]string{
 			"Authorization": "Bearer jwt",
@@ -32,8 +32,8 @@ func FakeWebhookEventStream() *entities.EventStream {
 
 func FakeKafkaEventStream() *entities.EventStream {
 	eventStrean := fakeEventStream()
-	eventStrean.Channel = entities.EventStreamChannelWebhook
-	eventStrean.Specs = &entities.Kafka{
+	eventStrean.Channel = entities.EventStreamChannelKafka
+	eventStrean.Specs = &entities.EventStreamKafkaSpec{
 		Topic: "my-topic",
 	}
 

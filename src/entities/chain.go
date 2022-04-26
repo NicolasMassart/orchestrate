@@ -14,10 +14,7 @@ type Chain struct {
 	PrivateTxManagerURL       string
 	ChainID                   *big.Int
 	ListenerDepth             uint64
-	ListenerCurrentBlock      uint64
-	ListenerStartingBlock     uint64
-	ListenerBackOffDuration   time.Duration // @TODO Rename to BlockTime
-	ListenerExternalTxEnabled bool          // @TODO Remove
+	ListenerBlockTimeDuration time.Duration
 	Labels                    map[string]string
 	CreatedAt                 time.Time
 	UpdatedAt                 time.Time

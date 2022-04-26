@@ -37,7 +37,7 @@ func (uc *getScheduleUseCase) Execute(ctx context.Context, scheduleUUID string, 
 		return nil, errors.FromError(err).ExtendComponent(getScheduleComponent)
 	}
 
-	uc.logger.Debug("schedule found successfully")
+	uc.logger.Trace("schedule found successfully")
 	return schedule, nil
 }
 

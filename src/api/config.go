@@ -9,7 +9,8 @@ import (
 )
 
 type TopicConfig struct {
-	Sender string
+	Sender   string
+	Listener string
 }
 
 type Config struct {

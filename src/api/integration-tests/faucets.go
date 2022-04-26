@@ -222,10 +222,7 @@ func (s *faucetsTestSuite) TestSuccess_TxsWithFaucet() {
 	chainWithFaucet, err := s.client.RegisterChain(s.env.ctx, &types.RegisterChainRequest{
 		Name: "ganache-with-faucet",
 		URLs: []string{s.env.blockchainNodeURL},
-		Listener: types.RegisterListenerRequest{
-			FromBlock:         "latest",
-			ExternalTxEnabled: false,
-		},
+		Listener: types.RegisterListenerRequest{},
 	})
 	require.NoError(s.T(), err)
 
@@ -281,12 +278,12 @@ func (s *faucetsTestSuite) TestSuccess_TxsWithFaucet() {
 		assert.Equal(t, txRequest.Params.To.Hex(), txJobRes.Transaction.To)
 		assert.Equal(t, entities.EthereumTransaction, txJobRes.Type)
 	
-		fctEvlp, err := s.env.internalConsumer.WaitForJob(ctx, faucetJobRes.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
+		fctEvlp, err := s.env.messengerConsumerTracker.WaitForJob(ctx, faucetJobRes.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForNotificationTimeOut)
 		require.NoError(t, err)
 		assert.Equal(t, faucetJobRes.ScheduleUUID, fctEvlp.ScheduleUUID)
 		assert.Equal(t, faucetJobRes.UUID, fctEvlp.UUID)
 	
-		jobEvlp, err := s.env.internalConsumer.WaitForJob(ctx, txJobRes.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
+		jobEvlp, err := s.env.messengerConsumerTracker.WaitForJob(ctx, txJobRes.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForNotificationTimeOut)
 		require.NoError(t, err)
 		assert.Equal(t, txJobRes.ScheduleUUID, jobEvlp.ScheduleUUID)
 		assert.Equal(t, txJobRes.UUID, jobEvlp.UUID)
@@ -320,12 +317,12 @@ func (s *faucetsTestSuite) TestSuccess_TxsWithFaucet() {
 		assert.Equal(t, "0x4c7aF4B315644848f400b7344A8e73Cf227812b4", txJob.Transaction.From)
 		assert.Equal(t, entities.EthereumRawTransaction, txJob.Type)
 	
-		fctEvlp, err := s.env.internalConsumer.WaitForJob(ctx, faucetJob.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
+		fctEvlp, err := s.env.messengerConsumerTracker.WaitForJob(ctx, faucetJob.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForNotificationTimeOut)
 		require.NoError(t, err)
 		assert.Equal(t, faucetJob.ScheduleUUID, fctEvlp.ScheduleUUID)
 		assert.Equal(t, faucetJob.UUID, fctEvlp.UUID)
 	
-		jobEvlp, err := s.env.internalConsumer.WaitForJob(ctx, txJob.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
+		jobEvlp, err := s.env.messengerConsumerTracker.WaitForJob(ctx, txJob.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForNotificationTimeOut)
 		require.NoError(t, err)
 		assert.Equal(t, txJob.ScheduleUUID, jobEvlp.ScheduleUUID)
 		assert.Equal(t, txJob.UUID, jobEvlp.UUID)

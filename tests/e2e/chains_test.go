@@ -68,7 +68,7 @@ func (s *chainTestSuite) TestChains_SuccessfulUserStories() {
 		assert.Equal(t, regChainReq.URLs, res.URLs)
 		assert.Equal(t, regChainReq.Labels, res.Labels)
 		assert.Equal(t, regChainReq.Listener.Depth, res.ListenerDepth)
-		assert.Equal(t, regChainReq.Listener.BackOffDuration, res.ListenerBackOffDuration)
+		assert.Equal(t, regChainReq.Listener.BlockTimeDuration, res.ListenerBlockTimeDuration)
 
 		chainProxyURL := s.env.Client.ChainProxyURL(res.UUID)
 		err = pkgutils.WaitForProxy(s.ctx, chainProxyURL, s.env.EthClient)
@@ -97,7 +97,7 @@ func (s *chainTestSuite) TestChains_SuccessfulUserStories() {
 		assert.Equal(t, updateChainReq.Name, res2.Name)
 		assert.Equal(t, updateChainReq.Labels, res2.Labels)
 		assert.Equal(t, updateChainReq.Listener.Depth, res2.ListenerDepth)
-		assert.Equal(t, updateChainReq.Listener.BackOffDuration, res2.ListenerBackOffDuration)
+		assert.Equal(t, updateChainReq.Listener.BlockTimeDuration, res2.ListenerBlockTimeDuration)
 		require.NoError(t, err)
 
 		res3, err := s.env.Client.SearchChains(s.ctx, &entities.ChainFilters{
@@ -198,7 +198,7 @@ func (s *chainTestSuite) TestChains_FailureScenarios() {
 
 		regChainReq = testdata.FakeRegisterChainRequest()
 		regChainReq.URLs = s.env.TestData.Nodes.Geth[0].URLs
-		regChainReq.Listener.BackOffDuration = "-12as"
+		regChainReq.Listener.BlockTimeDuration = "-12as"
 		_, err = s.env.Client.RegisterChain(s.ctx, regChainReq)
 		assert.Error(t, err)
 		assert.Equal(t, http.StatusBadRequest, err.(*client.HTTPErr).Code())

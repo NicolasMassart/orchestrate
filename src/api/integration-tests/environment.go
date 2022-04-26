@@ -8,10 +8,13 @@ import (
 	"strconv"
 	"time"
 
-	notifier "github.com/consensys/orchestrate/src/infra/push_notification/client"
+	messenger "github.com/consensys/orchestrate/src/infra/messenger/kafka"
+	testutils2 "github.com/consensys/orchestrate/src/infra/messenger/testutils"
+	"github.com/consensys/orchestrate/src/infra/notifier/kafka"
+	testutils3 "github.com/consensys/orchestrate/src/infra/notifier/kafka/testutils"
+	webhooknotifier "github.com/consensys/orchestrate/src/infra/notifier/webhook"
 
 	"github.com/consensys/orchestrate/cmd/flags"
-	"github.com/consensys/orchestrate/src/infra/kafka/testutils"
 	"github.com/consensys/orchestrate/src/infra/postgres/gopg"
 	"github.com/go-pg/pg/v9"
 
@@ -26,7 +29,6 @@ import (
 	"github.com/consensys/orchestrate/src/api"
 	"github.com/consensys/orchestrate/src/api/store/postgres/migrations"
 	ethclient "github.com/consensys/orchestrate/src/infra/ethclient/rpc"
-	"github.com/consensys/orchestrate/src/infra/kafka/sarama"
 	"github.com/consensys/orchestrate/tests/pkg/docker"
 	"github.com/consensys/orchestrate/tests/pkg/docker/config"
 	ganacheDocker "github.com/consensys/orchestrate/tests/pkg/docker/container/ganache"
@@ -55,7 +57,7 @@ const qkmDefaultStoreID = "orchestrate-eth"
 const hashicorpMountPath = "orchestrate"
 
 // nolint
-const waitForEnvelopeTimeOut = 5 * time.Second
+const waitForNotificationTimeOut = 5 * time.Second
 
 var envPGHostPort string
 var envQKMPGHostPort string
@@ -67,17 +69,17 @@ var envQKMHostPort string
 var envVaultHostPort string
 
 type IntegrationEnvironment struct {
-	ctx                context.Context
-	logger             log.Logger
-	api                *app.App
-	client             *docker.Client
-	internalConsumer   *testutils.InternalConsumerTracker
-	externalConsumer   *testutils.ExternalConsumerTracker
-	externalKafkaTopic string
-	baseURL            string
-	metricsURL         string
-	apiCfg             *api.Config
-	blockchainNodeURL  string
+	ctx                      context.Context
+	logger                   log.Logger
+	api                      *app.App
+	client                   *docker.Client
+	messengerConsumerTracker *testutils2.MessengerConsumerTracker
+	notifierConsumerTracker  *testutils3.NotifierConsumerTracker
+	notificationTopic        string
+	baseURL                  string
+	metricsURL               string
+	apiCfg                   *api.Config
+	blockchainNodeURL        string
 }
 
 func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, error) {
@@ -90,6 +92,10 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	envGanacheHostPort = strconv.Itoa(utils.RandIntRange(10000, 15235))
 	envQKMHostPort = strconv.Itoa(utils.RandIntRange(10000, 15235))
 	envVaultHostPort = strconv.Itoa(utils.RandIntRange(10000, 15235))
+
+	txSenderTopic := "topic-tx-sender"
+	txListenerTopic := "topic-tx-listener"
+	notifierTopic := "topic-tx-decoded"
 
 	// Define external hostname
 	kafkaExternalHostname := fmt.Sprintf("localhost:%s", envKafkaHostPort)
@@ -104,6 +110,8 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		"--rest-port=" + envHTTPPort,
 		"--db-port=" + envPGHostPort,
 		"--kafka-url=" + kafkaExternalHostname,
+		"--topic-tx-listener=" + txListenerTopic,
+		"--topic-tx-sender=" + txSenderTopic,
 		"--key-manager-url=" + quorumKeyManagerURL,
 		"--key-manager-store-name=" + qkmDefaultStoreID,
 		"--log-level=panic",
@@ -180,14 +188,14 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	}
 
 	return &IntegrationEnvironment{
-		ctx:                ctx,
-		logger:             logger,
-		client:             dockerClient,
-		baseURL:            "http://localhost:" + envHTTPPort,
-		metricsURL:         "http://localhost:" + envMetricsPort,
-		apiCfg:             flags.NewAPIConfig(viper.GetViper()),
-		blockchainNodeURL:  fmt.Sprintf("http://localhost:%s", envGanacheHostPort),
-		externalKafkaTopic: "topic-tx-decoded",
+		ctx:               ctx,
+		logger:            logger,
+		client:            dockerClient,
+		baseURL:           "http://localhost:" + envHTTPPort,
+		metricsURL:        "http://localhost:" + envMetricsPort,
+		apiCfg:            flags.NewAPIConfig(viper.GetViper()),
+		blockchainNodeURL: fmt.Sprintf("http://localhost:%s", envGanacheHostPort),
+		notificationTopic: notifierTopic,
 	}, nil
 }
 
@@ -294,25 +302,25 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 	}
 
 	// Start internal kafka consumer
-	env.internalConsumer, err = testutils.NewInternalConsumerTracker(env.apiCfg.Kafka)
+	env.messengerConsumerTracker, err = testutils2.NewMessengerConsumerTracker(env.apiCfg.Kafka, []string{env.apiCfg.KafkaTopics.Sender, env.apiCfg.KafkaTopics.Listener})
 	if err != nil {
 		env.logger.WithError(err).Error("could initialize kafka internal Consumer")
 		return err
 	}
 
 	go func() {
-		_ = env.internalConsumer.Consume(ctx, []string{env.apiCfg.KafkaTopics.Sender})
+		_ = env.messengerConsumerTracker.Consume(ctx)
 	}()
 
 	// Start external kafka consumer
-	env.externalConsumer, err = testutils.NewExternalConsumerTracker(env.apiCfg.Kafka)
+	env.notifierConsumerTracker, err = testutils3.NewNotifierConsumerTracker(env.apiCfg.Kafka, []string{env.notificationTopic})
 	if err != nil {
 		env.logger.WithError(err).Error("could initialize kafka external Consumer")
 		return err
 	}
 
 	go func() {
-		_ = env.externalConsumer.Consume(ctx, []string{env.externalKafkaTopic})
+		_ = env.notifierConsumerTracker.Consume(ctx)
 	}()
 
 	// Start API
@@ -428,7 +436,7 @@ func newAPI(ctx context.Context, cfg *api.Config) (*app.App, error) {
 		return nil, err
 	}
 
-	notifierClient, err := notifier.New(cfg.Kafka)
+	kafkaNotifierClient, err := kafka.NewProducer(cfg.Kafka)
 	if err != nil {
 		return nil, err
 	}
@@ -439,8 +447,9 @@ func newAPI(ctx context.Context, cfg *api.Config) (*app.App, error) {
 
 	interceptedHTTPClient := httputils.NewClient(httputils.NewDefaultConfig())
 	gock.InterceptClient(interceptedHTTPClient)
+	webhookNotifierClient := webhooknotifier.NewProducer(interceptedHTTPClient)
 
-	clientProducer, err := sarama.NewProducer(cfg.Kafka)
+	messengerClient, err := messenger.NewProducer(cfg.Kafka)
 	if err != nil {
 		return nil, err
 	}
@@ -453,8 +462,9 @@ func newAPI(ctx context.Context, cfg *api.Config) (*app.App, error) {
 		qkmClient,
 		cfg.QKM.StoreName,
 		ethclient.GlobalClient(),
-		clientProducer,
-		notifierClient,
+		messengerClient,
+		kafkaNotifierClient,
+		webhookNotifierClient,
 	)
 }
 

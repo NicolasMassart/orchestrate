@@ -60,6 +60,6 @@ func (uc *getContractUseCase) Execute(ctx context.Context, name, tag string) (*e
 
 	contract.Constructor = entities.ABIComponent{Signature: contract.ABI.Constructor.Sig}
 
-	logger.Debug("contract found successfully")
+	logger.Trace("contract found successfully")
 	return contract, nil
 }

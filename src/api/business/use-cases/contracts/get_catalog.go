@@ -31,6 +31,6 @@ func (uc *getCatalogUseCase) Execute(ctx context.Context) ([]string, error) {
 		return nil, errors.FromError(err).ExtendComponent(getCatalogComponent)
 	}
 
-	uc.logger.WithContext(ctx).Debug("get catalog executed successfully")
+	uc.logger.WithContext(ctx).Trace("get catalog executed successfully")
 	return names, nil
 }

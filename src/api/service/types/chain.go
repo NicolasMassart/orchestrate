@@ -13,10 +13,8 @@ type RegisterChainRequest struct {
 }
 
 type RegisterListenerRequest struct {
-	Depth             uint64 `json:"depth,omitempty" example:"0"`                                            // Block depth after which the Transaction Listener considers a block final and processes it (default 0).
-	FromBlock         string `json:"fromBlock,omitempty" example:"latest"`                                   // Block from which the Transaction Listener should start processing transactions (default `latest`).
-	BackOffDuration   string `json:"backOffDuration,omitempty" validate:"omitempty,isDuration" example:"1s"` // Time to wait before trying to fetch a new mined block (for example `1s` or `1m`, default is `5s`).
-	ExternalTxEnabled bool   `json:"externalTxEnabled,omitempty" example:"false"`                            // Whether to listen to external transactions not crafted by Orchestrate (default `false`).
+	Depth             uint64 `json:"depth,omitempty" example:"0"`                                              // Block depth after which the Transaction Listener considers a block final and processes it (default 0).
+	BlockTimeDuration string `json:"blockTimeDuration,omitempty" validate:"omitempty,isDuration" example:"1s"` // Time to wait before trying to fetch a new mined block (for example `1s` or `1m`, default is `5s`).
 }
 
 type UpdateChainRequest struct {
@@ -26,10 +24,10 @@ type UpdateChainRequest struct {
 }
 
 type UpdateListenerRequest struct {
-	Depth             uint64 `json:"depth,omitempty" example:"0"`                                            // Block depth after which the Transaction Listener considers a block final and processes it (default 0).
-	BackOffDuration   string `json:"backOffDuration,omitempty" validate:"omitempty,isDuration" example:"1s"` // Time to wait before trying to fetch a new mined block (for example `1s` or `1m`, default is `5s`).
-	ExternalTxEnabled bool   `json:"externalTxEnabled,omitempty" example:"false"`                            // Whether to listen to external transactions not crafted by Orchestrate (default `false`).
-	CurrentBlock      uint64 `json:"currentBlock,omitempty" example:"1"`                                     // Latest block number fetched.
+	Depth             uint64 `json:"depth,omitempty" example:"0"`                                              // Block depth after which the Transaction Listener considers a block final and processes it (default 0).
+	BlockTimeDuration string `json:"blockTimeDuration,omitempty" validate:"omitempty,isDuration" example:"1s"` // Time to wait before trying to fetch a new mined block (for example `1s` or `1m`, default is `5s`).
+	ExternalTxEnabled bool   `json:"externalTxEnabled,omitempty" example:"false"`                              // Whether to listen to external transactions not crafted by Orchestrate (default `false`).
+	CurrentBlock      uint64 `json:"currentBlock,omitempty" example:"1"`                                       // Latest block number fetched.
 }
 
 type ChainResponse struct {
@@ -41,10 +39,7 @@ type ChainResponse struct {
 	PrivateTxManagerURL       string            `json:"privateTxManagerURL,omitempty" validate:"url"  example:"http://go-quorum/tessera:9000"` // Private tx manager required by go-quorum for sending private txs
 	ChainID                   uint64            `json:"chainID" example:"2445"`                                                                // [Ethereum chain ID](https://besu.hyperledger.org/en/latest/Concepts/NetworkID-And-ChainID/).
 	ListenerDepth             uint64            `json:"listenerDepth" example:"0"`                                                             // Block depth after which the Transaction Listener considers a block final and processes it.
-	ListenerCurrentBlock      uint64            `json:"listenerCurrentBlock" example:"0"`                                                      // Current block.
-	ListenerStartingBlock     uint64            `json:"listenerStartingBlock" example:"5000"`                                                  // Block at which the Transaction Listener starts processing transactions
-	ListenerBackOffDuration   string            `json:"listenerBackOffDuration" example:"5s"`                                                  // Time to wait before trying to fetch a new mined block.
-	ListenerExternalTxEnabled bool              `json:"listenerExternalTxEnabled" example:"false"`                                             // Whether the chain listens for external transactions not crafted by Orchestrate.
+	ListenerBlockTimeDuration string            `json:"listenerBlockTimeDuration" example:"5s"`                                                // Time to wait before trying to fetch a new mined block.
 	Labels                    map[string]string `json:"labels,omitempty"`                                                                      // List of custom labels.
 	CreatedAt                 time.Time         `json:"createdAt" example:"2020-07-09T12:35:42.115395Z"`                                       // Date and time at which the chain was registered.
 	UpdatedAt                 time.Time         `json:"updatedAt" example:"2020-07-09T12:35:42.115395Z"`                                       // Date and time at which the chain details were updated.

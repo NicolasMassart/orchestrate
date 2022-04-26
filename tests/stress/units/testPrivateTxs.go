@@ -10,12 +10,12 @@ import (
 	"github.com/consensys/orchestrate/pkg/utils"
 	api "github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities"
-	"github.com/consensys/orchestrate/src/infra/kafka/testutils"
+	testutils2 "github.com/consensys/orchestrate/src/infra/notifier/kafka/testutils"
 	"github.com/consensys/orchestrate/tests/stress/assets"
 )
 
 func BatchPrivateTxsTest(ctx context.Context, cfg *WorkloadConfig, client orchestrateclient.OrchestrateClient,
-	consumerTracker *testutils.ExternalConsumerTracker) error {
+	consumerTracker *testutils2.NotifierConsumerTracker) error {
 	logger := log.WithContext(ctx).SetComponent("stress-test.private-txs")
 
 	account := cfg.accounts[utils.RandInt(len(cfg.accounts))]

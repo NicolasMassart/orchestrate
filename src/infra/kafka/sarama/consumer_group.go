@@ -7,18 +7,18 @@ import (
 	"github.com/consensys/orchestrate/pkg/errors"
 )
 
-type consumerGroup struct {
+type ConsumerGroup struct {
 	g      sarama.ConsumerGroup
 	errors chan error
 }
 
-func newConsumerGroupFromClient(groupID string, client sarama.Client) (*consumerGroup, error) {
+func NewConsumerGroupFromClient(client sarama.Client, groupID string) (*ConsumerGroup, error) {
 	g, err := sarama.NewConsumerGroupFromClient(groupID, client)
 	if err != nil {
 		return nil, errors.KafkaConnectionError(err.Error())
 	}
 
-	cg := &consumerGroup{
+	cg := &ConsumerGroup{
 		g:      g,
 		errors: make(chan error, client.Config().ChannelBufferSize),
 	}
@@ -34,7 +34,7 @@ func newConsumerGroupFromClient(groupID string, client sarama.Client) (*consumer
 }
 
 // Consume implements ConsumerGroup.
-func (c *consumerGroup) Consume(ctx context.Context, topics []string, handler sarama.ConsumerGroupHandler) error {
+func (c *ConsumerGroup) Consume(ctx context.Context, topics []string, handler sarama.ConsumerGroupHandler) error {
 	err := c.g.Consume(ctx, topics, handler)
 	if err != nil {
 		return errors.KafkaConnectionError(err.Error())
@@ -43,28 +43,28 @@ func (c *consumerGroup) Consume(ctx context.Context, topics []string, handler sa
 }
 
 // Errors implements ConsumerGroup.
-func (c *consumerGroup) Errors() <-chan error {
+func (c *ConsumerGroup) Errors() <-chan error {
 	return c.errors
 }
 
-func (c *consumerGroup) Pause(partitions map[string][]int32) {
+func (c *ConsumerGroup) Pause(partitions map[string][]int32) {
 	c.g.Pause(partitions)
 }
 
-func (c *consumerGroup) Resume(partitions map[string][]int32) {
+func (c *ConsumerGroup) Resume(partitions map[string][]int32) {
 	c.g.Resume(partitions)
 }
 
-func (c *consumerGroup) PauseAll() {
+func (c *ConsumerGroup) PauseAll() {
 	c.g.PauseAll()
 }
 
-func (c *consumerGroup) ResumeAll() {
+func (c *ConsumerGroup) ResumeAll() {
 	c.g.ResumeAll()
 }
 
 // Close implements ConsumerGroup.
-func (c *consumerGroup) Close() error {
+func (c *ConsumerGroup) Close() error {
 	err := c.g.Close()
 	if err != nil {
 		return errors.KafkaConnectionError(err.Error())

@@ -130,18 +130,18 @@ func (m *MockRegisterChainUseCase) EXPECT() *MockRegisterChainUseCaseMockRecorde
 }
 
 // Execute mocks base method
-func (m *MockRegisterChainUseCase) Execute(ctx context.Context, chain *entities.Chain, fromLatest bool, userInfo *multitenancy.UserInfo) (*entities.Chain, error) {
+func (m *MockRegisterChainUseCase) Execute(ctx context.Context, chain *entities.Chain, userInfo *multitenancy.UserInfo) (*entities.Chain, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Execute", ctx, chain, fromLatest, userInfo)
+	ret := m.ctrl.Call(m, "Execute", ctx, chain, userInfo)
 	ret0, _ := ret[0].(*entities.Chain)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Execute indicates an expected call of Execute
-func (mr *MockRegisterChainUseCaseMockRecorder) Execute(ctx, chain, fromLatest, userInfo interface{}) *gomock.Call {
+func (mr *MockRegisterChainUseCaseMockRecorder) Execute(ctx, chain, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockRegisterChainUseCase)(nil).Execute), ctx, chain, fromLatest, userInfo)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockRegisterChainUseCase)(nil).Execute), ctx, chain, userInfo)
 }
 
 // MockGetChainUseCase is a mock of GetChainUseCase interface

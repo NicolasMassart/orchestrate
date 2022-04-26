@@ -42,6 +42,6 @@ func (uc *searchTransactionsUseCase) Execute(ctx context.Context, filters *entit
 		txRequests[idx] = tx
 	}
 
-	uc.logger.Info("transaction requests found successfully")
+	uc.logger.Trace("transaction requests found successfully")
 	return txRequests, nil
 }

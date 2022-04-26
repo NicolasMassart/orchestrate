@@ -147,14 +147,13 @@ func (c *ChainsController) register(rw http.ResponseWriter, request *http.Reques
 		return
 	}
 
-	fromLatest := chainRequest.Listener.FromBlock == "" || chainRequest.Listener.FromBlock == "latest"
-	chain, err := formatters.FormatRegisterChainRequest(chainRequest, fromLatest)
+	chain, err := formatters.FormatRegisterChainRequest(chainRequest)
 	if err != nil {
 		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	chain, err = c.ucs.Register().Execute(ctx, chain, fromLatest, multitenancy.UserInfoValue(ctx))
+	chain, err = c.ucs.Register().Execute(ctx, chain, multitenancy.UserInfoValue(ctx))
 	if err != nil {
 		infra.WriteHTTPErrorResponse(rw, err)
 		return

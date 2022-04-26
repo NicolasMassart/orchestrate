@@ -7,7 +7,7 @@ import (
 	"github.com/consensys/orchestrate/pkg/errors"
 	mocks3 "github.com/consensys/orchestrate/src/api/business/use-cases/mocks"
 	"github.com/consensys/orchestrate/src/entities"
-	mocks2 "github.com/consensys/orchestrate/src/infra/push_notification/mocks"
+	mocks2 "github.com/consensys/orchestrate/src/infra/notifier/mocks"
 	"testing"
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
@@ -23,21 +23,34 @@ func TestNotifyTx(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockDB := mocks.NewMockEventStreamAgent(ctrl)
-	mockNotifier := mocks2.NewMockNotifier(ctrl)
+	webhookMockNotifier := mocks2.NewMockNotifier(ctrl)
+	kafkaMockNotifier := mocks2.NewMockNotifier(ctrl)
 	searchContractsUC := mocks3.NewMockSearchContractUseCase(ctrl)
 	decodeLogUC := mocks3.NewMockDecodeEventLogUseCase(ctrl)
 
 	userInfo := multitenancy.NewUserInfo("tenantOne", "username")
 	errStr := "error"
 
-	usecase := NewNotifyTransactionUseCase(mockDB, mockNotifier, searchContractsUC, decodeLogUC)
+	usecase := NewNotifyTransactionUseCase(mockDB, kafkaMockNotifier, webhookMockNotifier, searchContractsUC, decodeLogUC)
 
-	t.Run("should execute use case successfully", func(t *testing.T) {
+	t.Run("should execute use case successfully: webhook", func(t *testing.T) {
 		job := testdata.FakeJob()
 		eventStream := testdata.FakeWebhookEventStream()
 
 		mockDB.EXPECT().FindOneByTenantAndChain(gomock.Any(), job.TenantID, job.ChainUUID, userInfo.AllowedTenants, userInfo.Username).Return(eventStream, nil)
-		mockNotifier.EXPECT().SendTxResponse(gomock.Any(), eventStream, job, errStr).Return(nil)
+		webhookMockNotifier.EXPECT().SendTxResponse(gomock.Any(), eventStream, job, errStr).Return(nil)
+
+		err := usecase.Execute(ctx, job, errStr, userInfo)
+
+		assert.NoError(t, err)
+	})
+	
+	t.Run("should execute use case successfully: kafka", func(t *testing.T) {
+		job := testdata.FakeJob()
+		eventStream := testdata.FakeKafkaEventStream()
+
+		mockDB.EXPECT().FindOneByTenantAndChain(gomock.Any(), job.TenantID, job.ChainUUID, userInfo.AllowedTenants, userInfo.Username).Return(eventStream, nil)
+		kafkaMockNotifier.EXPECT().SendTxResponse(gomock.Any(), eventStream, job, errStr).Return(nil)
 
 		err := usecase.Execute(ctx, job, errStr, userInfo)
 

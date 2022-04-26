@@ -10,7 +10,7 @@ import (
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http"
 	ethclient "github.com/consensys/orchestrate/src/infra/ethclient/rpc"
-	"github.com/consensys/orchestrate/src/infra/kafka/testutils"
+	testutils2 "github.com/consensys/orchestrate/src/infra/notifier/kafka/testutils"
 	"github.com/sirupsen/logrus"
 
 	orchestrateclient "github.com/consensys/orchestrate/pkg/sdk/client"
@@ -51,7 +51,7 @@ func Start(ctx context.Context) error {
 		backoff.IncrementalBackOff(time.Second, time.Second*5, time.Minute))
 	client := orchestrateclient.NewHTTPClient(httpClient, backoffConf)
 
-	consumerTracker, err := testutils.NewExternalConsumerTracker(kafkaCfg)
+	consumerTracker, err := testutils2.NewNotifierConsumerTracker(kafkaCfg, []string{cfg.KafkaTopic})
 	if err != nil {
 		return err
 	}
@@ -63,7 +63,7 @@ func Start(ctx context.Context) error {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
-		err := consumerTracker.Consume(ctx, []string{cfg.KafkaTopic})
+		err := consumerTracker.Consume(ctx)
 		if err != nil {
 			gerr = errors.CombineErrors(gerr, err)
 			logger.WithError(err).Error("error on consumer")

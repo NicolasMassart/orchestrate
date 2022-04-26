@@ -18,7 +18,7 @@ type internalReceipt struct {
 	CumulativeGasUsed *hexutil.Uint64    `json:"cumulativeGasUsed" gencodec:"required"`
 	EffectiveGasPrice *hexutil.Big       `json:"effectiveGasPrice,omitempty"`
 	Bloom             *ethtypes.Bloom    `json:"logsBloom"         gencodec:"required"`
-	Logs              []*ethtypes.Log    `json:"logs"              gencodec:"required"`
+	Logs              []*Log             `json:"logs"              gencodec:"required"`
 	TxHash            *ethcommon.Hash    `json:"transactionHash" gencodec:"required"`
 	ContractAddress   *ethcommon.Address `json:"contractAddress"`
 	GasUsed           *hexutil.Uint64    `json:"gasUsed" gencodec:"required"`
@@ -72,7 +72,7 @@ func (r *Receipt) MarshalJSON() ([]byte, error) {
 		EffectiveGasPrice: utils.StringBigIntToHex(r.EffectiveGasPrice),
 		Bloom:             utils.ToPtr(ethtypes.BytesToBloom(hexutil.MustDecode(r.Bloom))).(*ethtypes.Bloom),
 		TxHash:            utils.ToPtr(ethcommon.HexToHash(r.TxHash)).(*ethcommon.Hash),
-		Logs:              []*ethtypes.Log{},
+		Logs:              r.Logs,
 		ContractAddress:   utils.ToPtr(ethcommon.HexToAddress(r.ContractAddress)).(*ethcommon.Address),
 		GasUsed:           utils.Uint64ToHex(r.GasUsed),
 		BlockHash:         utils.ToPtr(ethcommon.HexToHash(r.BlockHash)).(*ethcommon.Hash),
@@ -87,10 +87,6 @@ func (r *Receipt) MarshalJSON() ([]byte, error) {
 
 	if r.PostState != "" {
 		dec.PostState = utils.ToPtr(hexutil.MustDecode(r.PostState)).(*hexutil.Bytes)
-	}
-
-	for _, log := range r.Logs {
-		dec.Logs = append(dec.Logs, ToGethLog(log))
 	}
 
 	return json.Marshal(dec)
@@ -124,9 +120,8 @@ func (r *Receipt) UnmarshalJSON(input []byte) error {
 	if dec.Logs == nil {
 		return errors.New("missing required field 'logs' for Receipt")
 	}
-	for _, log := range dec.Logs {
-		r.Logs = append(r.Logs, FromGethLog(log))
-	}
+	r.Logs = dec.Logs
+
 	if dec.TxHash == nil {
 		return errors.New("missing required field 'transactionHash' for Receipt")
 	}
@@ -164,49 +159,6 @@ func (r *Receipt) UnmarshalJSON(input []byte) error {
 	}
 
 	return nil
-}
-
-// FromGethLog creates a new log from a Geth log
-func ToGethLog(log *Log) *ethtypes.Log {
-	// Format topics
-	topics := []ethcommon.Hash{}
-	for _, topic := range log.Topics {
-		topics = append(topics, ethcommon.HexToHash(topic))
-	}
-
-	return &ethtypes.Log{
-		Address:     ethcommon.HexToAddress(log.Address),
-		Topics:      topics,
-		Data:        hexutil.MustDecode(log.Data),
-		BlockNumber: log.BlockNumber,
-		TxHash:      ethcommon.HexToHash(log.TxHash),
-		TxIndex:     uint(log.TxIndex),
-		BlockHash:   ethcommon.HexToHash(log.BlockHash),
-		Index:       uint(log.Index),
-		Removed:     log.Removed,
-	}
-}
-
-// FromGethLog creates a new log from a Geth log
-func FromGethLog(log *ethtypes.Log) *Log {
-	// Format topics
-	var topics []string
-	for _, topic := range log.Topics {
-		topics = append(topics, topic.String())
-	}
-
-	return &Log{
-		Address:     log.Address.String(),
-		Topics:      topics,
-		Data:        hexutil.Encode(log.Data),
-		DecodedData: make(map[string]string),
-		BlockNumber: log.BlockNumber,
-		TxHash:      log.TxHash.String(),
-		TxIndex:     uint64(log.TxIndex),
-		BlockHash:   log.BlockHash.String(),
-		Index:       uint64(log.Index),
-		Removed:     log.Removed,
-	}
 }
 
 var (

@@ -4,6 +4,10 @@
 package integrationtests
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"net/http"
 	"testing"
 	"time"
@@ -12,7 +16,9 @@ import (
 	testdata2 "github.com/consensys/orchestrate/pkg/types/ethereum/testdata"
 	api "github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities"
+	"github.com/consensys/orchestrate/src/infra/notifier/types"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/h2non/gock.v1"
 
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/src/api/service/types/testdata"
@@ -22,9 +28,21 @@ import (
 
 type jobsTestSuite struct {
 	suite.Suite
-	client    client.OrchestrateClient
-	env       *IntegrationEnvironment
-	chainUUID string
+	client client.OrchestrateClient
+	env    *IntegrationEnvironment
+	chain  *api.ChainResponse
+}
+
+func (s *jobsTestSuite) SetupSuite() {
+	ctx := s.env.ctx
+
+	chainReq := testdata.FakeRegisterChainRequest()
+	chainReq.URLs = []string{s.env.blockchainNodeURL}
+	chainReq.PrivateTxManagerURL = ""
+
+	var err error
+	s.chain, err = s.client.RegisterChain(ctx, chainReq)
+	require.NoError(s.T(), err)
 }
 
 func (s *jobsTestSuite) TestCreate() {
@@ -35,7 +53,7 @@ func (s *jobsTestSuite) TestCreate() {
 	s.T().Run("should create a new job successfully", func(t *testing.T) {
 		req := testdata.FakeCreateJobRequest()
 		req.ScheduleUUID = schedule.UUID
-		req.ChainUUID = s.chainUUID
+		req.ChainUUID = s.chain.UUID
 		req.Transaction.From = nil
 		req.Annotations = api.Annotations{
 			OneTimeKey: true,
@@ -48,7 +66,7 @@ func (s *jobsTestSuite) TestCreate() {
 		assert.Equal(t, req.Type, job.Type)
 		assert.Equal(t, req.ScheduleUUID, job.ScheduleUUID)
 		assert.Equal(t, multitenancy.DefaultTenant, job.TenantID)
-		assert.Equal(t, s.chainUUID, job.ChainUUID)
+		assert.Equal(t, s.chain.UUID, job.ChainUUID)
 		assert.Equal(t, entities.StatusCreated, job.Status)
 		assert.Empty(t, job.ParentJobUUID)
 		assert.Empty(t, job.NextJobUUID)
@@ -65,7 +83,7 @@ func (s *jobsTestSuite) TestCreate() {
 		assert.Equal(t, http.StatusBadRequest, err.(*client.HTTPErr).Code())
 	})
 
-	s.T().Run("should fail with 422 if chainUUID does not exist", func(t *testing.T) {
+	s.T().Run("should fail with 422 if chain does not exist", func(t *testing.T) {
 		req := testdata.FakeCreateJobRequest()
 
 		_, err := s.client.CreateJob(ctx, req)
@@ -74,7 +92,7 @@ func (s *jobsTestSuite) TestCreate() {
 
 	s.T().Run("should fail with 422 if schedule does not exit", func(t *testing.T) {
 		req := testdata.FakeCreateJobRequest()
-		req.ChainUUID = s.chainUUID
+		req.ChainUUID = s.chain.UUID
 
 		_, err := s.client.CreateJob(ctx, req)
 		assert.Equal(t, http.StatusUnprocessableEntity, err.(*client.HTTPErr).Code())
@@ -100,7 +118,7 @@ func (s *jobsTestSuite) TestGet() {
 	require.NoError(s.T(), err)
 	req := testdata.FakeCreateJobRequest()
 	req.ScheduleUUID = schedule.UUID
-	req.ChainUUID = s.chainUUID
+	req.ChainUUID = s.chain.UUID
 	req.Transaction.From = nil
 
 	origJob, err := s.client.CreateJob(ctx, req)
@@ -133,7 +151,7 @@ func (s *jobsTestSuite) TestStart() {
 	s.T().Run("should start a new job successfully", func(t *testing.T) {
 		req := testdata.FakeCreateJobRequest()
 		req.ScheduleUUID = schedule.UUID
-		req.ChainUUID = s.chainUUID
+		req.ChainUUID = s.chain.UUID
 		req.Transaction.From = nil
 		req.Annotations = api.Annotations{
 			OneTimeKey: true,
@@ -144,7 +162,7 @@ func (s *jobsTestSuite) TestStart() {
 
 		err = s.client.StartJob(ctx, job.UUID)
 		require.NoError(t, err)
-		msgJob, err := s.env.internalConsumer.WaitForJob(ctx, job.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
+		msgJob, err := s.env.messengerConsumerTracker.WaitForJob(ctx, job.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForNotificationTimeOut)
 		require.NoError(s.T(), err)
 
 		assert.Equal(t, msgJob.UUID, job.UUID)
@@ -158,7 +176,7 @@ func (s *jobsTestSuite) TestStart() {
 	s.T().Run("should fail with 409 to start if job has already started", func(t *testing.T) {
 		req := testdata.FakeCreateJobRequest()
 		req.ScheduleUUID = schedule.UUID
-		req.ChainUUID = s.chainUUID
+		req.ChainUUID = s.chain.UUID
 		req.Transaction.From = nil
 		req.Annotations = api.Annotations{
 			OneTimeKey: true,
@@ -169,37 +187,62 @@ func (s *jobsTestSuite) TestStart() {
 
 		err = s.client.StartJob(ctx, job.UUID)
 		require.NoError(t, err)
-		msgJob, err := s.env.internalConsumer.WaitForJob(ctx, job.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
+		msgJob, err := s.env.messengerConsumerTracker.WaitForJob(ctx, job.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForNotificationTimeOut)
 		require.NoError(s.T(), err)
 		assert.Equal(t, msgJob.UUID, job.UUID)
 	})
 }
 
-func (s *jobsTestSuite) TestUpdate() {
+func (s *jobsTestSuite) TestUpdatePending() {
 	ctx := s.env.ctx
 
 	schedule, err := s.client.CreateSchedule(ctx, &api.CreateScheduleRequest{})
 	require.NoError(s.T(), err)
 
-	_, err = s.client.CreateKafkaEventStream(ctx, &api.CreateKafkaEventStreamRequest{
-		Name:  "integration-test-event-stream-kafka",
-		Topic: s.env.externalKafkaTopic,
-	})
-	require.NoError(s.T(), err)
-
-	s.T().Run("should update job to MINED and notify", func(t *testing.T) {
+	s.T().Run("should update job to PENDING and send message", func(t *testing.T) {
 		req := testdata.FakeCreateJobRequest()
 		req.ScheduleUUID = schedule.UUID
-		req.ChainUUID = s.chainUUID
+		req.ChainUUID = s.chain.UUID
 		req.Transaction.From = nil
 		job, err := s.client.CreateJob(ctx, req)
 		require.NoError(s.T(), err)
 
-		err = s.client.StartJob(ctx, job.UUID)
+		_, err = s.client.UpdateJob(ctx, job.UUID, &api.UpdateJobRequest{
+			Status: entities.StatusPending,
+		})
 		require.NoError(s.T(), err)
-		msgJob, err := s.env.internalConsumer.WaitForJob(ctx, job.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
+
+		_, err = s.env.messengerConsumerTracker.WaitForJob(ctx, job.UUID, s.env.apiCfg.KafkaTopics.Listener, waitForNotificationTimeOut)
 		require.NoError(s.T(), err)
-		assert.Equal(s.T(), msgJob.UUID, job.UUID)
+	})
+
+}
+
+func (s *jobsTestSuite) TestUpdateNotifyWithKafka() {
+	ctx := s.env.ctx
+
+	schedule, err := s.client.CreateSchedule(ctx, &api.CreateScheduleRequest{})
+	require.NoError(s.T(), err)
+
+	eventStream, err := s.client.CreateKafkaEventStream(ctx, &api.CreateKafkaEventStreamRequest{
+		Name:  "integration-test-event-stream-kafka",
+		Topic: s.env.notificationTopic,
+		Chain: s.chain.Name,
+	})
+	require.NoError(s.T(), err)
+
+	defer func() {
+		err := s.client.DeleteEventStream(ctx, eventStream.UUID)
+		require.NoError(s.T(), err)
+	}()
+
+	s.T().Run("should update job to MINED and notify", func(t *testing.T) {
+		req := testdata.FakeCreateJobRequest()
+		req.ScheduleUUID = schedule.UUID
+		req.ChainUUID = s.chain.UUID
+		req.Transaction.From = nil
+		job, err := s.client.CreateJob(ctx, req)
+		require.NoError(s.T(), err)
 
 		receipt := testdata2.FakeReceipt()
 		_, err = s.client.UpdateJob(ctx, job.UUID, &api.UpdateJobRequest{
@@ -208,29 +251,135 @@ func (s *jobsTestSuite) TestUpdate() {
 		})
 		require.NoError(s.T(), err)
 
-		_, err = s.env.externalConsumer.WaitForTxMinedNotification(ctx, job.UUID, s.env.externalKafkaTopic, waitForEnvelopeTimeOut)
+		msgJob, err := s.env.notifierConsumerTracker.WaitForTxMinedNotification(ctx, job.ScheduleUUID, s.env.notificationTopic, waitForNotificationTimeOut)
 		require.NoError(s.T(), err)
+		assert.Equal(s.T(), msgJob.Data.Job.UUID, job.UUID)
 	})
 
 	s.T().Run("should update job to FAILED and notify", func(t *testing.T) {
 		req := testdata.FakeCreateJobRequest()
 		req.ScheduleUUID = schedule.UUID
-		req.ChainUUID = s.chainUUID
+		req.ChainUUID = s.chain.UUID
 		req.Transaction.From = nil
 		job, err := s.client.CreateJob(ctx, req)
 		require.NoError(s.T(), err)
 
-		err = s.client.StartJob(ctx, job.UUID)
-		require.NoError(s.T(), err)
-		msgJob, err := s.env.internalConsumer.WaitForJob(ctx, job.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForEnvelopeTimeOut)
-		require.NoError(s.T(), err)
-		assert.Equal(s.T(), msgJob.UUID, job.UUID)
-
+		failedErrMsg := "ErrorMsg"
 		_, err = s.client.UpdateJob(ctx, job.UUID, &api.UpdateJobRequest{
-			Status: entities.StatusFailed,
+			Status:  entities.StatusFailed,
+			Message: failedErrMsg,
 		})
 
-		_, err = s.env.externalConsumer.WaitForTxFailedNotification(ctx, job.UUID, s.env.externalKafkaTopic, waitForEnvelopeTimeOut)
+		msgJob, err := s.env.notifierConsumerTracker.WaitForTxFailedNotification(ctx, job.ScheduleUUID, s.env.notificationTopic, waitForNotificationTimeOut)
 		require.NoError(s.T(), err)
+		assert.Equal(s.T(), msgJob.Data.Error, failedErrMsg)
+		assert.Equal(s.T(), msgJob.Data.Job.UUID, job.UUID)
 	})
+}
+
+func (s *jobsTestSuite) TestUpdateNotifyWithWebhook() {
+	ctx := s.env.ctx
+
+	webhookDomainURL := "http://webhook.com"
+	webhookURLPath := "/wait-for-notification"
+
+	schedule, err := s.client.CreateSchedule(ctx, &api.CreateScheduleRequest{})
+	require.NoError(s.T(), err)
+
+	eventStream, err := s.client.CreateWebhookEventStream(ctx, &api.CreateWebhookEventStreamRequest{
+		Name:  "integration-test-event-stream-webhook",
+		URL: webhookDomainURL+webhookURLPath,
+		Chain: s.chain.Name,
+	})
+	require.NoError(s.T(), err)
+
+	defer func() {
+		err := s.client.DeleteEventStream(ctx, eventStream.UUID)
+		require.NoError(s.T(), err)
+	}()
+
+	s.T().Run("should update job to MINED and notify", func(t *testing.T) {
+		req := testdata.FakeCreateJobRequest()
+		req.ScheduleUUID = schedule.UUID
+		req.ChainUUID = s.chain.UUID
+		req.Transaction.From = nil
+		job, err := s.client.CreateJob(ctx, req)
+		require.NoError(s.T(), err)
+
+		waitNotification := make(chan *types.Notification, 1)
+		waitNotificationErr := make(chan error, 1)
+		gock.New(webhookDomainURL).Post(webhookURLPath).
+			AddMatcher(webhookCallMatcher(waitNotification, waitNotificationErr, waitForNotificationTimeOut)).
+			Reply(http.StatusOK)
+		
+		receipt := testdata2.FakeReceipt()
+		_, err = s.client.UpdateJob(ctx, job.UUID, &api.UpdateJobRequest{
+			Status:  entities.StatusMined,
+			Receipt: receipt,
+		})
+		require.NoError(s.T(), err)
+
+		select {
+		case notification := <-waitNotification:
+			require.Equal(s.T(), notification.UUID, job.ScheduleUUID)
+			require.Equal(s.T(), notification.Type, types.TransactionMinedMessage)
+			require.Equal(s.T(), notification.Data.Job.UUID, job.UUID)
+		case err := <-waitNotificationErr:
+			assert.Error(t, err)
+		}
+	})
+
+	s.T().Run("should update job to FAILED and notify", func(t *testing.T) {
+		req := testdata.FakeCreateJobRequest()
+		req.ScheduleUUID = schedule.UUID
+		req.ChainUUID = s.chain.UUID
+		req.Transaction.From = nil
+		job, err := s.client.CreateJob(ctx, req)
+		require.NoError(s.T(), err)
+
+		waitNotification := make(chan *types.Notification, 1)
+		waitNotificationErr := make(chan error, 1)
+		gock.New(webhookDomainURL).Post(webhookURLPath).
+			AddMatcher(webhookCallMatcher(waitNotification, waitNotificationErr, waitForNotificationTimeOut)).
+			Reply(http.StatusOK)
+		
+		failedErrMsg := "errMsg"
+		_, err = s.client.UpdateJob(ctx, job.UUID, &api.UpdateJobRequest{
+			Status:  entities.StatusFailed,
+			Message: failedErrMsg,
+		})
+		require.NoError(s.T(), err)
+
+		select {
+		case notification := <-waitNotification:
+			require.Equal(s.T(), notification.UUID, job.ScheduleUUID)
+			require.Equal(s.T(), notification.Type, types.TransactionFailedMessage)
+			require.Equal(s.T(), notification.Data.Job.UUID, job.UUID)
+		case err := <-waitNotificationErr:
+			assert.Error(t, err)
+		}
+	})
+}
+
+
+func webhookCallMatcher(cNotification chan *types.Notification, cErr chan error, duration time.Duration) gock.MatchFunc {
+	ticker := time.NewTicker(duration)
+	defer ticker.Stop()
+	go func() {
+		<-ticker.C
+		cErr <- fmt.Errorf("timeout after %s", duration.String())
+	}()
+
+	return func(rw *http.Request, grw *gock.Request) (bool, error) {
+		body, _ := ioutil.ReadAll(rw.Body)
+		rw.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+		req := &types.Notification{}
+		if err := json.Unmarshal(body, &req); err != nil {
+			cErr <- err
+			return false, err
+		}
+
+		cNotification <- req
+		return true, nil
+	}
 }

@@ -25,7 +25,6 @@ func (s *proxyTestSuite) TestProxy() {
 
 	s.T().Run("should register chain and create proxy to the node", func(t *testing.T) {
 		req := testdata.FakeRegisterChainRequest()
-		req.Listener.FromBlock = "latest"
 		req.URLs = []string{s.env.blockchainNodeURL}
 
 		chain, err := s.client.RegisterChain(ctx, req)

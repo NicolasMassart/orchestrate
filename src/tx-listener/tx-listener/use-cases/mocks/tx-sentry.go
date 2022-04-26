@@ -11,7 +11,7 @@ import (
 	reflect "reflect"
 )
 
-// MockRetryJobSessionManager is a mock of RetryJobSessionManager interface
+// MockRetryJobSessionManager is a mock of TxSentrySessionManager interface
 type MockRetryJobSessionManager struct {
 	ctrl     *gomock.Controller
 	recorder *MockRetryJobSessionManagerMockRecorder

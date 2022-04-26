@@ -24,8 +24,8 @@ type EventStream struct {
 }
 
 type EventStreamSpecs struct {
-	WebHook *entities.Webhook `json:"webhook,omitempty"`
-	Kafka   *entities.Kafka   `json:"kafka,omitempty"`
+	WebHook *entities.EventStreamWebhookSpec `json:"webhook,omitempty"`
+	Kafka   *entities.EventStreamKafkaSpec   `json:"kafka,omitempty"`
 }
 
 func NewEventStream(eventStream *entities.EventStream) *EventStream {

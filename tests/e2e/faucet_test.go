@@ -45,6 +45,18 @@ func TestFaucets(t *testing.T) {
 	suite.Run(t, s)
 }
 
+func (s *faucetTestSuite) SetupSuite() {
+	err := s.env.Start()
+	require.NoError(s.T(), err)
+	s.env.Logger.Info("setup test suite has completed")
+}
+
+func (s *faucetTestSuite) TearDownSuite() {
+	err := s.env.Stop()
+	require.NoError(s.T(), err)
+	s.env.Logger.Info("setup test teardown has completed")
+}
+
 func (s *faucetTestSuite) TestFaucets_SuccessfulUserStories() {
 	faucetAccRes, err := pkgutils.ImportOrFetchAccount(s.ctx, s.env.Client, s.env.TestData.Nodes.Geth[0].FundedPublicKeys[0], &types.ImportAccountRequest{
 		Alias:      "faucet-acc-" + common.RandString(5),
@@ -52,20 +64,13 @@ func (s *faucetTestSuite) TestFaucets_SuccessfulUserStories() {
 	})
 	require.NoError(s.T(), err)
 
-	chainRes, err := pkgutils.RegisterChainAndWaitForProxy(s.ctx, s.env.Client, s.env.EthClient, &types.RegisterChainRequest{
-		Name: "chain-geth-" + common.RandString(5),
-		URLs: s.env.TestData.Nodes.Geth[0].URLs,
-	})
+	gethChain, _, err := s.env.createChainWithStream("chain-geth-"+common.RandString(5), s.env.TestData.Nodes.Geth[0].URLs, "")
 	require.NoError(s.T(), err)
-	defer func() {
-		err := s.env.Client.DeleteChain(s.ctx, chainRes.UUID)
-		require.NoError(s.T(), err)
-	}()
 
 	s.T().Run("as a user I want to create faucet and be funded by it on new accounts", func(t *testing.T) {
 		faucetRes, err := s.env.Client.RegisterFaucet(s.ctx, &types.RegisterFaucetRequest{
 			Name:            "faucet-" + common.RandString(5),
-			ChainRule:       chainRes.UUID,
+			ChainRule:       gethChain.UUID,
 			CreditorAccount: ethcommon.HexToAddress(faucetAccRes.Address),
 			Cooldown:        "1s",
 			MaxBalance:      *utils.HexToBigInt("0x38d7ea4c68000"),
@@ -78,11 +83,11 @@ func (s *faucetTestSuite) TestFaucets_SuccessfulUserStories() {
 		}()
 
 		accRes, err := s.env.Client.CreateAccount(s.ctx, &types.CreateAccountRequest{
-			Chain: chainRes.Name,
+			Chain: gethChain.Name,
 		})
 		require.NoError(t, err)
 
-		balance, err := pkgutils.WaitForBalance(s.ctx, s.env.EthClient, s.env.Client.ChainProxyURL(chainRes.UUID), accRes.Address)
+		balance, err := pkgutils.WaitForBalance(s.ctx, s.env.EthClient, s.env.Client.ChainProxyURL(gethChain.UUID), accRes.Address)
 		require.NoError(t, err)
 		assert.Equal(t, faucetRes.Amount, hexutil.EncodeBig(balance))
 	})
@@ -90,7 +95,7 @@ func (s *faucetTestSuite) TestFaucets_SuccessfulUserStories() {
 	s.T().Run("as a user I want to create faucet and be funded when sending transactions", func(t *testing.T) {
 		faucetRes, err := s.env.Client.RegisterFaucet(s.ctx, &types.RegisterFaucetRequest{
 			Name:            "faucet-" + common.RandString(5),
-			ChainRule:       chainRes.UUID,
+			ChainRule:       gethChain.UUID,
 			CreditorAccount: ethcommon.HexToAddress(faucetAccRes.Address),
 			Cooldown:        "1s",
 			MaxBalance:      *utils.HexToBigInt("0x38d7ea4c68000"),
@@ -106,7 +111,7 @@ func (s *faucetTestSuite) TestFaucets_SuccessfulUserStories() {
 		require.NoError(t, err)
 
 		txReq := &types.TransferRequest{
-			ChainName: chainRes.Name,
+			ChainName: gethChain.Name,
 			Params: types.TransferParams{
 				From:  ethcommon.HexToAddress(accRes.Address),
 				To:    ethcommon.HexToAddress(faucetAccRes.Address),
@@ -116,7 +121,7 @@ func (s *faucetTestSuite) TestFaucets_SuccessfulUserStories() {
 		_, err = s.env.Client.SendTransferTransaction(s.ctx, txReq)
 		require.NoError(t, err)
 
-		balance, err := pkgutils.WaitForBalance(s.ctx, s.env.EthClient, s.env.Client.ChainProxyURL(chainRes.UUID), accRes.Address)
+		balance, err := pkgutils.WaitForBalance(s.ctx, s.env.EthClient, s.env.Client.ChainProxyURL(gethChain.UUID), accRes.Address)
 		require.NoError(t, err)
 		assert.Equal(t, faucetRes.Amount, hexutil.EncodeBig(balance))
 	})

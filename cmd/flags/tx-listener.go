@@ -30,17 +30,19 @@ const (
 	providerRefreshIntervalEnv      = "TX_LISTENER_REFRESH_INTERVAL"
 )
 
-func TxlistenerFlags(f *pflag.FlagSet) {
+func TxListenerFlags(f *pflag.FlagSet) {
 	log.Flags(f)
 	authkey.Flags(f)
-	txListenerFlags(f)
-	metricregistry.Flags(f, tcpmetrics.ModuleName)
-	providerRefreshInterval(f)
-}
-
-func txListenerFlags(f *pflag.FlagSet) {
 	app.MetricFlags(f)
 	orchestrateclient.Flags(f)
+
+	KafkaFlags(f)
+	KafkaConsumerFlags(f)
+	KafkaTopicTxSender(f)
+	KafkaTopicTxListener(f)
+
+	metricregistry.Flags(f, tcpmetrics.ModuleName)
+	providerRefreshInterval(f)
 }
 
 func providerRefreshInterval(f *pflag.FlagSet) {
@@ -50,7 +52,7 @@ Environment variable: %q`, providerRefreshIntervalEnv)
 	_ = viper.BindPFlag(providerRefreshIntervalViperKey, f.Lookup(providerRefreshIntervalFlag))
 }
 
-func NewTxlistenerConfig(vipr *viper.Viper) *txlistener.Config {
+func NewTxListenerConfig(vipr *viper.Viper) *txlistener.Config {
 	orchestrateAPIBackOff := backoff.IncrementalBackOffWithMaxRetries(time.Millisecond*500, time.Second, 5)
 
 	httpClientCfg := http.NewDefaultConfig()
@@ -59,8 +61,10 @@ func NewTxlistenerConfig(vipr *viper.Viper) *txlistener.Config {
 	return &txlistener.Config{
 		IsMultiTenancyEnabled: viper.GetBool(multitenancy.EnabledViperKey),
 		App:                   app.NewConfig(vipr),
+		ConsumerTopic:         viper.GetString(TxListenerViperKey),
 		HTTPClient:            httpClientCfg,
 		API:                   orchestrateclient.NewConfigFromViper(vipr, orchestrateAPIBackOff),
-		RefreshInterval:       vipr.GetDuration(providerRefreshIntervalViperKey),
+		RetryInterval:         vipr.GetDuration(providerRefreshIntervalViperKey),
+		Kafka:                 NewKafkaConfig(vipr),
 	}
 }

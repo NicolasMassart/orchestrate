@@ -90,7 +90,7 @@ func (b *Builder) buildRouters(ctx context.Context, routers map[string]*router.R
 			httputil.WithEntryPoint(ctx, entryPointName),
 			tlog.Str("entrypoint", entryPointName),
 		)
-		logger.Debug("building entrypoint router")
+		logger.Trace("building entrypoint router")
 
 		mux, err := rules.NewRouter()
 		if err != nil {
@@ -114,7 +114,7 @@ func (b *Builder) buildRouters(ctx context.Context, routers map[string]*router.R
 				"middlewares":  rtInfo.Router.Middlewares,
 				"service.name": rtInfo.Router.Service,
 				"priority":     rtInfo.Router.Priority,
-			}).Debug("building route")
+			}).Trace("building route")
 
 			var h http.Handler
 			h, err = b.buildHandler(rtCtx, routerName, rtInfo, infos, epAccessLogMiddleware)
@@ -216,7 +216,7 @@ func (b *Builder) buildMiddleware(ctx context.Context, routerName string, rtInfo
 
 		// In case a services is missing one of the middleware configurationg we skip it usage and warning
 		if infos.Middlewares[midName] == nil {
-			logger.Warn("missing in dynamic configuration")
+			logger.Trace("[WARN] missing in dynamic configuration")
 			continue
 		}
 
@@ -270,12 +270,12 @@ func (b *Builder) buildMiddleware(ctx context.Context, routerName string, rtInfo
 				respModifiers = append(respModifiers, respModifier)
 			}
 		default:
-			logger.Debugf("no middleware builder registered")
+			logger.Trace("no middleware builder registered")
 		}
 	}
 
 	if accessLog != nil {
-		b.logger.Debugf("added entrypoint accesslog")
+		b.logger.Trace("added entrypoint accesslog")
 		chain = alice.New(accessLog).Extend(chain)
 	}
 
@@ -313,7 +313,7 @@ func (b *Builder) buildService(ctx context.Context, serviceName string, srvInfo 
 		}
 		return h, nil
 	default:
-		logger.Debug("no handler builder registered")
+		logger.Trace("no handler builder registered")
 		return http.NotFoundHandler(), fmt.Errorf("no handler to build (falling back on NotFound)")
 	}
 }

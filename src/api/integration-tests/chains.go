@@ -27,7 +27,6 @@ func (s *chainsTestSuite) TestRegister() {
 
 	s.T().Run("should register chain successfully from latest", func(t *testing.T) {
 		req := testdata.FakeRegisterChainRequest()
-		req.Listener.FromBlock = "latest"
 		req.URLs = []string{s.env.blockchainNodeURL}
 
 		resp, err := s.client.RegisterChain(ctx, req)
@@ -36,11 +35,9 @@ func (s *chainsTestSuite) TestRegister() {
 		assert.Equal(t, req.Name, resp.Name)
 		assert.Equal(t, req.URLs, resp.URLs)
 		assert.Equal(t, multitenancy.DefaultTenant, resp.TenantID)
-		assert.Equal(t, req.Listener.ExternalTxEnabled, resp.ListenerExternalTxEnabled)
 		assert.Equal(t, req.Listener.Depth, resp.ListenerDepth)
 		assert.Equal(t, req.Labels, resp.Labels)
 		assert.NotEmpty(t, resp.UUID)
-		assert.Greater(t, resp.ListenerStartingBlock, uint64(0))
 		assert.NotEmpty(t, resp.CreatedAt)
 		assert.NotEmpty(t, resp.UpdatedAt)
 		assert.Equal(t, resp.CreatedAt, resp.UpdatedAt)
@@ -51,7 +48,6 @@ func (s *chainsTestSuite) TestRegister() {
 
 	s.T().Run("should register chain successfully from latest if fromBlock is empty", func(t *testing.T) {
 		req := testdata.FakeRegisterChainRequest()
-		req.Listener.FromBlock = ""
 		req.URLs = []string{s.env.blockchainNodeURL}
 
 		resp, err := s.client.RegisterChain(ctx, req)
@@ -60,10 +56,8 @@ func (s *chainsTestSuite) TestRegister() {
 		assert.Equal(t, req.Name, resp.Name)
 		assert.Equal(t, req.URLs, resp.URLs)
 		assert.Equal(t, multitenancy.DefaultTenant, resp.TenantID)
-		assert.Equal(t, req.Listener.ExternalTxEnabled, resp.ListenerExternalTxEnabled)
 		assert.Equal(t, req.Listener.Depth, resp.ListenerDepth)
 		assert.NotEmpty(t, resp.UUID)
-		assert.Greater(t, resp.ListenerStartingBlock, uint64(0))
 		assert.NotEmpty(t, resp.CreatedAt)
 		assert.NotEmpty(t, resp.UpdatedAt)
 		assert.Equal(t, resp.CreatedAt, resp.UpdatedAt)
@@ -74,7 +68,6 @@ func (s *chainsTestSuite) TestRegister() {
 
 	s.T().Run("should register chain successfully from 0", func(t *testing.T) {
 		req := testdata.FakeRegisterChainRequest()
-		req.Listener.FromBlock = "0"
 		req.URLs = []string{s.env.blockchainNodeURL}
 
 		resp, err := s.client.RegisterChain(ctx, req)
@@ -83,33 +76,8 @@ func (s *chainsTestSuite) TestRegister() {
 		assert.Equal(t, req.Name, resp.Name)
 		assert.Equal(t, req.URLs, resp.URLs)
 		assert.Equal(t, multitenancy.DefaultTenant, resp.TenantID)
-		assert.Equal(t, req.Listener.ExternalTxEnabled, resp.ListenerExternalTxEnabled)
 		assert.Equal(t, req.Listener.Depth, resp.ListenerDepth)
 		assert.NotEmpty(t, resp.UUID)
-		assert.Equal(t, uint64(0), resp.ListenerStartingBlock)
-		assert.NotEmpty(t, resp.CreatedAt)
-		assert.NotEmpty(t, resp.UpdatedAt)
-		assert.Equal(t, resp.CreatedAt, resp.UpdatedAt)
-
-		err = s.client.DeleteChain(ctx, resp.UUID)
-		assert.NoError(t, err)
-	})
-
-	s.T().Run("should register chain successfully from 666", func(t *testing.T) {
-		req := testdata.FakeRegisterChainRequest()
-		req.Listener.FromBlock = "666"
-		req.URLs = []string{s.env.blockchainNodeURL}
-
-		resp, err := s.client.RegisterChain(ctx, req)
-		require.NoError(t, err)
-
-		assert.Equal(t, req.Name, resp.Name)
-		assert.Equal(t, req.URLs, resp.URLs)
-		assert.Equal(t, multitenancy.DefaultTenant, resp.TenantID)
-		assert.Equal(t, req.Listener.ExternalTxEnabled, resp.ListenerExternalTxEnabled)
-		assert.Equal(t, req.Listener.Depth, resp.ListenerDepth)
-		assert.NotEmpty(t, resp.UUID)
-		assert.Equal(t, uint64(666), resp.ListenerStartingBlock)
 		assert.NotEmpty(t, resp.CreatedAt)
 		assert.NotEmpty(t, resp.UpdatedAt)
 		assert.Equal(t, resp.CreatedAt, resp.UpdatedAt)
@@ -128,7 +96,7 @@ func (s *chainsTestSuite) TestRegister() {
 
 	s.T().Run("should fail with 400 if invalid backoff duration", func(t *testing.T) {
 		req := testdata.FakeRegisterChainRequest()
-		req.Listener.BackOffDuration = "invalidDuration"
+		req.Listener.BlockTimeDuration = "invalidDuration"
 
 		_, err := s.client.RegisterChain(ctx, req)
 		assert.Equal(t, http.StatusBadRequest, err.(*client.HTTPErr).Code())
@@ -246,23 +214,6 @@ func (s *chainsTestSuite) TestUpdate() {
 
 		assert.Equal(t, req.Name, resp.Name)
 		assert.Equal(t, req.Labels, resp.Labels)
-		assert.NotEqual(t, resp.CreatedAt, resp.UpdatedAt)
-	})
-
-	s.T().Run("should update chain listener successfully", func(t *testing.T) {
-		req := testdata.FakeUpdateChainRequest()
-		req.Listener.CurrentBlock = 666
-		req.Listener.Depth = 2
-		req.Listener.ExternalTxEnabled = true
-		req.Listener.BackOffDuration = "10s"
-
-		resp, err := s.client.UpdateChain(ctx, chain.UUID, req)
-		require.NoError(t, err)
-
-		assert.Equal(t, req.Listener.CurrentBlock, resp.ListenerCurrentBlock)
-		assert.Equal(t, req.Listener.Depth, resp.ListenerDepth)
-		assert.Equal(t, req.Listener.BackOffDuration, resp.ListenerBackOffDuration)
-		assert.Equal(t, req.Listener.ExternalTxEnabled, resp.ListenerExternalTxEnabled)
 		assert.NotEqual(t, resp.CreatedAt, resp.UpdatedAt)
 	})
 

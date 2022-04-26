@@ -7,7 +7,6 @@ import (
 
 	"github.com/Shopify/sarama"
 
-	pkgsarama "github.com/consensys/orchestrate/src/infra/kafka/sarama"
 	"github.com/consensys/orchestrate/tests/pkg/docker/container/zookeeper"
 	dockercontainer "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
@@ -115,7 +114,7 @@ waitForServiceLoop:
 			cerr = rctx.Err()
 			break waitForServiceLoop
 		case <-retryT.C:
-			client, err := pkgsarama.NewClient(sarama.NewConfig(), addrs)
+			client, err := sarama.NewClient(addrs, sarama.NewConfig())
 			switch {
 			case err != nil:
 				log.WithContext(rctx).

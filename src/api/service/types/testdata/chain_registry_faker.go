@@ -12,10 +12,8 @@ func FakeRegisterChainRequest() *api.RegisterChainRequest {
 		Name: "chain-" + common.RandString(5),
 		URLs: []string{"http://chain:8545"},
 		Listener: api.RegisterListenerRequest{
-			FromBlock:         "latest",
-			ExternalTxEnabled: false,
 			Depth:             uint64(common.RandInt(10)),
-			BackOffDuration:   fmt.Sprintf("%ds", common.RandIntRange(1, 10)),
+			BlockTimeDuration: fmt.Sprintf("%ds", common.RandIntRange(1, 10)),
 		},
 		PrivateTxManagerURL: "http://tessera-eea:8545",
 		Labels: map[string]string{
@@ -32,7 +30,7 @@ func FakeUpdateChainRequest() *api.UpdateChainRequest {
 			CurrentBlock:      55,
 			ExternalTxEnabled: true,
 			Depth:             uint64(common.RandInt(10)),
-			BackOffDuration:   fmt.Sprintf("%ds", common.RandIntRange(1, 10)),
+			BlockTimeDuration: fmt.Sprintf("%ds", common.RandIntRange(1, 10)),
 		},
 		Labels: map[string]string{
 			"label3": common.RandString(5),

@@ -9,11 +9,11 @@ import (
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/pkg/utils"
 	api "github.com/consensys/orchestrate/src/api/service/types"
-	"github.com/consensys/orchestrate/src/infra/kafka/testutils"
+	testutils2 "github.com/consensys/orchestrate/src/infra/notifier/kafka/testutils"
 )
 
 func BatchDeployContractTest(ctx context.Context, cfg *WorkloadConfig, client orchestrateclient.OrchestrateClient,
-	consumerTracker *testutils.ExternalConsumerTracker) error {
+	consumerTracker *testutils2.NotifierConsumerTracker) error {
 	logger := log.WithContext(ctx).SetComponent("stress-test.deploy-contract")
 	nAccount := utils.RandInt(len(cfg.accounts))
 	nArtifact := utils.RandInt(len(cfg.artifacts))

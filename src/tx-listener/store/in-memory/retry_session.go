@@ -56,6 +56,16 @@ func (m *retrySessionInMemory) Remove(_ context.Context, sessID string) error {
 	return nil
 }
 
+func (m *retrySessionInMemory) Has(_ context.Context, sessID string) bool {
+	m.mux.Lock()
+	defer m.mux.Unlock()
+	if _, ok := m.indexBySessID[sessID]; !ok {
+		return false
+	}
+
+	return true
+}
+
 func (m *retrySessionInMemory) GetByTxHash(_ context.Context, chainUUID string, txHash *common.Hash) (string, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()

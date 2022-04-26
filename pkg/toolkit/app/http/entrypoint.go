@@ -126,7 +126,7 @@ func (eps *EntryPoints) switchRouter(ctx context.Context, routers map[string]*ro
 			if err != nil {
 				logger.WithError(err).Errorf("error switching tcp router")
 			} else {
-				logger.Debug("switched tcp router")
+				logger.Trace("switched tcp router")
 			}
 		}
 	}
@@ -136,7 +136,9 @@ func (eps *EntryPoints) Shutdown(ctx context.Context) error {
 	gr := &multierror.Group{}
 	for epName, ep := range eps.eps {
 		epName, ep := epName, ep
-		gr.Go(func() error { return tcp.Shutdown(tlog.With(ctx, tlog.Str("entrypoint", epName)), ep) })
+		gr.Go(func() error {
+			return tcp.Shutdown(tlog.With(ctx, tlog.Str("entrypoint", epName)), ep)
+		})
 	}
 
 	return gr.Wait().ErrorOrNil()

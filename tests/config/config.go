@@ -44,10 +44,7 @@ func NewE2eConfig(vipr *viper.Viper) (*Config, error) {
 		testData.ArtifactPath = "./artifacts"
 	}
 	if testData.Timeout == "" {
-		testData.Timeout = "1m"
-	}
-	if testData.KafkaTopic == "" {
-		testData.KafkaTopic = "topic-tx-decoded"
+		testData.Timeout = "30s"
 	}
 
 	cfg.Artifacts, err = readArtifacts(testData.ArtifactPath)

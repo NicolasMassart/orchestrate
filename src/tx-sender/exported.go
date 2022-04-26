@@ -3,9 +3,6 @@ package txsender
 import (
 	"context"
 
-	broker "github.com/consensys/orchestrate/src/infra/kafka"
-	brokerClient "github.com/consensys/orchestrate/src/infra/kafka/sarama"
-
 	qkmhttp "github.com/consensys/orchestrate/src/infra/quorum-key-manager/http"
 	nonclient "github.com/consensys/orchestrate/src/infra/quorum-key-manager/non-client"
 	"github.com/consensys/orchestrate/src/infra/redis"
@@ -14,14 +11,11 @@ import (
 
 	orchestrateClient "github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app"
-	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	ethclient "github.com/consensys/orchestrate/src/infra/ethclient/rpc"
 )
 
 // New Utility function used to initialize a new service
 func New(ctx context.Context, cfg *Config) (*app.App, error) {
-	logger := log.FromContext(ctx)
-
 	// Initialize infra dependencies
 	redisClient, err := getRedisClient(cfg)
 	if err != nil {
@@ -36,19 +30,8 @@ func New(ctx context.Context, cfg *Config) (*app.App, error) {
 	orchestrateClient.Init()
 	ethclient.Init(ctx)
 
-	consumerGroups := make([]broker.Consumer, cfg.NConsumer)
-	for idx := 0; idx < cfg.NConsumer; idx++ {
-		consumerGroups[idx], err = brokerClient.NewConsumer(cfg.Kafka)
-		if err != nil {
-			return nil, err
-		}
-
-		logger.WithField("host", cfg.Kafka.URLs).WithField("group_name", cfg.GroupName).Info("consumer client ready")
-	}
-
 	return NewTxSender(
 		cfg,
-		consumerGroups,
 		qkmClient,
 		orchestrateClient.GlobalClient(),
 		ethclient.GlobalClient(),

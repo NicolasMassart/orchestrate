@@ -15,18 +15,13 @@ type Consumer struct {
 
 var _ kafka.Consumer = &Consumer{}
 
-func NewConsumer(cfg *Config) (*Consumer, error) {
-	saramaCfg, err := cfg.ToKafkaConfig()
+func NewConsumerGroup(cfg *Config) (*Consumer, error) {
+	client, err := NewClient(cfg, cfg.URLs)
 	if err != nil {
 		return nil, err
 	}
 
-	client, err := NewClient(saramaCfg, cfg.URLs)
-	if err != nil {
-		return nil, err
-	}
-
-	cGroup, err := newConsumerGroupFromClient(cfg.GroupName, client)
+	cGroup, err := NewConsumerGroupFromClient(client, cfg.GroupName)
 	if err != nil {
 		return nil, err
 	}

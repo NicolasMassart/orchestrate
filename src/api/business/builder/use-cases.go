@@ -5,9 +5,9 @@ import (
 	"github.com/consensys/orchestrate/src/api/business/use-cases/faucets"
 	"github.com/consensys/orchestrate/src/api/metrics"
 	"github.com/consensys/orchestrate/src/api/store"
+	"github.com/consensys/orchestrate/src/infra/messenger"
+	"github.com/consensys/orchestrate/src/infra/notifier"
 	"github.com/consensys/orchestrate/src/infra/ethclient"
-	"github.com/consensys/orchestrate/src/infra/kafka"
-	"github.com/consensys/orchestrate/src/infra/push_notification"
 	qkmclient "github.com/consensys/quorum-key-manager/pkg/client"
 )
 
@@ -28,21 +28,23 @@ func NewUseCases(
 	keyManagerClient qkmclient.EthClient,
 	qkmStoreID string,
 	ec ethclient.Client,
-	producer kafka.Producer,
+	messenger messenger.Producer,
+	kafkaNotifier, webhookNotifier notifier.Producer,
 	topicSender string,
-	notifier pushnotification.Notifier,
+	topicListener string,
 ) usecases.UseCases {
 	chainUseCases := newChainUseCases(db, ec)
 	contractUseCases := newContractUseCases(db)
 	faucetUseCases := newFaucetUseCases(db)
 	getFaucetCandidateUC := faucets.NewGetFaucetCandidateUseCase(faucetUseCases.Search(), ec)
 	scheduleUseCases := newScheduleUseCases(db)
-	eventStreamUseCases := newEventStreamUseCases(db.EventStream(), notifier, contractUseCases, chainUseCases)
+	eventStreamUseCases := newEventStreamUseCases(db.EventStream(), kafkaNotifier, webhookNotifier, contractUseCases, chainUseCases)
 	jobUseCases := newJobUseCases(
 		db,
 		appMetrics,
-		producer,
+		messenger,
 		topicSender,
+		topicListener,
 		eventStreamUseCases,
 		chainUseCases,
 		qkmStoreID,

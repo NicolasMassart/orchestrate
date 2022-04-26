@@ -24,8 +24,9 @@ CREATE TABLE event_streams (
 	updated_at TIMESTAMPTZ DEFAULT (now() at time zone 'utc') NOT NULL
 );
 
-CREATE UNIQUE INDEX event_streams_unique_name_idx ON event_streams (tenant_id, name) WHERE name IS NOT NULL;
-CREATE UNIQUE INDEX event_streams_unique_chain_idx ON event_streams (tenant_id, chain_uuid) WHERE chain_uuid IS NOT NULL;
+CREATE UNIQUE INDEX event_streams_unique_name_idx ON event_streams (tenant_id, owner_id, name) WHERE name IS NOT NULL;
+CREATE UNIQUE INDEX event_streams_unique_chain_idx ON event_streams (tenant_id, owner_id, chain_uuid) WHERE chain_uuid IS NOT NULL;
+CREATE UNIQUE INDEX event_streams_unique_no_chain_idx ON event_streams (tenant_id, owner_id) WHERE chain_uuid IS NULL;
 `)
 	if err != nil {
 		log.WithError(err).Error("Could not create event_streams table")

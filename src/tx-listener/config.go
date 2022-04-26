@@ -6,6 +6,7 @@ import (
 	orchestrateclient "github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http"
+	"github.com/consensys/orchestrate/src/infra/kafka/sarama"
 )
 
 type Config struct {
@@ -13,5 +14,7 @@ type Config struct {
 	App                   *app.Config
 	HTTPClient            *http.Config
 	API                   *orchestrateclient.Config
-	RefreshInterval       time.Duration
+	RetryInterval         time.Duration
+	ConsumerTopic         string
+	Kafka                 *sarama.Config
 }

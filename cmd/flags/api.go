@@ -22,6 +22,7 @@ func NewAPIFlags(f *pflag.FlagSet) {
 
 	KafkaFlags(f)
 	KafkaTopicTxSender(f)
+	KafkaTopicTxListener(f)
 
 	log.Flags(f)
 	multitenancy.Flags(f)
@@ -39,7 +40,8 @@ func NewAPIConfig(vipr *viper.Viper) *api.Config {
 		Postgres: NewPGConfig(vipr),
 		Kafka:    NewKafkaConfig(vipr),
 		KafkaTopics: &api.TopicConfig{
-			Sender: viper.GetString(TxSenderViperKey),
+			Sender:   viper.GetString(TxSenderViperKey),
+			Listener: viper.GetString(TxListenerViperKey),
 		},
 		Multitenancy: vipr.GetBool(multitenancy.EnabledViperKey),
 		Proxy:        proxy.NewConfig(),

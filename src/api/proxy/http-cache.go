@@ -54,7 +54,7 @@ func HTTPCacheRequest(ctx context.Context, req *http.Request) (c bool, k string,
 	}
 
 	if _, ok := rpcCachedMethods[msg.Method]; !ok {
-		logger.WithField("method", msg.Method).Debug("rpc method is ignored")
+		logger.WithField("method", msg.Method).Trace("rpc method is ignored")
 		return false, "", 0, nil
 	}
 

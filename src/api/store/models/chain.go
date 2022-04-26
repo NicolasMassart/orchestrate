@@ -19,10 +19,7 @@ type Chain struct {
 	PrivateTxManagerURL       string   `pg:"private_tx_manager_url"`
 	ChainID                   string
 	ListenerDepth             uint64
-	ListenerCurrentBlock      uint64
-	ListenerStartingBlock     uint64
-	ListenerBackOffDuration   string
-	ListenerExternalTxEnabled bool
+	ListenerBlockTimeDuration string
 	Labels                    map[string]string
 	CreatedAt                 time.Time `pg:"default:now()"`
 	UpdatedAt                 time.Time `pg:"default:now()"`
@@ -30,23 +27,20 @@ type Chain struct {
 
 func NewChain(chain *entities.Chain) *Chain {
 	chainModel := &Chain{
-		UUID:                      chain.UUID,
-		Name:                      chain.Name,
-		TenantID:                  chain.TenantID,
-		OwnerID:                   chain.OwnerID,
-		URLs:                      chain.URLs,
-		ListenerDepth:             chain.ListenerDepth,
-		ListenerCurrentBlock:      chain.ListenerCurrentBlock,
-		ListenerStartingBlock:     chain.ListenerStartingBlock,
-		ListenerExternalTxEnabled: chain.ListenerExternalTxEnabled,
-		PrivateTxManagerURL:       chain.PrivateTxManagerURL,
-		Labels:                    chain.Labels,
-		CreatedAt:                 chain.CreatedAt,
-		UpdatedAt:                 chain.UpdatedAt,
+		UUID:                chain.UUID,
+		Name:                chain.Name,
+		TenantID:            chain.TenantID,
+		OwnerID:             chain.OwnerID,
+		URLs:                chain.URLs,
+		ListenerDepth:       chain.ListenerDepth,
+		PrivateTxManagerURL: chain.PrivateTxManagerURL,
+		Labels:              chain.Labels,
+		CreatedAt:           chain.CreatedAt,
+		UpdatedAt:           chain.UpdatedAt,
 	}
 
-	if chain.ListenerBackOffDuration.Milliseconds() > 0 {
-		chainModel.ListenerBackOffDuration = chain.ListenerBackOffDuration.String()
+	if chain.ListenerBlockTimeDuration.Milliseconds() > 0 {
+		chainModel.ListenerBlockTimeDuration = chain.ListenerBlockTimeDuration.String()
 	}
 
 	if chain.ChainID != nil {
@@ -66,8 +60,7 @@ func NewChains(chains []*Chain) []*entities.Chain {
 }
 
 func (c *Chain) ToEntity() *entities.Chain {
-	listenerBackOffDuration, _ := time.ParseDuration(c.ListenerBackOffDuration)
-
+	listenerBlockTimeDuration, _ := time.ParseDuration(c.ListenerBlockTimeDuration)
 	chain := &entities.Chain{
 		UUID:                      c.UUID,
 		Name:                      c.Name,
@@ -76,10 +69,7 @@ func (c *Chain) ToEntity() *entities.Chain {
 		URLs:                      c.URLs,
 		ChainID:                   (*big.Int)(utils.StringBigIntToHex(c.ChainID)),
 		ListenerDepth:             c.ListenerDepth,
-		ListenerCurrentBlock:      c.ListenerCurrentBlock,
-		ListenerStartingBlock:     c.ListenerStartingBlock,
-		ListenerBackOffDuration:   listenerBackOffDuration,
-		ListenerExternalTxEnabled: c.ListenerExternalTxEnabled,
+		ListenerBlockTimeDuration: listenerBlockTimeDuration,
 		PrivateTxManagerURL:       c.PrivateTxManagerURL,
 		Labels:                    c.Labels,
 		CreatedAt:                 c.CreatedAt,

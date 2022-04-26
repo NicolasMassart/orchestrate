@@ -34,7 +34,7 @@ func NewRegisterChainUseCase(db store.DB, searchChainsUC usecases.SearchChainsUs
 }
 
 // Execute registers a new chain
-func (uc *registerChainUseCase) Execute(ctx context.Context, chain *entities.Chain, fromLatest bool, userInfo *multitenancy.UserInfo) (*entities.Chain, error) {
+func (uc *registerChainUseCase) Execute(ctx context.Context, chain *entities.Chain, userInfo *multitenancy.UserInfo) (*entities.Chain, error) {
 	ctx = log.WithFields(ctx, log.Field("chain_name", chain.Name))
 	logger := uc.logger.WithContext(ctx)
 	logger.Debug("registering new chain")
@@ -57,16 +57,6 @@ func (uc *registerChainUseCase) Execute(ctx context.Context, chain *entities.Cha
 		return nil, errors.FromError(err).ExtendComponent(registerChainComponent)
 	}
 	chain.ChainID = chainID
-
-	if fromLatest {
-		chainTip, der := uc.getChainTip(ctx, chain.URLs)
-		if der != nil {
-			return nil, errors.FromError(der).ExtendComponent(registerChainComponent)
-		}
-
-		chain.ListenerStartingBlock = chainTip
-		chain.ListenerCurrentBlock = chainTip
-	}
 
 	chain.TenantID = userInfo.TenantID
 	chain.OwnerID = userInfo.Username
@@ -103,21 +93,4 @@ func (uc *registerChainUseCase) getChainID(ctx context.Context, uris []string) (
 	}
 
 	return prevChainID, nil
-}
-
-func (uc *registerChainUseCase) getChainTip(ctx context.Context, uris []string) (uint64, error) {
-	for _, uri := range uris {
-		header, err := uc.ethClient.HeaderByNumber(ctx, uri, nil)
-		if err != nil {
-			errMessage := "failed to fetch chain tip"
-			uc.logger.WithContext(ctx).WithField("url", uri).WithError(err).Warn(errMessage)
-			continue
-		}
-
-		return header.Number.Uint64(), nil
-	}
-
-	errMessage := "failed to fetch chain tip for all urls"
-	uc.logger.WithContext(ctx).WithField("uris", uris).Error(errMessage)
-	return 0, errors.InvalidParameterError(errMessage)
 }

@@ -31,19 +31,19 @@ type EventStream struct {
 	UpdatedAt time.Time
 }
 
-type Webhook struct {
+type EventStreamWebhookSpec struct {
 	URL     string            `json:"url"`
 	Headers map[string]string `json:"headers,omitempty"`
 }
 
-type Kafka struct {
+type EventStreamKafkaSpec struct {
 	Topic string `json:"topic"`
 }
 
-func (e *EventStream) WebHook() *Webhook {
-	return e.Specs.(*Webhook) // No need to verify the casting (assertion, not an exception)
+func (e *EventStream) WebHook() *EventStreamWebhookSpec {
+	return e.Specs.(*EventStreamWebhookSpec) // No need to verify the casting (assertion, not an exception)
 }
 
-func (e *EventStream) Kafka() *Kafka {
-	return e.Specs.(*Kafka) // No need to verify the casting (assertion, not an exception)
+func (e *EventStream) Kafka() *EventStreamKafkaSpec {
+	return e.Specs.(*EventStreamKafkaSpec) // No need to verify the casting (assertion, not an exception)
 }

@@ -11,6 +11,8 @@ func init() {
 	// Kafka topics for the tx workflow
 	viper.SetDefault(TxSenderViperKey, txSenderTopicDefault)
 	_ = viper.BindEnv(TxSenderViperKey, txSenderTopicEnv)
+	viper.SetDefault(TxListenerViperKey, txListenerTopicDefault)
+	_ = viper.BindEnv(TxListenerViperKey, txListenerTopicEnv)
 }
 
 const (
@@ -26,4 +28,18 @@ func KafkaTopicTxSender(f *pflag.FlagSet) {
 Environment variable: %q`, txSenderTopicEnv)
 	f.String(txSenderFlag, txSenderTopicDefault, desc)
 	_ = viper.BindPFlag(TxSenderViperKey, f.Lookup(txSenderFlag))
+}
+
+const (
+	txListenerFlag         = "topic-tx-listener"
+	TxListenerViperKey     = "topic.tx.listener"
+	txListenerTopicEnv     = "TOPIC_TX_LISTENER"
+	txListenerTopicDefault = "topic-tx-listener"
+)
+
+func KafkaTopicTxListener(f *pflag.FlagSet) {
+	desc := fmt.Sprintf(`Topic for messages between the API and the Tx-Listener.
+Environment variable: %q`, txListenerTopicEnv)
+	f.String(txListenerFlag, txListenerTopicDefault, desc)
+	_ = viper.BindPFlag(TxListenerViperKey, f.Lookup(txListenerFlag))
 }

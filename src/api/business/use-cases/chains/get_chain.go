@@ -37,6 +37,6 @@ func (uc *getChainUseCase) Execute(ctx context.Context, uuid string, userInfo *m
 		return nil, errors.FromError(err).ExtendComponent(getChainComponent)
 	}
 
-	logger.Debug("chain found successfully")
+	logger.Trace("chain found successfully")
 	return chain, nil
 }

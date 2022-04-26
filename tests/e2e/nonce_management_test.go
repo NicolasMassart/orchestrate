@@ -24,16 +24,17 @@ import (
 
 type nonceManagementTestSuite struct {
 	suite.Suite
-	env    *Environment
-	ctx    context.Context
-	cancel context.CancelFunc
+	env        *Environment
+	ctx        context.Context
+	cancel     context.CancelFunc
+	kafkaTopic string
 }
 
 func TestNonceManagement(t *testing.T) {
 	s := new(nonceManagementTestSuite)
 	s.ctx, s.cancel = context.WithCancel(context.Background())
 	defer s.cancel()
-	
+
 	var err error
 	s.env, err = NewEnvironment(s.ctx, s.cancel)
 	require.NoError(t, err)
@@ -49,6 +50,18 @@ func TestNonceManagement(t *testing.T) {
 	suite.Run(t, s)
 }
 
+func (s *nonceManagementTestSuite) SetupSuite() {
+	err := s.env.Start()
+	require.NoError(s.T(), err)
+	s.env.Logger.Info("setup test suite has completed")
+}
+
+func (s *nonceManagementTestSuite) TearDownSuite() {
+	err := s.env.Stop()
+	require.NoError(s.T(), err)
+	s.env.Logger.Info("setup test teardown has completed")
+}
+
 func (s *nonceManagementTestSuite) TestNonceManagement_Recalibrate() {
 	faucetAcc, err := pkgutils.ImportOrFetchAccount(s.ctx, s.env.Client, s.env.TestData.Nodes.Geth[0].FundedPublicKeys[0], &types.ImportAccountRequest{
 		Alias:      "faucet-acc-" + common.RandString(5),
@@ -56,23 +69,15 @@ func (s *nonceManagementTestSuite) TestNonceManagement_Recalibrate() {
 	})
 	require.NoError(s.T(), err)
 
-	chainRes, err := pkgutils.RegisterChainAndWaitForProxy(s.ctx, s.env.Client, s.env.EthClient, &types.RegisterChainRequest{
-		Name: "chain-geth-" + common.RandString(5),
-		URLs: s.env.TestData.Nodes.Geth[0].URLs,
-	})
+	gethChain, _, err := s.env.createChainWithStream("chain-geth-"+common.RandString(5), s.env.TestData.Nodes.Geth[0].URLs, "")
 	require.NoError(s.T(), err)
-	defer func() {
-		err := s.env.Client.DeleteChain(s.ctx, chainRes.UUID)
-		assert.NoError(s.T(), err)
-	}()
-	chainID := new(big.Int).SetUint64(chainRes.ChainID)
 
 	s.T().Run("as a user I want to send a batch of transactions and recover from failed one in sequence", func(t *testing.T) {
 		testAcc, err := s.env.Client.CreateAccount(s.ctx, &types.CreateAccountRequest{})
 		require.NoError(s.T(), err)
 
 		faucetTxRes, err := s.env.Client.SendTransferTransaction(s.ctx, &types.TransferRequest{
-			ChainName: chainRes.Name,
+			ChainName: gethChain.Name,
 			Params: types.TransferParams{
 				From:  ethcommon.HexToAddress(faucetAcc.Address),
 				To:    ethcommon.HexToAddress(testAcc.Address),
@@ -80,11 +85,11 @@ func (s *nonceManagementTestSuite) TestNonceManagement_Recalibrate() {
 			},
 		})
 		require.NoError(s.T(), err)
-		_, err = s.env.KafkaConsumer.WaitForTxMinedNotification(s.ctx, faucetTxRes.UUID, s.env.TestData.KafkaTopic, s.env.WaitForTxResponseTTL)
+		_, err = s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, faucetTxRes.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
 		require.NoError(s.T(), err)
 
 		txOne, err := s.env.Client.SendTransferTransaction(s.ctx, &types.TransferRequest{
-			ChainName: chainRes.Name,
+			ChainName: gethChain.Name,
 			Params: types.TransferParams{
 				From:  ethcommon.HexToAddress(testAcc.Address),
 				To:    ethcommon.HexToAddress(faucetAcc.Address),
@@ -95,7 +100,7 @@ func (s *nonceManagementTestSuite) TestNonceManagement_Recalibrate() {
 
 		// Fail due to not enough balance
 		txTwo, err := s.env.Client.SendTransferTransaction(s.ctx, &types.TransferRequest{
-			ChainName: chainRes.Name,
+			ChainName: gethChain.Name,
 			Params: types.TransferParams{
 				From:  ethcommon.HexToAddress(testAcc.Address),
 				To:    ethcommon.HexToAddress(faucetAcc.Address),
@@ -104,7 +109,7 @@ func (s *nonceManagementTestSuite) TestNonceManagement_Recalibrate() {
 		})
 
 		txThree, err := s.env.Client.SendTransferTransaction(s.ctx, &types.TransferRequest{
-			ChainName: chainRes.Name,
+			ChainName: gethChain.Name,
 			Params: types.TransferParams{
 				From:  ethcommon.HexToAddress(testAcc.Address),
 				To:    ethcommon.HexToAddress(faucetAcc.Address),
@@ -113,18 +118,18 @@ func (s *nonceManagementTestSuite) TestNonceManagement_Recalibrate() {
 		})
 		require.NoError(s.T(), err)
 
-		txOneRes, err := s.env.KafkaConsumer.WaitForTxMinedNotification(s.ctx, txOne.UUID, s.env.TestData.KafkaTopic, s.env.WaitForTxResponseTTL)
+		txOneRes, err := s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, txOne.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
 		require.NoError(s.T(), err)
-		assert.Equal(t, "0", txOneRes.Data.Job.Transaction.Nonce)
+		assert.Equal(t, uint64(0), *txOneRes.Data.Job.Transaction.Nonce)
 
 		require.NoError(s.T(), err)
-		txTwoRes, err := s.env.KafkaConsumer.WaitForTxFailedNotification(s.ctx, txTwo.UUID, s.env.TestData.KafkaTopic, s.env.WaitForTxResponseTTL)
+		txTwoRes, err := s.env.ConsumerTracker.WaitForTxFailedNotification(s.ctx, txTwo.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
 		require.NoError(s.T(), err)
 		assert.NotEmpty(t, txTwoRes.Data.Error)
 
-		txThreeRes, err := s.env.KafkaConsumer.WaitForTxMinedNotification(s.ctx, txThree.UUID, s.env.TestData.KafkaTopic, s.env.WaitForTxResponseTTL)
+		txThreeRes, err := s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, txThree.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
 		require.NoError(s.T(), err)
-		assert.Equal(t, "1", txThreeRes.Data.Job.Transaction.Nonce)
+		assert.Equal(t, uint64(1), *txThreeRes.Data.Job.Transaction.Nonce)
 	})
 
 	s.T().Run("as a user I want to recover nonce in case of using same account externally", func(t *testing.T) {
@@ -141,7 +146,7 @@ func (s *nonceManagementTestSuite) TestNonceManagement_Recalibrate() {
 
 		// Fund the new account
 		faucetTxRes, err := s.env.Client.SendTransferTransaction(s.ctx, &types.TransferRequest{
-			ChainName: chainRes.Name,
+			ChainName: gethChain.Name,
 			Params: types.TransferParams{
 				From:  ethcommon.HexToAddress(faucetAcc.Address),
 				To:    ethcommon.HexToAddress(testAcc.Address),
@@ -152,12 +157,12 @@ func (s *nonceManagementTestSuite) TestNonceManagement_Recalibrate() {
 			},
 		})
 		require.NoError(s.T(), err)
-		_, err = s.env.KafkaConsumer.WaitForTxMinedNotification(s.ctx, faucetTxRes.UUID, s.env.TestData.KafkaTopic, s.env.WaitForTxResponseTTL)
+		_, err = s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, faucetTxRes.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
 		require.NoError(s.T(), err)
 
 		// Send tx with nonce 0
 		txOne, err := s.env.Client.SendTransferTransaction(s.ctx, &types.TransferRequest{
-			ChainName: chainRes.Name,
+			ChainName: gethChain.Name,
 			Params: types.TransferParams{
 				From:  ethcommon.HexToAddress(testAcc.Address),
 				To:    ethcommon.HexToAddress(faucetAcc.Address),
@@ -167,7 +172,7 @@ func (s *nonceManagementTestSuite) TestNonceManagement_Recalibrate() {
 		require.NoError(s.T(), err)
 
 		// Send External TX with nonce 1
-		gasPrice, err := s.env.EthClient.SuggestGasPrice(s.ctx, s.env.Client.ChainProxyURL(chainRes.UUID))
+		gasPrice, err := s.env.EthClient.SuggestGasPrice(s.ctx, s.env.Client.ChainProxyURL(gethChain.UUID))
 		require.NoError(s.T(), err)
 		signedRaw, _, err := crypto.SignTransaction(testAccPrivKey, &entities.ETHTransaction{
 			From:            utils.HexToAddress(testAcc.Address),
@@ -177,26 +182,26 @@ func (s *nonceManagementTestSuite) TestNonceManagement_Recalibrate() {
 			GasPrice:        (*hexutil.Big)(new(big.Int).Mul(gasPrice, new(big.Int).SetUint64(2))),
 			Gas:             utils.ToPtr(uint64(210000)).(*uint64),
 			Value:           utils.HexToBigInt("0x16345785D8A0000"), // 0.1ETH
-		}, chainID)
+		}, gethChain.ChainID)
 		require.NoError(s.T(), err)
 
 		txTwo, err := s.env.Client.SendRawTransaction(s.ctx, &types.RawTransactionRequest{
-			ChainName: chainRes.Name,
+			ChainName: gethChain.Name,
 			Params: types.RawTransactionParams{
 				Raw: signedRaw,
 			},
 		})
 
-		txOneRes, err := s.env.KafkaConsumer.WaitForTxMinedNotification(s.ctx, txOne.UUID, s.env.TestData.KafkaTopic, s.env.WaitForTxResponseTTL)
+		txOneRes, err := s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, s.env.KafkaTopic, txOne.UUID, s.env.WaitForTxResponseTTL)
 		require.NoError(s.T(), err)
-		assert.Equal(t, "0", txOneRes.Data.Job.Transaction.Nonce)
+		assert.Equal(t, uint64(0), *txOneRes.Data.Job.Transaction.Nonce)
 
-		_, err = s.env.KafkaConsumer.WaitForTxMinedNotification(s.ctx, txTwo.UUID, s.env.TestData.KafkaTopic, s.env.WaitForTxResponseTTL)
+		_, err = s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, txTwo.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
 		require.NoError(s.T(), err)
 
 		// Send tx with recalibrated to nonce 2
 		txThree, err := s.env.Client.SendTransferTransaction(s.ctx, &types.TransferRequest{
-			ChainName: chainRes.Name,
+			ChainName: gethChain.Name,
 			Params: types.TransferParams{
 				From:  ethcommon.HexToAddress(testAcc.Address),
 				To:    ethcommon.HexToAddress(faucetAcc.Address),
@@ -207,8 +212,8 @@ func (s *nonceManagementTestSuite) TestNonceManagement_Recalibrate() {
 			},
 		})
 		require.NoError(s.T(), err)
-		txThreeRes, err := s.env.KafkaConsumer.WaitForTxMinedNotification(s.ctx, txThree.UUID, s.env.TestData.KafkaTopic, s.env.WaitForTxResponseTTL)
+		txThreeRes, err := s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, txThree.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
 		require.NoError(s.T(), err)
-		assert.Equal(t, "2", txThreeRes.Data.Job.Transaction.Nonce)
+		assert.Equal(t, uint64(2), *txThreeRes.Data.Job.Transaction.Nonce)
 	})
 }

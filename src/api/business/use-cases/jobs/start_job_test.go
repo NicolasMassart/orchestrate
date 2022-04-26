@@ -12,7 +12,7 @@ import (
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"github.com/consensys/orchestrate/src/api/metrics/mock"
 	"github.com/consensys/orchestrate/src/entities"
-	mocks3 "github.com/consensys/orchestrate/src/infra/kafka/mocks"
+	mocks3 "github.com/consensys/orchestrate/src/infra/messenger/mocks"
 
 	"github.com/consensys/orchestrate/src/api/store/mocks"
 	"github.com/consensys/orchestrate/src/entities/testdata"

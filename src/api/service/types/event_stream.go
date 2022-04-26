@@ -17,7 +17,7 @@ type CreateWebhookEventStreamRequest struct {
 func (r *CreateWebhookEventStreamRequest) ToEntity() *entities.EventStream {
 	return &entities.EventStream{
 		Name: r.Name,
-		Specs: &entities.Webhook{
+		Specs: &entities.EventStreamWebhookSpec{
 			URL:     r.URL,
 			Headers: r.Headers,
 		},
@@ -37,7 +37,7 @@ type CreateKafkaEventStreamRequest struct {
 func (r *CreateKafkaEventStreamRequest) ToEntity() *entities.EventStream {
 	return &entities.EventStream{
 		Name: r.Name,
-		Specs: &entities.Kafka{
+		Specs: &entities.EventStreamKafkaSpec{
 			Topic: r.Topic,
 		},
 		Channel: entities.EventStreamChannelKafka,
@@ -48,7 +48,6 @@ func (r *CreateKafkaEventStreamRequest) ToEntity() *entities.EventStream {
 
 type UpdateKafkaEventStreamRequest struct {
 	Name   string            `json:"name,omitempty" validate:"omitempty" example:"my-kafka-stream"`
-	Chain  string            `json:"chain,omitempty" validate:"omitempty" example:"mainnet"`
 	Topic  string            `json:"topic,omitempty" validate:"omitempty" example:"my-notification-topic"`
 	Status string            `json:"status,omitempty" validate:"omitempty,isEventStreamStatus" example:"PAUSED"`
 	Labels map[string]string `json:"labels,omitempty" validate:"omitempty"`
@@ -64,7 +63,7 @@ func (r *UpdateKafkaEventStreamRequest) ToEntity(uuid string) *entities.EventStr
 	}
 
 	if r.Topic != "" {
-		es.Specs = &entities.Kafka{
+		es.Specs = &entities.EventStreamKafkaSpec{
 			Topic: r.Topic,
 		}
 	}
@@ -74,7 +73,6 @@ func (r *UpdateKafkaEventStreamRequest) ToEntity(uuid string) *entities.EventStr
 
 type UpdateWebhookEventStreamRequest struct {
 	Name    string            `json:"name,omitempty" validate:"omitempty" example:"my-kafka-stream"`
-	Chain   string            `json:"chain,omitempty" validate:"omitempty" example:"mainnet"`
 	URL     string            `json:"url,omitempty" validate:"omitempty,url" example:"https://my-event-steam-endpoint.com"`
 	Headers map[string]string `json:"headers,omitempty" validate:"omitempty"`
 	Status  string            `json:"status,omitempty" validate:"omitempty,isEventStreamStatus" example:"PAUSED"`
@@ -91,7 +89,7 @@ func (r *UpdateWebhookEventStreamRequest) ToEntity(uuid string) *entities.EventS
 	}
 
 	if r.URL != "" || r.Headers != nil {
-		es.Specs = &entities.Webhook{
+		es.Specs = &entities.EventStreamWebhookSpec{
 			URL:     r.URL,
 			Headers: r.Headers,
 		}

@@ -36,6 +36,6 @@ func (uc *getJobUseCase) Execute(ctx context.Context, jobUUID string, userInfo *
 		return nil, errors.FromError(err).ExtendComponent(getJobComponent)
 	}
 
-	uc.logger.WithContext(ctx).Debug("job found successfully")
+	uc.logger.WithContext(ctx).Trace("job found successfully")
 	return job, nil
 }

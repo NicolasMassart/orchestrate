@@ -9,7 +9,6 @@ type TestDataCfg struct {
 	QKMStoreID   string    `json:"qkmStoreID"`
 	ArtifactPath string    `json:"artifacts"`
 	Timeout      string    `json:"timeout"`
-	KafkaTopic   string    `json:"topic"`
 }
 
 type UserInfo struct {

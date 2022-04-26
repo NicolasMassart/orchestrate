@@ -45,6 +45,6 @@ func (uc *searchContractUseCase) Execute(ctx context.Context, codehash hexutil.B
 		return nil, errors.FromError(err).ExtendComponent(searchContractComponent)
 	}
 
-	logger.WithField("name", contract.Name).WithField("tag", contract.Tag).Debug("contract found")
+	logger.WithField("name", contract.Name).WithField("tag", contract.Tag).Trace("contract found")
 	return contract, nil
 }

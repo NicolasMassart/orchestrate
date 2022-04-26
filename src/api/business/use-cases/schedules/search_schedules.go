@@ -44,6 +44,6 @@ func (uc *searchSchedulesUseCase) Execute(ctx context.Context, userInfo *multite
 		}
 	}
 
-	uc.logger.Info("schedules found successfully")
+	uc.logger.Trace("schedules found successfully")
 	return schedules, nil
 }

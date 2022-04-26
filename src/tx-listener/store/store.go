@@ -28,8 +28,15 @@ type PendingJob interface {
 
 type RetrySessions interface {
 	Add(ctx context.Context, sessID string, job *entities.Job) error
+	Has(ctx context.Context, sessID string) bool
 	Remove(ctx context.Context, sessID string) error
 	GetByTxHash(ctx context.Context, chainUUID string, txHash *ethcommon.Hash) (string, error)
 	ListByChainUUID(ctx context.Context, chainUUID string) ([]string, error)
 	DeletePerChainUUID(ctx context.Context, chainUUID string) error
+}
+
+type State interface {
+	ChainState() Chain
+	PendingJobState() PendingJob
+	RetrySessionsState() RetrySessions
 }

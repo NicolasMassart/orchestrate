@@ -26,7 +26,7 @@ func (b *Builder) Build(ctx context.Context, name string, configuration interfac
 	log.NewLogger().WithContext(ctx).SetComponent(component).
 		WithField("handler_name", name).
 		WithField("type", fmt.Sprintf("%T", configuration)).
-		Debug("building handler")
+		Trace("building handler")
 
 	builder, ok := b.builders[reflect.TypeOf(configuration)]
 	if !ok {

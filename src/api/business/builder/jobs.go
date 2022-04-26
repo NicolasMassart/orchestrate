@@ -5,7 +5,7 @@ import (
 	"github.com/consensys/orchestrate/src/api/business/use-cases/jobs"
 	"github.com/consensys/orchestrate/src/api/metrics"
 	"github.com/consensys/orchestrate/src/api/store"
-	"github.com/consensys/orchestrate/src/infra/kafka"
+	"github.com/consensys/orchestrate/src/infra/messenger"
 )
 
 type jobUseCases struct {
@@ -21,13 +21,14 @@ type jobUseCases struct {
 func newJobUseCases(
 	db store.DB,
 	appMetrics metrics.TransactionSchedulerMetrics,
-	producer kafka.Producer,
+	messenger messenger.Producer,
 	topicSender string,
+	topicListener string,
 	eventStreams usecases.EventStreamsUseCases,
 	chains usecases.ChainUseCases,
 	qkmStoreID string,
 ) *jobUseCases {
-	startJobUC := jobs.NewStartJobUseCase(db, producer, topicSender, appMetrics)
+	startJobUC := jobs.NewStartJobUseCase(db, messenger, topicSender, appMetrics)
 	startNextJobUC := jobs.NewStartNextJobUseCase(db, startJobUC)
 	createJobUC := jobs.NewCreateJobUseCase(db, chains.Get(), qkmStoreID)
 
@@ -35,9 +36,9 @@ func newJobUseCases(
 		create:   createJobUC,
 		get:      jobs.NewGetJobUseCase(db),
 		search:   jobs.NewSearchJobsUseCase(db),
-		update:   jobs.NewUpdateJobUseCase(db, startNextJobUC, appMetrics, eventStreams.NotifyTransaction()),
+		update:   jobs.NewUpdateJobUseCase(db, startNextJobUC, appMetrics, eventStreams.NotifyTransaction(), messenger, topicListener),
 		start:    startJobUC,
-		resendTx: jobs.NewResendJobTxUseCase(db, producer, topicSender),
+		resendTx: jobs.NewResendJobTxUseCase(db, messenger, topicSender),
 		retryTx:  jobs.NewRetryJobTxUseCase(db, createJobUC, startJobUC),
 	}
 }

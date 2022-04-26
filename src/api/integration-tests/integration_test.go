@@ -14,7 +14,6 @@ import (
 	"github.com/consensys/orchestrate/pkg/utils"
 	api "github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/api/service/types/testdata"
-	entitiestestdata "github.com/consensys/orchestrate/src/entities/testdata"
 	integrationtest "github.com/consensys/orchestrate/tests/pkg/integration-test"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -22,9 +21,8 @@ import (
 
 type apiTestSuite struct {
 	suite.Suite
-	env       *IntegrationEnvironment
-	client    client.OrchestrateClient
-	chainUUID string
+	env    *IntegrationEnvironment
+	client client.OrchestrateClient
 }
 
 func (s *apiTestSuite) SetupSuite() {
@@ -38,21 +36,15 @@ func (s *apiTestSuite) SetupSuite() {
 	conf.MetricsURL = s.env.metricsURL
 	s.client = client.NewHTTPClient(http.NewClient(http.NewDefaultConfig()), conf)
 
-	// We use this chain in the tests
-	chain, err := s.client.RegisterChain(s.env.ctx, &api.RegisterChainRequest{
+	// @TODO Remove this hidden dependency
+	// We use this chain in the API_Transactions tests
+	_, err = s.client.RegisterChain(s.env.ctx, &api.RegisterChainRequest{
 		Name: "ganache",
 		URLs: []string{s.env.blockchainNodeURL},
-		Listener: api.RegisterListenerRequest{
-			FromBlock:         "latest",
-			ExternalTxEnabled: false,
-		},
 	})
 	require.NoError(s.T(), err)
-	s.chainUUID = chain.UUID
 
-	// We use this account in the tests
-	account := entitiestestdata.FakeAccount()
-	account.Address = testdata.FromAddress
+	// We use this account in the API_Transactions and Faucet tests
 	_, err = s.client.ImportAccount(s.env.ctx, testdata.FakeImportAccountRequest())
 	require.NoError(s.T(), err)
 
@@ -98,7 +90,6 @@ func (s *apiTestSuite) TestAPI_Jobs() {
 	testSuite := new(jobsTestSuite)
 	testSuite.env = s.env
 	testSuite.client = s.client
-	testSuite.chainUUID = s.chainUUID
 	suite.Run(s.T(), testSuite)
 }
 

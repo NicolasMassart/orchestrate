@@ -28,7 +28,7 @@ func New(prvdr traefikprovider.Provider, pool *safe.Pool) *Provider {
 }
 
 func (p *Provider) Provide(ctx context.Context, msgs chan<- provider.Message) error {
-	p.logger.Debug("start providing")
+	p.logger.Trace("start providing")
 	// We can not close pipedMsgs due to Traefik implementation that does not allow to
 	// determine when to close pipedMsgs without risking to have Traefik provider
 	// sending messages to channel after closing

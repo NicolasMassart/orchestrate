@@ -17,8 +17,13 @@ type Client struct {
 
 var _ kafka.Client = &Client{}
 
-func NewClient(cfg *sarama.Config, addrs []string) (*Client, error) {
-	client, err := sarama.NewClient(addrs, cfg)
+func NewClient(cfg *Config, addrs []string) (*Client, error) {
+	saramaCfg, err := cfg.ToKafkaConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	client, err := sarama.NewClient(addrs, saramaCfg)
 	if err != nil {
 		return nil, err
 	}

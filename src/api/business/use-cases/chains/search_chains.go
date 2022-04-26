@@ -36,6 +36,6 @@ func (uc *searchChainsUseCase) Execute(ctx context.Context, filters *entities.Ch
 		return nil, errors.FromError(err).ExtendComponent(searchChainsComponent)
 	}
 
-	logger.Debug("chains found successfully")
+	logger.Trace("chains found successfully")
 	return chains, nil
 }

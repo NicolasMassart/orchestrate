@@ -78,7 +78,7 @@ func (e *EntryPoint) listener() net.Listener {
 
 func (e *EntryPoint) Serve(ctx context.Context, l net.Listener) error {
 	logger := e.logger.WithContext(ctx).WithField("address", l.Addr())
-	logger.Info("start serving tcp entrypoint")
+	logger.Trace("start serving tcp entrypoint")
 
 	e.lis.Store(&listenerValue{l})
 
@@ -103,7 +103,7 @@ func (e *EntryPoint) Serve(ctx context.Context, l net.Listener) error {
 		logger.WithFields(logrus.Fields{
 			"destination.address": conn.RemoteAddr(),
 			"destination.source":  conn.LocalAddr(),
-		}).Debug("accepted tcp connection")
+		}).Trace("accepted tcp connection")
 
 		writeCloser, err := writeCloser(conn)
 		if err != nil {
@@ -154,7 +154,7 @@ func (e *EntryPoint) Shutdown(ctx context.Context) error {
 	})
 
 	logger := e.logger.WithContext(ctx)
-	logger.Info("shutting down...")
+	logger.Debug("shutting down...")
 
 	reqAcceptGraceTimeOut := time.Duration(e.lifecycle.RequestAcceptGraceTimeout)
 	if reqAcceptGraceTimeOut > 0 {

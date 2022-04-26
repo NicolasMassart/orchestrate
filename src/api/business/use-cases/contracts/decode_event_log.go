@@ -37,8 +37,6 @@ func NewDecodeEventLogUseCase(db store.DB, getContractEventsUC usecases.GetContr
 }
 
 func (uc *decodeEventLogUseCase) Execute(ctx context.Context, chainUUID string, eventLog *ethereum.Log) (*ethereum.Log, error) {
-	uc.logger.Debug("decoding receipt logs...")
-
 	chain, der := uc.db.Chain().FindOneByUUID(ctx, chainUUID, []string{multitenancy.WildcardTenant}, multitenancy.WildcardOwner)
 	if der != nil {
 		return nil, errors.FromError(der).ExtendComponent(decodeLogsComponent)
@@ -118,7 +116,7 @@ func (uc *decodeEventLogUseCase) Execute(ctx context.Context, chainUUID string, 
 	eventLog.DecodedData = mapping
 	eventLog.Event = getAbi(event)
 
-	logger.WithField("receipt_log", fmt.Sprintf("%v", mapping)).Debug("log decoded")
+	logger.WithField("receipt_log", fmt.Sprintf("%v", mapping)).Trace("log decoded")
 	return eventLog, nil
 }
 

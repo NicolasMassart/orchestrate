@@ -2,7 +2,6 @@ package streams
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
@@ -28,28 +27,13 @@ func NewUpdateUseCase(db store.EventStreamAgent, searchChainsUC usecases.SearchC
 	}
 }
 
-func (uc *updateUseCase) Execute(ctx context.Context, eventStream *entities.EventStream, chainName string, userInfo *multitenancy.UserInfo) (*entities.EventStream, error) {
+func (uc *updateUseCase) Execute(ctx context.Context, eventStream *entities.EventStream, userInfo *multitenancy.UserInfo) (*entities.EventStream, error) {
 	ctx = log.WithFields(ctx, log.Field("name", eventStream.Name), log.Field("event_stream_uuid", eventStream.UUID))
 	logger := uc.logger.WithContext(ctx)
 
 	logger.Debug("updating event stream")
 
 	filter := &entities.EventStreamFilters{Names: []string{eventStream.Name}, TenantID: userInfo.TenantID}
-	if chainName != "" {
-		chains, err := uc.searchChainsUC.Execute(ctx, &entities.ChainFilters{Names: []string{chainName}}, userInfo)
-		if err != nil {
-			return nil, err
-		}
-
-		if len(chains) == 0 {
-			errMessage := fmt.Sprintf("chain '%s' does not exist", chainName)
-			uc.logger.WithContext(ctx).Error(errMessage)
-			return nil, errors.InvalidParameterError(errMessage).ExtendComponent(updateEventStreamComponent)
-		}
-
-		eventStream.ChainUUID = chains[0].UUID
-		filter.ChainUUID = chains[0].UUID
-	}
 
 	eventStreams, err := uc.db.Search(ctx, filter, userInfo.AllowedTenants, userInfo.Username)
 	if err != nil {
@@ -57,7 +41,7 @@ func (uc *updateUseCase) Execute(ctx context.Context, eventStream *entities.Even
 	}
 
 	if len(eventStreams) > 0 {
-		errMsg := "event stream with same name already exists"
+		errMsg := "cannot update. Event stream with same name already exists"
 		logger.Error(errMsg)
 		return nil, errors.AlreadyExistsError(errMsg).ExtendComponent(updateEventStreamComponent)
 	}

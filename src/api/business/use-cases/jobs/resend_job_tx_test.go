@@ -13,7 +13,7 @@ import (
 	"github.com/consensys/orchestrate/src/api/store/mocks"
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/entities/testdata"
-	mocks3 "github.com/consensys/orchestrate/src/infra/kafka/mocks"
+	mocks3 "github.com/consensys/orchestrate/src/infra/messenger/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )

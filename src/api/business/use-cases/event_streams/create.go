@@ -34,11 +34,23 @@ func (uc *createUseCase) Execute(ctx context.Context, eventStream *entities.Even
 
 	logger.Debug("creating new event stream")
 
-	filter := &entities.EventStreamFilters{Names: []string{eventStream.Name}, TenantID: userInfo.TenantID}
+	eventStreams, err := uc.db.Search(ctx,
+		&entities.EventStreamFilters{Names: []string{eventStream.Name}, TenantID: userInfo.TenantID},
+		userInfo.AllowedTenants,
+		userInfo.Username)
+	if err != nil {
+		return nil, errors.FromError(err).ExtendComponent(createEventStreamComponent)
+	}
+	if len(eventStreams) > 0 {
+		errMsg := "event stream with same name already exists"
+		logger.Error(errMsg)
+		return nil, errors.AlreadyExistsError(errMsg).ExtendComponent(createEventStreamComponent)
+	}
+
 	if chainName != "" {
-		chains, err := uc.searchChainsUC.Execute(ctx, &entities.ChainFilters{Names: []string{chainName}}, userInfo)
-		if err != nil {
-			return nil, err
+		chains, err2 := uc.searchChainsUC.Execute(ctx, &entities.ChainFilters{Names: []string{chainName}}, userInfo)
+		if err2 != nil {
+			return nil, err2
 		}
 
 		if len(chains) == 0 {
@@ -47,17 +59,18 @@ func (uc *createUseCase) Execute(ctx context.Context, eventStream *entities.Even
 			return nil, errors.InvalidParameterError(errMessage).ExtendComponent(createEventStreamComponent)
 		}
 
-		filter.ChainUUID = chains[0].UUID
 		eventStream.ChainUUID = chains[0].UUID
 	}
 
-	eventStreams, err := uc.db.Search(ctx, filter, userInfo.AllowedTenants, userInfo.Username)
+	eventStreams, err = uc.db.Search(ctx,
+		&entities.EventStreamFilters{ChainUUID: eventStream.ChainUUID, TenantID: userInfo.TenantID},
+		userInfo.AllowedTenants,
+		userInfo.Username)
 	if err != nil {
 		return nil, errors.FromError(err).ExtendComponent(createEventStreamComponent)
 	}
-
 	if len(eventStreams) > 0 {
-		errMsg := "event stream already exists"
+		errMsg := "multiple event streams on notification events"
 		logger.Error(errMsg)
 		return nil, errors.AlreadyExistsError(errMsg).ExtendComponent(createEventStreamComponent)
 	}
@@ -69,6 +82,6 @@ func (uc *createUseCase) Execute(ctx context.Context, eventStream *entities.Even
 		return nil, errors.FromError(err).ExtendComponent(createEventStreamComponent)
 	}
 
-	logger.WithField("event_stream_uuid", e.UUID).Info("event stream created successfully")
+	logger.WithField("event_stream", e.UUID).Info("event stream created successfully")
 	return e, nil
 }

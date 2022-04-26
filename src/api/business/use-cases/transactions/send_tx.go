@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -310,6 +311,8 @@ func (uc *sendTxUsecase) newEthTransactionFromParams(params *entities.TxRequestP
 		MandatoryFor:    params.MandatoryFor,
 		PrivacyFlag:     params.PrivacyFlag,
 		PrivacyGroupID:  params.PrivacyGroupID,
+		CreatedAt:       time.Now(),
+		UpdatedAt:       time.Now(),
 	}
 	if params.From != nil {
 		tx.From = params.From

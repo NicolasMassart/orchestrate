@@ -8,7 +8,7 @@ import (
 
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/src/infra/ethclient"
-	"github.com/consensys/orchestrate/src/infra/kafka/testutils"
+	testutils2 "github.com/consensys/orchestrate/src/infra/notifier/kafka/testutils"
 	"github.com/spf13/viper"
 
 	orchestrateclient "github.com/consensys/orchestrate/pkg/sdk/client"
@@ -18,13 +18,13 @@ import (
 	"github.com/consensys/orchestrate/tests/stress/units"
 )
 
-type WorkLoadTest func(context.Context, *units.WorkloadConfig, orchestrateclient.OrchestrateClient, *testutils.ExternalConsumerTracker) error
+type WorkLoadTest func(context.Context, *units.WorkloadConfig, orchestrateclient.OrchestrateClient, *testutils2.NotifierConsumerTracker) error
 
 type WorkLoadService struct {
 	cfg             *Config
 	client          orchestrateclient.OrchestrateClient
 	ec              ethclient.MultiClient
-	consumerTracker *testutils.ExternalConsumerTracker
+	consumerTracker *testutils2.NotifierConsumerTracker
 	items           []*workLoadItem
 	cancel          context.CancelFunc
 }
@@ -47,7 +47,7 @@ var artifacts = []string{"SimpleToken", "Counter", "ERC20", "ERC721"}
 
 // Init initialize Cucumber service
 func NewService(cfg *Config,
-	consumerTracker *testutils.ExternalConsumerTracker,
+	consumerTracker *testutils2.NotifierConsumerTracker,
 	client orchestrateclient.OrchestrateClient,
 	ec ethclient.MultiClient,
 ) *WorkLoadService {

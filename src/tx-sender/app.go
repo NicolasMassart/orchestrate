@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/consensys/orchestrate/src/infra/kafka"
-
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
+	"github.com/consensys/orchestrate/src/infra/messenger"
+	"github.com/consensys/orchestrate/src/infra/messenger/kafka"
 	"github.com/consensys/orchestrate/src/tx-sender/tx-sender/nonce"
 	"github.com/consensys/orchestrate/src/tx-sender/tx-sender/nonce/manager"
 
@@ -33,7 +33,7 @@ type txSenderDaemon struct {
 	jobClient        api.JobClient
 	ec               ethclient.MultiClient
 	nonceManager     nonce.Manager
-	consumerGroup    []kafka.Consumer
+	consumers        []messenger.Consumer
 	config           *Config
 	logger           *log.Logger
 	cancel           context.CancelFunc
@@ -41,17 +41,11 @@ type txSenderDaemon struct {
 
 func NewTxSender(
 	config *Config,
-	consumerGroup []kafka.Consumer,
 	keyManagerClient keymanager.KeyManagerClient,
 	apiClient api.OrchestrateClient,
 	ec ethclient.MultiClient,
 	redisCli redis.Client,
 ) (*app.App, error) {
-	appli, err := app.New(config.App, readinessOpt(apiClient, redisCli, consumerGroup[0].Client()), app.MetricsOpt())
-	if err != nil {
-		return nil, err
-	}
-
 	var nm nonce.Manager
 	if config.NonceManagerType == NonceManagerTypeInMemory {
 		nm = manager.NewNonceManager(ec, memory.NewNonceSender(config.NonceManagerExpiration), memory.NewNonceRecoveryTracker(),
@@ -61,14 +55,32 @@ func NewTxSender(
 			config.ProxyURL, config.NonceMaxRecovery)
 	}
 
+	// Create business layer use cases
+	useCases := builder.NewUseCases(apiClient, keyManagerClient, ec, nm, config.ProxyURL)
+	msgConsumerHandler := service.NewMessageConsumerHandler(useCases, apiClient, config.BckOff)
+
+	consumers := make([]messenger.Consumer, config.NConsumer)
+	for idx := 0; idx < config.NConsumer; idx++ {
+		var err error
+		consumers[idx], err = kafka.NewMessageConsumer(config.Kafka, []string{config.ConsumerTopic}, msgConsumerHandler)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	txSenderDaemon := &txSenderDaemon{
 		keyManagerClient: keyManagerClient,
 		jobClient:        apiClient,
-		consumerGroup:    consumerGroup,
+		consumers:        consumers,
 		config:           config,
 		ec:               ec,
 		nonceManager:     nm,
 		logger:           log.NewLogger().SetComponent(component),
+	}
+
+	appli, err := app.New(config.App, readinessOpt(apiClient, redisCli, consumers[0]), app.MetricsOpt())
+	if err != nil {
+		return nil, err
 	}
 
 	appli.RegisterDaemon(txSenderDaemon)
@@ -79,19 +91,13 @@ func NewTxSender(
 func (d *txSenderDaemon) Run(ctx context.Context) error {
 	d.logger.Debug("starting transaction sender")
 
-	// Create business layer use cases
-	useCases := builder.NewUseCases(d.jobClient, d.keyManagerClient, d.ec, d.nonceManager, d.config.ProxyURL)
-
-	// Create service layer listener
-	listener := service.NewMessageListener(useCases, d.jobClient, d.config.BckOff)
-
 	ctx, d.cancel = context.WithCancel(ctx)
 	if d.config.IsMultiTenancyEnabled {
 		ctx = multitenancy.WithUserInfo(ctx, multitenancy.NewInternalAdminUser())
 	}
 
 	gr := &multierror.Group{}
-	for idx, consumerGroup := range d.consumerGroup {
+	for idx, consumerGroup := range d.consumers {
 		cGroup := consumerGroup
 		cGroupID := fmt.Sprintf("c-%d", idx)
 		logger := d.logger.WithField("consumer", cGroupID)
@@ -100,7 +106,7 @@ func (d *txSenderDaemon) Run(ctx context.Context) error {
 			// We retry once after consume exits to prevent entire stack to exit after kafka rebalance is triggered
 			err := backoff.RetryNotify(
 				func() error {
-					err := cGroup.Consume(cctx, []string{d.config.ConsumerTopic}, listener)
+					err := cGroup.Consume(cctx)
 
 					// In this case, kafka rebalance was triggered and we want to retry
 					if err == nil && cctx.Err() == nil {
@@ -124,16 +130,16 @@ func (d *txSenderDaemon) Run(ctx context.Context) error {
 
 func (d *txSenderDaemon) Close() error {
 	var gerr error
-	for _, consumerGroup := range d.consumerGroup {
+	for _, consumerGroup := range d.consumers {
 		gerr = errors.CombineErrors(gerr, consumerGroup.Close())
 	}
 
 	return gerr
 }
 
-func readinessOpt(apiClient api.MetricClient, redisCli redis.Client, brokerClient kafka.Client) app.Option {
+func readinessOpt(apiClient api.MetricClient, redisCli redis.Client, consumer messenger.Consumer) app.Option {
 	return func(ap *app.App) error {
-		ap.AddReadinessCheck("kafka", brokerClient.Checker)
+		ap.AddReadinessCheck("kafka", consumer.Checker)
 		ap.AddReadinessCheck("api", apiClient.Checker())
 		if redisCli != nil {
 			ap.AddReadinessCheck("redis", redisCli.Ping)

@@ -1,19 +1,14 @@
 package formatters
 
 import (
-	"fmt"
 	"math/big"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
-	"github.com/consensys/orchestrate/pkg/errors"
-	infra "github.com/consensys/orchestrate/src/infra/api"
-	log "github.com/sirupsen/logrus"
-
 	"github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities"
+	infra "github.com/consensys/orchestrate/src/infra/api"
 )
 
 func FormatChainResponse(chain *entities.Chain) *types.ChainResponse {
@@ -26,10 +21,7 @@ func FormatChainResponse(chain *entities.Chain) *types.ChainResponse {
 		PrivateTxManagerURL:       chain.PrivateTxManagerURL,
 		ChainID:                   chain.ChainID.Uint64(),
 		ListenerDepth:             chain.ListenerDepth,
-		ListenerCurrentBlock:      chain.ListenerCurrentBlock,
-		ListenerStartingBlock:     chain.ListenerStartingBlock,
-		ListenerBackOffDuration:   chain.ListenerBackOffDuration.String(),
-		ListenerExternalTxEnabled: chain.ListenerExternalTxEnabled,
+		ListenerBlockTimeDuration: chain.ListenerBlockTimeDuration.String(),
 		Labels:                    chain.Labels,
 		CreatedAt:                 chain.CreatedAt,
 		UpdatedAt:                 chain.UpdatedAt,
@@ -38,35 +30,23 @@ func FormatChainResponse(chain *entities.Chain) *types.ChainResponse {
 	return res
 }
 
-func FormatRegisterChainRequest(request *types.RegisterChainRequest, fromLatest bool) (*entities.Chain, error) {
+func FormatRegisterChainRequest(request *types.RegisterChainRequest) (*entities.Chain, error) {
 	chain := &entities.Chain{
-		Name:                      request.Name,
-		URLs:                      request.URLs,
-		PrivateTxManagerURL:       request.PrivateTxManagerURL,
-		ListenerDepth:             request.Listener.Depth,
-		ListenerExternalTxEnabled: request.Listener.ExternalTxEnabled,
-		Labels:                    request.Labels,
+		Name:                request.Name,
+		URLs:                request.URLs,
+		PrivateTxManagerURL: request.PrivateTxManagerURL,
+		ListenerDepth:       request.Listener.Depth,
+		Labels:              request.Labels,
 	}
 
-	if request.Listener.BackOffDuration == "" {
-		chain.ListenerBackOffDuration, _ = time.ParseDuration("5s")
+	if request.Listener.BlockTimeDuration == "" {
+		chain.ListenerBlockTimeDuration, _ = time.ParseDuration("5s")
 	} else {
 		var err error
-		chain.ListenerBackOffDuration, err = time.ParseDuration(request.Listener.BackOffDuration)
+		chain.ListenerBlockTimeDuration, err = time.ParseDuration(request.Listener.BlockTimeDuration)
 		if err != nil {
 			return nil, err
 		}
-	}
-
-	if !fromLatest {
-		startingBlock, err := strconv.ParseUint(request.Listener.FromBlock, 10, 64)
-		if err != nil {
-			errMessage := "fromBlock must be an integer value"
-			log.WithField("from_block", fmt.Sprintf("%q", request.Listener.FromBlock)).Error(errMessage)
-			return nil, errors.InvalidFormatError(errMessage)
-		}
-		chain.ListenerStartingBlock = startingBlock
-		chain.ListenerCurrentBlock = startingBlock
 	}
 
 	return chain, nil
@@ -80,16 +60,14 @@ func FormatUpdateChainRequest(request *types.UpdateChainRequest, uuid string) (*
 	}
 
 	if request.Listener != nil {
-		if request.Listener.BackOffDuration != "" {
+		if request.Listener.BlockTimeDuration != "" {
 			var err error
-			chain.ListenerBackOffDuration, err = time.ParseDuration(request.Listener.BackOffDuration)
+			chain.ListenerBlockTimeDuration, err = time.ParseDuration(request.Listener.BlockTimeDuration)
 			if err != nil {
 				return nil, err
 			}
 		}
 		chain.ListenerDepth = request.Listener.Depth
-		chain.ListenerExternalTxEnabled = request.Listener.ExternalTxEnabled
-		chain.ListenerCurrentBlock = request.Listener.CurrentBlock
 	}
 
 	return chain, nil
@@ -112,7 +90,7 @@ func FormatChainFiltersRequest(req *http.Request) (*entities.ChainFilters, error
 
 func ChainResponseToEntity(chain *types.ChainResponse) *entities.Chain {
 	// Cannot fail as the duration coming from a response is expected to be valid
-	listenerBackOffDuration, _ := time.ParseDuration(chain.ListenerBackOffDuration)
+	listenerBackOffDuration, _ := time.ParseDuration(chain.ListenerBlockTimeDuration)
 	return &entities.Chain{
 		UUID:                      chain.UUID,
 		Name:                      chain.Name,
@@ -121,10 +99,7 @@ func ChainResponseToEntity(chain *types.ChainResponse) *entities.Chain {
 		URLs:                      chain.URLs,
 		ChainID:                   new(big.Int).SetUint64(chain.ChainID),
 		ListenerDepth:             chain.ListenerDepth,
-		ListenerCurrentBlock:      chain.ListenerCurrentBlock,
-		ListenerStartingBlock:     chain.ListenerStartingBlock,
-		ListenerBackOffDuration:   listenerBackOffDuration,
-		ListenerExternalTxEnabled: chain.ListenerExternalTxEnabled,
+		ListenerBlockTimeDuration: listenerBackOffDuration,
 		Labels:                    chain.Labels,
 		CreatedAt:                 chain.CreatedAt,
 		UpdatedAt:                 chain.UpdatedAt,

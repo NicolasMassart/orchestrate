@@ -80,10 +80,7 @@ func (s *accountsTestSuite) TestCreate() {
 		chainWithFaucet, err := s.client.RegisterChain(s.env.ctx, &api.RegisterChainRequest{
 			Name: "ganache-with-faucet-accounts",
 			URLs: []string{s.env.blockchainNodeURL},
-			Listener: api.RegisterListenerRequest{
-				FromBlock:         "latest",
-				ExternalTxEnabled: false,
-			},
+			Listener: api.RegisterListenerRequest{},
 		})
 		require.NoError(s.T(), err)
 

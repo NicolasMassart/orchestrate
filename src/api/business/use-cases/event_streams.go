@@ -27,7 +27,7 @@ type CreateEventStreamUseCase interface {
 }
 
 type UpdateEventStreamUseCase interface {
-	Execute(ctx context.Context, eventStream *entities.EventStream, chainName string, userInfo *multitenancy.UserInfo) (*entities.EventStream, error)
+	Execute(ctx context.Context, eventStream *entities.EventStream, userInfo *multitenancy.UserInfo) (*entities.EventStream, error)
 }
 
 type SearchEventStreamsUseCase interface {
