@@ -217,73 +217,73 @@ func (mr *MockPendingJobMockRecorder) DeletePerChainUUID(ctx, chainUUID interfac
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePerChainUUID", reflect.TypeOf((*MockPendingJob)(nil).DeletePerChainUUID), ctx, chainUUID)
 }
 
-// MockRetrySessions is a mock of RetrySessions interface
-type MockRetrySessions struct {
+// MockRetryJobSession is a mock of RetryJobSession interface
+type MockRetryJobSession struct {
 	ctrl     *gomock.Controller
-	recorder *MockRetrySessionsMockRecorder
+	recorder *MockRetryJobSessionMockRecorder
 }
 
-// MockRetrySessionsMockRecorder is the mock recorder for MockRetrySessions
-type MockRetrySessionsMockRecorder struct {
-	mock *MockRetrySessions
+// MockRetryJobSessionMockRecorder is the mock recorder for MockRetryJobSession
+type MockRetryJobSessionMockRecorder struct {
+	mock *MockRetryJobSession
 }
 
-// NewMockRetrySessions creates a new mock instance
-func NewMockRetrySessions(ctrl *gomock.Controller) *MockRetrySessions {
-	mock := &MockRetrySessions{ctrl: ctrl}
-	mock.recorder = &MockRetrySessionsMockRecorder{mock}
+// NewMockRetryJobSession creates a new mock instance
+func NewMockRetryJobSession(ctrl *gomock.Controller) *MockRetryJobSession {
+	mock := &MockRetryJobSession{ctrl: ctrl}
+	mock.recorder = &MockRetryJobSessionMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockRetrySessions) EXPECT() *MockRetrySessionsMockRecorder {
+func (m *MockRetryJobSession) EXPECT() *MockRetryJobSessionMockRecorder {
 	return m.recorder
 }
 
 // Add mocks base method
-func (m *MockRetrySessions) Add(ctx context.Context, sessID string, job *entities.Job) error {
+func (m *MockRetryJobSession) Add(ctx context.Context, job *entities.Job) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Add", ctx, sessID, job)
+	ret := m.ctrl.Call(m, "Add", ctx, job)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Add indicates an expected call of Add
-func (mr *MockRetrySessionsMockRecorder) Add(ctx, sessID, job interface{}) *gomock.Call {
+func (mr *MockRetryJobSessionMockRecorder) Add(ctx, job interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockRetrySessions)(nil).Add), ctx, sessID, job)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockRetryJobSession)(nil).Add), ctx, job)
 }
 
 // Has mocks base method
-func (m *MockRetrySessions) Has(ctx context.Context, sessID string) bool {
+func (m *MockRetryJobSession) Has(ctx context.Context, jobUUID string) bool {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Has", ctx, sessID)
+	ret := m.ctrl.Call(m, "Has", ctx, jobUUID)
 	ret0, _ := ret[0].(bool)
 	return ret0
 }
 
 // Has indicates an expected call of Has
-func (mr *MockRetrySessionsMockRecorder) Has(ctx, sessID interface{}) *gomock.Call {
+func (mr *MockRetryJobSessionMockRecorder) Has(ctx, jobUUID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Has", reflect.TypeOf((*MockRetrySessions)(nil).Has), ctx, sessID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Has", reflect.TypeOf((*MockRetryJobSession)(nil).Has), ctx, jobUUID)
 }
 
 // Remove mocks base method
-func (m *MockRetrySessions) Remove(ctx context.Context, sessID string) error {
+func (m *MockRetryJobSession) Remove(ctx context.Context, jobUUID string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Remove", ctx, sessID)
+	ret := m.ctrl.Call(m, "Remove", ctx, jobUUID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Remove indicates an expected call of Remove
-func (mr *MockRetrySessionsMockRecorder) Remove(ctx, sessID interface{}) *gomock.Call {
+func (mr *MockRetryJobSessionMockRecorder) Remove(ctx, jobUUID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Remove", reflect.TypeOf((*MockRetrySessions)(nil).Remove), ctx, sessID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Remove", reflect.TypeOf((*MockRetryJobSession)(nil).Remove), ctx, jobUUID)
 }
 
 // GetByTxHash mocks base method
-func (m *MockRetrySessions) GetByTxHash(ctx context.Context, chainUUID string, txHash *common.Hash) (string, error) {
+func (m *MockRetryJobSession) GetByTxHash(ctx context.Context, chainUUID string, txHash *common.Hash) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByTxHash", ctx, chainUUID, txHash)
 	ret0, _ := ret[0].(string)
@@ -292,13 +292,13 @@ func (m *MockRetrySessions) GetByTxHash(ctx context.Context, chainUUID string, t
 }
 
 // GetByTxHash indicates an expected call of GetByTxHash
-func (mr *MockRetrySessionsMockRecorder) GetByTxHash(ctx, chainUUID, txHash interface{}) *gomock.Call {
+func (mr *MockRetryJobSessionMockRecorder) GetByTxHash(ctx, chainUUID, txHash interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByTxHash", reflect.TypeOf((*MockRetrySessions)(nil).GetByTxHash), ctx, chainUUID, txHash)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByTxHash", reflect.TypeOf((*MockRetryJobSession)(nil).GetByTxHash), ctx, chainUUID, txHash)
 }
 
 // ListByChainUUID mocks base method
-func (m *MockRetrySessions) ListByChainUUID(ctx context.Context, chainUUID string) ([]string, error) {
+func (m *MockRetryJobSession) ListByChainUUID(ctx context.Context, chainUUID string) ([]string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListByChainUUID", ctx, chainUUID)
 	ret0, _ := ret[0].([]string)
@@ -307,13 +307,13 @@ func (m *MockRetrySessions) ListByChainUUID(ctx context.Context, chainUUID strin
 }
 
 // ListByChainUUID indicates an expected call of ListByChainUUID
-func (mr *MockRetrySessionsMockRecorder) ListByChainUUID(ctx, chainUUID interface{}) *gomock.Call {
+func (mr *MockRetryJobSessionMockRecorder) ListByChainUUID(ctx, chainUUID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByChainUUID", reflect.TypeOf((*MockRetrySessions)(nil).ListByChainUUID), ctx, chainUUID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByChainUUID", reflect.TypeOf((*MockRetryJobSession)(nil).ListByChainUUID), ctx, chainUUID)
 }
 
 // DeletePerChainUUID mocks base method
-func (m *MockRetrySessions) DeletePerChainUUID(ctx context.Context, chainUUID string) error {
+func (m *MockRetryJobSession) DeletePerChainUUID(ctx context.Context, chainUUID string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeletePerChainUUID", ctx, chainUUID)
 	ret0, _ := ret[0].(error)
@@ -321,9 +321,9 @@ func (m *MockRetrySessions) DeletePerChainUUID(ctx context.Context, chainUUID st
 }
 
 // DeletePerChainUUID indicates an expected call of DeletePerChainUUID
-func (mr *MockRetrySessionsMockRecorder) DeletePerChainUUID(ctx, chainUUID interface{}) *gomock.Call {
+func (mr *MockRetryJobSessionMockRecorder) DeletePerChainUUID(ctx, chainUUID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePerChainUUID", reflect.TypeOf((*MockRetrySessions)(nil).DeletePerChainUUID), ctx, chainUUID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePerChainUUID", reflect.TypeOf((*MockRetryJobSession)(nil).DeletePerChainUUID), ctx, chainUUID)
 }
 
 // MockState is a mock of State interface
@@ -377,16 +377,16 @@ func (mr *MockStateMockRecorder) PendingJobState() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PendingJobState", reflect.TypeOf((*MockState)(nil).PendingJobState))
 }
 
-// RetrySessionsState mocks base method
-func (m *MockState) RetrySessionsState() store.RetrySessions {
+// RetryJobSessionState mocks base method
+func (m *MockState) RetryJobSessionState() store.RetryJobSession {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RetrySessionsState")
-	ret0, _ := ret[0].(store.RetrySessions)
+	ret := m.ctrl.Call(m, "RetryJobSessionState")
+	ret0, _ := ret[0].(store.RetryJobSession)
 	return ret0
 }
 
-// RetrySessionsState indicates an expected call of RetrySessionsState
-func (mr *MockStateMockRecorder) RetrySessionsState() *gomock.Call {
+// RetryJobSessionState indicates an expected call of RetryJobSessionState
+func (mr *MockStateMockRecorder) RetryJobSessionState() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RetrySessionsState", reflect.TypeOf((*MockState)(nil).RetrySessionsState))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RetryJobSessionState", reflect.TypeOf((*MockState)(nil).RetryJobSessionState))
 }

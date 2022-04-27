@@ -62,8 +62,12 @@ func (uc *registerDeployedContractUseCase) Execute(ctx context.Context, job *ent
 		return errors.DependencyFailureError(errMsg)
 	}
 
-	// @TODO Replace chainID by chainUUID
-	err = uc.client.SetContractAddressCodeHash(ctx, job.Receipt.ContractAddress, job.ChainUUID,
+	chain, err := uc.chainState.Get(ctx, job.ChainUUID)
+	if err != nil {
+		logger.WithError(err).Error("failed to get chain for contract registration")
+		return err
+	}
+	err = uc.client.SetContractAddressCodeHash(ctx, job.Receipt.ContractAddress, chain.ChainID.String(),
 		&api.SetContractCodeHashRequest{
 			CodeHash: crypto.Keccak256Hash(code).Bytes(),
 		})

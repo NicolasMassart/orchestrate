@@ -45,7 +45,7 @@ func TestStartJob_Execute(t *testing.T) {
 	t.Run("should execute use case successfully", func(t *testing.T) {
 		job := testdata.FakeJob()
 		jobDA.EXPECT().FindOneByUUID(gomock.Any(), job.UUID, userInfo.AllowedTenants, userInfo.Username, false).Return(job, nil)
-		kafkaProducer.EXPECT().SendJobMessage(topicSender, job, userInfo).Return(nil)
+		kafkaProducer.EXPECT().SendJobMessage(topicSender, job, job.PartitionKey(), userInfo).Return(nil)
 		jobDA.EXPECT().Update(gomock.Any(), gomock.Any(), gomock.Any()).
 			DoAndReturn(func(ctx context.Context, job *entities.Job, log *entities.Log) error {
 				assert.Equal(t, job.Status, entities.StatusStarted)
@@ -65,7 +65,7 @@ func TestStartJob_Execute(t *testing.T) {
 		}
 
 		jobDA.EXPECT().FindOneByUUID(gomock.Any(), job.UUID, userInfo.AllowedTenants, userInfo.Username, false).Return(job, nil)
-		kafkaProducer.EXPECT().SendJobMessage(topicSender, job, userInfo).Return(nil)
+		kafkaProducer.EXPECT().SendJobMessage(topicSender, job, job.PartitionKey(), userInfo).Return(nil)
 		jobDA.EXPECT().Update(gomock.Any(), gomock.Any(), gomock.Any()).
 			DoAndReturn(func(ctx context.Context, job *entities.Job, log *entities.Log) error {
 				assert.Equal(t, job.Status, entities.StatusStarted)
@@ -105,7 +105,7 @@ func TestStartJob_Execute(t *testing.T) {
 
 		jobDA.EXPECT().FindOneByUUID(gomock.Any(), job.UUID, userInfo.AllowedTenants, userInfo.Username, false).Return(job, nil)
 		jobDA.EXPECT().Update(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
-		kafkaProducer.EXPECT().SendJobMessage(topicSender, job, userInfo).Return(expectedErr)
+		kafkaProducer.EXPECT().SendJobMessage(topicSender, job, job.PartitionKey(), userInfo).Return(expectedErr)
 
 		err := usecase.Execute(ctx, job.UUID, userInfo)
 		assert.Equal(t, expectedErr, err)

@@ -11,7 +11,7 @@ import (
 	usecases "github.com/consensys/orchestrate/src/tx-listener/tx-listener/use-cases"
 )
 
-const pendingJobUseCaseComponent = "tx-listener.use-case.event.pending-job"
+const pendingJobUseCaseComponent = "tx-listener.use-case.pending-job"
 
 type pendingJobMsg struct {
 	ethClient       ethclient.Client

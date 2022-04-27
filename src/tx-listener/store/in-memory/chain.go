@@ -35,7 +35,7 @@ func (m *chainInMemory) Add(_ context.Context, chain *entities.Chain) error {
 func (m *chainInMemory) Get(_ context.Context, chainUUID string) (*entities.Chain, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
-	if chain, ok := m.activeChains[chainUUID]; ok {
+	if chain, ok := m.activeChains[chainUUID]; ok && chain.ChainID != nil {
 		return chain, nil
 	}
 

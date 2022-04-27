@@ -41,7 +41,7 @@ func (uc *resendJobTxUseCase) Execute(ctx context.Context, jobUUID string, userI
 	}
 
 	job.InternalData.ParentJobUUID = jobUUID
-	err = uc.messenger.SendJobMessage(uc.topicSender, job, userInfo)
+	err = uc.messenger.SendJobMessage(uc.topicSender, job, job.PartitionKey(), userInfo)
 	if err != nil {
 		logger.WithError(err).Error("failed to send resend job envelope")
 		return err

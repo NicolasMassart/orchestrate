@@ -93,7 +93,7 @@ func (cl *Consumer) consumeClaimLoop(ctx context.Context, session sarama.Consume
 		select {
 		case <-ctx.Done():
 			logger.WithField("reason", ctx.Err().Error()).WithError(cl.err).
-				Info("gracefully stopping message cl...")
+				Info("gracefully stopping message claims")
 			return cl.err
 		case msg, ok := <-claim.Messages():
 			// Input channel has been close so we leave the loop

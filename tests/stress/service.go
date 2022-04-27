@@ -58,7 +58,7 @@ func NewService(cfg *Config,
 		ec:              ec,
 		items: []*workLoadItem{
 			{cfg.Iterations, cfg.Concurrency, "BatchDeployContract", units.BatchDeployContractTest},
-			{cfg.Iterations, cfg.Concurrency, "BatchPrivateTxsTest", units.BatchPrivateTxsTest},
+			// {cfg.Iterations, cfg.Concurrency, "BatchPrivateTxsTest", units.BatchPrivateTxsTest},
 		},
 	}
 }
@@ -130,27 +130,26 @@ func (c *WorkLoadService) preRun(ctx context.Context) (context.Context, error) {
 	for idx := 0; idx < nBesuNodes; idx++ {
 		besuNode := c.cfg.gData.Nodes.Besu[idx]
 		chainName := fmt.Sprintf("besu_%d-%s", idx, utils2.RandString(5))
-		var cUUID string
-		ctx, cUUID, err = assets.RegisterNewChain(ctx, c.client, c.ec, proxyHost, chainName, &besuNode)
+		ctx, _, err = assets.RegisterNewChainWithEventStream(ctx, c.client, c.ec, proxyHost, chainName, &besuNode, c.cfg.KafkaTopic)
 		if err != nil {
 			return ctx, err
 		}
 
-		privNodeAddress := []string{}
-		for jdx := 0; jdx < nBesuNodes; jdx++ {
-			besuNode2 := c.cfg.gData.Nodes.Besu[jdx]
-			if idx != jdx {
-				privNodeAddress = append(privNodeAddress, besuNode2.PrivateAddress...)
-			}
-		}
-
-		for jdx := 0; jdx < nPrivGroupPerChain; jdx++ {
-			ctx, err = assets.CreatePrivateGroup(ctx, c.ec, orchestrateclient.GetProxyURL(proxyHost, cUUID), besuNode.PrivateAddress,
-				utils2.RandShuffle(privNodeAddress))
-			if err != nil {
-				return ctx, err
-			}
-		}
+		// privNodeAddress := []string{}
+		// for jdx := 0; jdx < nBesuNodes; jdx++ {
+		// 	besuNode2 := c.cfg.gData.Nodes.Besu[jdx]
+		// 	if idx != jdx {
+		// 		privNodeAddress = append(privNodeAddress, besuNode2.PrivateAddress...)
+		// 	}
+		// }
+		// 
+		// for jdx := 0; jdx < nPrivGroupPerChain; jdx++ {
+		// 	ctx, err = assets.CreatePrivateGroup(ctx, c.ec, orchestrateclient.GetProxyURL(proxyHost, cUUID), besuNode.PrivateAddress,
+		// 		utils2.RandShuffle(privNodeAddress))
+		// 	if err != nil {
+		// 		return ctx, err
+		// 	}
+		// }
 	}
 
 	return ctx, nil
@@ -162,7 +161,7 @@ func (c *WorkLoadService) postRun(ctx context.Context) error {
 
 	var gerr error
 	for _, chain := range chains {
-		err := assets.DeregisterChain(log.With(context.Background(), logger), c.client, &chain)
+		err := assets.DeregisterChainAndEventStreams(log.With(context.Background(), logger), c.client, &chain)
 		if err != nil {
 			gerr = errors.CombineErrors(gerr, err)
 			logger.WithError(err).Error("failed to remove chain")

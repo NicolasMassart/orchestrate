@@ -64,9 +64,6 @@ lint-ci: ## Check linting
 run-e2e:
 	go test -v -tags e2e ./tests/e2e
 
-e2e:
-	@docker-compose -f docker-compose.e2e.yml up -V e2e
-
 run-stress: gobuild-test
 	@docker-compose -f docker-compose.e2e.yml up -V stress
 
@@ -96,13 +93,13 @@ gen-deepcopy:
 
 # Tools
 lint-tools: ## Install linting tools
-	@GO111MODULE=on go get github.com/client9/misspell/cmd/misspell@v0.3.4
+	go install github.com/client9/misspell/cmd/misspell@v0.3.4
 	@curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH)/bin v1.27.0
 
 tools: lint-tools ## Install test tools
-	@GO111MODULE=on go get github.com/golang/mock/mockgen@v1.4.3
-	@GO111MODULE=on go get github.com/swaggo/swag/cmd/swag@v1.7.0
-	@GO111MODULE=on go get github.com/tsenart/vegeta
+	go install github.com/golang/mock/mockgen@v1.4.3
+	go install github.com/swaggo/swag/cmd/swag@v1.7.8
+	go install github.com/tsenart/vegeta
 
 # Help
 help: ## Display this help screen

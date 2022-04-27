@@ -34,12 +34,11 @@ func NewProducer(cfg *saramainfra.Config) (*Client, error) {
 	return &Client{syncProducer: p, client: client}, nil
 }
 
-func (p *Client) SendJobMessage(topic string, job *entities.Job, userInfo *multitenancy.UserInfo) error {
+func (p *Client) SendJobMessage(topic string, job *entities.Job, partitionKey string, userInfo *multitenancy.UserInfo) error {
 	msg := &sarama.ProducerMessage{
 		Topic: topic,
 	}
 
-	partitionKey := job.PartitionKey()
 	if partitionKey != "" {
 		msg.Key = sarama.StringEncoder(partitionKey)
 	}

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/consensys/orchestrate/cmd/flags"
+	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/consensys/orchestrate/tests/config"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -132,6 +133,6 @@ func InitConfig(vipr *viper.Viper) (*Config, error) {
 		Concurrency:  vipr.GetInt(ConcurrencyViperKey),
 		Timeout:      vipr.GetDuration(TimeoutViperKey),
 		gData:        gd,
-		KafkaTopic:   "topic-tx-decoded",
+		KafkaTopic:   "stress-test-topic-" + utils.RandString(5),
 	}, nil
 }

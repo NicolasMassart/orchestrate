@@ -6,36 +6,37 @@ package mocks
 
 import (
 	context "context"
+	usecases "github.com/consensys/orchestrate/src/tx-listener/tx-listener/use-cases"
 	common "github.com/ethereum/go-ethereum/common"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
 
-// MockChainBlockTxsUseCase is a mock of ChainBlockTxsUseCase interface
-type MockChainBlockTxsUseCase struct {
+// MockChainBlock is a mock of ChainBlock interface
+type MockChainBlock struct {
 	ctrl     *gomock.Controller
-	recorder *MockChainBlockTxsUseCaseMockRecorder
+	recorder *MockChainBlockMockRecorder
 }
 
-// MockChainBlockTxsUseCaseMockRecorder is the mock recorder for MockChainBlockTxsUseCase
-type MockChainBlockTxsUseCaseMockRecorder struct {
-	mock *MockChainBlockTxsUseCase
+// MockChainBlockMockRecorder is the mock recorder for MockChainBlock
+type MockChainBlockMockRecorder struct {
+	mock *MockChainBlock
 }
 
-// NewMockChainBlockTxsUseCase creates a new mock instance
-func NewMockChainBlockTxsUseCase(ctrl *gomock.Controller) *MockChainBlockTxsUseCase {
-	mock := &MockChainBlockTxsUseCase{ctrl: ctrl}
-	mock.recorder = &MockChainBlockTxsUseCaseMockRecorder{mock}
+// NewMockChainBlock creates a new mock instance
+func NewMockChainBlock(ctrl *gomock.Controller) *MockChainBlock {
+	mock := &MockChainBlock{ctrl: ctrl}
+	mock.recorder = &MockChainBlockMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockChainBlockTxsUseCase) EXPECT() *MockChainBlockTxsUseCaseMockRecorder {
+func (m *MockChainBlock) EXPECT() *MockChainBlockMockRecorder {
 	return m.recorder
 }
 
 // Execute mocks base method
-func (m *MockChainBlockTxsUseCase) Execute(ctx context.Context, chainUUID string, blockNumber uint64, txHashes []*common.Hash) error {
+func (m *MockChainBlock) Execute(ctx context.Context, chainUUID string, blockNumber uint64, txHashes []*common.Hash) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Execute", ctx, chainUUID, blockNumber, txHashes)
 	ret0, _ := ret[0].(error)
@@ -43,7 +44,44 @@ func (m *MockChainBlockTxsUseCase) Execute(ctx context.Context, chainUUID string
 }
 
 // Execute indicates an expected call of Execute
-func (mr *MockChainBlockTxsUseCaseMockRecorder) Execute(ctx, chainUUID, blockNumber, txHashes interface{}) *gomock.Call {
+func (mr *MockChainBlockMockRecorder) Execute(ctx, chainUUID, blockNumber, txHashes interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockChainBlockTxsUseCase)(nil).Execute), ctx, chainUUID, blockNumber, txHashes)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockChainBlock)(nil).Execute), ctx, chainUUID, blockNumber, txHashes)
+}
+
+// MockChainUseCases is a mock of ChainUseCases interface
+type MockChainUseCases struct {
+	ctrl     *gomock.Controller
+	recorder *MockChainUseCasesMockRecorder
+}
+
+// MockChainUseCasesMockRecorder is the mock recorder for MockChainUseCases
+type MockChainUseCasesMockRecorder struct {
+	mock *MockChainUseCases
+}
+
+// NewMockChainUseCases creates a new mock instance
+func NewMockChainUseCases(ctrl *gomock.Controller) *MockChainUseCases {
+	mock := &MockChainUseCases{ctrl: ctrl}
+	mock.recorder = &MockChainUseCasesMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockChainUseCases) EXPECT() *MockChainUseCasesMockRecorder {
+	return m.recorder
+}
+
+// ChainBlockUseCase mocks base method
+func (m *MockChainUseCases) ChainBlockUseCase() usecases.ChainBlock {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ChainBlockUseCase")
+	ret0, _ := ret[0].(usecases.ChainBlock)
+	return ret0
+}
+
+// ChainBlockUseCase indicates an expected call of ChainBlockUseCase
+func (mr *MockChainUseCasesMockRecorder) ChainBlockUseCase() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChainBlockUseCase", reflect.TypeOf((*MockChainUseCases)(nil).ChainBlockUseCase))
 }

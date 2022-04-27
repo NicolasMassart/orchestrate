@@ -13,22 +13,19 @@ import (
 const chainBlockTxsUseCaseComponent = "tx-listener.use-case.new-chain-block"
 
 type chainBlockTxsUC struct {
-	pendingJobState   store.PendingJob
-	retrySessionState store.RetrySessions
-	minedJob          usecases.MinedJob
-	logger            *log.Logger
+	pendingJobState store.PendingJob
+	minedJob        usecases.MinedJob
+	logger          *log.Logger
 }
 
 func NewChainBlockUseCase(notifyMinedJob usecases.MinedJob,
 	pendingJobState store.PendingJob,
-	retrySessionState store.RetrySessions,
 	logger *log.Logger,
 ) usecases.ChainBlock {
 	return &chainBlockTxsUC{
-		pendingJobState:   pendingJobState,
-		retrySessionState: retrySessionState,
-		minedJob:          notifyMinedJob,
-		logger:            logger.SetComponent(chainBlockTxsUseCaseComponent),
+		pendingJobState: pendingJobState,
+		minedJob:        notifyMinedJob,
+		logger:          logger.SetComponent(chainBlockTxsUseCaseComponent),
 	}
 }
 
@@ -65,21 +62,6 @@ func (uc *chainBlockTxsUC) handlePendingJob(ctx context.Context, chainUUID strin
 		err = uc.pendingJobState.Remove(ctx, minedJob.UUID)
 		if err != nil {
 			logger.WithError(err).Error("failed to remove pending job")
-			return err
-		}
-	}
-
-	retrySessID, err := uc.retrySessionState.GetByTxHash(ctx, chainUUID, txHash)
-	if err != nil {
-		if !errors.IsNotFoundError(err) {
-			return err
-		}
-	}
-
-	if retrySessID != "" {
-		err = uc.retrySessionState.Remove(ctx, retrySessID)
-		if err != nil {
-			logger.WithError(err).Error("failed to remove retry session job")
 			return err
 		}
 	}

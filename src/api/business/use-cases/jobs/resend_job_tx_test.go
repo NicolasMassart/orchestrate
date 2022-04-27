@@ -44,7 +44,7 @@ func TestResendJobTx_Execute(t *testing.T) {
 		jobDA.EXPECT().FindOneByUUID(gomock.Any(), job.UUID, userInfo.AllowedTenants, userInfo.Username, false).
 			Return(job, nil)
 
-		kafkaProducer.EXPECT().SendJobMessage(topicSender, job, userInfo).Return(nil)
+		kafkaProducer.EXPECT().SendJobMessage(topicSender, job, job.PartitionKey(), userInfo).Return(nil)
 
 		err := usecase.Execute(ctx, job.UUID, userInfo)
 		assert.NoError(t, err)
@@ -71,7 +71,7 @@ func TestResendJobTx_Execute(t *testing.T) {
 		})
 
 		jobDA.EXPECT().FindOneByUUID(gomock.Any(), job.UUID, userInfo.AllowedTenants, userInfo.Username, false).Return(job, nil)
-		kafkaProducer.EXPECT().SendJobMessage(topicSender, job, userInfo).Return(expectedErr)
+		kafkaProducer.EXPECT().SendJobMessage(topicSender, job, job.PartitionKey(), userInfo).Return(expectedErr)
 		err := usecase.Execute(ctx, job.UUID, userInfo)
 		assert.Equal(t, expectedErr, err)
 	})

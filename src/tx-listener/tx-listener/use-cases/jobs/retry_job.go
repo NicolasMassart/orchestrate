@@ -14,17 +14,17 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
-const retrySessionJobComponent = "tx-listener.use-case.tx-sentry.retry-job"
+const retryJobUseCaseComponent = "tx-listener.use-case.retry-job"
 
 type retryJobUseCase struct {
 	client orchestrateclient.OrchestrateClient
 	logger *log.Logger
 }
 
-func RetrySessionJobUseCase(client orchestrateclient.OrchestrateClient, logger *log.Logger) usecases.RetryJob {
+func RetryJobUseCase(client orchestrateclient.OrchestrateClient, logger *log.Logger) usecases.RetryJob {
 	return &retryJobUseCase{
 		client: client,
-		logger: logger.SetComponent(retrySessionJobComponent),
+		logger: logger.SetComponent(retryJobUseCaseComponent),
 	}
 }
 
@@ -40,7 +40,7 @@ func (uc *retryJobUseCase) Execute(ctx context.Context, job *entities.Job, child
 
 		childJob, errr := uc.createAndStartNewChildJob(ctx, job, nChildren)
 		if errr != nil {
-			return "", errors.FromError(errr).ExtendComponent(retrySessionJobComponent)
+			return "", errors.FromError(errr).ExtendComponent(retryJobUseCaseComponent)
 		}
 
 		logger.WithField("child_job", childJob.UUID).Info("new child job created and started")
@@ -51,7 +51,7 @@ func (uc *retryJobUseCase) Execute(ctx context.Context, job *entities.Job, child
 	err := uc.client.ResendJobTx(ctx, childUUID)
 	if err != nil {
 		logger.WithError(err).Error("failed to resend job")
-		return "", errors.FromError(err).ExtendComponent(retrySessionJobComponent)
+		return "", errors.FromError(err).ExtendComponent(retryJobUseCaseComponent)
 	}
 
 	logger.Info("job has been resent successfully")
@@ -73,13 +73,13 @@ func (uc *retryJobUseCase) createAndStartNewChildJob(ctx context.Context,
 	childJob, err := uc.client.CreateJob(ctx, childJobRequest)
 	if err != nil {
 		logger.Error("failed create new child job")
-		return nil, errors.FromError(err).ExtendComponent(retrySessionJobComponent)
+		return nil, errors.FromError(err).ExtendComponent(retryJobUseCaseComponent)
 	}
 
 	err = uc.client.StartJob(ctx, childJob.UUID)
 	if err != nil {
 		logger.WithField("child_job", childJob.UUID).Error("failed start child job")
-		return nil, errors.FromError(err).ExtendComponent(retrySessionJobComponent)
+		return nil, errors.FromError(err).ExtendComponent(retryJobUseCaseComponent)
 	}
 
 	return childJob, nil

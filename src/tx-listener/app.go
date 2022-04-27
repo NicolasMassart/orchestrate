@@ -6,7 +6,6 @@ import (
 	backoff2 "github.com/cenkalti/backoff/v4"
 	"github.com/consensys/orchestrate/src/infra/ethclient"
 	"github.com/consensys/orchestrate/src/infra/messenger"
-	"github.com/consensys/orchestrate/src/infra/messenger/kafka"
 	"github.com/consensys/orchestrate/src/tx-listener/service"
 	"github.com/consensys/orchestrate/src/tx-listener/tx-listener/builder"
 	"github.com/prometheus/client_golang/prometheus"
@@ -24,7 +23,7 @@ type Service struct {
 	logger   *log.Logger
 }
 
-func NewTxlistener(cfg *Config,
+func NewTxListener(cfg *Config,
 	apiClient orchestrateclient.OrchestrateClient,
 	ethClient ethclient.MultiClient,
 	listenerMetrics prometheus.Collector,
@@ -39,10 +38,8 @@ func NewTxlistener(cfg *Config,
 
 	// Create service layer consumer
 	bckOff := backoff2.NewConstantBackOff(cfg.RetryInterval) // @TODO Replace by config
-	msgConsumerHandler := service.NewMessageConsumerHandler(jobUCs.PendingJobUseCase(), sessionMngrs.ChainSessionManager(),
-		sessionMngrs.TxSentrySessionManager(), bckOff)
-
-	msgConsumer, err := kafka.NewMessageConsumer(cfg.Kafka, []string{cfg.ConsumerTopic}, msgConsumerHandler)
+	msgConsumer, err := service.NewMessageConsumer(cfg.Kafka, []string{cfg.ConsumerTopic},
+		jobUCs.PendingJobUseCase(), jobUCs.FailedJobUseCase(), sessionMngrs.ChainSessionManager(), sessionMngrs.RetryJobSessionManager(), bckOff)
 	if err != nil {
 		return nil, err
 	}

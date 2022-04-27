@@ -13,14 +13,14 @@ import (
 
 type sessionMngrs struct {
 	chainSessionMngr    sessions.ChainSessionManager
-	retryJobSessionMngr sessions.TxSentrySessionManager
+	retryJobSessionMngr sessions.RetryJobSessionManager
 }
 
 func (b *sessionMngrs) ChainSessionManager() sessions.ChainSessionManager {
 	return b.chainSessionMngr
 }
 
-func (b *sessionMngrs) TxSentrySessionManager() sessions.TxSentrySessionManager {
+func (b *sessionMngrs) RetryJobSessionManager() sessions.RetryJobSessionManager {
 	return b.retryJobSessionMngr
 }
 
@@ -31,10 +31,10 @@ func NewSessionManagers(apiClient orchestrateclient.OrchestrateClient,
 	state store.State,
 	logger *log.Logger,
 ) sessions.SessionManagers {
-	retryJobSessionMngr := tx_sentry.NewRetrySessionManager(apiClient, jobUCs.RetryJobUseCase(), state.RetrySessionsState(), 
-		logger)
-	chainSessionMngr := chains.ChainSessionManager(apiClient, ethClient, retryJobSessionMngr, 
-		chainUCs.ChainBlockUseCase(), state.PendingJobState(), state.ChainState(), state.RetrySessionsState(), logger)
+	retryJobSessionMngr := tx_sentry.NewRetrySessionManager(apiClient, jobUCs.RetryJobUseCase(), state.RetryJobSessionState(),
+		state.PendingJobState(), logger)
+	chainSessionMngr := chains.ChainSessionManager(apiClient, ethClient, chainUCs.ChainBlockUseCase(), state.PendingJobState(),
+		state.ChainState(), logger)
 
 	return &sessionMngrs{
 		chainSessionMngr:    chainSessionMngr,

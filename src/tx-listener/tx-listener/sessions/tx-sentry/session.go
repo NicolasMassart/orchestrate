@@ -19,26 +19,26 @@ const retryJobSessionComponent = "tx-listener.retry-job.session"
 type RetryJobSession struct {
 	sendRetryJobUseCase usecases.RetryJob
 	client              orchestrateclient.OrchestrateClient
-	retrySessionsState  store.RetrySessions
+	pendingJobState     store.PendingJob
 	logger              *log.Logger
 	job                 *entities.Job
 	cancelCtx           context.CancelFunc
 	cerr                chan error
 }
 
-type RetryJobSessionData struct {
+type sessionData struct {
 	parentJob        *entities.Job
 	nChildren        int
 	retries          int
 	lastChildJobUUID string
 }
 
-func NewRetryJobSession(client orchestrateclient.OrchestrateClient, sendRetryJobUseCase usecases.RetryJob, retrySessionsState store.RetrySessions, job *entities.Job, logger *log.Logger) *RetryJobSession {
+func NewRetryJobSession(client orchestrateclient.OrchestrateClient, sendRetryJobUseCase usecases.RetryJob, pendingJobState store.PendingJob, job *entities.Job, logger *log.Logger) *RetryJobSession {
 	return &RetryJobSession{
 		sendRetryJobUseCase: sendRetryJobUseCase,
 		client:              client,
 		job:                 job,
-		retrySessionsState:  retrySessionsState,
+		pendingJobState:     pendingJobState,
 		logger:              logger.WithField("job", job.UUID).SetComponent(retryJobSessionComponent),
 		cerr:                make(chan error, 1),
 	}
@@ -69,10 +69,6 @@ func (uc *RetryJobSession) Start(ctx context.Context) error {
 
 	select {
 	case err := <-uc.cerr:
-		if errors.IsInvalidStateError(err) {
-			uc.logger.WithField("err", err).Warn("exited with warning")
-			return nil
-		}
 		uc.logger.WithField("err", err).Error("exited with errors")
 		return err
 	case <-ctx.Done():
@@ -81,33 +77,34 @@ func (uc *RetryJobSession) Start(ctx context.Context) error {
 	}
 }
 
-func (uc *RetryJobSession) Stop() error {
+func (uc *RetryJobSession) Stop() {
 	uc.logger.Info("session has been stopped")
 	uc.cancelCtx()
-	return nil
 }
 
-func (uc *RetryJobSession) runSession(ctx context.Context, ses *RetryJobSessionData) error {
-	ticker := time.NewTicker(ses.parentJob.InternalData.RetryInterval)
-	defer ticker.Stop()
+func (uc *RetryJobSession) runSession(ctx context.Context, sess *sessionData) error {
+	ticker := time.NewTicker(sess.parentJob.InternalData.RetryInterval)
 	for {
 		select {
 		case <-ticker.C:
-			hasActiveSession := uc.retrySessionsState.Has(ctx, uc.job.UUID)
-			if !hasActiveSession {
-				return uc.Stop()
+			_, err := uc.pendingJobState.GetByTxHash(ctx, uc.job.ChainUUID, uc.job.Transaction.Hash)
+			if err != nil {
+				if errors.IsNotFoundError(err) {
+					uc.Stop()
+					return nil
+				}
+				return err
 			}
-			uc.logger.
-				WithField("children", ses.nChildren).
-				WithField("retries", ses.retries).
+
+			uc.logger.WithField("children", sess.nChildren).WithField("retries", sess.retries).
 				Debug("running session iteration")
-			childJobUUID, err := uc.sendRetryJobUseCase.Execute(ctx, ses.parentJob, ses.lastChildJobUUID, ses.nChildren)
+			childJobUUID, err := uc.sendRetryJobUseCase.Execute(ctx, sess.parentJob, sess.lastChildJobUUID, sess.nChildren)
 			if err != nil {
 				return err
 			}
 
-			ses.retries++
-			if ses.retries >= types.SentryMaxRetries {
+			sess.retries++
+			if sess.retries >= types.SentryMaxRetries {
 				err = uc.updateJobAnnotations()
 				if err != nil {
 					return err
@@ -120,9 +117,9 @@ func (uc *RetryJobSession) runSession(ctx context.Context, ses *RetryJobSessionD
 				return nil
 			}
 
-			if childJobUUID != ses.lastChildJobUUID {
-				ses.nChildren++
-				ses.lastChildJobUUID = childJobUUID
+			if childJobUUID != sess.lastChildJobUUID {
+				sess.nChildren++
+				sess.lastChildJobUUID = childJobUUID
 			}
 		case <-ctx.Done():
 			uc.logger.WithField("reason", ctx.Err().Error()).Info("session gracefully stopped")
@@ -146,7 +143,7 @@ func (uc *RetryJobSession) updateJobAnnotations() error {
 	return nil
 }
 
-func (uc *RetryJobSession) retrieveJobSessionData(ctx context.Context, job *entities.Job) (*RetryJobSessionData, error) {
+func (uc *RetryJobSession) retrieveJobSessionData(ctx context.Context, job *entities.Job) (*sessionData, error) {
 	childrenJobs, err := uc.client.SearchJob(ctx, &entities.JobFilters{
 		ChainUUID:     job.ChainUUID,
 		ParentJobUUID: job.UUID,
@@ -175,7 +172,7 @@ func (uc *RetryJobSession) retrieveJobSessionData(ctx context.Context, job *enti
 		}
 	}
 
-	return &RetryJobSessionData{
+	return &sessionData{
 		parentJob:        job,
 		nChildren:        nChildren,
 		retries:          nRetries,

@@ -12,12 +12,11 @@ type ChainSessionManager interface {
 	StartSession(ctx context.Context, chainUUID string) error
 }
 
-type TxSentrySessionManager interface {
+type RetryJobSessionManager interface {
 	StartSession(ctx context.Context, job *entities.Job) error
-	StopSession(ctx context.Context, sessID string) error
 }
 
 type SessionManagers interface {
 	ChainSessionManager() ChainSessionManager
-	TxSentrySessionManager() TxSentrySessionManager
+	RetryJobSessionManager() RetryJobSessionManager
 }

@@ -63,7 +63,7 @@ func TestUpdateJob_Execute(t *testing.T) {
 		jobDA.EXPECT().FindOneByUUID(gomock.Any(), jobEntity.UUID, userInfo.AllowedTenants, userInfo.Username, gomock.Any()).
 			Times(2).Return(jobEntity, nil)
 
-		kafkaProducer.EXPECT().SendJobMessage(txListenerTopic, jobEntity, userInfo)
+		kafkaProducer.EXPECT().SendJobMessage(txListenerTopic, jobEntity, jobEntity.ChainUUID, userInfo)
 		jobDA.EXPECT().Update(gomock.Any(), gomock.Any(), gomock.Any()).
 			DoAndReturn(func(ctx context.Context, job *entities.Job, log *entities.Log) error {
 				assert.Equal(t, jobEntity.UUID, job.UUID)

@@ -81,12 +81,12 @@ func (s *faucetTestSuite) TestFaucets_SuccessfulUserStories() {
 			err := s.env.Client.DeleteFaucet(s.ctx, faucetRes.UUID)
 			require.NoError(t, err)
 		}()
-
+	
 		accRes, err := s.env.Client.CreateAccount(s.ctx, &types.CreateAccountRequest{
 			Chain: gethChain.Name,
 		})
 		require.NoError(t, err)
-
+	
 		balance, err := pkgutils.WaitForBalance(s.ctx, s.env.EthClient, s.env.Client.ChainProxyURL(gethChain.UUID), accRes.Address)
 		require.NoError(t, err)
 		assert.Equal(t, faucetRes.Amount, hexutil.EncodeBig(balance))
@@ -106,10 +106,10 @@ func (s *faucetTestSuite) TestFaucets_SuccessfulUserStories() {
 			err := s.env.Client.DeleteFaucet(s.ctx, faucetRes.UUID)
 			require.NoError(t, err)
 		}()
-
+	
 		accRes, err := s.env.Client.CreateAccount(s.ctx, &types.CreateAccountRequest{})
 		require.NoError(t, err)
-
+	
 		txReq := &types.TransferRequest{
 			ChainName: gethChain.Name,
 			Params: types.TransferParams{
@@ -120,7 +120,7 @@ func (s *faucetTestSuite) TestFaucets_SuccessfulUserStories() {
 		}
 		_, err = s.env.Client.SendTransferTransaction(s.ctx, txReq)
 		require.NoError(t, err)
-
+	
 		balance, err := pkgutils.WaitForBalance(s.ctx, s.env.EthClient, s.env.Client.ChainProxyURL(gethChain.UUID), accRes.Address)
 		require.NoError(t, err)
 		assert.Equal(t, faucetRes.Amount, hexutil.EncodeBig(balance))

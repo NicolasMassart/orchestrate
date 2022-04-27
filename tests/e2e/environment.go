@@ -63,7 +63,7 @@ func NewEnvironment(ctx context.Context, ctxCancel context.CancelFunc) (*Environ
 	if cfg.TestData.OIDC != nil {
 		jwtToken, err2 := jwt.GenerateJWT(cfg.TestData.OIDC.TokenURL, cfg.TestData.OIDC.ClientID, cfg.TestData.OIDC.ClientSecret, cfg.TestData.OIDC.Audience)
 		if err2 != nil {
-			return nil, fmt.Errorf("faield to generate JWT. %s", err2.Error())
+			return nil, fmt.Errorf("failed to generate JWT. %s", err2.Error())
 		}
 
 		httpCfg.Authorization = "Bearer " + jwtToken
@@ -119,18 +119,10 @@ func (env *Environment) Start() error {
 
 func (env *Environment) Stop() error {
 	errs := []error{}
-	for _, chainUUID := range env.chainUUIDs {
-		err := env.Client.DeleteChain(env.ctx, chainUUID)
-		if err != nil {
-			env.Logger.WithError(err).Error("failed to delete chain")
-			errs = append(errs, err)
-		}
-	}
-
 	for _, streamUUID := range env.streamUUIDs {
 		err := env.Client.DeleteEventStream(env.ctx, streamUUID)
 		if err != nil {
-			env.Logger.WithError(err).Error("failed to delete eventstram")
+			env.Logger.WithError(err).Error("failed to delete event stream")
 			errs = append(errs, err)
 		}
 	}
@@ -141,6 +133,15 @@ func (env *Environment) Stop() error {
 		errs = append(errs, err)
 	}
 
+	for _, chainUUID := range env.chainUUIDs {
+		err := env.Client.DeleteChain(env.ctx, chainUUID)
+		if err != nil {
+			env.Logger.WithError(err).Error("failed to delete chain")
+			errs = append(errs, err)
+		}
+	}
+
+	env.ctxCancel()
 	env.Logger.Info("setup test teardown has completed")
 	if len(errs) > 0 {
 		return errs[0]

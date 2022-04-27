@@ -1172,7 +1172,7 @@ func fakeMsgJob() *entities.Job {
 func (s *txSenderEthereumTestSuite) sendJobMessage(job *entities.Job) error {
 	s.env.logger.WithField("job", job.UUID).WithField("topic", s.env.txSenderCfg.ConsumerTopic).
 		Info("sending message")
-	err := s.env.messengerClient.SendJobMessage(s.env.txSenderCfg.ConsumerTopic, job, multitenancy.NewInternalAdminUser())
+	err := s.env.messengerClient.SendJobMessage(s.env.txSenderCfg.ConsumerTopic, job, job.PartitionKey(), multitenancy.NewInternalAdminUser())
 	if err != nil {
 		return err
 	}

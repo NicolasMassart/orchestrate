@@ -67,7 +67,7 @@ func (uc *startJobUseCase) Execute(ctx context.Context, jobUUID string, userInfo
 
 	uc.addMetrics(time.Since(prevJobUpdateAt), curJob.Status, jobLog.Status, curJob.ChainUUID)
 
-	err = uc.messenger.SendJobMessage(uc.topicSender, curJob, userInfo)
+	err = uc.messenger.SendJobMessage(uc.topicSender, curJob, curJob.PartitionKey(), userInfo)
 	if err != nil {
 		logger.WithError(err).Error("failed to send start job envelope")
 		return err

@@ -75,7 +75,7 @@ func (uc *updateJobUseCase) Execute(ctx context.Context, nextJob *entities.Job, 
 
 	switch nextStatus {
 	case entities.StatusPending:
-		err = uc.messenger.SendJobMessage(uc.txListenerTopic, job, userInfo)
+		err = uc.messenger.SendJobMessage(uc.txListenerTopic, job, job.ChainUUID, userInfo)
 		if err != nil {
 			errMsg := "failed to send pending job to tx-listener"
 			uc.logger.WithError(err).Error(errMsg)

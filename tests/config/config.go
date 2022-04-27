@@ -41,7 +41,7 @@ func NewE2eConfig(vipr *viper.Viper) (*Config, error) {
 		return nil, fmt.Errorf("failed to parse test data. %v", err.Error())
 	}
 	if testData.ArtifactPath == "" {
-		testData.ArtifactPath = "./artifacts"
+		testData.ArtifactPath = "../artifacts"
 	}
 	if testData.Timeout == "" {
 		testData.Timeout = "30s"

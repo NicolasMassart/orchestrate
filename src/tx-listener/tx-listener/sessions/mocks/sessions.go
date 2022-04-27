@@ -49,31 +49,31 @@ func (mr *MockChainSessionManagerMockRecorder) StartSession(ctx, chainUUID inter
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartSession", reflect.TypeOf((*MockChainSessionManager)(nil).StartSession), ctx, chainUUID)
 }
 
-// MockTxSentrySessionManager is a mock of TxSentrySessionManager interface
-type MockTxSentrySessionManager struct {
+// MockRetryJobSessionManager is a mock of RetryJobSessionManager interface
+type MockRetryJobSessionManager struct {
 	ctrl     *gomock.Controller
-	recorder *MockTxSentrySessionManagerMockRecorder
+	recorder *MockRetryJobSessionManagerMockRecorder
 }
 
-// MockTxSentrySessionManagerMockRecorder is the mock recorder for MockTxSentrySessionManager
-type MockTxSentrySessionManagerMockRecorder struct {
-	mock *MockTxSentrySessionManager
+// MockRetryJobSessionManagerMockRecorder is the mock recorder for MockRetryJobSessionManager
+type MockRetryJobSessionManagerMockRecorder struct {
+	mock *MockRetryJobSessionManager
 }
 
-// NewMockTxSentrySessionManager creates a new mock instance
-func NewMockTxSentrySessionManager(ctrl *gomock.Controller) *MockTxSentrySessionManager {
-	mock := &MockTxSentrySessionManager{ctrl: ctrl}
-	mock.recorder = &MockTxSentrySessionManagerMockRecorder{mock}
+// NewMockRetryJobSessionManager creates a new mock instance
+func NewMockRetryJobSessionManager(ctrl *gomock.Controller) *MockRetryJobSessionManager {
+	mock := &MockRetryJobSessionManager{ctrl: ctrl}
+	mock.recorder = &MockRetryJobSessionManagerMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockTxSentrySessionManager) EXPECT() *MockTxSentrySessionManagerMockRecorder {
+func (m *MockRetryJobSessionManager) EXPECT() *MockRetryJobSessionManagerMockRecorder {
 	return m.recorder
 }
 
 // StartSession mocks base method
-func (m *MockTxSentrySessionManager) StartSession(ctx context.Context, job *entities.Job) error {
+func (m *MockRetryJobSessionManager) StartSession(ctx context.Context, job *entities.Job) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "StartSession", ctx, job)
 	ret0, _ := ret[0].(error)
@@ -81,23 +81,9 @@ func (m *MockTxSentrySessionManager) StartSession(ctx context.Context, job *enti
 }
 
 // StartSession indicates an expected call of StartSession
-func (mr *MockTxSentrySessionManagerMockRecorder) StartSession(ctx, job interface{}) *gomock.Call {
+func (mr *MockRetryJobSessionManagerMockRecorder) StartSession(ctx, job interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartSession", reflect.TypeOf((*MockTxSentrySessionManager)(nil).StartSession), ctx, job)
-}
-
-// StopSession mocks base method
-func (m *MockTxSentrySessionManager) StopSession(ctx context.Context, sessID string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "StopSession", ctx, sessID)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// StopSession indicates an expected call of StopSession
-func (mr *MockTxSentrySessionManagerMockRecorder) StopSession(ctx, sessID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StopSession", reflect.TypeOf((*MockTxSentrySessionManager)(nil).StopSession), ctx, sessID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartSession", reflect.TypeOf((*MockRetryJobSessionManager)(nil).StartSession), ctx, job)
 }
 
 // MockSessionManagers is a mock of SessionManagers interface
@@ -137,16 +123,16 @@ func (mr *MockSessionManagersMockRecorder) ChainSessionManager() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChainSessionManager", reflect.TypeOf((*MockSessionManagers)(nil).ChainSessionManager))
 }
 
-// TxSentrySessionManager mocks base method
-func (m *MockSessionManagers) TxSentrySessionManager() sessions.TxSentrySessionManager {
+// RetryJobSessionManager mocks base method
+func (m *MockSessionManagers) RetryJobSessionManager() sessions.RetryJobSessionManager {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TxSentrySessionManager")
-	ret0, _ := ret[0].(sessions.TxSentrySessionManager)
+	ret := m.ctrl.Call(m, "RetryJobSessionManager")
+	ret0, _ := ret[0].(sessions.RetryJobSessionManager)
 	return ret0
 }
 
-// TxSentrySessionManager indicates an expected call of TxSentrySessionManager
-func (mr *MockSessionManagersMockRecorder) TxSentrySessionManager() *gomock.Call {
+// RetryJobSessionManager indicates an expected call of RetryJobSessionManager
+func (mr *MockSessionManagersMockRecorder) RetryJobSessionManager() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TxSentrySessionManager", reflect.TypeOf((*MockSessionManagers)(nil).TxSentrySessionManager))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RetryJobSessionManager", reflect.TypeOf((*MockSessionManagers)(nil).RetryJobSessionManager))
 }

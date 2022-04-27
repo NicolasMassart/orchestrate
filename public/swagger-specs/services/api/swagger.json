@@ -3510,30 +3510,15 @@
                         "type": "string"
                     }
                 },
-                "listenerBackOffDuration": {
+                "listenerBlockTimeDuration": {
                     "description": "Time to wait before trying to fetch a new mined block.",
                     "type": "string",
                     "example": "5s"
-                },
-                "listenerCurrentBlock": {
-                    "description": "Current block.",
-                    "type": "integer",
-                    "example": 0
                 },
                 "listenerDepth": {
                     "description": "Block depth after which the Transaction Listener considers a block final and processes it.",
                     "type": "integer",
                     "example": 0
-                },
-                "listenerExternalTxEnabled": {
-                    "description": "Whether the chain listens for external transactions not crafted by Orchestrate.",
-                    "type": "boolean",
-                    "example": false
-                },
-                "listenerStartingBlock": {
-                    "description": "Block at which the Transaction Listener starts processing transactions",
-                    "type": "integer",
-                    "example": 5000
                 },
                 "name": {
                     "description": "Name of the chain.",
@@ -3780,9 +3765,7 @@
                 "args": {
                     "description": "Contract arguments.",
                     "type": "array",
-                    "items": {
-                        "type": "object"
-                    }
+                    "items": {}
                 },
                 "contractName": {
                     "description": "Name of the contract.",
@@ -3815,6 +3798,8 @@
                 "mandatoryFor": {
                     "description": "When sending a private transaction with [mandatory party protection](https://consensys.net/docs/goquorum/en/stable/concepts/privacy/privacy-enhancements/#mandatory-party-protection), a list of the recipients' public keys.",
                     "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
                     "items": {
                         "type": "string"
                     },
@@ -3851,6 +3836,8 @@
                 "privateFor": {
                     "description": "When sending a private transaction, a list of the recipients' public keys. Not used with `PrivacyGroupID`.",
                     "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
                     "items": {
                         "type": "string"
                     },
@@ -3974,6 +3961,8 @@
                 },
                 "mandatoryFor": {
                     "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
                     "items": {
                         "type": "string"
                     },
@@ -4004,6 +3993,8 @@
                 },
                 "privateFor": {
                     "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
                     "items": {
                         "type": "string"
                     },
@@ -4118,7 +4109,7 @@
         "types.EventStreamResponse": {
             "type": "object",
             "properties": {
-                "chain_uuid": {
+                "chainUUID": {
                     "type": "string",
                     "example": "b4374e6f-b28a-4bad-b4fe-bda36eaf849c"
                 },
@@ -4144,9 +4135,7 @@
                     "type": "string",
                     "example": "foo"
                 },
-                "specs": {
-                    "type": "object"
-                },
+                "specs": {},
                 "status": {
                     "type": "string",
                     "example": "LIVE"
@@ -4460,6 +4449,8 @@
                 "urls": {
                     "description": "List of URLs of Ethereum nodes to connect to.",
                     "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
                     "items": {
                         "type": "string"
                     },
@@ -4477,8 +4468,7 @@
             ],
             "properties": {
                 "abi": {
-                    "description": "ABI of the contract.",
-                    "type": "object"
+                    "description": "ABI of the contract."
                 },
                 "bytecode": {
                     "description": "Bytecode of the contract.",
@@ -4548,7 +4538,7 @@
         "types.RegisterListenerRequest": {
             "type": "object",
             "properties": {
-                "backOffDuration": {
+                "blockTimeDuration": {
                     "description": "Time to wait before trying to fetch a new mined block (for example `1s` or `1m`, default is `5s`).",
                     "type": "string",
                     "example": "1s"
@@ -4557,16 +4547,6 @@
                     "description": "Block depth after which the Transaction Listener considers a block final and processes it (default 0).",
                     "type": "integer",
                     "example": 0
-                },
-                "externalTxEnabled": {
-                    "description": "Whether to listen to external transactions not crafted by Orchestrate (default `false`).",
-                    "type": "boolean",
-                    "example": false
-                },
-                "fromBlock": {
-                    "description": "Block from which the Transaction Listener should start processing transactions (default `latest`).",
-                    "type": "string",
-                    "example": "latest"
                 }
             }
         },
@@ -4694,9 +4674,7 @@
                 "args": {
                     "description": "Contract arguments.",
                     "type": "array",
-                    "items": {
-                        "type": "object"
-                    }
+                    "items": {}
                 },
                 "contractName": {
                     "description": "Name of the contract.",
@@ -4729,6 +4707,8 @@
                 "mandatoryFor": {
                     "description": "When sending a private transaction with [mandatory party protection](https://consensys.net/docs/goquorum/en/stable/concepts/privacy/privacy-enhancements/#mandatory-party-protection), a list of the recipients' public keys.",
                     "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
                     "items": {
                         "type": "string"
                     },
@@ -4769,6 +4749,8 @@
                 "privateFor": {
                     "description": "When sending a private transaction, a list of the recipients' public keys. Not used with `PrivacyGroupID`.",
                     "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
                     "items": {
                         "type": "string"
                     },
@@ -5058,14 +5040,7 @@
         },
         "types.UpdateKafkaEventStreamRequest": {
             "type": "object",
-            "required": [
-                "name"
-            ],
             "properties": {
-                "chain": {
-                    "type": "string",
-                    "example": "mainnet"
-                },
                 "labels": {
                     "type": "object",
                     "additionalProperties": {
@@ -5089,7 +5064,7 @@
         "types.UpdateListenerRequest": {
             "type": "object",
             "properties": {
-                "backOffDuration": {
+                "blockTimeDuration": {
                     "description": "Time to wait before trying to fetch a new mined block (for example `1s` or `1m`, default is `5s`).",
                     "type": "string",
                     "example": "1s"
@@ -5113,15 +5088,7 @@
         },
         "types.UpdateWebhookEventStreamRequest": {
             "type": "object",
-            "required": [
-                "name",
-                "url"
-            ],
             "properties": {
-                "chain": {
-                    "type": "string",
-                    "example": "mainnet"
-                },
                 "headers": {
                     "type": "object",
                     "additionalProperties": {

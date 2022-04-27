@@ -2,7 +2,6 @@ package stress
 
 import (
 	"context"
-	"sync"
 	"time"
 
 	"github.com/consensys/orchestrate/cmd/flags"
@@ -23,7 +22,6 @@ const component = "stress-test"
 
 var (
 	workload *WorkLoadService
-	cancel   func()
 )
 
 // Start starts application
@@ -33,9 +31,6 @@ func Start(ctx context.Context) error {
 	logger.Info("starting execution...")
 
 	var gerr error
-	// Create context for application
-	ctx, cancel = context.WithCancel(ctx)
-	defer cancel()
 
 	initComponents(ctx)
 
@@ -60,38 +55,26 @@ func Start(ctx context.Context) error {
 		client,
 		ethclient.GlobalClient())
 
-	var wg sync.WaitGroup
-	wg.Add(1)
 	go func() {
 		err := consumerTracker.Consume(ctx)
 		if err != nil {
 			gerr = errors.CombineErrors(gerr, err)
 			logger.WithError(err).Error("error on consumer")
 		}
-
-		cancel()
-		wg.Done()
 	}()
 
-	wg.Add(1)
-	go func() {
-		err := workload.Run(ctx)
-		if err != nil {
-			gerr = errors.CombineErrors(gerr, err)
-			logger.WithError(err).Error("error on workload test")
-		}
+	err = workload.Run(ctx)
+	if err != nil {
+		gerr = errors.CombineErrors(gerr, err)
+		logger.WithError(err).Error("error on workload test")
+	}
 
-		cancel()
-		wg.Done()
-	}()
-
-	wg.Wait()
+	_ = consumerTracker.Close()
 	return gerr
 }
 
 func Stop(ctx context.Context) error {
 	log.WithContext(ctx).Info("stopping stress test execution...")
-	cancel()
 	return nil
 }
 

@@ -12,6 +12,7 @@ import (
 type jobUCs struct {
 	pendingJob usecases.PendingJob
 	minedJob   usecases.MinedJob
+	failedJob  usecases.FailedJob
 	retryJob   usecases.RetryJob
 }
 
@@ -27,6 +28,10 @@ func (b *jobUCs) RetryJobUseCase() usecases.RetryJob {
 	return b.retryJob
 }
 
+func (b *jobUCs) FailedJobUseCase() usecases.FailedJob {
+	return b.failedJob
+}
+
 func NewJobUseCases(apiClient orchestrateclient.OrchestrateClient,
 	ethClient ethclient.MultiClient,
 	contractUCs usecases.ContractsUseCases,
@@ -35,11 +40,13 @@ func NewJobUseCases(apiClient orchestrateclient.OrchestrateClient,
 ) usecases.JobUseCases {
 	minedJobUC := jobs.MinedJobUseCase(apiClient, ethClient, contractUCs.RegisterDeployedContractUseCase(), logger)
 	pendingJobUC := jobs.PendingJob(apiClient, ethClient, minedJobUC, state.PendingJobState(), logger)
-	retryJobUC := jobs.RetrySessionJobUseCase(apiClient, logger)
+	retryJobUC := jobs.RetryJobUseCase(apiClient, logger)
+	failedJobUC := jobs.FailedJobUseCase(apiClient, logger)
 
 	return &jobUCs{
 		pendingJob: pendingJobUC,
-		minedJob: minedJobUC,
-		retryJob: retryJobUC,
+		minedJob:   minedJobUC,
+		retryJob:   retryJobUC,
+		failedJob:  failedJobUC,
 	}
 }

@@ -14,15 +14,16 @@ import (
 
 var chainsCtxKey ctxKey = "chains"
 
-type Chain struct {
+type RegisteredChainData struct {
 	UUID            string
 	Name            string
 	ProxyURL        string
 	PrivNodeAddress []string
+	EventStreamUUID string
 }
 
-func RegisterNewChain(ctx context.Context, client orchestrateclient.OrchestrateClient, ec ethclient.ChainSyncReader,
-	proxyHost, chainName string, chainData *config.ChainDataCfg,
+func RegisterNewChainWithEventStream(ctx context.Context, client orchestrateclient.OrchestrateClient, ec ethclient.ChainSyncReader,
+	proxyHost, chainName string, chainData *config.ChainDataCfg, kafkaTopic string,
 ) (context.Context, string, error) {
 	logger := log.FromContext(ctx).WithField("name", chainName).WithField("urls", chainData.URLs)
 	logger.WithContext(ctx).Debug("registering new chain")
@@ -42,18 +43,29 @@ func RegisterNewChain(ctx context.Context, client orchestrateclient.OrchestrateC
 		return nil, "", err
 	}
 
+	es, err := client.CreateKafkaEventStream(ctx, &api.CreateKafkaEventStreamRequest{
+		Name:  "chain-" + c.UUID, // Using same reference for future deletion
+		Topic: kafkaTopic,
+		Chain: chainName,
+	})
+	if err != nil {
+		logger.WithError(err).Error("failed to create event stream chain")
+		return nil, "", err
+	}
+
 	logger.WithField("chain", c.UUID).Info("new chain has been registered")
 	return contextWithChains(ctx, append(ContextChains(ctx),
-		Chain{
+		RegisteredChainData{
 			UUID:            c.UUID,
 			ProxyURL:        orchestrateclient.GetProxyURL(proxyHost, c.UUID),
 			Name:            chainName,
 			PrivNodeAddress: chainData.PrivateAddress,
+			EventStreamUUID: es.UUID,
 		}),
 	), c.UUID, nil
 }
 
-func DeregisterChain(ctx context.Context, client orchestrateclient.OrchestrateClient, chain *Chain) error {
+func DeregisterChainAndEventStreams(ctx context.Context, client orchestrateclient.OrchestrateClient, chain *RegisteredChainData) error {
 	logger := log.FromContext(ctx).WithField("uuid", chain.UUID).WithField("name", chain.Name)
 	logger.WithContext(ctx).Debug("deleting chain")
 
@@ -64,18 +76,25 @@ func DeregisterChain(ctx context.Context, client orchestrateclient.OrchestrateCl
 		return fmt.Errorf(errMsg)
 	}
 
+	err = client.DeleteEventStream(ctx, chain.EventStreamUUID)
+	if err != nil {
+		errMsg := "failed to delete event stream"
+		logger.WithError(err).Error(errMsg)
+		return fmt.Errorf(errMsg)
+	}
+
 	logger.Info("chain has been deleted successfully")
 	return nil
 }
 
-func contextWithChains(ctx context.Context, chains []Chain) context.Context {
+func contextWithChains(ctx context.Context, chains []RegisteredChainData) context.Context {
 	return context.WithValue(ctx, chainsCtxKey, chains)
 }
 
-func ContextChains(ctx context.Context) []Chain {
-	if v, ok := ctx.Value(chainsCtxKey).([]Chain); ok {
+func ContextChains(ctx context.Context) []RegisteredChainData {
+	if v, ok := ctx.Value(chainsCtxKey).([]RegisteredChainData); ok {
 		return v
 	}
 
-	return make([]Chain, 0)
+	return make([]RegisteredChainData, 0)
 }

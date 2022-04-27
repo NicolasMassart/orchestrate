@@ -11,6 +11,7 @@ import (
 type Consumer struct {
 	cGroup sarama.ConsumerGroup
 	client kafka.Client
+	cClose chan bool
 }
 
 var _ kafka.Consumer = &Consumer{}
@@ -26,7 +27,7 @@ func NewConsumerGroup(cfg *Config) (*Consumer, error) {
 		return nil, err
 	}
 
-	return &Consumer{cGroup: cGroup, client: client}, nil
+	return &Consumer{cGroup: cGroup, client: client, cClose: make(chan bool, 1)}, nil
 }
 
 func (c *Consumer) Client() kafka.Client {
@@ -40,6 +41,8 @@ consumeLoop:
 		select {
 		case <-ctx.Done():
 			break consumeLoop
+		case <-c.cClose:
+			break consumeLoop
 		default:
 			err := c.cGroup.Consume(ctx, topics, handler)
 			if err != nil {
@@ -51,5 +54,6 @@ consumeLoop:
 }
 
 func (c *Consumer) Close() error {
+	close(c.cClose)
 	return c.cGroup.Close()
 }

@@ -10,7 +10,7 @@ import (
 
 type WorkloadConfig struct {
 	accounts               []ethcommon.Address
-	chains                 []assets.Chain
+	chains                 []assets.RegisteredChainData
 	artifacts              []string
 	privacyGroups          []assets.PrivacyGroup
 	waitForEnvelopeTimeout time.Duration

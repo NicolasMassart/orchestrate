@@ -27,7 +27,7 @@ func TestCreateChildJob_Execute(t *testing.T) {
 	logger := log.NewLogger()
 	apiClient := mock.NewMockOrchestrateClient(ctrl)
 
-	usecase := RetrySessionJobUseCase(apiClient, logger)
+	usecase := RetryJobUseCase(apiClient, logger)
 
 	t.Run("should create a new child job successfully", func(t *testing.T) {
 		parentJob := testdata.FakeJob()

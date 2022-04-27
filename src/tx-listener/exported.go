@@ -28,7 +28,7 @@ func New(ctx context.Context, cfg *Config) (*app.App, error) {
 		listenerMetrics = listenermetrics.NewListenerNopMetrics()
 	}
 
-	return NewTxlistener(
+	return NewTxListener(
 		cfg,
 		apiClient,
 		rpc.GlobalClient(),

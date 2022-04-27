@@ -7,7 +7,6 @@ import (
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"github.com/consensys/orchestrate/src/infra/messenger"
-	"github.com/consensys/orchestrate/src/infra/messenger/kafka"
 	"github.com/consensys/orchestrate/src/tx-sender/tx-sender/nonce"
 	"github.com/consensys/orchestrate/src/tx-sender/tx-sender/nonce/manager"
 
@@ -57,12 +56,10 @@ func NewTxSender(
 
 	// Create business layer use cases
 	useCases := builder.NewUseCases(apiClient, keyManagerClient, ec, nm, config.ProxyURL)
-	msgConsumerHandler := service.NewMessageConsumerHandler(useCases, apiClient, config.BckOff)
-
 	consumers := make([]messenger.Consumer, config.NConsumer)
 	for idx := 0; idx < config.NConsumer; idx++ {
 		var err error
-		consumers[idx], err = kafka.NewMessageConsumer(config.Kafka, []string{config.ConsumerTopic}, msgConsumerHandler)
+		consumers[idx], err = service.NewMessageConsumer(config.Kafka, []string{config.ConsumerTopic}, useCases, apiClient, config.BckOff)
 		if err != nil {
 			return nil, err
 		}

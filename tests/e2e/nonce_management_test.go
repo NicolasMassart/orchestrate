@@ -143,7 +143,7 @@ func (s *nonceManagementTestSuite) TestNonceManagement_Recalibrate() {
 		})
 		require.NoError(s.T(), err)
 		require.Equal(s.T(), testAccAddr.String(), testAcc.Address)
-
+	
 		// Fund the new account
 		faucetTxRes, err := s.env.Client.SendTransferTransaction(s.ctx, &types.TransferRequest{
 			ChainName: gethChain.Name,
@@ -159,7 +159,7 @@ func (s *nonceManagementTestSuite) TestNonceManagement_Recalibrate() {
 		require.NoError(s.T(), err)
 		_, err = s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, faucetTxRes.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
 		require.NoError(s.T(), err)
-
+	
 		// Send tx with nonce 0
 		txOne, err := s.env.Client.SendTransferTransaction(s.ctx, &types.TransferRequest{
 			ChainName: gethChain.Name,
@@ -170,7 +170,7 @@ func (s *nonceManagementTestSuite) TestNonceManagement_Recalibrate() {
 			},
 		})
 		require.NoError(s.T(), err)
-
+	
 		// Send External TX with nonce 1
 		gasPrice, err := s.env.EthClient.SuggestGasPrice(s.ctx, s.env.Client.ChainProxyURL(gethChain.UUID))
 		require.NoError(s.T(), err)
@@ -184,21 +184,21 @@ func (s *nonceManagementTestSuite) TestNonceManagement_Recalibrate() {
 			Value:           utils.HexToBigInt("0x16345785D8A0000"), // 0.1ETH
 		}, gethChain.ChainID)
 		require.NoError(s.T(), err)
-
+	
 		txTwo, err := s.env.Client.SendRawTransaction(s.ctx, &types.RawTransactionRequest{
 			ChainName: gethChain.Name,
 			Params: types.RawTransactionParams{
 				Raw: signedRaw,
 			},
 		})
-
-		txOneRes, err := s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, s.env.KafkaTopic, txOne.UUID, s.env.WaitForTxResponseTTL)
+	
+		txOneRes, err := s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, txOne.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
 		require.NoError(s.T(), err)
 		assert.Equal(t, uint64(0), *txOneRes.Data.Job.Transaction.Nonce)
-
+	
 		_, err = s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, txTwo.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
 		require.NoError(s.T(), err)
-
+	
 		// Send tx with recalibrated to nonce 2
 		txThree, err := s.env.Client.SendTransferTransaction(s.ctx, &types.TransferRequest{
 			ChainName: gethChain.Name,

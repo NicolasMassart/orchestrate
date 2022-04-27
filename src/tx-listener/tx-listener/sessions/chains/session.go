@@ -18,6 +18,7 @@ import (
 )
 
 const listenBlocksSessionComponent = "tx-listener.chains.session"
+const waitForNEmptyBlocks = 3
 
 type ChainListenerSession struct {
 	ethClient         ethclient.Client
@@ -56,16 +57,19 @@ func (s *ChainListenerSession) Start(ctx context.Context) error {
 	s.logger.WithField("block_time", s.blockTimeDuration.String()).Info("chain block listener started")
 	ctx, s.cancelCtx = context.WithCancel(ctx)
 
-	err := s.runIt(ctx, s.curBlockNumber)
+	proxyChainURL := s.apiClient.ChainProxyURL(s.chain.UUID)
+	err := s.runIt(ctx, s.curBlockNumber, proxyChainURL)
 	if err != nil {
 		return err
 	}
+
 	go func() {
+		nBlockWithoutPendingJobs := 0
 		s.ticker = time.NewTicker(s.blockTimeDuration)
 		defer s.ticker.Stop()
 		for {
 			<-s.ticker.C
-			err = s.runIt(ctx, s.curBlockNumber)
+			err = s.runIt(ctx, s.curBlockNumber, proxyChainURL)
 			if err != nil {
 				if ctx.Err() == nil { // Context is not done
 					s.cerr <- err
@@ -82,9 +86,15 @@ func (s *ChainListenerSession) Start(ctx context.Context) error {
 			}
 
 			if len(pendingJobs) == 0 {
-				s.logger.Debug("no pending jobs. Stopping session...")
-				s.Stop()
-				return
+				if nBlockWithoutPendingJobs >= waitForNEmptyBlocks {
+					s.logger.Debug("no pending jobs. Stopping session...")
+					s.Stop()
+					return
+				}
+
+				nBlockWithoutPendingJobs++
+			} else {
+				nBlockWithoutPendingJobs = 0
 			}
 		}
 	}()
@@ -100,13 +110,12 @@ func (s *ChainListenerSession) Start(ctx context.Context) error {
 }
 
 func (s *ChainListenerSession) Stop() {
-	defer close(s.cerr)
 	s.cancelCtx()
 	s.logger.Debug("chain block session listener closed")
 }
 
-func (s *ChainListenerSession) runIt(ctx context.Context, curBlockNumber uint64) error {
-	blockEvents, nextBlockNumber, err := s.retrieveBlocks(ctx, curBlockNumber)
+func (s *ChainListenerSession) runIt(ctx context.Context, curBlockNumber uint64, proxyChainURL string) error {
+	blockEvents, nextBlockNumber, err := s.retrieveBlocks(ctx, curBlockNumber, proxyChainURL)
 	if err != nil {
 		return err
 	}
@@ -122,11 +131,10 @@ func (s *ChainListenerSession) runIt(ctx context.Context, curBlockNumber uint64)
 	return nil
 }
 
-func (s *ChainListenerSession) retrieveBlocks(ctx context.Context, curBlockNumber uint64) ([]*Block, uint64, error) {
-	chainURL := s.apiClient.ChainProxyURL(s.chain.UUID)
+func (s *ChainListenerSession) retrieveBlocks(ctx context.Context, curBlockNumber uint64, proxyChainURL string) ([]*Block, uint64, error) {
 	newBlockEvents := []*Block{}
 
-	latestBlock, err := s.retrieveBlock(ctx, chainURL, "latest")
+	latestBlock, err := s.retrieveBlock(ctx, proxyChainURL, "latest")
 	if err != nil {
 		return nil, curBlockNumber, err
 	}
@@ -142,7 +150,7 @@ func (s *ChainListenerSession) retrieveBlocks(ctx context.Context, curBlockNumbe
 			wg.Add(1)
 			go func(blockNumber uint64) {
 				defer wg.Done()
-				block, err := s.retrieveBlock(ctx, chainURL, blockNumber)
+				block, err := s.retrieveBlock(ctx, proxyChainURL, blockNumber)
 				if err != nil {
 					s.cerr <- err
 					return
@@ -161,7 +169,8 @@ func (s *ChainListenerSession) retrieveBlock(ctx context.Context, chainURL strin
 	var chainBlock *ethtypes.Block
 	var err error
 
-	// @TODO if includeTxs==false, it fails because Transactions struct does not match expected
+	// @TODO Evaluate consequences of retrying "true"
+	// For instance, in case chain was deleted we will loop over a 404 blocking the consumer queue
 	cctx := ethclientutils.RetryConnectionError(ctx, true)
 	if bn, ok := blockNumber.(uint64); ok {
 		chainBlock, err = s.ethClient.BlockByNumber(cctx, chainURL, new(big.Int).SetUint64(bn), true)

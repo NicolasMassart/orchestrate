@@ -238,7 +238,7 @@ jobs:
 
   build-docker-image:
     docker:
-      - image: cimg/base:2021.12
+      - image: cimg/base:2022.04
     resource_class: xlarge
 
     parameters: # parameters are at the job level
@@ -317,7 +317,7 @@ jobs:
 
   deploy-qa:
     docker:
-      - image: cimg/base:2020.01
+      - image: cimg/base:2022.04
     steps:
       - checkout
       - set_remote_environment_variables
@@ -350,6 +350,7 @@ jobs:
             make up
             echo "Wait 20 seconds for services to boot up correctly..."
             sleep 20
+            export TEST_GLOBAL_DATA=${LOCAL_TEST_GLOBAL_DATA}
             make run-e2e
 
   run-e2e:
@@ -367,14 +368,6 @@ jobs:
       - run:
           name: Running e2e
           environment:
-            CUCUMBER_OUTPUTPATH: "./scripts/report/report.json"
-            CUCUMBER_OUTPUT: "./report.html"
-            CUCUMBER_INPUT: "./report.json"
-            CUCUMBER_PATHS: "./tests/features"
-            ARTIFACTS_PATH: "./tests/artifacts"
-            CUCUMBER_FORMAT: "cucumber"
-            CUCUMBER_STEPS_TIMEOUT: "1m"
-            KAFKA_CONSUMER_GROUP_NAME: "e2e"
             LOG_LEVEL: "INFO"
           command: |
             set +e
@@ -423,7 +416,7 @@ jobs:
 
   deploy-staging:
     docker:
-      - image: cimg/base:2020.01
+      - image: cimg/base:2022.04
     steps:
       - checkout
       - set_remote_environment_variables
@@ -490,7 +483,6 @@ workflows:
               only: /^v.*/
             branches:
               ignore: /.*/
-
       - build-docker-image: # Push prod image
           name: release-tag-<< matrix.docker-image-tag >>-<< matrix.docker-image-platform >>
           context:
@@ -518,7 +510,8 @@ workflows:
               only: main
           requires:
             - push-orchestrate-image-orchestrate:${CIRCLE_SHA1:0:7}
-      - run-e2e:
+      - run-e2e-local:
+          name: run-e2e
           filters:
             branches:
               only: main

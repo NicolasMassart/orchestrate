@@ -12,6 +12,10 @@ type PendingJob interface {
 	Execute(ctx context.Context, job *entities.Job) error
 }
 
+type FailedJob interface {
+	Execute(ctx context.Context, job *entities.Job, errMsg string) error
+}
+
 type MinedJob interface {
 	Execute(ctx context.Context, job *entities.Job) error
 }
@@ -22,6 +26,7 @@ type RetryJob interface {
 
 type JobUseCases interface {
 	PendingJobUseCase() PendingJob
+	FailedJobUseCase() FailedJob
 	MinedJobUseCase() MinedJob
 	RetryJobUseCase() RetryJob
 }

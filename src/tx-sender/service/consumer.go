@@ -11,6 +11,7 @@ import (
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"github.com/consensys/orchestrate/src/entities"
+	saramainfra "github.com/consensys/orchestrate/src/infra/kafka/sarama"
 	messenger "github.com/consensys/orchestrate/src/infra/messenger/kafka"
 	utils2 "github.com/consensys/orchestrate/src/tx-sender/tx-sender/utils"
 
@@ -23,15 +24,20 @@ const (
 	messageListenerComponent = "service.kafka-consumer"
 )
 
-type MessageConsumerHandler struct {
+func NewMessageConsumer(cfg *saramainfra.Config, topics []string, useCases usecases.UseCases, jobClient client.JobClient, bck backoff.BackOff) (*messenger.Consumer, error) {
+	msgConsumerHandler := newMessageConsumerHandler(useCases, jobClient, bck)
+	return messenger.NewMessageConsumer(cfg, topics, msgConsumerHandler)
+}
+
+type messageConsumerHandler struct {
 	useCases     usecases.UseCases
 	retryBackOff backoff.BackOff
 	jobClient    client.JobClient
 	logger       *log.Logger
 }
 
-func NewMessageConsumerHandler(useCases usecases.UseCases, jobClient client.JobClient, bck backoff.BackOff) *MessageConsumerHandler {
-	return &MessageConsumerHandler{
+func newMessageConsumerHandler(useCases usecases.UseCases, jobClient client.JobClient, bck backoff.BackOff) *messageConsumerHandler {
+	return &messageConsumerHandler{
 		useCases:     useCases,
 		retryBackOff: bck,
 		jobClient:    jobClient,
@@ -39,15 +45,15 @@ func NewMessageConsumerHandler(useCases usecases.UseCases, jobClient client.JobC
 	}
 }
 
-func (mch *MessageConsumerHandler) DecodeMessage(rawMsg *sarama.ConsumerMessage) (interface{}, error) {
+func (mch *messageConsumerHandler) DecodeMessage(rawMsg *sarama.ConsumerMessage) (interface{}, error) {
 	return messenger.DecodeJobMessage(rawMsg)
 }
 
-func (mch *MessageConsumerHandler) ID() string {
+func (mch *messageConsumerHandler) ID() string {
 	return messageListenerComponent
 }
 
-func (mch *MessageConsumerHandler) ProcessMsg(ctx context.Context, rawMsg *sarama.ConsumerMessage, decodedMsg interface{}) error {
+func (mch *messageConsumerHandler) ProcessMsg(ctx context.Context, rawMsg *sarama.ConsumerMessage, decodedMsg interface{}) error {
 	job := decodedMsg.(*entities.Job)
 	logger := mch.logger.WithField("job", job.UUID).WithField("schedule", job.ScheduleUUID)
 	for _, h := range rawMsg.Headers {
@@ -69,7 +75,7 @@ func (mch *MessageConsumerHandler) ProcessMsg(ctx context.Context, rawMsg *saram
 	return nil
 }
 
-func (mch *MessageConsumerHandler) processTask(ctx context.Context, job *entities.Job, logger *log.Logger) error {
+func (mch *messageConsumerHandler) processTask(ctx context.Context, job *entities.Job, logger *log.Logger) error {
 	return backoff.RetryNotify(
 		func() error {
 			err := mch.executeSendJob(ctx, job)
@@ -95,9 +101,9 @@ func (mch *MessageConsumerHandler) processTask(ctx context.Context, job *entitie
 				if serr == nil {
 					return err
 				}
-			case errors.IsKnownTransactionError(err):
+			case errors.IsKnownTransactionError(err) || errors.IsNonceTooLowError(err):
 				if job.InternalData.ParentJobUUID != "" {
-					logger.WithError(err).Warn("ignoring to send known transaction when it is a child job...")
+					logger.WithError(err).Warn("ignoring known transaction or nonce too low when it is a child job...")
 					return nil
 				}
 				return err
@@ -124,7 +130,7 @@ func (mch *MessageConsumerHandler) processTask(ctx context.Context, job *entitie
 	)
 }
 
-func (mch *MessageConsumerHandler) executeSendJob(ctx context.Context, job *entities.Job) error {
+func (mch *messageConsumerHandler) executeSendJob(ctx context.Context, job *entities.Job) error {
 	switch job.Type {
 	case entities.GoQuorumPrivateTransaction:
 		return mch.useCases.SendGoQuorumPrivateTx().Execute(ctx, job)

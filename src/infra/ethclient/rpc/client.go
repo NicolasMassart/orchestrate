@@ -203,10 +203,11 @@ func (ec *Client) nextID() json.RawMessage {
 }
 
 func (ec *Client) processEthError(err *utils.JSONError) error {
-	if strings.Contains(err.Message, "nonce too low") || strings.Contains(err.Message, "Nonce too low") || strings.Contains(err.Message, "Incorrect nonce") {
+	errMsg := strings.ToLower(err.Message)
+	if strings.Contains(errMsg, "nonce too low") || strings.Contains(errMsg, "incorrect nonce") {
 		return errors.NonceTooLowError("code: %d - message: %s", err.Code, err.Message)
 	}
-	if strings.Contains(err.Message, "known transaction") || strings.Contains(err.Message, "Known transaction") {
+	if strings.Contains(errMsg, "known transaction") || strings.Contains(errMsg, "already known") {
 		return errors.KnownTransactionError("code: %d - message: %s", err.Code, err.Message)
 	}
 	return errors.EthereumError("code: %d - message: %s", err.Code, err.Message)

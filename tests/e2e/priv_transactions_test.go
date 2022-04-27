@@ -181,7 +181,7 @@ func (s *privTransactionsTestSuite) TestPrivateTransactions_GoQuorum() {
 		assert.NotEmpty(t, txRes.Data.Job.Receipt.ContractAddress)
 	})
 
-	s.T().Run("when an user sends a private transaction with invalid private sender it is notified on tx-recover", func(t *testing.T) {
+	s.T().Run("when an user sends a private transaction with invalid private sender it is notified", func(t *testing.T) {
 		txDeployReq, err := s.env.Client.SendDeployTransaction(s.ctx, &types.DeployContractRequest{
 			ChainName: goQuorumChain.Name,
 			Params: types.DeployContractParams{
@@ -194,7 +194,7 @@ func (s *privTransactionsTestSuite) TestPrivateTransactions_GoQuorum() {
 		})
 		require.NoError(t, err)
 
-		txRes, err := s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, txDeployReq.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
+		txRes, err := s.env.ConsumerTracker.WaitForTxFailedNotification(s.ctx, txDeployReq.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
 		require.NoError(t, err)
 		assert.NotEmpty(t, txRes.Data.Error)
 	})

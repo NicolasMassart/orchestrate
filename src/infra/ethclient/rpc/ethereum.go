@@ -38,6 +38,7 @@ func (ec *Client) BlockByNumber(ctx context.Context, endpoint string, number *bi
 	// Perform RPC call
 	var header *ethtypes.Header
 	var body *Body
+	// @TODO if includeTxs==false, it fails because Transactions struct does not match expected
 	err := ec.Call(ctx, endpoint, processBlockResult(&header, &body), "eth_getBlockByNumber", toBlockNumArg(number), includeTxs)
 	if err != nil {
 		return nil, errors.FromError(err).ExtendComponent(component)

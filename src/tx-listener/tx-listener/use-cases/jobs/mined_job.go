@@ -20,7 +20,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
-const notifyMinedJobTxComponent = "tx-listener.use-case.tx-listener.notify-mined-job"
+const minedJobUseCaseComponent = "tx-listener.use-case.tx-listener.mined-job"
 
 type minedJobUC struct {
 	client                   orchestrateclient.OrchestrateClient
@@ -38,7 +38,7 @@ func MinedJobUseCase(client orchestrateclient.OrchestrateClient,
 		client:                   client,
 		ethClient:                ethClient,
 		registerDeployedContract: registerDeployedContract,
-		logger:                   logger.SetComponent(notifyMinedJobTxComponent),
+		logger:                   logger.SetComponent(minedJobUseCaseComponent),
 	}
 }
 

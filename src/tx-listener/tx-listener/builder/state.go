@@ -6,9 +6,9 @@ import (
 )
 
 type storeState struct {
-	chain         store.Chain
-	pendingJob    store.PendingJob
-	retrySessions store.RetrySessions
+	chain           store.Chain
+	pendingJob      store.PendingJob
+	retryJobSession store.RetryJobSession
 }
 
 func (s *storeState) ChainState() store.Chain {
@@ -19,17 +19,17 @@ func (s *storeState) PendingJobState() store.PendingJob {
 	return s.pendingJob
 }
 
-func (s *storeState) RetrySessionsState() store.RetrySessions {
-	return s.retrySessions
+func (s *storeState) RetryJobSessionState() store.RetryJobSession {
+	return s.retryJobSession
 }
 
 func NewStoreState() store.State {
 	chainInMemory := in_memory.NewChainInMemory()
 	pendingJobInMemory := in_memory.NewPendingJobInMemory()
-	retrySessionInMemory := in_memory.NewRetrySessionInMemory()
+	retryJobSessionInMemory := in_memory.NewRetryJobSessionInMemory()
 	return &storeState{
-		chain:         chainInMemory,
-		pendingJob:    pendingJobInMemory,
-		retrySessions: retrySessionInMemory,
+		chain:           chainInMemory,
+		pendingJob:      pendingJobInMemory,
+		retryJobSession: retryJobSessionInMemory,
 	}
 }

@@ -17,23 +17,22 @@ const retryJobSessionMngrComponent = "tx-listener.use-case.tx-sentry.session-man
 type RetryJobSessionMngr struct {
 	sendRetryJobUseCase usecases.RetryJob
 	client              orchestrateclient.OrchestrateClient
-	retrySessionState   store.RetrySessions
+	retrySessionState   store.RetryJobSession
+	pendingJobState     store.PendingJob
 	logger              *log.Logger
-	sessions            map[string]*RetryJobSession
-	sessionsErr         map[string]error
 }
 
 func NewRetrySessionManager(client orchestrateclient.OrchestrateClient,
 	sendRetryJobUseCase usecases.RetryJob,
-	retrySessionState store.RetrySessions,
+	retrySessionState store.RetryJobSession,
+	pendingJobState store.PendingJob,
 	logger *log.Logger,
-) sessions.TxSentrySessionManager {
+) sessions.RetryJobSessionManager {
 	return &RetryJobSessionMngr{
 		sendRetryJobUseCase: sendRetryJobUseCase,
 		client:              client,
 		retrySessionState:   retrySessionState,
-		sessions:            make(map[string]*RetryJobSession),
-		sessionsErr:         make(map[string]error),
+		pendingJobState:     pendingJobState,
 		logger:              logger.SetComponent(retryJobSessionMngrComponent),
 	}
 }
@@ -43,58 +42,35 @@ func (mngr *RetryJobSessionMngr) StartSession(ctx context.Context, job *entities
 		WithField("job", job.UUID).
 		WithField("chain", job.ChainUUID)
 
-	if _, ok := mngr.sessions[job.UUID]; ok {
+	if mngr.retrySessionState.Has(ctx, job.UUID) {
 		errMsg := "retry job session already exists"
 		logger.Warn(errMsg)
 		return errors.AlreadyExistsError(errMsg)
 	}
 
-	sess := NewRetryJobSession(mngr.client, mngr.sendRetryJobUseCase, mngr.retrySessionState, job, logger)
+	sess := NewRetryJobSession(mngr.client, mngr.sendRetryJobUseCase, mngr.pendingJobState, job, logger)
 
-	mngr.sessions[job.UUID] = sess
-	err := mngr.retrySessionState.Add(ctx, job.UUID, job)
+	err := mngr.retrySessionState.Add(ctx, job)
 	if err != nil {
 		errMsg := "failed to persist retry session"
 		logger.WithError(err).Error(errMsg)
 		return err
 	}
 
-	go func(sess *RetryJobSession, jobUUID string) {
+	go func(sess *RetryJobSession) {
+		// @TODO How to propagate error ???
 		err := sess.Start(ctx)
 		if err != nil {
-			mngr.sessionsErr[jobUUID] = err
 			errMsg := "failed to run retry session"
 			logger.WithError(err).Error(errMsg)
 		}
-	}(sess, job.UUID)
 
-	return nil
-}
-
-func (mngr *RetryJobSessionMngr) StopSession(ctx context.Context, jobUUID string) error {
-	logger := mngr.logger.WithField("job", jobUUID)
-	if _, ok := mngr.sessions[jobUUID]; !ok {
-		errMsg := "retry job session is not found"
-		logger.WithField("job", jobUUID).Error(errMsg)
-		return errors.NotFoundError(errMsg)
-	}
-
-	sess := mngr.sessions[jobUUID]
-	if err := sess.Stop(); err != nil {
-		return err
-	}
-
-	err := mngr.retrySessionState.Remove(ctx, jobUUID)
-	if err != nil {
-		return err
-	}
-
-	delete(mngr.sessions, jobUUID)
-
-	// If an error happened during the Start()
-	if err, ok := mngr.sessionsErr[jobUUID]; ok {
-		return err
-	}
+		err = mngr.retrySessionState.Remove(ctx, job.UUID)
+		if err != nil {
+			errMsg := "failed to remove retry session"
+			logger.WithError(err).Error(errMsg)
+		}
+	}(sess)
 
 	return nil
 }

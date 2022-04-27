@@ -19,7 +19,7 @@ func NewChainUseCases(jobUCs usecases.JobUseCases,
 	state store.State,
 	logger *log.Logger,
 ) usecases.ChainUseCases {
-	chainBlock := chains.NewChainBlockUseCase(jobUCs.MinedJobUseCase(), state.PendingJobState(), state.RetrySessionsState(), logger)
+	chainBlock := chains.NewChainBlockUseCase(jobUCs.MinedJobUseCase(), state.PendingJobState(), logger)
 	return &chainUCs{
 		chainBlockUseCase: chainBlock,
 	}

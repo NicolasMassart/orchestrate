@@ -47,18 +47,19 @@ func (m *NotifierConsumerTracker) Close() error {
 	return m.consumer.Close()
 }
 
-func (m *NotifierConsumerTracker) WaitForTxMinedNotification(ctx context.Context, uuid, topic string, timeout time.Duration) (*types.Notification, error) {
-	msg, err := m.tracker.WaitForMessage(ctx, uuid, topic, timeout)
+func (m *NotifierConsumerTracker) WaitForTxMinedNotification(ctx context.Context, id, topic string, timeout time.Duration) (*types.Notification, error) {
+	msg, err := m.tracker.WaitForMessage(ctx, id, topic, timeout)
+	msgID := fmt.Sprintf("Message '%s' on topic '%s'", id, topic)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s. %s", err.Error(), msgID)
 	}
 	notification, ok := msg.(*types.Notification)
 	if !ok {
-		return nil, fmt.Errorf("invalid message format")
+		return nil, fmt.Errorf("invalid message format. %s", msgID)
 	}
 
 	if notification.Type != types.TransactionMinedMessage {
-		return nil, fmt.Errorf("invalid notification type %v", notification.Type)
+		return nil, fmt.Errorf("invalid notification type %v. %s", notification.Type, msgID)
 	}
 
 	return notification, nil

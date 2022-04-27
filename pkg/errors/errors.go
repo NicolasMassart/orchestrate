@@ -344,6 +344,10 @@ func IsKnownTransactionError(err error) bool {
 	return isErrorClass(FromError(err).GetCode(), KnownTransactionErr)
 }
 
+func IsNonceTooLowError(err error) bool {
+	return isErrorClass(FromError(err).GetCode(), NonceTooLow)
+}
+
 // IsCryptoOperationError indicate whether an error is a cryptographic operation error
 func IsCryptoOperationError(err error) bool {
 	return isErrorClass(FromError(err).GetCode(), CryptoOperation)

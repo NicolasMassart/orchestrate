@@ -26,10 +26,10 @@ type PendingJob interface {
 	DeletePerChainUUID(ctx context.Context, chainUUID string) error
 }
 
-type RetrySessions interface {
-	Add(ctx context.Context, sessID string, job *entities.Job) error
-	Has(ctx context.Context, sessID string) bool
-	Remove(ctx context.Context, sessID string) error
+type RetryJobSession interface {
+	Add(ctx context.Context, job *entities.Job) error
+	Has(ctx context.Context, jobUUID string) bool
+	Remove(ctx context.Context, jobUUID string) error
 	GetByTxHash(ctx context.Context, chainUUID string, txHash *ethcommon.Hash) (string, error)
 	ListByChainUUID(ctx context.Context, chainUUID string) ([]string, error)
 	DeletePerChainUUID(ctx context.Context, chainUUID string) error
@@ -38,5 +38,5 @@ type RetrySessions interface {
 type State interface {
 	ChainState() Chain
 	PendingJobState() PendingJob
-	RetrySessionsState() RetrySessions
+	RetryJobSessionState() RetryJobSession
 }

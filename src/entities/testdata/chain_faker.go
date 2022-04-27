@@ -2,6 +2,7 @@ package testdata
 
 import (
 	"math/big"
+	"math/rand"
 	"time"
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
@@ -16,7 +17,7 @@ func FakeChain() *entities.Chain {
 		Name:                      "ganache",
 		TenantID:                  multitenancy.DefaultTenant,
 		URLs:                      []string{"http://ethereum-node:8545"},
-		ChainID:                   big.NewInt(888),
+		ChainID:                   new(big.Int).SetUint64(rand.Uint64()),
 		ListenerDepth:             0,
 		ListenerBlockTimeDuration: blockTimeDuration,
 	}

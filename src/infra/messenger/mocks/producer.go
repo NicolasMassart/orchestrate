@@ -35,17 +35,17 @@ func (m *MockProducer) EXPECT() *MockProducerMockRecorder {
 }
 
 // SendJobMessage mocks base method
-func (m *MockProducer) SendJobMessage(topic string, job *entities.Job, userInfo *multitenancy.UserInfo) error {
+func (m *MockProducer) SendJobMessage(topic string, job *entities.Job, partitionKey string, userInfo *multitenancy.UserInfo) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendJobMessage", topic, job, userInfo)
+	ret := m.ctrl.Call(m, "SendJobMessage", topic, job, partitionKey, userInfo)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SendJobMessage indicates an expected call of SendJobMessage
-func (mr *MockProducerMockRecorder) SendJobMessage(topic, job, userInfo interface{}) *gomock.Call {
+func (mr *MockProducerMockRecorder) SendJobMessage(topic, job, partitionKey, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendJobMessage", reflect.TypeOf((*MockProducer)(nil).SendJobMessage), topic, job, userInfo)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendJobMessage", reflect.TypeOf((*MockProducer)(nil).SendJobMessage), topic, job, partitionKey, userInfo)
 }
 
 // Checker mocks base method

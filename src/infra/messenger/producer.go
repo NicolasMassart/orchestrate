@@ -8,6 +8,6 @@ import (
 //go:generate mockgen -source=producer.go -destination=mocks/producer.go -package=mocks
 
 type Producer interface {
-	SendJobMessage(topic string, job *entities.Job, userInfo *multitenancy.UserInfo) error
+	SendJobMessage(topic string, job *entities.Job, partitionKey string, userInfo *multitenancy.UserInfo) error
 	Checker() error
 }
