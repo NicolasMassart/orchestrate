@@ -11,8 +11,7 @@ import (
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"github.com/consensys/orchestrate/src/entities"
-	saramainfra "github.com/consensys/orchestrate/src/infra/kafka/sarama"
-	messenger "github.com/consensys/orchestrate/src/infra/messenger/kafka"
+	"github.com/consensys/orchestrate/src/infra/messenger/kafka"
 	utils2 "github.com/consensys/orchestrate/src/tx-sender/tx-sender/utils"
 
 	"github.com/Shopify/sarama"
@@ -24,9 +23,9 @@ const (
 	messageListenerComponent = "service.kafka-consumer"
 )
 
-func NewMessageConsumer(cfg *saramainfra.Config, topics []string, useCases usecases.UseCases, jobClient client.JobClient, bck backoff.BackOff) (*messenger.Consumer, error) {
+func NewMessageConsumer(cfg *kafka.Config, topics []string, useCases usecases.UseCases, jobClient client.JobClient, bck backoff.BackOff) (*kafka.Consumer, error) {
 	msgConsumerHandler := newMessageConsumerHandler(useCases, jobClient, bck)
-	return messenger.NewMessageConsumer(cfg, topics, msgConsumerHandler)
+	return kafka.NewMessageConsumer(cfg, topics, msgConsumerHandler)
 }
 
 type messageConsumerHandler struct {
@@ -46,7 +45,7 @@ func newMessageConsumerHandler(useCases usecases.UseCases, jobClient client.JobC
 }
 
 func (mch *messageConsumerHandler) DecodeMessage(rawMsg *sarama.ConsumerMessage) (interface{}, error) {
-	return messenger.DecodeJobMessage(rawMsg)
+	return kafka.DecodeJobMessage(rawMsg)
 }
 
 func (mch *messageConsumerHandler) ID() string {

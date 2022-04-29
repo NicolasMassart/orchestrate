@@ -11,7 +11,8 @@ import (
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/store"
 	"github.com/consensys/orchestrate/src/entities"
-	"github.com/consensys/orchestrate/src/infra/notifier"
+	"github.com/consensys/orchestrate/src/infra/messenger"
+	"github.com/consensys/orchestrate/src/notifier/service/types"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
@@ -19,25 +20,26 @@ const notifyTransactionComponent = "use-cases.notify_transaction"
 
 type notifyTransactionUseCase struct {
 	db               store.EventStreamAgent
-	kafkaNotifier    notifier.Producer
-	webhookNotifier  notifier.Producer
+	messengerCli     messenger.Producer
 	searchContractUC usecases.SearchContractUseCase
 	decodeLogUC      usecases.DecodeEventLogUseCase
+	notifierTopic    string
 	logger           *log.Logger
 }
 
 func NewNotifyTransactionUseCase(
 	db store.EventStreamAgent,
-	kafkaNotifier, webhookNotifier notifier.Producer,
+	messengerCli messenger.Producer,
 	searchContractUC usecases.SearchContractUseCase,
 	decodeLogUC usecases.DecodeEventLogUseCase,
+	notifierTopic string,
 ) usecases.NotifyTransactionUseCase {
 	return &notifyTransactionUseCase{
 		db:               db,
-		kafkaNotifier:    kafkaNotifier,
-		webhookNotifier:  webhookNotifier,
+		messengerCli:     messengerCli,
 		searchContractUC: searchContractUC,
 		decodeLogUC:      decodeLogUC,
+		notifierTopic:    notifierTopic,
 		logger:           log.NewLogger().SetComponent(notifyTransactionComponent),
 	}
 }
@@ -51,10 +53,6 @@ func (uc *notifyTransactionUseCase) Execute(ctx context.Context, job *entities.J
 	}
 
 	if eventStream == nil {
-		return nil
-	}
-
-	if eventStream.Status != entities.EventStreamStatusLive {
 		return nil
 	}
 
@@ -86,18 +84,16 @@ func (uc *notifyTransactionUseCase) Execute(ctx context.Context, job *entities.J
 		}
 	}
 
-	switch eventStream.Channel {
-	case entities.EventStreamChannelKafka:
-		err = uc.kafkaNotifier.SendTxResponse(ctx, eventStream, job, errStr)
-	case entities.EventStreamChannelWebhook:
-		err = uc.webhookNotifier.SendTxResponse(ctx, eventStream, job, errStr)
-	default:
-		return errors.DataCorruptedError("invalid event stream channel")
+	msg := &types.NotificationMessage{
+		Type:        types.TransactionNotificationType,
+		EventStream: eventStream,
+		Job:         job,
+		Error:       errStr,
 	}
-
+	err = uc.messengerCli.SendNotificationMessage(uc.notifierTopic, msg, job.PartitionKey(), userInfo)
 	if err != nil {
-		errMsg := "failed to send notification"
-		logger.WithError(err).Error(errMsg)
+		errMsg := "failed to send notification to notifier service"
+		uc.logger.WithError(err).Error(errMsg)
 		return errors.DependencyFailureError(errMsg).ExtendComponent(notifyTransactionComponent)
 	}
 

@@ -205,7 +205,7 @@ func (s *eventStreamsTestSuite) TestUpdate() {
 		resp, err := s.client.UpdateWebhookEventStream(ctx, esWebhook.UUID, testdata.FakeUpdateWebhookEventStreamRequest())
 		require.NoError(t, err)
 
-		assert.Equal(t, string(entities.EventStreamStatusPaused), resp.Status)
+		assert.Equal(t, string(entities.EventStreamStatusSuspend), resp.Status)
 		assert.NotEmpty(t, resp.UUID)
 		assert.True(t, resp.UpdatedAt.After(resp.CreatedAt))
 
@@ -218,11 +218,11 @@ func (s *eventStreamsTestSuite) TestUpdate() {
 		req2.Chain = s.chain.Name
 		esKafka, err := s.client.CreateKafkaEventStream(ctx, req2)
 		require.NoError(s.T(), err)
-	
+
 		resp, err := s.client.UpdateKafkaEventStream(ctx, esKafka.UUID, testdata.FakeUpdateKafkaEventStreamRequest())
 		require.NoError(t, err)
 
-		assert.Equal(t, string(entities.EventStreamStatusPaused), resp.Status)
+		assert.Equal(t, string(entities.EventStreamStatusSuspend), resp.Status)
 		assert.NotEmpty(t, resp.UUID)
 		assert.True(t, resp.UpdatedAt.After(resp.CreatedAt))
 

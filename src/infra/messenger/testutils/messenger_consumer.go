@@ -2,7 +2,6 @@ package testutils
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/Shopify/sarama"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
@@ -12,7 +11,7 @@ import (
 )
 
 const (
-	messageListenerComponent = "test.service.kafka-job-consumer"
+	jobMessageListenerComponent = "test.service.kafka-job-consumer"
 )
 
 type messageConsumerHandler struct {
@@ -25,7 +24,7 @@ var _ messenger.ConsumerMessageHandler = &messageConsumerHandler{}
 func newMessageConsumerHandler(chanRegistry *utils.ChanRegistry) *messageConsumerHandler {
 	return &messageConsumerHandler{
 		chanRegistry: chanRegistry,
-		logger:       log.NewLogger().SetComponent(messageListenerComponent),
+		logger:       log.NewLogger().SetComponent(jobMessageListenerComponent),
 	}
 }
 
@@ -53,9 +52,5 @@ func (mch *messageConsumerHandler) DecodeMessage(rawMsg *sarama.ConsumerMessage)
 }
 
 func (mch *messageConsumerHandler) ID() string {
-	return messageListenerComponent
-}
-
-func keyGenOf(key, topic string) string {
-	return fmt.Sprintf("%s/%s", topic, key)
+	return jobMessageListenerComponent
 }

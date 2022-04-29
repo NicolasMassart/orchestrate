@@ -17,7 +17,7 @@ type CreateWebhookEventStreamRequest struct {
 func (r *CreateWebhookEventStreamRequest) ToEntity() *entities.EventStream {
 	return &entities.EventStream{
 		Name: r.Name,
-		Specs: &entities.EventStreamWebhookSpec{
+		Webhook: &entities.EventStreamWebhookSpec{
 			URL:     r.URL,
 			Headers: r.Headers,
 		},
@@ -37,7 +37,7 @@ type CreateKafkaEventStreamRequest struct {
 func (r *CreateKafkaEventStreamRequest) ToEntity() *entities.EventStream {
 	return &entities.EventStream{
 		Name: r.Name,
-		Specs: &entities.EventStreamKafkaSpec{
+		Kafka: &entities.EventStreamKafkaSpec{
 			Topic: r.Topic,
 		},
 		Channel: entities.EventStreamChannelKafka,
@@ -63,7 +63,7 @@ func (r *UpdateKafkaEventStreamRequest) ToEntity(uuid string) *entities.EventStr
 	}
 
 	if r.Topic != "" {
-		es.Specs = &entities.EventStreamKafkaSpec{
+		es.Kafka = &entities.EventStreamKafkaSpec{
 			Topic: r.Topic,
 		}
 	}
@@ -89,7 +89,7 @@ func (r *UpdateWebhookEventStreamRequest) ToEntity(uuid string) *entities.EventS
 	}
 
 	if r.URL != "" || r.Headers != nil {
-		es.Specs = &entities.EventStreamWebhookSpec{
+		es.Webhook = &entities.EventStreamWebhookSpec{
 			URL:     r.URL,
 			Headers: r.Headers,
 		}
@@ -113,19 +113,27 @@ type EventStreamResponse struct {
 }
 
 func NewEventStreamResponse(e *entities.EventStream) *EventStreamResponse {
-	return &EventStreamResponse{
+	resp := &EventStreamResponse{
 		UUID:      e.UUID,
 		Name:      e.Name,
 		ChainUUID: e.ChainUUID,
 		TenantID:  e.TenantID,
 		OwnerID:   e.OwnerID,
-		Specs:     e.Specs,
 		Channel:   string(e.Channel),
 		Status:    string(e.Status),
 		Labels:    e.Labels,
 		CreatedAt: e.CreatedAt,
 		UpdatedAt: e.UpdatedAt,
 	}
+
+	switch e.Channel {
+	case entities.EventStreamChannelKafka:
+		resp.Specs = e.Kafka
+	case entities.EventStreamChannelWebhook:
+		resp.Specs = e.Webhook
+	}
+
+	return resp
 }
 
 func NewEventStreamResponses(eventStreams []*entities.EventStream) []*EventStreamResponse {

@@ -42,6 +42,7 @@ func NewAPIConfig(vipr *viper.Viper) *api.Config {
 		KafkaTopics: &api.TopicConfig{
 			Sender:   viper.GetString(TxSenderViperKey),
 			Listener: viper.GetString(TxListenerViperKey),
+			Notifier: viper.GetString(NotifierTopicViperKey),
 		},
 		Multitenancy: vipr.GetBool(multitenancy.EnabledViperKey),
 		Proxy:        proxy.NewConfig(),

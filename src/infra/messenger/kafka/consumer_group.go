@@ -1,4 +1,4 @@
-package sarama
+package kafka
 
 import (
 	"context"
@@ -12,15 +12,20 @@ type ConsumerGroup struct {
 	errors chan error
 }
 
-func NewConsumerGroupFromClient(client sarama.Client, groupID string) (*ConsumerGroup, error) {
-	g, err := sarama.NewConsumerGroupFromClient(groupID, client)
+func NewConsumerGroup(cfg *Config) (*ConsumerGroup, error) {
+	saramaCfg, err := cfg.ToKafkaConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	g, err := sarama.NewConsumerGroup(cfg.URLs, cfg.GroupName, saramaCfg)
 	if err != nil {
 		return nil, errors.KafkaConnectionError(err.Error())
 	}
 
 	cg := &ConsumerGroup{
 		g:      g,
-		errors: make(chan error, client.Config().ChannelBufferSize),
+		errors: make(chan error, saramaCfg.ChannelBufferSize),
 	}
 
 	// Pipe errors

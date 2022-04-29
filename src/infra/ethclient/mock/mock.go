@@ -45,7 +45,7 @@ func (m *MockTransactionSender) EXPECT() *MockTransactionSenderMockRecorder {
 // SendTransaction mocks base method
 func (m *MockTransactionSender) SendTransaction(ctx context.Context, url string, args *types.SendTxArgs) (common.Hash, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Send", ctx, url, args)
+	ret := m.ctrl.Call(m, "SendNotificationResponse", ctx, url, args)
 	ret0, _ := ret[0].(common.Hash)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -54,7 +54,7 @@ func (m *MockTransactionSender) SendTransaction(ctx context.Context, url string,
 // SendTransaction indicates an expected call of SendTransaction
 func (mr *MockTransactionSenderMockRecorder) SendTransaction(ctx, url, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Send", reflect.TypeOf((*MockTransactionSender)(nil).SendTransaction), ctx, url, args)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendNotificationResponse", reflect.TypeOf((*MockTransactionSender)(nil).SendTransaction), ctx, url, args)
 }
 
 // SendRawTransaction mocks base method
@@ -862,7 +862,7 @@ func (m *MockMultiClient) EXPECT() *MockMultiClientMockRecorder {
 // SendTransaction mocks base method
 func (m *MockMultiClient) SendTransaction(ctx context.Context, url string, args *types.SendTxArgs) (common.Hash, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Send", ctx, url, args)
+	ret := m.ctrl.Call(m, "SendNotificationResponse", ctx, url, args)
 	ret0, _ := ret[0].(common.Hash)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -871,7 +871,7 @@ func (m *MockMultiClient) SendTransaction(ctx context.Context, url string, args 
 // SendTransaction indicates an expected call of SendTransaction
 func (mr *MockMultiClientMockRecorder) SendTransaction(ctx, url, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Send", reflect.TypeOf((*MockMultiClient)(nil).SendTransaction), ctx, url, args)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendNotificationResponse", reflect.TypeOf((*MockMultiClient)(nil).SendTransaction), ctx, url, args)
 }
 
 // SendRawTransaction mocks base method
@@ -1445,7 +1445,7 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 // SendTransaction mocks base method
 func (m *MockClient) SendTransaction(ctx context.Context, url string, args *types.SendTxArgs) (common.Hash, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Send", ctx, url, args)
+	ret := m.ctrl.Call(m, "SendNotificationResponse", ctx, url, args)
 	ret0, _ := ret[0].(common.Hash)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -1454,7 +1454,7 @@ func (m *MockClient) SendTransaction(ctx context.Context, url string, args *type
 // SendTransaction indicates an expected call of SendTransaction
 func (mr *MockClientMockRecorder) SendTransaction(ctx, url, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Send", reflect.TypeOf((*MockClient)(nil).SendTransaction), ctx, url, args)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendNotificationResponse", reflect.TypeOf((*MockClient)(nil).SendTransaction), ctx, url, args)
 }
 
 // SendRawTransaction mocks base method

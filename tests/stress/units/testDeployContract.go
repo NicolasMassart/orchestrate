@@ -3,13 +3,13 @@ package units
 import (
 	"context"
 	"encoding/json"
+	testutils2 "github.com/consensys/orchestrate/src/infra/messenger/testutils"
 
 	"github.com/consensys/orchestrate/pkg/errors"
 	orchestrateclient "github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/pkg/utils"
 	api "github.com/consensys/orchestrate/src/api/service/types"
-	testutils2 "github.com/consensys/orchestrate/src/infra/notifier/kafka/testutils"
 )
 
 func BatchDeployContractTest(ctx context.Context, cfg *WorkloadConfig, client orchestrateclient.OrchestrateClient,

@@ -2,11 +2,13 @@ package kafka
 
 import (
 	"context"
+	"time"
+
+	"github.com/hashicorp/go-multierror"
+	healthz "github.com/heptiolabs/healthcheck"
 
 	"github.com/Shopify/sarama"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
-	"github.com/consensys/orchestrate/src/infra/kafka"
-	saramainfra "github.com/consensys/orchestrate/src/infra/kafka/sarama"
 	"github.com/consensys/orchestrate/src/infra/messenger"
 )
 
@@ -21,9 +23,10 @@ type ConsumerMessageHandler interface {
 }
 
 type Consumer struct {
-	consumerGroup kafka.Consumer
+	consumerGroup sarama.ConsumerGroup
 	handler       ConsumerMessageHandler
 	topics        []string
+	addrs         []string
 	cancel        context.CancelFunc
 	logger        *log.Logger
 	err           error
@@ -31,8 +34,8 @@ type Consumer struct {
 
 var _ messenger.Consumer = &Consumer{}
 
-func NewMessageConsumer(cfg *saramainfra.Config, topics []string, handler ConsumerMessageHandler) (*Consumer, error) {
-	consumerGroup, err := saramainfra.NewConsumerGroup(cfg)
+func NewMessageConsumer(cfg *Config, topics []string, handler ConsumerMessageHandler) (*Consumer, error) {
+	consumerGroup, err := NewConsumerGroup(cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -40,6 +43,7 @@ func NewMessageConsumer(cfg *saramainfra.Config, topics []string, handler Consum
 	return &Consumer{
 		consumerGroup: consumerGroup,
 		topics:        topics,
+		addrs:         cfg.URLs,
 		handler:       handler,
 		logger:        log.NewLogger().SetComponent(handler.ID()),
 	}, nil
@@ -50,7 +54,12 @@ func (cl *Consumer) Consume(ctx context.Context) error {
 }
 
 func (cl *Consumer) Checker() error {
-	return cl.consumerGroup.Client().Checker()
+	gr := &multierror.Group{}
+	for _, host := range cl.addrs {
+		gr.Go(healthz.TCPDialCheck(host, time.Second*3))
+	}
+
+	return gr.Wait().ErrorOrNil()
 }
 
 func (cl *Consumer) Close() error {
@@ -70,6 +79,7 @@ func (cl *Consumer) Setup(session sarama.ConsumerGroupSession) error {
 func (cl *Consumer) Cleanup(session sarama.ConsumerGroupSession) error {
 	logger := cl.logger.WithContext(session.Context())
 	logger.Debug("clean up consumer claims")
+
 	if cl.cancel != nil {
 		cl.cancel()
 	}
@@ -80,6 +90,7 @@ func (cl *Consumer) Cleanup(session sarama.ConsumerGroupSession) error {
 func (cl *Consumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	var ctx context.Context
 	ctx, cl.cancel = context.WithCancel(session.Context())
+
 	cl.err = cl.consumeClaimLoop(ctx, session, claim)
 	return cl.err
 }

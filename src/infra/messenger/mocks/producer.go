@@ -5,8 +5,10 @@
 package mocks
 
 import (
+	context "context"
 	multitenancy "github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	entities "github.com/consensys/orchestrate/src/entities"
+	service "github.com/consensys/orchestrate/src/notifier/service/types"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -46,6 +48,34 @@ func (m *MockProducer) SendJobMessage(topic string, job *entities.Job, partition
 func (mr *MockProducerMockRecorder) SendJobMessage(topic, job, partitionKey, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendJobMessage", reflect.TypeOf((*MockProducer)(nil).SendJobMessage), topic, job, partitionKey, userInfo)
+}
+
+// SendNotificationMessage mocks base method
+func (m *MockProducer) SendNotificationMessage(topic string, notif *service.NotificationMessage, partitionKey string, userInfo *multitenancy.UserInfo) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SendNotificationMessage", topic, notif, partitionKey, userInfo)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SendNotificationMessage indicates an expected call of SendNotificationMessage
+func (mr *MockProducerMockRecorder) SendNotificationMessage(topic, notif, partitionKey, userInfo interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendNotificationMessage", reflect.TypeOf((*MockProducer)(nil).SendNotificationMessage), topic, notif, partitionKey, userInfo)
+}
+
+// SendNotificationResponse mocks base method
+func (m *MockProducer) SendNotificationResponse(ctx context.Context, notif *entities.Notification, eventStream *entities.EventStream) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SendNotificationResponse", ctx, notif, eventStream)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SendNotificationResponse indicates an expected call of SendNotificationResponse
+func (mr *MockProducerMockRecorder) SendNotificationResponse(ctx, notif, eventStream interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendNotificationResponse", reflect.TypeOf((*MockProducer)(nil).SendNotificationResponse), ctx, notif, eventStream)
 }
 
 // Checker mocks base method

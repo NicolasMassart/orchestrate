@@ -68,7 +68,7 @@ func (mr *MockTransactionUseCasesMockRecorder) SendDeploy() *gomock.Call {
 // Send mocks base method
 func (m *MockTransactionUseCases) Send() usecases.SendTxUseCase {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Send")
+	ret := m.ctrl.Call(m, "SendNotificationResponse")
 	ret0, _ := ret[0].(usecases.SendTxUseCase)
 	return ret0
 }
@@ -76,7 +76,7 @@ func (m *MockTransactionUseCases) Send() usecases.SendTxUseCase {
 // Send indicates an expected call of Send
 func (mr *MockTransactionUseCasesMockRecorder) Send() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Send", reflect.TypeOf((*MockTransactionUseCases)(nil).Send))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendNotificationResponse", reflect.TypeOf((*MockTransactionUseCases)(nil).Send))
 }
 
 // Get mocks base method

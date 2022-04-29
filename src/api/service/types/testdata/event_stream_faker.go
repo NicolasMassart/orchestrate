@@ -33,12 +33,12 @@ func FakeCreateKafkaEventStreamRequest() *api.CreateKafkaEventStreamRequest {
 
 func FakeUpdateWebhookEventStreamRequest() *api.UpdateWebhookEventStreamRequest {
 	return &api.UpdateWebhookEventStreamRequest{
-		Status: string(entities.EventStreamStatusPaused),
+		Status: string(entities.EventStreamStatusSuspend),
 	}
 }
 
 func FakeUpdateKafkaEventStreamRequest() *api.UpdateKafkaEventStreamRequest {
 	return &api.UpdateKafkaEventStreamRequest{
-		Status: string(entities.EventStreamStatusPaused),
+		Status: string(entities.EventStreamStatusSuspend),
 	}
 }

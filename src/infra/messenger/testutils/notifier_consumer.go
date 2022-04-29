@@ -2,19 +2,20 @@ package testutils
 
 import (
 	"context"
-	encoding "encoding/json"
+	"encoding/json"
 	"fmt"
+
+	"github.com/consensys/orchestrate/src/infra/messenger/types"
 
 	"github.com/Shopify/sarama"
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/pkg/utils"
 	messenger "github.com/consensys/orchestrate/src/infra/messenger/kafka"
-	"github.com/consensys/orchestrate/src/infra/notifier/types"
 )
 
 const (
-	messageListenerComponent = "test.service.kafka-notification-consumer"
+	notifierMessageListenerComponent = "test.service.kafka-notification-consumer"
 )
 
 type notifierConsumerHandler struct {
@@ -27,14 +28,19 @@ var _ messenger.ConsumerMessageHandler = &notifierConsumerHandler{}
 func newNotifierConsumerHandler(chanRegistry *utils.ChanRegistry) *notifierConsumerHandler {
 	return &notifierConsumerHandler{
 		chanRegistry: chanRegistry,
-		logger:       log.NewLogger().SetComponent(messageListenerComponent),
+		logger:       log.NewLogger().SetComponent(notifierMessageListenerComponent),
 	}
 }
 
 func (mch *notifierConsumerHandler) ProcessMsg(_ context.Context, rawMsg *sarama.ConsumerMessage, decodedMsg interface{}) error {
-	notification := decodedMsg.(*types.Notification)
-	logger := mch.logger.WithField("id", notification.UUID).WithField("type", notification.Type).WithField("topic", rawMsg.Topic)
-	msgKey := keyGenOf(notification.UUID, rawMsg.Topic)
+	notification := decodedMsg.(*types.NotificationResponse)
+	logger := mch.logger.
+		WithField("id", notification.UUID).
+		WithField("source_uuid", notification.SourceUUID).
+		WithField("type", notification.Type).
+		WithField("topic", rawMsg.Topic)
+
+	msgKey := keyGenOf(notification.SourceUUID, rawMsg.Topic)
 	if !mch.chanRegistry.HasChan(msgKey) {
 		mch.chanRegistry.Register(msgKey, make(chan interface{}, 1))
 	}
@@ -51,17 +57,18 @@ func (mch *notifierConsumerHandler) ProcessMsg(_ context.Context, rawMsg *sarama
 }
 
 func (mch *notifierConsumerHandler) DecodeMessage(rawMsg *sarama.ConsumerMessage) (interface{}, error) {
-	job := &types.Notification{}
-	err := encoding.Unmarshal(rawMsg.Value, job)
+	notif := &types.NotificationResponse{}
+	err := json.Unmarshal(rawMsg.Value, notif)
 	if err != nil {
 		errMessage := "failed to decode notification message"
 		return nil, errors.EncodingError(errMessage)
 	}
-	return job, nil
+
+	return notif, nil
 }
 
 func (mch *notifierConsumerHandler) ID() string {
-	return messageListenerComponent
+	return notifierMessageListenerComponent
 }
 
 func keyGenOf(key, topic string) string {

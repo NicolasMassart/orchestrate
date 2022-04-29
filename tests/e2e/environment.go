@@ -3,6 +3,7 @@ package e2e
 import (
 	"context"
 	"fmt"
+	"github.com/consensys/orchestrate/src/infra/messenger/testutils"
 	"net/http"
 	"time"
 
@@ -15,7 +16,6 @@ import (
 	"github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/infra/ethclient/rpc"
-	"github.com/consensys/orchestrate/src/infra/notifier/kafka/testutils"
 	"github.com/consensys/orchestrate/tests/config"
 	"github.com/consensys/orchestrate/tests/pkg/jwt"
 	pkgutils "github.com/consensys/orchestrate/tests/pkg/utils"

@@ -1,3 +1,4 @@
+//go:build unit
 // +build unit
 
 package postgres
@@ -60,7 +61,7 @@ func (s *pgEventStreamTestSuite) TestInsert() {
 		assert.Equal(t, fakeEventStream.TenantID, eventStream.TenantID)
 		assert.Equal(t, fakeEventStream.OwnerID, eventStream.OwnerID)
 		assert.Equal(t, fakeEventStream.Labels, eventStream.Labels)
-		assert.Equal(t, fakeEventStream.Specs, eventStream.Specs)
+		assert.Equal(t, fakeEventStream.Webhook, eventStream.Webhook)
 	})
 
 	s.T().Run("should fail with same error if Insert fails", func(t *testing.T) {
@@ -189,7 +190,7 @@ func (s *pgEventStreamTestSuite) TestFindOneByUUID() {
 
 		assert.Equal(t, expectedEventStream.CreatedAt, es.CreatedAt)
 		assert.Equal(t, expectedEventStream.UpdatedAt, es.UpdatedAt)
-		assert.Equal(t, expectedEventStream.WebHook(), es.WebHook())
+		assert.Equal(t, expectedEventStream.Webhook, es.Webhook)
 		assert.Equal(t, expectedEventStream.UUID, es.UUID)
 		assert.Equal(t, expectedEventStream.Status, es.Status)
 		assert.Equal(t, expectedEventStream.TenantID, es.TenantID)

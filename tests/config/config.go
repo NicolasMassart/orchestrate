@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	broker "github.com/consensys/orchestrate/src/infra/messenger/kafka"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
@@ -11,7 +12,6 @@ import (
 	"github.com/consensys/orchestrate/cmd/flags"
 	"github.com/consensys/orchestrate/pkg/backoff"
 	orchestrateclient "github.com/consensys/orchestrate/pkg/sdk/client"
-	broker "github.com/consensys/orchestrate/src/infra/kafka/sarama"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/spf13/viper"
 )

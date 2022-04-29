@@ -3,6 +3,7 @@ package units
 import (
 	"context"
 	"encoding/json"
+	testutils2 "github.com/consensys/orchestrate/src/infra/messenger/testutils"
 
 	"github.com/consensys/orchestrate/pkg/errors"
 	orchestrateclient "github.com/consensys/orchestrate/pkg/sdk/client"
@@ -10,7 +11,6 @@ import (
 	"github.com/consensys/orchestrate/pkg/utils"
 	api "github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities"
-	testutils2 "github.com/consensys/orchestrate/src/infra/notifier/kafka/testutils"
 	"github.com/consensys/orchestrate/tests/stress/assets"
 )
 

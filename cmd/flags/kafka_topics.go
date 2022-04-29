@@ -43,3 +43,17 @@ Environment variable: %q`, txListenerTopicEnv)
 	f.String(txListenerFlag, txListenerTopicDefault, desc)
 	_ = viper.BindPFlag(TxListenerViperKey, f.Lookup(txListenerFlag))
 }
+
+const (
+	notifierTopicFlag     = "topic-notifier"
+	NotifierTopicViperKey = "topic.notifier"
+	notifierTopicEnv      = "TOPIC_NOTIFIER"
+	notifierTopicDefault  = "topic-notifier"
+)
+
+func KafkaTopicNotifier(f *pflag.FlagSet) {
+	desc := fmt.Sprintf(`Topic for messages between the API and the Notifier MS.
+Environment variable: %q`, notifierTopicEnv)
+	f.String(notifierTopicFlag, notifierTopicDefault, desc)
+	_ = viper.BindPFlag(NotifierTopicViperKey, f.Lookup(notifierTopicFlag))
+}

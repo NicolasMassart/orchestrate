@@ -5,36 +5,37 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/consensys/orchestrate/src/entities"
+
+	"github.com/consensys/orchestrate/src/infra/messenger/types"
+
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/pkg/utils"
-	"github.com/consensys/orchestrate/src/infra/kafka/sarama"
-	"github.com/consensys/orchestrate/src/infra/kafka/testutils"
 	"github.com/consensys/orchestrate/src/infra/messenger"
-	kafka2 "github.com/consensys/orchestrate/src/infra/messenger/kafka"
-	"github.com/consensys/orchestrate/src/infra/notifier/types"
+	"github.com/consensys/orchestrate/src/infra/messenger/kafka"
 )
 
-const messageConsumerTrackerComponent = "tests.consumer.tracker"
+const notifierMessageConsumerTrackerComponent = "tests.consumer.tracker"
 
 type NotifierConsumerTracker struct {
 	consumer messenger.Consumer
-	tracker  *testutils.ConsumerTracker
+	tracker  *ConsumerTracker
 	logger   *log.Logger
 }
 
-func NewNotifierConsumerTracker(cfg *sarama.Config, topics []string) (*NotifierConsumerTracker, error) {
+func NewNotifierConsumerTracker(cfg *kafka.Config, topics []string) (*NotifierConsumerTracker, error) {
 	chanRegistry := utils.NewChanRegistry()
 	msgConsumerHandler := newNotifierConsumerHandler(chanRegistry)
-	msgConsumer, err := kafka2.NewMessageConsumer(cfg, topics, msgConsumerHandler)
+	msgConsumer, err := kafka.NewMessageConsumer(cfg, topics, msgConsumerHandler)
 	if err != nil {
 		return nil, err
 	}
 
-	logger := log.NewLogger().SetComponent(messageConsumerTrackerComponent)
+	logger := log.NewLogger().SetComponent(notifierMessageConsumerTrackerComponent)
 
 	return &NotifierConsumerTracker{
 		consumer: msgConsumer,
-		tracker:  testutils.NewConsumerTracker(chanRegistry, keyGenOf, logger),
+		tracker:  NewConsumerTracker(chanRegistry, keyGenOf, logger),
 		logger:   logger,
 	}, nil
 }
@@ -47,35 +48,35 @@ func (m *NotifierConsumerTracker) Close() error {
 	return m.consumer.Close()
 }
 
-func (m *NotifierConsumerTracker) WaitForTxMinedNotification(ctx context.Context, id, topic string, timeout time.Duration) (*types.Notification, error) {
+func (m *NotifierConsumerTracker) WaitForTxMinedNotification(ctx context.Context, id, topic string, timeout time.Duration) (*types.NotificationResponse, error) {
 	msg, err := m.tracker.WaitForMessage(ctx, id, topic, timeout)
 	msgID := fmt.Sprintf("Message '%s' on topic '%s'", id, topic)
 	if err != nil {
 		return nil, fmt.Errorf("%s. %s", err.Error(), msgID)
 	}
-	notification, ok := msg.(*types.Notification)
+	notification, ok := msg.(*types.NotificationResponse)
 	if !ok {
 		return nil, fmt.Errorf("invalid message format. %s", msgID)
 	}
 
-	if notification.Type != types.TransactionMinedMessage {
+	if notification.Type != string(entities.NotificationTypeTxMined) {
 		return nil, fmt.Errorf("invalid notification type %v. %s", notification.Type, msgID)
 	}
 
 	return notification, nil
 }
 
-func (m *NotifierConsumerTracker) WaitForTxFailedNotification(ctx context.Context, uuid, topic string, timeout time.Duration) (*types.Notification, error) {
+func (m *NotifierConsumerTracker) WaitForTxFailedNotification(ctx context.Context, uuid, topic string, timeout time.Duration) (*types.NotificationResponse, error) {
 	msg, err := m.tracker.WaitForMessage(ctx, uuid, topic, timeout)
 	if err != nil {
 		return nil, err
 	}
-	notification, ok := msg.(*types.Notification)
+	notification, ok := msg.(*types.NotificationResponse)
 	if !ok {
 		return nil, fmt.Errorf("invalid message format")
 	}
 
-	if notification.Type != types.TransactionFailedMessage {
+	if notification.Type != string(entities.NotificationTypeTxFailed) {
 		return nil, fmt.Errorf("invalid notification type %v", notification.Type)
 	}
 

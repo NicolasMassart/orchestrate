@@ -1,3 +1,4 @@
+//go:build unit
 // +build unit
 
 package configwatcher
@@ -22,7 +23,7 @@ func TestThrottle(t *testing.T) {
 		close(done)
 	}()
 
-	// Send 3 messages to input channel
+	// SendNotificationResponse 3 messages to input channel
 	in <- "msg1"
 	time.Sleep(20 * time.Millisecond)
 	in <- "msg2"

@@ -3,7 +3,7 @@ package api
 import (
 	"github.com/consensys/orchestrate/pkg/toolkit/app"
 	"github.com/consensys/orchestrate/src/api/proxy"
-	"github.com/consensys/orchestrate/src/infra/kafka/sarama"
+	"github.com/consensys/orchestrate/src/infra/messenger/kafka"
 	"github.com/consensys/orchestrate/src/infra/postgres/gopg"
 	quorumkeymanager "github.com/consensys/orchestrate/src/infra/quorum-key-manager/http"
 )
@@ -11,6 +11,7 @@ import (
 type TopicConfig struct {
 	Sender   string
 	Listener string
+	Notifier string
 }
 
 type Config struct {
@@ -19,6 +20,6 @@ type Config struct {
 	Multitenancy bool
 	Proxy        *proxy.Config
 	QKM          *quorumkeymanager.Config
-	Kafka        *sarama.Config
+	Kafka        *kafka.Config
 	KafkaTopics  *TopicConfig
 }

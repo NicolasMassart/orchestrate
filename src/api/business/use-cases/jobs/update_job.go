@@ -79,7 +79,7 @@ func (uc *updateJobUseCase) Execute(ctx context.Context, nextJob *entities.Job, 
 		if err != nil {
 			errMsg := "failed to send pending job to tx-listener"
 			uc.logger.WithError(err).Error(errMsg)
-			return nil, errors.FromError(err).SetMessage(errMsg)
+			return nil, errors.DependencyFailureError(errMsg).ExtendComponent(updateJobComponent)
 		}
 	case entities.StatusMined:
 		job.Receipt = nextJob.Receipt

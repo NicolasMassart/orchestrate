@@ -3,18 +3,17 @@ package integrationtests
 import (
 	"context"
 	"fmt"
+	orchestrateclient "github.com/consensys/orchestrate/pkg/sdk/client"
+	webhooknotifier "github.com/consensys/orchestrate/src/infra/messenger/webhook"
+	"github.com/consensys/orchestrate/src/notifier"
 	"os"
 	"path"
 	"strconv"
 	"time"
 
-	messenger "github.com/consensys/orchestrate/src/infra/messenger/kafka"
-	testutils2 "github.com/consensys/orchestrate/src/infra/messenger/testutils"
-	"github.com/consensys/orchestrate/src/infra/notifier/kafka"
-	testutils3 "github.com/consensys/orchestrate/src/infra/notifier/kafka/testutils"
-	webhooknotifier "github.com/consensys/orchestrate/src/infra/notifier/webhook"
-
 	"github.com/consensys/orchestrate/cmd/flags"
+	"github.com/consensys/orchestrate/src/infra/messenger/kafka"
+	"github.com/consensys/orchestrate/src/infra/messenger/testutils"
 	"github.com/consensys/orchestrate/src/infra/postgres/gopg"
 	"github.com/go-pg/pg/v9"
 
@@ -73,12 +72,13 @@ type IntegrationEnvironment struct {
 	logger                   log.Logger
 	api                      *app.App
 	client                   *docker.Client
-	messengerConsumerTracker *testutils2.MessengerConsumerTracker
-	notifierConsumerTracker  *testutils3.NotifierConsumerTracker
+	messengerConsumerTracker *testutils.MessengerConsumerTracker
+	notifierConsumerTracker  *testutils.NotifierConsumerTracker
 	notificationTopic        string
 	baseURL                  string
 	metricsURL               string
 	apiCfg                   *api.Config
+	notifierCfg              *notifier.Config
 	blockchainNodeURL        string
 }
 
@@ -95,7 +95,8 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 
 	txSenderTopic := "topic-tx-sender"
 	txListenerTopic := "topic-tx-listener"
-	notifierTopic := "topic-tx-decoded"
+	notifierTopic := "topic-notifier"
+	decodedTopic := "topic-tx-decoded"
 
 	// Define external hostname
 	kafkaExternalHostname := fmt.Sprintf("localhost:%s", envKafkaHostPort)
@@ -104,6 +105,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	// Initialize environment flags
 	flgs := pflag.NewFlagSet("api-integration-test", pflag.ContinueOnError)
 	flags.NewAPIFlags(flgs)
+	flags.NotifierFlags(flgs)
 	flags.KafkaConsumerFlags(flgs) // Only for testing proposes
 	args := []string{
 		"--metrics-port=" + envMetricsPort,
@@ -112,6 +114,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		"--kafka-url=" + kafkaExternalHostname,
 		"--topic-tx-listener=" + txListenerTopic,
 		"--topic-tx-sender=" + txSenderTopic,
+		"--topic-notifier=" + notifierTopic,
 		"--key-manager-url=" + quorumKeyManagerURL,
 		"--key-manager-store-name=" + qkmDefaultStoreID,
 		"--log-level=panic",
@@ -194,8 +197,9 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		baseURL:           "http://localhost:" + envHTTPPort,
 		metricsURL:        "http://localhost:" + envMetricsPort,
 		apiCfg:            flags.NewAPIConfig(viper.GetViper()),
+		notifierCfg:       flags.NewNotifierConfig(viper.GetViper()),
 		blockchainNodeURL: fmt.Sprintf("http://localhost:%s", envGanacheHostPort),
-		notificationTopic: notifierTopic,
+		notificationTopic: decodedTopic,
 	}, nil
 }
 
@@ -295,14 +299,14 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 		return err
 	}
 
-	env.api, err = newAPI(ctx, env.apiCfg)
+	env.api, err = newAPI(ctx, env.apiCfg, env.notifierCfg)
 	if err != nil {
 		env.logger.WithError(err).Error("could initialize API")
 		return err
 	}
 
 	// Start internal kafka consumer
-	env.messengerConsumerTracker, err = testutils2.NewMessengerConsumerTracker(env.apiCfg.Kafka, []string{env.apiCfg.KafkaTopics.Sender, env.apiCfg.KafkaTopics.Listener})
+	env.messengerConsumerTracker, err = testutils.NewMessengerConsumerTracker(env.apiCfg.Kafka, []string{env.apiCfg.KafkaTopics.Sender, env.apiCfg.KafkaTopics.Listener})
 	if err != nil {
 		env.logger.WithError(err).Error("could initialize kafka internal Consumer")
 		return err
@@ -313,7 +317,7 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 	}()
 
 	// Start external kafka consumer
-	env.notifierConsumerTracker, err = testutils3.NewNotifierConsumerTracker(env.apiCfg.Kafka, []string{env.notificationTopic})
+	env.notifierConsumerTracker, err = testutils.NewNotifierConsumerTracker(env.apiCfg.Kafka, []string{env.notificationTopic})
 	if err != nil {
 		env.logger.WithError(err).Error("could initialize kafka external Consumer")
 		return err
@@ -425,7 +429,7 @@ func (env *IntegrationEnvironment) migrate() error {
 	return nil
 }
 
-func newAPI(ctx context.Context, cfg *api.Config) (*app.App, error) {
+func newAPI(ctx context.Context, cfg *api.Config, notifierConfig *notifier.Config) (*app.App, error) {
 	qkmClient, err := http.New(cfg.QKM)
 	if err != nil {
 		return nil, err
@@ -444,12 +448,13 @@ func newAPI(ctx context.Context, cfg *api.Config) (*app.App, error) {
 	authjwt.Init(ctx)
 	authkey.Init(ctx)
 	ethclient.Init(ctx)
+	orchestrateclient.Init()
 
 	interceptedHTTPClient := httputils.NewClient(httputils.NewDefaultConfig())
 	gock.InterceptClient(interceptedHTTPClient)
 	webhookNotifierClient := webhooknotifier.NewProducer(interceptedHTTPClient)
 
-	messengerClient, err := messenger.NewProducer(cfg.Kafka)
+	notifierDaemon, err := notifier.New(notifierConfig, orchestrateclient.GlobalClient(), kafkaNotifierClient, webhookNotifierClient)
 	if err != nil {
 		return nil, err
 	}
@@ -462,9 +467,8 @@ func newAPI(ctx context.Context, cfg *api.Config) (*app.App, error) {
 		qkmClient,
 		cfg.QKM.StoreName,
 		ethclient.GlobalClient(),
-		messengerClient,
 		kafkaNotifierClient,
-		webhookNotifierClient,
+		notifierDaemon,
 	)
 }
 

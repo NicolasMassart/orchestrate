@@ -3,13 +3,14 @@ package txsender
 import (
 	"time"
 
+	"github.com/consensys/orchestrate/src/infra/messenger/kafka"
+
 	quorumkeymanager "github.com/consensys/orchestrate/src/infra/quorum-key-manager/http"
 
 	"github.com/consensys/orchestrate/src/infra/redis/redigo"
 
 	"github.com/cenkalti/backoff/v4"
 	"github.com/consensys/orchestrate/pkg/toolkit/app"
-	"github.com/consensys/orchestrate/src/infra/kafka/sarama"
 )
 
 const (
@@ -19,9 +20,8 @@ const (
 
 type Config struct {
 	App                    *app.Config
-	Kafka                  *sarama.Config
+	Kafka                  *kafka.Config
 	ConsumerTopic          string
-	GroupName              string
 	NConsumer              int
 	ProxyURL               string
 	BckOff                 backoff.BackOff

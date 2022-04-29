@@ -5,6 +5,8 @@ import (
 	"reflect"
 	"time"
 
+	notifier "github.com/consensys/orchestrate/src/notifier/service/types"
+
 	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/consensys/orchestrate/src/entities"
 	ethcommon "github.com/ethereum/go-ethereum/common"
@@ -223,7 +225,20 @@ func isKeyType(fl validator.FieldLevel) bool {
 func isEventStreamStatus(fl validator.FieldLevel) bool {
 	if fl.Field().String() != "" {
 		switch fl.Field().String() {
-		case string(entities.EventStreamStatusLive), string(entities.EventStreamStatusPaused):
+		case string(entities.EventStreamStatusLive), string(entities.EventStreamStatusSuspend):
+			return true
+		default:
+			return false
+		}
+	}
+
+	return true
+}
+
+func isNotificationMessageType(fl validator.FieldLevel) bool {
+	if fl.Field().String() != "" {
+		switch fl.Field().String() {
+		case string(notifier.TransactionNotificationType), string(notifier.ContractEventNotificationType):
 			return true
 		default:
 			return false
@@ -254,6 +269,7 @@ func init() {
 	_ = validate.RegisterValidation("isTransactionType", isTransactionType)
 	_ = validate.RegisterValidation("isPrivacyFlag", isPrivacyFlag)
 	_ = validate.RegisterValidation("isEventStreamStatus", isEventStreamStatus)
+	_ = validate.RegisterValidation("isNotificationMessageType", isNotificationMessageType)
 }
 
 func GetValidator() *validator.Validate {

@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/consensys/orchestrate/src/infra/messenger"
-	"github.com/consensys/orchestrate/src/infra/notifier"
 	"github.com/consensys/orchestrate/src/infra/postgres"
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http/middleware/httpcache"
@@ -35,7 +34,7 @@ func NewAPI(
 	qkmStoreID string,
 	ec ethclient.Client,
 	messengerClient messenger.Producer,
-	kafkaNotifier, webhookNotifier notifier.Producer,
+	notifierDaemon app.Daemon,
 ) (*app.App, error) {
 	// Metrics
 	var appMetrics metrics.TransactionSchedulerMetrics
@@ -45,8 +44,17 @@ func NewAPI(
 		appMetrics = metrics.NewTransactionSchedulerNopMetrics()
 	}
 
-	ucs := builder.NewUseCases(postgresstore.New(db), appMetrics, keyManagerClient, qkmStoreID, ec, messengerClient,
-		kafkaNotifier, webhookNotifier, cfg.KafkaTopics.Sender, cfg.KafkaTopics.Listener)
+	ucs := builder.NewUseCases(
+		postgresstore.New(db),
+		appMetrics,
+		keyManagerClient,
+		qkmStoreID,
+		ec,
+		messengerClient,
+		cfg.KafkaTopics.Sender,
+		cfg.KafkaTopics.Listener,
+		cfg.KafkaTopics.Notifier,
+	)
 
 	// Option of the API
 	apiHandlerOpt := app.HandlerOpt(reflect.TypeOf(&dynamic.API{}), controllers.NewBuilder(ucs, keyManagerClient, qkmStoreID))
@@ -86,7 +94,7 @@ func NewAPI(
 	}
 
 	// Create app
-	return app.New(
+	appli, err := app.New(
 		cfg.App,
 		app.MultiTenancyOpt("auth", jwt, key, cfg.Multitenancy),
 		ReadinessOpt(db, messengerClient),
@@ -98,12 +106,19 @@ func NewAPI(
 		reverseProxyOpt,
 		app.ProviderOpt(NewProvider(ucs.Chains().Search(), time.Second, cfg.Proxy.ProxyCacheTTL)),
 	)
+	if err != nil {
+		return nil, err
+	}
+
+	appli.RegisterDaemon(notifierDaemon)
+
+	return appli, nil
 }
 
-func ReadinessOpt(postgresClient postgres.Client, messengerCli messenger.Producer) app.Option {
+func ReadinessOpt(postgresClient postgres.Client, producerCli messenger.Producer) app.Option {
 	return func(ap *app.App) error {
 		ap.AddReadinessCheck("database", func() error { return postgresClient.Exec("SELECT 1") })
-		ap.AddReadinessCheck("kafka", messengerCli.Checker)
+		ap.AddReadinessCheck("kafka", producerCli.Checker)
 		return nil
 	}
 }

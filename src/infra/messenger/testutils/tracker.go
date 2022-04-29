@@ -2,59 +2,60 @@ package testutils
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/pkg/utils"
-	"github.com/consensys/orchestrate/src/entities"
-	"github.com/consensys/orchestrate/src/infra/kafka/sarama"
-	"github.com/consensys/orchestrate/src/infra/kafka/testutils"
-	"github.com/consensys/orchestrate/src/infra/messenger"
-	kafka2 "github.com/consensys/orchestrate/src/infra/messenger/kafka"
 )
 
-const messageConsumerTrackerComponent = "tests.consumer.tracker"
-
-type MessengerConsumerTracker struct {
-	consumer messenger.Consumer
-	tracker  *testutils.ConsumerTracker
-	logger   *log.Logger
+type ConsumerTracker struct {
+	chanRegistry *utils.ChanRegistry
+	logger       *log.Logger
+	keyGenOf     func(key, topic string) string
 }
 
-func NewMessengerConsumerTracker(cfg *sarama.Config, topics []string) (*MessengerConsumerTracker, error) {
-	chanRegistry := utils.NewChanRegistry()
-	msgConsumerHandler := newMessageConsumerHandler(chanRegistry)
-	msgConsumer, err := kafka2.NewMessageConsumer(cfg, topics, msgConsumerHandler)
+func NewConsumerTracker(chanRegistry *utils.ChanRegistry, keyGenOf func(key, topic string) string, logger *log.Logger) *ConsumerTracker {
+	return &ConsumerTracker{
+		chanRegistry: chanRegistry,
+		logger:       logger,
+		keyGenOf:     keyGenOf,
+	}
+}
+
+func (m *ConsumerTracker) WaitForMessage(ctx context.Context, id, topic string, timeout time.Duration) (interface{}, error) {
+	logger := m.logger.WithField("id", id).WithField("topic", topic).WithField("timeout", timeout/time.Millisecond)
+
+	logger.Debug("waiting for message...")
+	msg, err := m.waitForChanMessage(ctx, id, topic, timeout)
 	if err != nil {
+		logger.WithError(err).Error("failed to find message")
 		return nil, err
 	}
 
-	logger := log.NewLogger().SetComponent(messageConsumerTrackerComponent)
-
-	return &MessengerConsumerTracker{
-		consumer: msgConsumer,
-		tracker:  testutils.NewConsumerTracker(chanRegistry, keyGenOf, logger),
-		logger:   logger,
-	}, nil
+	return msg, err
 }
 
-func (m *MessengerConsumerTracker) Consume(ctx context.Context) error {
-	return m.consumer.Consume(ctx)
-}
+func (m *ConsumerTracker) waitForChanMessage(ctx context.Context, id, topic string, timeout time.Duration) (interface{}, error) {
+	cctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
 
-func (m *MessengerConsumerTracker) Close() error {
-	return m.consumer.Close()
-}
+	var ch = make(chan interface{}, 1)
+	go func(chx chan interface{}) {
+		msgKey := m.keyGenOf(id, topic)
+		if !m.chanRegistry.HasChan(msgKey) {
+			m.chanRegistry.Register(msgKey, make(chan interface{}, 1))
+		}
 
-func (m *MessengerConsumerTracker) WaitForJob(ctx context.Context, jobUUID, topic string, timeout time.Duration) (*entities.Job, error) {
-	msg, err := m.tracker.WaitForMessage(ctx, jobUUID, topic, timeout)
-	if err != nil {
-		return nil, err
+		e := <-m.chanRegistry.GetChan(msgKey)
+		chx <- e
+	}(ch)
+
+	select {
+	case e := <-ch:
+		return e, nil
+	case <-cctx.Done():
+		return nil, cctx.Err()
+	case <-ctx.Done():
+		return nil, ctx.Err()
 	}
-	msgJob, ok := msg.(*entities.Job)
-	if !ok {
-		return nil, fmt.Errorf("invalid message type")
-	}
-	return msgJob, nil
 }

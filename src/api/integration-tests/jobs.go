@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/consensys/orchestrate/src/infra/messenger/types"
 	"io/ioutil"
 	"net/http"
 	"testing"
@@ -16,7 +17,6 @@ import (
 	testdata2 "github.com/consensys/orchestrate/pkg/types/ethereum/testdata"
 	api "github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities"
-	"github.com/consensys/orchestrate/src/infra/notifier/types"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/h2non/gock.v1"
 
@@ -251,9 +251,11 @@ func (s *jobsTestSuite) TestUpdateNotifyWithKafka() {
 		})
 		require.NoError(s.T(), err)
 
-		msgJob, err := s.env.notifierConsumerTracker.WaitForTxMinedNotification(ctx, job.ScheduleUUID, s.env.notificationTopic, waitForNotificationTimeOut)
+		notification, err := s.env.notifierConsumerTracker.WaitForTxMinedNotification(ctx, job.ScheduleUUID, s.env.notificationTopic, waitForNotificationTimeOut)
 		require.NoError(s.T(), err)
-		assert.Equal(s.T(), msgJob.Data.Job.UUID, job.UUID)
+
+		assert.Equal(s.T(), notification.SourceUUID, job.ScheduleUUID)
+		assert.Equal(s.T(), notification.Data.(map[string]interface{})["UUID"].(string), job.UUID)
 	})
 
 	s.T().Run("should update job to FAILED and notify", func(t *testing.T) {
@@ -270,10 +272,10 @@ func (s *jobsTestSuite) TestUpdateNotifyWithKafka() {
 			Message: failedErrMsg,
 		})
 
-		msgJob, err := s.env.notifierConsumerTracker.WaitForTxFailedNotification(ctx, job.ScheduleUUID, s.env.notificationTopic, waitForNotificationTimeOut)
+		notification, err := s.env.notifierConsumerTracker.WaitForTxFailedNotification(ctx, job.ScheduleUUID, s.env.notificationTopic, waitForNotificationTimeOut)
 		require.NoError(s.T(), err)
-		assert.Equal(s.T(), msgJob.Data.Error, failedErrMsg)
-		assert.Equal(s.T(), msgJob.Data.Job.UUID, job.UUID)
+		assert.Equal(s.T(), notification.Error, failedErrMsg)
+		assert.Equal(s.T(), notification.SourceUUID, job.ScheduleUUID)
 	})
 }
 
@@ -288,7 +290,7 @@ func (s *jobsTestSuite) TestUpdateNotifyWithWebhook() {
 
 	eventStream, err := s.client.CreateWebhookEventStream(ctx, &api.CreateWebhookEventStreamRequest{
 		Name:  "integration-test-event-stream-webhook",
-		URL: webhookDomainURL+webhookURLPath,
+		URL:   webhookDomainURL + webhookURLPath,
 		Chain: s.chain.Name,
 	})
 	require.NoError(s.T(), err)
@@ -306,12 +308,12 @@ func (s *jobsTestSuite) TestUpdateNotifyWithWebhook() {
 		job, err := s.client.CreateJob(ctx, req)
 		require.NoError(s.T(), err)
 
-		waitNotification := make(chan *types.Notification, 1)
+		waitNotification := make(chan *types.NotificationResponse, 1)
 		waitNotificationErr := make(chan error, 1)
 		gock.New(webhookDomainURL).Post(webhookURLPath).
 			AddMatcher(webhookCallMatcher(waitNotification, waitNotificationErr, waitForNotificationTimeOut)).
 			Reply(http.StatusOK)
-		
+
 		receipt := testdata2.FakeReceipt()
 		_, err = s.client.UpdateJob(ctx, job.UUID, &api.UpdateJobRequest{
 			Status:  entities.StatusMined,
@@ -321,9 +323,9 @@ func (s *jobsTestSuite) TestUpdateNotifyWithWebhook() {
 
 		select {
 		case notification := <-waitNotification:
-			require.Equal(s.T(), notification.UUID, job.ScheduleUUID)
-			require.Equal(s.T(), notification.Type, types.TransactionMinedMessage)
-			require.Equal(s.T(), notification.Data.Job.UUID, job.UUID)
+			assert.Equal(s.T(), notification.SourceUUID, job.ScheduleUUID)
+			assert.Equal(s.T(), notification.Type, string(entities.NotificationTypeTxMined))
+			assert.Equal(s.T(), notification.Data.(map[string]interface{})["UUID"].(string), job.UUID)
 		case err := <-waitNotificationErr:
 			assert.Error(t, err)
 		}
@@ -337,12 +339,12 @@ func (s *jobsTestSuite) TestUpdateNotifyWithWebhook() {
 		job, err := s.client.CreateJob(ctx, req)
 		require.NoError(s.T(), err)
 
-		waitNotification := make(chan *types.Notification, 1)
+		waitNotification := make(chan *types.NotificationResponse, 1)
 		waitNotificationErr := make(chan error, 1)
 		gock.New(webhookDomainURL).Post(webhookURLPath).
 			AddMatcher(webhookCallMatcher(waitNotification, waitNotificationErr, waitForNotificationTimeOut)).
 			Reply(http.StatusOK)
-		
+
 		failedErrMsg := "errMsg"
 		_, err = s.client.UpdateJob(ctx, job.UUID, &api.UpdateJobRequest{
 			Status:  entities.StatusFailed,
@@ -352,17 +354,16 @@ func (s *jobsTestSuite) TestUpdateNotifyWithWebhook() {
 
 		select {
 		case notification := <-waitNotification:
-			require.Equal(s.T(), notification.UUID, job.ScheduleUUID)
-			require.Equal(s.T(), notification.Type, types.TransactionFailedMessage)
-			require.Equal(s.T(), notification.Data.Job.UUID, job.UUID)
+			assert.Equal(s.T(), notification.SourceUUID, job.ScheduleUUID)
+			assert.Equal(s.T(), notification.Error, failedErrMsg)
+			assert.Equal(s.T(), notification.Type, string(entities.NotificationTypeTxFailed))
 		case err := <-waitNotificationErr:
 			assert.Error(t, err)
 		}
 	})
 }
 
-
-func webhookCallMatcher(cNotification chan *types.Notification, cErr chan error, duration time.Duration) gock.MatchFunc {
+func webhookCallMatcher(cNotification chan *types.NotificationResponse, cErr chan error, duration time.Duration) gock.MatchFunc {
 	ticker := time.NewTicker(duration)
 	defer ticker.Stop()
 	go func() {
@@ -373,7 +374,7 @@ func webhookCallMatcher(cNotification chan *types.Notification, cErr chan error,
 	return func(rw *http.Request, grw *gock.Request) (bool, error) {
 		body, _ := ioutil.ReadAll(rw.Body)
 		rw.Body = ioutil.NopCloser(bytes.NewBuffer(body))
-		req := &types.Notification{}
+		req := &types.NotificationResponse{}
 		if err := json.Unmarshal(body, &req); err != nil {
 			cErr <- err
 			return false, err

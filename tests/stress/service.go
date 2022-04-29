@@ -3,12 +3,12 @@ package stress
 import (
 	"context"
 	"fmt"
+	testutils2 "github.com/consensys/orchestrate/src/infra/messenger/testutils"
 	"sync"
 	"time"
 
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/src/infra/ethclient"
-	testutils2 "github.com/consensys/orchestrate/src/infra/notifier/kafka/testutils"
 	"github.com/spf13/viper"
 
 	orchestrateclient "github.com/consensys/orchestrate/pkg/sdk/client"
@@ -142,7 +142,7 @@ func (c *WorkLoadService) preRun(ctx context.Context) (context.Context, error) {
 		// 		privNodeAddress = append(privNodeAddress, besuNode2.PrivateAddress...)
 		// 	}
 		// }
-		// 
+		//
 		// for jdx := 0; jdx < nPrivGroupPerChain; jdx++ {
 		// 	ctx, err = assets.CreatePrivateGroup(ctx, c.ec, orchestrateclient.GetProxyURL(proxyHost, cUUID), besuNode.PrivateAddress,
 		// 		utils2.RandShuffle(privNodeAddress))

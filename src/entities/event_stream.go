@@ -13,8 +13,8 @@ var (
 )
 
 var (
-	EventStreamStatusLive   EventStreamStatus = "LIVE"
-	EventStreamStatusPaused EventStreamStatus = "PAUSED"
+	EventStreamStatusLive    EventStreamStatus = "LIVE"
+	EventStreamStatusSuspend EventStreamStatus = "SUSPEND"
 )
 
 type EventStream struct {
@@ -23,7 +23,8 @@ type EventStream struct {
 	ChainUUID string
 	TenantID  string
 	OwnerID   string
-	Specs     interface{}
+	Webhook   *EventStreamWebhookSpec
+	Kafka     *EventStreamKafkaSpec
 	Channel   EventStreamChannel
 	Status    EventStreamStatus
 	Labels    map[string]string
@@ -38,12 +39,4 @@ type EventStreamWebhookSpec struct {
 
 type EventStreamKafkaSpec struct {
 	Topic string `json:"topic"`
-}
-
-func (e *EventStream) WebHook() *EventStreamWebhookSpec {
-	return e.Specs.(*EventStreamWebhookSpec) // No need to verify the casting (assertion, not an exception)
-}
-
-func (e *EventStream) Kafka() *EventStreamKafkaSpec {
-	return e.Specs.(*EventStreamKafkaSpec) // No need to verify the casting (assertion, not an exception)
 }

@@ -1,4 +1,4 @@
-package sarama
+package kafka
 
 import (
 	"crypto/tls"

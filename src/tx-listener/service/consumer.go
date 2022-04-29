@@ -12,7 +12,6 @@ import (
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"github.com/consensys/orchestrate/src/entities"
-	saramainfra "github.com/consensys/orchestrate/src/infra/kafka/sarama"
 	messenger "github.com/consensys/orchestrate/src/infra/messenger/kafka"
 	"github.com/consensys/orchestrate/src/tx-listener/tx-listener/sessions"
 	usecases "github.com/consensys/orchestrate/src/tx-listener/tx-listener/use-cases"
@@ -22,7 +21,7 @@ const (
 	messageListenerComponent = "service.kafka-consumer"
 )
 
-func NewMessageConsumer(cfg *saramainfra.Config,
+func NewMessageConsumer(cfg *messenger.Config,
 	topics []string,
 	pendingJobUC usecases.PendingJob,
 	failedJobUC usecases.FailedJob,

@@ -2,6 +2,7 @@ package stress
 
 import (
 	"context"
+	testutils2 "github.com/consensys/orchestrate/src/infra/messenger/testutils"
 	"time"
 
 	"github.com/consensys/orchestrate/cmd/flags"
@@ -9,7 +10,6 @@ import (
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http"
 	ethclient "github.com/consensys/orchestrate/src/infra/ethclient/rpc"
-	testutils2 "github.com/consensys/orchestrate/src/infra/notifier/kafka/testutils"
 	"github.com/sirupsen/logrus"
 
 	orchestrateclient "github.com/consensys/orchestrate/pkg/sdk/client"

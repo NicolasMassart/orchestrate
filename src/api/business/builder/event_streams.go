@@ -4,7 +4,7 @@ import (
 	"github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/business/use-cases/event_streams"
 	"github.com/consensys/orchestrate/src/api/store"
-	"github.com/consensys/orchestrate/src/infra/notifier"
+	"github.com/consensys/orchestrate/src/infra/messenger"
 )
 
 type eventStreamUseCases struct {
@@ -18,14 +18,18 @@ type eventStreamUseCases struct {
 
 var _ usecases.EventStreamsUseCases = &eventStreamUseCases{}
 
-func newEventStreamUseCases(db store.EventStreamAgent,
-	kafkaNotifier, webhookNotifier notifier.Producer, 
-	contracts usecases.ContractUseCases, chains usecases.ChainUseCases) *eventStreamUseCases {
+func newEventStreamUseCases(
+	db store.EventStreamAgent,
+	messengerCli messenger.Producer,
+	contracts usecases.ContractUseCases,
+	chains usecases.ChainUseCases,
+	notifierTopic string,
+) *eventStreamUseCases {
 	return &eventStreamUseCases{
 		get:      streams.NewGetUseCase(db),
 		create:   streams.NewCreateUseCase(db, chains.Search()),
 		search:   streams.NewSearchUseCase(db),
-		notifyTx: streams.NewNotifyTransactionUseCase(db, kafkaNotifier, webhookNotifier, contracts.Search(), contracts.DecodeLog()),
+		notifyTx: streams.NewNotifyTransactionUseCase(db, messengerCli, contracts.Search(), contracts.DecodeLog(), notifierTopic),
 		update:   streams.NewUpdateUseCase(db, chains.Search()),
 		delete:   streams.NewDeleteUseCase(db),
 	}

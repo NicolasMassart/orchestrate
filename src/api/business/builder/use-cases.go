@@ -5,9 +5,8 @@ import (
 	"github.com/consensys/orchestrate/src/api/business/use-cases/faucets"
 	"github.com/consensys/orchestrate/src/api/metrics"
 	"github.com/consensys/orchestrate/src/api/store"
-	"github.com/consensys/orchestrate/src/infra/messenger"
-	"github.com/consensys/orchestrate/src/infra/notifier"
 	"github.com/consensys/orchestrate/src/infra/ethclient"
+	"github.com/consensys/orchestrate/src/infra/messenger"
 	qkmclient "github.com/consensys/quorum-key-manager/pkg/client"
 )
 
@@ -29,16 +28,16 @@ func NewUseCases(
 	qkmStoreID string,
 	ec ethclient.Client,
 	messenger messenger.Producer,
-	kafkaNotifier, webhookNotifier notifier.Producer,
 	topicSender string,
 	topicListener string,
+	notifierTopic string,
 ) usecases.UseCases {
 	chainUseCases := newChainUseCases(db, ec)
 	contractUseCases := newContractUseCases(db)
 	faucetUseCases := newFaucetUseCases(db)
 	getFaucetCandidateUC := faucets.NewGetFaucetCandidateUseCase(faucetUseCases.Search(), ec)
 	scheduleUseCases := newScheduleUseCases(db)
-	eventStreamUseCases := newEventStreamUseCases(db.EventStream(), kafkaNotifier, webhookNotifier, contractUseCases, chainUseCases)
+	eventStreamUseCases := newEventStreamUseCases(db.EventStream(), messenger, contractUseCases, chainUseCases, notifierTopic)
 	jobUseCases := newJobUseCases(
 		db,
 		appMetrics,

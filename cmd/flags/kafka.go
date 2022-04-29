@@ -3,7 +3,8 @@ package flags
 import (
 	"fmt"
 
-	"github.com/consensys/orchestrate/src/infra/kafka/sarama"
+	"github.com/consensys/orchestrate/src/infra/messenger/kafka"
+
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
@@ -277,8 +278,8 @@ Environment variable: %q`, kafkaVersionEnv)
 	_ = viper.BindPFlag(KafkaVersionViperKey, f.Lookup(kafkaVersionFlag))
 }
 
-func NewKafkaConfig(vipr *viper.Viper) *sarama.Config {
-	return &sarama.Config{
+func NewKafkaConfig(vipr *viper.Viper) *kafka.Config {
+	return &kafka.Config{
 		Version:           vipr.GetString(KafkaVersionViperKey),
 		ClientID:          "sarama-orchestrate",
 		SASLEnable:        vipr.GetBool(KafkaSASLEnabledViperKey),

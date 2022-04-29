@@ -30,13 +30,16 @@ func newRunCommand() *cobra.Command {
 	}
 
 	flags.NewAPIFlags(runCmd.Flags())
+	flags.NotifierFlags(runCmd.Flags())
 
 	return runCmd
 }
 
 func run(cmd *cobra.Command, _ []string) error {
 	ctx := cmd.Context()
-	apiApp, err := api.New(ctx, flags.NewAPIConfig(viper.GetViper()))
+	vipr := viper.GetViper()
+
+	apiApp, err := api.New(ctx, flags.NewAPIConfig(vipr), flags.NewNotifierConfig(vipr))
 	if err != nil {
 		return err
 	}
