@@ -608,7 +608,7 @@ func TestSendTransaction(t *testing.T) {
 	// Test 1 with Error
 	ctx := testutils.NewContext(fmt.Errorf("test-error"), 0, nil)
 	_, err := ec.SendTransaction(ctx, "test-endpoint", &types.SendTxArgs{})
-	assert.Error(t, err, "#1 SendNotificationResponse should  error")
+	assert.Error(t, err, "#1 Send should  error")
 }
 
 func TestSendRawPrivateTransaction(t *testing.T) {

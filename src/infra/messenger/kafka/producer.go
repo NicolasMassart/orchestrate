@@ -87,16 +87,6 @@ func (p *Client) SendNotificationMessage(topic string, notif *notifier.Notificat
 	}
 	msg.Value = sarama.ByteEncoder(b)
 
-	if userInfo.AuthMode == multitenancy.AuthMethodJWT {
-		userInfoB, _ := json.Marshal(userInfo)
-		msg.Headers = []sarama.RecordHeader{
-			{
-				Key:   []byte(utils.UserInfoHeader),
-				Value: userInfoB,
-			},
-		}
-	}
-
 	_, _, err = p.syncProducer.SendMessage(msg)
 	if err != nil {
 		return errors.KafkaConnectionError(err.Error())

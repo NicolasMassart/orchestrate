@@ -24,9 +24,11 @@ func NewCreateTransactionUseCase() usecases.CreateTxNotificationUseCase {
 }
 
 func (uc *createTxUseCase) Execute(ctx context.Context, job *entities.Job, errStr string) *entities.Notification {
+	logger := uc.logger.WithContext(ctx)
 
 	notif := &entities.Notification{
 		SourceUUID: job.ScheduleUUID,
+		SourceType: entities.NotificationSourceTypeJob,
 		Status:     entities.NotificationStatusPending,
 		UUID:       uuid.Must(uuid.NewV4()).String(),
 		Type:       jobStatusToNotificationType(job.Status),
@@ -39,7 +41,7 @@ func (uc *createTxUseCase) Execute(ctx context.Context, job *entities.Job, errSt
 
 	// TODO(dario): Save notification in DB
 
-	uc.logger.WithField("notification", notif.UUID).Debug("transaction notification created successfully")
+	logger.WithField("notification", notif.UUID).Debug("transaction notification created successfully")
 	return notif
 }
 

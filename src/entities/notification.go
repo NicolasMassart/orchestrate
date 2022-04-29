@@ -6,6 +6,7 @@ import (
 
 type NotificationType string
 type NotificationStatus string
+type NotificationSourceType string
 
 const (
 	NotificationTypeTxMined  NotificationType = "transaction.mined"
@@ -14,6 +15,11 @@ const (
 const (
 	NotificationStatusPending NotificationStatus = "PENDING"
 	NotificationStatusSent    NotificationStatus = "SENT"
+)
+
+const (
+	NotificationSourceTypeJob           NotificationSourceType = "job"
+	NotificationSourceTypeContractEvent NotificationSourceType = "contract_event"
 )
 
 func (n *NotificationType) String() string {
@@ -26,6 +32,7 @@ func (n *NotificationStatus) String() string {
 
 type Notification struct {
 	SourceUUID string
+	SourceType NotificationSourceType
 	Status     NotificationStatus
 	UUID       string
 	Type       NotificationType
