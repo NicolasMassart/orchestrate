@@ -21,7 +21,8 @@ CREATE TABLE event_streams (
 	specs JSONB NOT NULL,
     labels JSON,
 	created_at TIMESTAMPTZ DEFAULT (now() at time zone 'utc') NOT NULL, 
-	updated_at TIMESTAMPTZ DEFAULT (now() at time zone 'utc') NOT NULL
+	updated_at TIMESTAMPTZ DEFAULT (now() at time zone 'utc') NOT NULL,
+	UNIQUE(uuid)
 );
 
 CREATE UNIQUE INDEX event_streams_unique_name_idx ON event_streams (tenant_id, owner_id, name) WHERE name IS NOT NULL;

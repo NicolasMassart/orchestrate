@@ -4,6 +4,9 @@ import (
 	"context"
 	"time"
 
+	"github.com/consensys/orchestrate/pkg/errors"
+	"github.com/consensys/orchestrate/src/notifier/store"
+
 	"github.com/gofrs/uuid"
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
@@ -15,15 +18,17 @@ const createTxComponent = "use-cases.notifier.create_tx"
 
 type createTxUseCase struct {
 	logger *log.Logger
+	db     store.NotificationAgent
 }
 
-func NewCreateTransactionUseCase() usecases.CreateTxNotificationUseCase {
+func NewCreateTransactionUseCase(db store.NotificationAgent) usecases.CreateTxNotificationUseCase {
 	return &createTxUseCase{
+		db:     db,
 		logger: log.NewLogger().SetComponent(createTxComponent),
 	}
 }
 
-func (uc *createTxUseCase) Execute(ctx context.Context, job *entities.Job, errStr string) *entities.Notification {
+func (uc *createTxUseCase) Execute(ctx context.Context, job *entities.Job, errStr string) (*entities.Notification, error) {
 	logger := uc.logger.WithContext(ctx)
 
 	notif := &entities.Notification{
@@ -33,16 +38,19 @@ func (uc *createTxUseCase) Execute(ctx context.Context, job *entities.Job, errSt
 		UUID:       uuid.Must(uuid.NewV4()).String(),
 		Type:       jobStatusToNotificationType(job.Status),
 		APIVersion: "v1",
-		Job:        job,
 		CreatedAt:  time.Now().UTC(),
 		UpdatedAt:  time.Now().UTC(),
 		Error:      errStr,
 	}
 
-	// TODO(dario): Save notification in DB
+	notif, err := uc.db.Insert(ctx, notif)
+	if err != nil {
+		return nil, errors.FromError(err).ExtendComponent(createTxComponent)
+	}
+	notif.Job = job
 
 	logger.WithField("notification", notif.UUID).Debug("transaction notification created successfully")
-	return notif
+	return notif, nil
 }
 
 func jobStatusToNotificationType(jobStatus entities.JobStatus) entities.NotificationType {

@@ -48,7 +48,7 @@ func New(ctx context.Context, cfg *Config, notifierCfg *notifier.Config) (*Daemo
 	// Initialize notifier service
 	webhookNotifierClient := webhooknotifier.NewProducer(http.DefaultClient)
 
-	notifierDaemon, err := notifier.New(notifierCfg, client.GlobalClient(), kafkaNotifierClient, webhookNotifierClient)
+	notifierDaemon, err := notifier.New(notifierCfg, postgresClient, client.GlobalClient(), kafkaNotifierClient, webhookNotifierClient)
 	if err != nil {
 		return nil, err
 	}

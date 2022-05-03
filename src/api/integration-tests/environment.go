@@ -117,7 +117,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		"--topic-notifier=" + notifierTopic,
 		"--key-manager-url=" + quorumKeyManagerURL,
 		"--key-manager-store-name=" + qkmDefaultStoreID,
-		"--log-level=panic",
+		"--log-level=error",
 	}
 
 	err := flgs.Parse(args)
@@ -454,7 +454,7 @@ func newAPI(ctx context.Context, cfg *api.Config, notifierConfig *notifier.Confi
 	gock.InterceptClient(interceptedHTTPClient)
 	webhookNotifierClient := webhooknotifier.NewProducer(interceptedHTTPClient)
 
-	notifierDaemon, err := notifier.New(notifierConfig, orchestrateclient.GlobalClient(), kafkaNotifierClient, webhookNotifierClient)
+	notifierDaemon, err := notifier.New(notifierConfig, postgresClient, orchestrateclient.GlobalClient(), kafkaNotifierClient, webhookNotifierClient)
 	if err != nil {
 		return nil, err
 	}

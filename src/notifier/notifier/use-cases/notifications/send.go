@@ -3,6 +3,8 @@ package notifications
 import (
 	"context"
 
+	"github.com/consensys/orchestrate/src/notifier/store"
+
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/src/entities"
@@ -16,10 +18,12 @@ type sendUseCase struct {
 	logger          *log.Logger
 	kafkaNotifier   messenger.Producer
 	webhookNotifier messenger.Producer
+	db              store.NotificationAgent
 }
 
-func NewSendUseCase(kafkaNotifier, webhookNotifier messenger.Producer) usecases.SendNotificationUseCase {
+func NewSendUseCase(db store.NotificationAgent, kafkaNotifier, webhookNotifier messenger.Producer) usecases.SendNotificationUseCase {
 	return &sendUseCase{
+		db:              db,
 		kafkaNotifier:   kafkaNotifier,
 		webhookNotifier: webhookNotifier,
 		logger:          log.NewLogger().SetComponent(sendComponent),
@@ -49,7 +53,11 @@ func (uc *sendUseCase) Execute(ctx context.Context, notif *entities.Notification
 		return errors.DependencyFailureError(errMessage)
 	}
 
-	// TODO(dario): Acknowledge notification
+	notif.Status = entities.NotificationStatusSent
+	_, err = uc.db.Update(ctx, notif)
+	if err != nil {
+		return errors.FromError(err).ExtendComponent(createTxComponent)
+	}
 
 	logger.Info("transaction notification sent successfully")
 	return nil

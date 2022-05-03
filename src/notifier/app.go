@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/consensys/orchestrate/src/infra/postgres"
+	postgresstore "github.com/consensys/orchestrate/src/notifier/store/postgres"
+
 	"github.com/consensys/orchestrate/pkg/toolkit/app"
 	"github.com/consensys/orchestrate/src/notifier/service"
 
@@ -30,9 +33,14 @@ type Daemon struct {
 
 var _ app.Daemon = &Daemon{}
 
-func New(config *Config, eventStreamClient api.EventStreamClient, kafkaNotifier, webhookNotifier messenger.Producer) (*Daemon, error) {
+func New(
+	config *Config,
+	db postgres.Client,
+	eventStreamClient api.EventStreamClient,
+	kafkaNotifier, webhookNotifier messenger.Producer,
+) (*Daemon, error) {
 	// Create business layer use cases
-	useCases := builder.NewUseCases(kafkaNotifier, webhookNotifier)
+	useCases := builder.NewUseCases(postgresstore.NewPGNotification(db), kafkaNotifier, webhookNotifier)
 	msgConsumerHandler := service.NewMessageConsumerHandler(useCases, eventStreamClient, config.MaxRetries)
 
 	consumers := make([]messenger.Consumer, config.NConsumer)

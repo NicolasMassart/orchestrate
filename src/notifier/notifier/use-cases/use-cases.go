@@ -14,7 +14,7 @@ type UseCases interface {
 }
 
 type CreateTxNotificationUseCase interface {
-	Execute(ctx context.Context, job *entities.Job, errStr string) *entities.Notification
+	Execute(ctx context.Context, job *entities.Job, errStr string) (*entities.Notification, error)
 }
 
 type SendNotificationUseCase interface {

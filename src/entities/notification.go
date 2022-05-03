@@ -30,6 +30,10 @@ func (n *NotificationStatus) String() string {
 	return string(*n)
 }
 
+func (n *NotificationSourceType) String() string {
+	return string(*n)
+}
+
 type Notification struct {
 	SourceUUID string
 	SourceType NotificationSourceType

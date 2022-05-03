@@ -99,17 +99,21 @@ func (mch *MessageConsumerHandler) ProcessMsg(ctx context.Context, rawMsg *saram
 
 func (mch *MessageConsumerHandler) sendNotification(ctx context.Context, req *types.NotificationMessage) error {
 	var notif *entities.Notification
+	var err error
 
 	switch req.Type {
 	case types.TransactionNotificationType:
-		notif = mch.useCases.CreateTransaction().Execute(ctx, req.Job, req.Error)
+		notif, err = mch.useCases.CreateTransaction().Execute(ctx, req.Job, req.Error)
 	case types.ContractEventNotificationType:
 		return errors.InvalidParameterError("not implemented yet")
 	default:
 		return errors.InvalidParameterError("notification type %s is not supported", req.Type)
 	}
+	if err != nil {
+		return err
+	}
 
-	err := mch.useCases.Send().Execute(ctx, notif, req.EventStream)
+	err = mch.useCases.Send().Execute(ctx, notif, req.EventStream)
 	if err != nil {
 		return err
 	}

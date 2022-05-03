@@ -187,6 +187,7 @@ func (s *jobsTestSuite) TestStart() {
 
 		err = s.client.StartJob(ctx, job.UUID)
 		require.NoError(t, err)
+
 		msgJob, err := s.env.messengerConsumerTracker.WaitForJob(ctx, job.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForNotificationTimeOut)
 		require.NoError(s.T(), err)
 		assert.Equal(t, msgJob.UUID, job.UUID)
@@ -221,9 +222,6 @@ func (s *jobsTestSuite) TestUpdatePending() {
 func (s *jobsTestSuite) TestUpdateNotifyWithKafka() {
 	ctx := s.env.ctx
 
-	schedule, err := s.client.CreateSchedule(ctx, &api.CreateScheduleRequest{})
-	require.NoError(s.T(), err)
-
 	eventStream, err := s.client.CreateKafkaEventStream(ctx, &api.CreateKafkaEventStreamRequest{
 		Name:  "integration-test-event-stream-kafka",
 		Topic: s.env.notificationTopic,
@@ -237,6 +235,9 @@ func (s *jobsTestSuite) TestUpdateNotifyWithKafka() {
 	}()
 
 	s.T().Run("should update job to MINED and notify", func(t *testing.T) {
+		schedule, err := s.client.CreateSchedule(ctx, &api.CreateScheduleRequest{})
+		require.NoError(s.T(), err)
+
 		req := testdata.FakeCreateJobRequest()
 		req.ScheduleUUID = schedule.UUID
 		req.ChainUUID = s.chain.UUID
@@ -259,6 +260,9 @@ func (s *jobsTestSuite) TestUpdateNotifyWithKafka() {
 	})
 
 	s.T().Run("should update job to FAILED and notify", func(t *testing.T) {
+		schedule, err := s.client.CreateSchedule(ctx, &api.CreateScheduleRequest{})
+		require.NoError(s.T(), err)
+
 		req := testdata.FakeCreateJobRequest()
 		req.ScheduleUUID = schedule.UUID
 		req.ChainUUID = s.chain.UUID
@@ -271,6 +275,7 @@ func (s *jobsTestSuite) TestUpdateNotifyWithKafka() {
 			Status:  entities.StatusFailed,
 			Message: failedErrMsg,
 		})
+		require.NoError(s.T(), err)
 
 		notification, err := s.env.notifierConsumerTracker.WaitForTxFailedNotification(ctx, job.ScheduleUUID, s.env.notificationTopic, waitForNotificationTimeOut)
 		require.NoError(s.T(), err)
@@ -285,9 +290,6 @@ func (s *jobsTestSuite) TestUpdateNotifyWithWebhook() {
 	webhookDomainURL := "http://webhook.com"
 	webhookURLPath := "/wait-for-notification"
 
-	schedule, err := s.client.CreateSchedule(ctx, &api.CreateScheduleRequest{})
-	require.NoError(s.T(), err)
-
 	eventStream, err := s.client.CreateWebhookEventStream(ctx, &api.CreateWebhookEventStreamRequest{
 		Name:  "integration-test-event-stream-webhook",
 		URL:   webhookDomainURL + webhookURLPath,
@@ -301,6 +303,9 @@ func (s *jobsTestSuite) TestUpdateNotifyWithWebhook() {
 	}()
 
 	s.T().Run("should update job to MINED and notify", func(t *testing.T) {
+		schedule, err := s.client.CreateSchedule(ctx, &api.CreateScheduleRequest{})
+		require.NoError(s.T(), err)
+
 		req := testdata.FakeCreateJobRequest()
 		req.ScheduleUUID = schedule.UUID
 		req.ChainUUID = s.chain.UUID
@@ -332,6 +337,9 @@ func (s *jobsTestSuite) TestUpdateNotifyWithWebhook() {
 	})
 
 	s.T().Run("should update job to FAILED and notify", func(t *testing.T) {
+		schedule, err := s.client.CreateSchedule(ctx, &api.CreateScheduleRequest{})
+		require.NoError(s.T(), err)
+
 		req := testdata.FakeCreateJobRequest()
 		req.ScheduleUUID = schedule.UUID
 		req.ChainUUID = s.chain.UUID

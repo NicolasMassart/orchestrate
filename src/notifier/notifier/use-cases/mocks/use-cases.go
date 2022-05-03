@@ -87,11 +87,12 @@ func (m *MockCreateTxNotificationUseCase) EXPECT() *MockCreateTxNotificationUseC
 }
 
 // Execute mocks base method
-func (m *MockCreateTxNotificationUseCase) Execute(ctx context.Context, job *entities.Job, errStr string) *entities.Notification {
+func (m *MockCreateTxNotificationUseCase) Execute(ctx context.Context, job *entities.Job, errStr string) (*entities.Notification, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Execute", ctx, job, errStr)
 	ret0, _ := ret[0].(*entities.Notification)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Execute indicates an expected call of Execute

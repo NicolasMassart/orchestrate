@@ -4,6 +4,7 @@ import (
 	"github.com/consensys/orchestrate/src/infra/messenger"
 	"github.com/consensys/orchestrate/src/notifier/notifier/use-cases"
 	"github.com/consensys/orchestrate/src/notifier/notifier/use-cases/notifications"
+	"github.com/consensys/orchestrate/src/notifier/store"
 )
 
 type useCases struct {
@@ -13,10 +14,10 @@ type useCases struct {
 
 var _ usecases.UseCases = &useCases{}
 
-func NewUseCases(kafkaNotifier, webhookNotifier messenger.Producer) usecases.UseCases {
+func NewUseCases(db store.NotificationAgent, kafkaNotifier, webhookNotifier messenger.Producer) usecases.UseCases {
 	return &useCases{
-		create: notifications.NewCreateTransactionUseCase(),
-		send:   notifications.NewSendUseCase(kafkaNotifier, webhookNotifier),
+		create: notifications.NewCreateTransactionUseCase(db),
+		send:   notifications.NewSendUseCase(db, kafkaNotifier, webhookNotifier),
 	}
 }
 
