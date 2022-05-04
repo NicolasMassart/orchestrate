@@ -24,68 +24,38 @@ func NewEventStreamsController(eventStreamUCs usecases.EventStreamsUseCases) *Ev
 // Append Add routes to router
 func (c *EventStreamsController) Append(router *mux.Router) {
 	router.Methods(http.MethodGet).Path("/eventstreams").HandlerFunc(c.search)
-	router.Methods(http.MethodPost).Path("/eventstreams/webhooks").HandlerFunc(c.createWebhook)
-	router.Methods(http.MethodPost).Path("/eventstreams/kafka").HandlerFunc(c.createKafka)
+	router.Methods(http.MethodPost).Path("/eventstreams").HandlerFunc(c.create)
 	router.Methods(http.MethodGet).Path("/eventstreams/{uuid}").HandlerFunc(c.getOne)
-	router.Methods(http.MethodPatch).Path("/eventstreams/kafka/{uuid}").HandlerFunc(c.updateKafka)
-	router.Methods(http.MethodPatch).Path("/eventstreams/webhooks/{uuid}").HandlerFunc(c.updateWebhook)
+	router.Methods(http.MethodPatch).Path("/eventstreams/{uuid}").HandlerFunc(c.update)
 	router.Methods(http.MethodDelete).Path("/eventstreams/{uuid}").HandlerFunc(c.delete)
 }
 
-// @Summary      Creates a new Webhook Event stream
-// @Description  Creates a new Webhook Event stream
+// @Summary      Creates a new Event stream
+// @Description  Creates a new Event stream
 // @Tags         Event Streams
 // @Accept       json
 // @Produce      json
 // @Security     ApiKeyAuth
 // @Security     JWTAuth
-// @Param        request  body      api.CreateWebhookEventStreamRequest  true  "Webhook Event stream creation request"
+// @Param        request  body      api.CreateEventStreamRequest  true  "Event stream creation request"
 // @Success      200      {object}  api.EventStreamResponse       "Event stream object"
 // @Failure      400      {object}  infra.ErrorResponse    "Invalid request"
 // @Failure      401      {object}  infra.ErrorResponse    "Unauthorized"
 // @Failure      500      {object}  infra.ErrorResponse    "Internal server error"
-// @Router       /eventstreams/webhooks [post]
-func (c *EventStreamsController) createWebhook(rw http.ResponseWriter, request *http.Request) {
+// @Router       /eventstreams [post]
+func (c *EventStreamsController) create(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
-	req := &api.CreateWebhookEventStreamRequest{}
+	req := &api.CreateEventStreamRequest{}
 	err := infra.UnmarshalBody(request.Body, req)
 	if err != nil {
 		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	es, err := c.ucs.Create().Execute(ctx, req.ToEntity(), req.Chain, multitenancy.UserInfoValue(ctx))
-	if err != nil {
-		infra.WriteHTTPErrorResponse(rw, err)
-		return
-	}
-
-	_ = json.NewEncoder(rw).Encode(api.NewEventStreamResponse(es))
-}
-
-// @Summary      Creates a new Kafka Event stream
-// @Description  Creates a new Kafka Event stream
-// @Tags         Event Streams
-// @Accept       json
-// @Produce      json
-// @Security     ApiKeyAuth
-// @Security     JWTAuth
-// @Param        request  body      api.CreateKafkaEventStreamRequest  true  "Kafka Event stream creation request"
-// @Success      200      {object}  api.EventStreamResponse       "Event stream object"
-// @Failure      400      {object}  infra.ErrorResponse    "Invalid request"
-// @Failure      401      {object}  infra.ErrorResponse    "Unauthorized"
-// @Failure      500      {object}  infra.ErrorResponse    "Internal server error"
-// @Router       /eventstreams/kafka [post]
-func (c *EventStreamsController) createKafka(rw http.ResponseWriter, request *http.Request) {
-	rw.Header().Set("Content-Type", "application/json")
-	ctx := request.Context()
-
-	req := &api.CreateKafkaEventStreamRequest{}
-	err := infra.UnmarshalBody(request.Body, req)
-	if err != nil {
-		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
+	if !req.Validate() {
+		infra.WriteError(rw, "invalid event stream creation request", http.StatusBadRequest)
 		return
 	}
 
@@ -173,26 +143,26 @@ func (c *EventStreamsController) search(rw http.ResponseWriter, request *http.Re
 	_ = json.NewEncoder(rw).Encode(api.NewEventStreamResponses(eventStreams))
 }
 
-// @Summary      Update Kafka event stream by uuid
-// @Description  Update a specific Kafka event stream by uuid
+// @Summary      Update event stream by uuid
+// @Description  Update a specific event stream by uuid
 // @Tags         Event Streams
 // @Accept       json
 // @Produce      json
 // @Security     ApiKeyAuth
 // @Security     JWTAuth
-// @Param        request  body      api.UpdateKafkaEventStreamRequest  true  "Kafka Event stream update request"
+// @Param        request  body      api.UpdateEventStreamRequest  true  "Event stream update request"
 // @Param        uuid  path      string                    true  "event stream uuid"
 // @Success      200      {object}  api.EventStreamResponse       "Event stream found"
 // @Failure      400      {object}  infra.ErrorResponse    "Invalid request"
 // @Failure      401      {object}  infra.ErrorResponse    "Unauthorized"
 // @Failure      404      {object}  infra.ErrorResponse    "Account not found"
 // @Failure      500      {object}  infra.ErrorResponse    "Internal server error"
-// @Router       /eventstreams/kafka/{uuid} [patch]
-func (c *EventStreamsController) updateKafka(rw http.ResponseWriter, request *http.Request) {
+// @Router       /eventstreams/{uuid} [patch]
+func (c *EventStreamsController) update(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
 
-	req := &api.UpdateKafkaEventStreamRequest{}
+	req := &api.UpdateEventStreamRequest{}
 	err := infra.UnmarshalBody(request.Body, req)
 	if err != nil {
 		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
@@ -200,43 +170,6 @@ func (c *EventStreamsController) updateKafka(rw http.ResponseWriter, request *ht
 	}
 
 	es, err := c.ucs.Update().Execute(ctx, req.ToEntity(mux.Vars(request)["uuid"]), multitenancy.UserInfoValue(ctx))
-
-	if err != nil {
-		infra.WriteHTTPErrorResponse(rw, err)
-		return
-	}
-
-	_ = json.NewEncoder(rw).Encode(api.NewEventStreamResponse(es))
-}
-
-// @Summary      Update Webhook event stream by uuid
-// @Description  Update a specific Webhook event stream by uuid
-// @Tags         Event Streams
-// @Accept       json
-// @Produce      json
-// @Security     ApiKeyAuth
-// @Security     JWTAuth
-// @Param        request  body      api.UpdateWebhookEventStreamRequest  true  "Webhook Event stream update request"
-// @Param        uuid  path      string                    true  "event stream uuid"
-// @Success      200      {object}  api.EventStreamResponse       "Event stream found"
-// @Failure      400      {object}  infra.ErrorResponse    "Invalid request"
-// @Failure      401      {object}  infra.ErrorResponse    "Unauthorized"
-// @Failure      404      {object}  infra.ErrorResponse    "Account not found"
-// @Failure      500      {object}  infra.ErrorResponse    "Internal server error"
-// @Router       /eventstreams/webhooks/{uuid} [patch]
-func (c *EventStreamsController) updateWebhook(rw http.ResponseWriter, request *http.Request) {
-	rw.Header().Set("Content-Type", "application/json")
-	ctx := request.Context()
-
-	req := &api.UpdateWebhookEventStreamRequest{}
-	err := infra.UnmarshalBody(request.Body, req)
-	if err != nil {
-		infra.WriteError(rw, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	es, err := c.ucs.Update().Execute(ctx, req.ToEntity(mux.Vars(request)["uuid"]), multitenancy.UserInfoValue(ctx))
-
 	if err != nil {
 		infra.WriteHTTPErrorResponse(rw, err)
 		return

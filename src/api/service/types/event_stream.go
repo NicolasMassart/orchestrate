@@ -6,92 +6,87 @@ import (
 	"github.com/consensys/orchestrate/src/entities"
 )
 
-type CreateWebhookEventStreamRequest struct {
+type CreateEventStreamRequest struct {
+	Channel string            `json:"channel" validate:"required,isChannel" example:"webhook"`
 	Name    string            `json:"name" validate:"required" example:"my-webhook-stream"`
 	Chain   string            `json:"chain,omitempty" validate:"omitempty" example:"mainnet"`
-	URL     string            `json:"url" validate:"required,url" example:"https://my-event-steam-endpoint.com"`
-	Headers map[string]string `json:"headers,omitempty" validate:"omitempty"`
+	Webhook *WebhookRequest   `json:"webhook,omitempty" validate:"omitempty"`
+	Kafka   *KafkaRequest     `json:"kafka,omitempty" validate:"omitempty"`
 	Labels  map[string]string `json:"labels,omitempty" validate:"omitempty"`
 }
 
-func (r *CreateWebhookEventStreamRequest) ToEntity() *entities.EventStream {
-	return &entities.EventStream{
-		Name: r.Name,
-		Webhook: &entities.EventStreamWebhookSpec{
-			URL:     r.URL,
-			Headers: r.Headers,
-		},
-		Channel: entities.EventStreamChannelWebhook,
-		Status:  entities.EventStreamStatusLive,
-		Labels:  r.Labels,
-	}
+type WebhookRequest struct {
+	URL     string            `json:"url" validate:"required,url" example:"https://my-event-steam-endpoint.com"`
+	Headers map[string]string `json:"headers,omitempty" validate:"omitempty"`
 }
 
-type CreateKafkaEventStreamRequest struct {
-	Name   string            `json:"name" validate:"required" example:"my-kafka-stream"`
-	Chain  string            `json:"chain,omitempty" validate:"omitempty" example:"mainnet"`
-	Topic  string            `json:"topic" validate:"required" example:"my-notification-topic"`
-	Labels map[string]string `json:"labels,omitempty" validate:"omitempty"`
+type KafkaRequest struct {
+	Topic string `json:"topic" validate:"required" example:"my-notification-topic"`
 }
 
-func (r *CreateKafkaEventStreamRequest) ToEntity() *entities.EventStream {
-	return &entities.EventStream{
-		Name: r.Name,
-		Kafka: &entities.EventStreamKafkaSpec{
-			Topic: r.Topic,
-		},
-		Channel: entities.EventStreamChannelKafka,
-		Status:  entities.EventStreamStatusLive,
-		Labels:  r.Labels,
-	}
-}
-
-type UpdateKafkaEventStreamRequest struct {
-	Name   string            `json:"name,omitempty" validate:"omitempty" example:"my-kafka-stream"`
-	Topic  string            `json:"topic,omitempty" validate:"omitempty" example:"my-notification-topic"`
-	Status string            `json:"status,omitempty" validate:"omitempty,isEventStreamStatus" example:"PAUSED"`
-	Labels map[string]string `json:"labels,omitempty" validate:"omitempty"`
-}
-
-func (r *UpdateKafkaEventStreamRequest) ToEntity(uuid string) *entities.EventStream {
+func (r *CreateEventStreamRequest) ToEntity() *entities.EventStream {
 	es := &entities.EventStream{
-		UUID:    uuid,
 		Name:    r.Name,
-		Status:  entities.EventStreamStatus(r.Status),
+		Channel: entities.EventStreamChannel(r.Channel),
+		Status:  entities.EventStreamStatusLive,
 		Labels:  r.Labels,
-		Channel: entities.EventStreamChannelKafka,
 	}
 
-	if r.Topic != "" {
+	switch es.Channel {
+	case entities.EventStreamChannelWebhook:
+		es.Webhook = &entities.EventStreamWebhookSpec{
+			URL:     r.Webhook.URL,
+			Headers: r.Webhook.Headers,
+		}
+	case entities.EventStreamChannelKafka:
 		es.Kafka = &entities.EventStreamKafkaSpec{
-			Topic: r.Topic,
+			Topic: r.Kafka.Topic,
 		}
 	}
 
 	return es
 }
 
-type UpdateWebhookEventStreamRequest struct {
+func (r *CreateEventStreamRequest) Validate() bool {
+	switch r.Channel {
+	case string(entities.EventStreamChannelWebhook):
+		return r.Webhook != nil
+	case string(entities.EventStreamChannelKafka):
+		return r.Kafka != nil
+	}
+
+	return false
+}
+
+type UpdateEventStreamRequest struct {
 	Name    string            `json:"name,omitempty" validate:"omitempty" example:"my-kafka-stream"`
 	URL     string            `json:"url,omitempty" validate:"omitempty,url" example:"https://my-event-steam-endpoint.com"`
 	Headers map[string]string `json:"headers,omitempty" validate:"omitempty"`
+	Topic   string            `json:"topic,omitempty" validate:"omitempty" example:"my-notification-topic"`
 	Status  string            `json:"status,omitempty" validate:"omitempty,isEventStreamStatus" example:"PAUSED"`
 	Labels  map[string]string `json:"labels,omitempty" validate:"omitempty"`
 }
 
-func (r *UpdateWebhookEventStreamRequest) ToEntity(uuid string) *entities.EventStream {
+func (r *UpdateEventStreamRequest) ToEntity(uuid string) *entities.EventStream {
 	es := &entities.EventStream{
-		UUID:    uuid,
-		Name:    r.Name,
-		Status:  entities.EventStreamStatus(r.Status),
-		Labels:  r.Labels,
-		Channel: entities.EventStreamChannelWebhook,
+		UUID:   uuid,
+		Name:   r.Name,
+		Status: entities.EventStreamStatus(r.Status),
+		Labels: r.Labels,
 	}
 
 	if r.URL != "" || r.Headers != nil {
+		es.Channel = entities.EventStreamChannelWebhook
 		es.Webhook = &entities.EventStreamWebhookSpec{
 			URL:     r.URL,
 			Headers: r.Headers,
+		}
+	}
+
+	if r.Topic != "" {
+		es.Channel = entities.EventStreamChannelKafka
+		es.Kafka = &entities.EventStreamKafkaSpec{
+			Topic: r.Topic,
 		}
 	}
 

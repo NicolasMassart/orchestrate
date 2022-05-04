@@ -60,8 +60,8 @@ func (c *HTTPClient) SearchEventStreams(ctx context.Context, filters *entities.E
 	return resp, err
 }
 
-func (c *HTTPClient) CreateWebhookEventStream(ctx context.Context, request *types.CreateWebhookEventStreamRequest) (*types.EventStreamResponse, error) {
-	reqURL := fmt.Sprintf("%v/eventstreams/webhooks", c.config.URL)
+func (c *HTTPClient) CreateEventStream(ctx context.Context, request *types.CreateEventStreamRequest) (*types.EventStreamResponse, error) {
+	reqURL := fmt.Sprintf("%v/eventstreams", c.config.URL)
 	resp := &types.EventStreamResponse{}
 
 	err := callWithBackOff(ctx, c.config.backOff, func() error {
@@ -76,41 +76,8 @@ func (c *HTTPClient) CreateWebhookEventStream(ctx context.Context, request *type
 	return resp, err
 }
 
-func (c *HTTPClient) CreateKafkaEventStream(ctx context.Context, request *types.CreateKafkaEventStreamRequest) (*types.EventStreamResponse, error) {
-	reqURL := fmt.Sprintf("%v/eventstreams/kafka", c.config.URL)
-	resp := &types.EventStreamResponse{}
-
-	err := callWithBackOff(ctx, c.config.backOff, func() error {
-		response, err := clientutils.PostRequest(ctx, c.client, reqURL, request)
-		if err != nil {
-			return err
-		}
-		defer clientutils.CloseResponse(response)
-		return parseResponse(ctx, response, resp)
-	})
-
-	return resp, err
-}
-
-func (c *HTTPClient) UpdateWebhookEventStream(ctx context.Context, uuid string, request *types.UpdateWebhookEventStreamRequest) (*types.EventStreamResponse, error) {
-	reqURL := fmt.Sprintf("%v/eventstreams/webhooks/%v", c.config.URL, uuid)
-	resp := &types.EventStreamResponse{}
-
-	err := callWithBackOff(ctx, c.config.backOff, func() error {
-		response, err := clientutils.PatchRequest(ctx, c.client, reqURL, request)
-		if err != nil {
-			return err
-		}
-
-		defer clientutils.CloseResponse(response)
-		return parseResponse(ctx, response, resp)
-	})
-
-	return resp, err
-}
-
-func (c *HTTPClient) UpdateKafkaEventStream(ctx context.Context, uuid string, request *types.UpdateKafkaEventStreamRequest) (*types.EventStreamResponse, error) {
-	reqURL := fmt.Sprintf("%v/eventstreams/kafka/%v", c.config.URL, uuid)
+func (c *HTTPClient) UpdateEventStream(ctx context.Context, uuid string, request *types.UpdateEventStreamRequest) (*types.EventStreamResponse, error) {
+	reqURL := fmt.Sprintf("%v/eventstreams/%v", c.config.URL, uuid)
 	resp := &types.EventStreamResponse{}
 
 	err := callWithBackOff(ctx, c.config.backOff, func() error {

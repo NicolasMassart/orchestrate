@@ -163,9 +163,12 @@ func (env *Environment) createChainWithStream(chainName string, urls []string, p
 	env.Logger.WithField("chain_name", chainName).WithField("chain_uuid", chainRes.UUID).
 		Info("chain created successfully")
 
-	streamResp, err := env.Client.CreateKafkaEventStream(env.ctx, &types.CreateKafkaEventStreamRequest{
-		Name:  "tx-stream-" + chainName,
-		Topic: env.KafkaTopic,
+	streamResp, err := env.Client.CreateEventStream(env.ctx, &types.CreateEventStreamRequest{
+		Channel: "kafka",
+		Name:    "tx-stream-" + chainName,
+		Kafka: &types.KafkaRequest{
+			Topic: env.KafkaTopic,
+		},
 		Chain: chainName,
 	})
 	if err != nil {

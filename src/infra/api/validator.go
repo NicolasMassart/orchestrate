@@ -233,6 +233,19 @@ func isEventStreamStatus(fl validator.FieldLevel) bool {
 	return true
 }
 
+func isChannel(fl validator.FieldLevel) bool {
+	if fl.Field().String() != "" {
+		switch fl.Field().String() {
+		case string(entities.EventStreamChannelKafka), string(entities.EventStreamChannelWebhook):
+			return true
+		default:
+			return false
+		}
+	}
+
+	return true
+}
+
 func init() {
 	if validate != nil {
 		return
@@ -254,6 +267,7 @@ func init() {
 	_ = validate.RegisterValidation("isTransactionType", isTransactionType)
 	_ = validate.RegisterValidation("isPrivacyFlag", isPrivacyFlag)
 	_ = validate.RegisterValidation("isEventStreamStatus", isEventStreamStatus)
+	_ = validate.RegisterValidation("isChannel", isChannel)
 }
 
 func GetValidator() *validator.Validate {

@@ -73,7 +73,7 @@ func (m *MockOrchestrateMessenger) TransactionNotificationMessage(ctx context.Co
 }
 
 // TransactionNotificationMessage indicates an expected call of TransactionNotificationMessage
-func (mr *MockOrchestrateMessengerMockRecorder) TransactionMessage(ctx, eventStream, job, errMsg, userInfo interface{}) *gomock.Call {
+func (mr *MockOrchestrateMessengerMockRecorder) TransactionNotificationMessage(ctx, eventStream, job, errMsg, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransactionNotificationMessage", reflect.TypeOf((*MockOrchestrateMessenger)(nil).TransactionNotificationMessage), ctx, eventStream, job, errMsg, userInfo)
 }
@@ -87,7 +87,7 @@ func (m *MockOrchestrateMessenger) ContractEventNotificationMessage(ctx context.
 }
 
 // ContractEventNotificationMessage indicates an expected call of ContractEventNotificationMessage
-func (mr *MockOrchestrateMessengerMockRecorder) ContractEventMessage(ctx, eventStream, subscriptionUUID, eventLogs, userInfo interface{}) *gomock.Call {
+func (mr *MockOrchestrateMessengerMockRecorder) ContractEventNotificationMessage(ctx, eventStream, subscriptionUUID, eventLogs, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ContractEventNotificationMessage", reflect.TypeOf((*MockOrchestrateMessenger)(nil).ContractEventNotificationMessage), ctx, eventStream, subscriptionUUID, eventLogs, userInfo)
 }
@@ -245,7 +245,7 @@ func (m *MockMessengerNotifier) TransactionNotificationMessage(ctx context.Conte
 }
 
 // TransactionNotificationMessage indicates an expected call of TransactionNotificationMessage
-func (mr *MockMessengerNotifierMockRecorder) TransactionMessage(ctx, eventStream, job, errMsg, userInfo interface{}) *gomock.Call {
+func (mr *MockMessengerNotifierMockRecorder) TransactionNotificationMessage(ctx, eventStream, job, errMsg, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransactionNotificationMessage", reflect.TypeOf((*MockMessengerNotifier)(nil).TransactionNotificationMessage), ctx, eventStream, job, errMsg, userInfo)
 }
@@ -259,7 +259,7 @@ func (m *MockMessengerNotifier) ContractEventNotificationMessage(ctx context.Con
 }
 
 // ContractEventNotificationMessage indicates an expected call of ContractEventNotificationMessage
-func (mr *MockMessengerNotifierMockRecorder) ContractEventMessage(ctx, eventStream, subscriptionUUID, eventLogs, userInfo interface{}) *gomock.Call {
+func (mr *MockMessengerNotifierMockRecorder) ContractEventNotificationMessage(ctx, eventStream, subscriptionUUID, eventLogs, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ContractEventNotificationMessage", reflect.TypeOf((*MockMessengerNotifier)(nil).ContractEventNotificationMessage), ctx, eventStream, subscriptionUUID, eventLogs, userInfo)
 }

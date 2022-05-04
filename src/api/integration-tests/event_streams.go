@@ -44,7 +44,7 @@ func (s *eventStreamsTestSuite) TestCreate() {
 		req := testdata.FakeCreateWebhookEventStreamRequest()
 		req.Chain = s.chain.Name
 
-		resp, err := s.client.CreateWebhookEventStream(ctx, req)
+		resp, err := s.client.CreateEventStream(ctx, req)
 		require.NoError(t, err)
 
 		assert.Equal(t, s.chain.UUID, resp.ChainUUID)
@@ -64,7 +64,7 @@ func (s *eventStreamsTestSuite) TestCreate() {
 		req := testdata.FakeCreateKafkaEventStreamRequest()
 		req.Chain = s.chain.Name
 
-		resp, err := s.client.CreateKafkaEventStream(ctx, req)
+		resp, err := s.client.CreateEventStream(ctx, req)
 		require.NoError(t, err)
 
 		assert.Equal(t, s.chain.UUID, resp.ChainUUID)
@@ -84,7 +84,7 @@ func (s *eventStreamsTestSuite) TestCreate() {
 		req := testdata.FakeCreateWebhookEventStreamRequest()
 		req.Chain = "invalidChain"
 
-		_, err := s.client.CreateWebhookEventStream(ctx, req)
+		_, err := s.client.CreateEventStream(ctx, req)
 		require.Error(t, err)
 		assert.Equal(t, http.StatusUnprocessableEntity, err.(*client.HTTPErr).Code())
 	})
@@ -93,10 +93,10 @@ func (s *eventStreamsTestSuite) TestCreate() {
 		req := testdata.FakeCreateWebhookEventStreamRequest()
 		req.Chain = ""
 
-		resp, err := s.client.CreateWebhookEventStream(ctx, req)
+		resp, err := s.client.CreateEventStream(ctx, req)
 		require.NoError(t, err)
 
-		_, err = s.client.CreateWebhookEventStream(ctx, req)
+		_, err = s.client.CreateEventStream(ctx, req)
 		assert.Equal(t, http.StatusConflict, err.(*client.HTTPErr).Code())
 
 		err = s.client.DeleteEventStream(ctx, resp.UUID)
@@ -107,10 +107,10 @@ func (s *eventStreamsTestSuite) TestCreate() {
 		req := testdata.FakeCreateWebhookEventStreamRequest()
 		req.Chain = s.chain.Name
 
-		resp, err := s.client.CreateWebhookEventStream(ctx, req)
+		resp, err := s.client.CreateEventStream(ctx, req)
 		require.NoError(t, err)
 
-		_, err = s.client.CreateWebhookEventStream(ctx, req)
+		_, err = s.client.CreateEventStream(ctx, req)
 		assert.Equal(t, http.StatusConflict, err.(*client.HTTPErr).Code())
 
 		err = s.client.DeleteEventStream(ctx, resp.UUID)
@@ -122,10 +122,10 @@ func (s *eventStreamsTestSuite) TestCreate() {
 		req.Name = utils.RandString(5)
 		req.Chain = s.chain.Name
 
-		resp, err := s.client.CreateWebhookEventStream(ctx, req)
+		resp, err := s.client.CreateEventStream(ctx, req)
 		require.NoError(t, err)
 
-		_, err = s.client.CreateWebhookEventStream(ctx, req)
+		_, err = s.client.CreateEventStream(ctx, req)
 		req.Name = utils.RandString(5)
 		assert.Equal(t, http.StatusConflict, err.(*client.HTTPErr).Code())
 
@@ -145,7 +145,7 @@ func (s *eventStreamsTestSuite) TestSearch() {
 	req := testdata.FakeCreateWebhookEventStreamRequest()
 	req.Chain = chain.Name
 
-	es, err := s.client.CreateWebhookEventStream(ctx, req)
+	es, err := s.client.CreateEventStream(ctx, req)
 	require.NoError(s.T(), err)
 
 	defer func() {
@@ -179,7 +179,7 @@ func (s *eventStreamsTestSuite) TestGetOne() {
 	req := testdata.FakeCreateKafkaEventStreamRequest()
 	req.Chain = s.chain.Name
 
-	es, err := s.client.CreateKafkaEventStream(ctx, req)
+	es, err := s.client.CreateEventStream(ctx, req)
 	require.NoError(s.T(), err)
 
 	defer func() {
@@ -200,10 +200,10 @@ func (s *eventStreamsTestSuite) TestUpdate() {
 	s.T().Run("should update event stream successfully: Webhook", func(t *testing.T) {
 		req := testdata.FakeCreateWebhookEventStreamRequest()
 		req.Chain = s.chain.Name
-		esWebhook, err := s.client.CreateWebhookEventStream(ctx, req)
+		esWebhook, err := s.client.CreateEventStream(ctx, req)
 		require.NoError(s.T(), err)
 
-		resp, err := s.client.UpdateWebhookEventStream(ctx, esWebhook.UUID, testdata.FakeUpdateWebhookEventStreamRequest())
+		resp, err := s.client.UpdateEventStream(ctx, esWebhook.UUID, testdata.FakeUpdateEventStreamRequest())
 		require.NoError(t, err)
 
 		assert.Equal(t, string(entities.EventStreamStatusSuspend), resp.Status)
@@ -217,10 +217,10 @@ func (s *eventStreamsTestSuite) TestUpdate() {
 	s.T().Run("should update event stream successfully: Kafka", func(t *testing.T) {
 		req2 := testdata.FakeCreateKafkaEventStreamRequest()
 		req2.Chain = s.chain.Name
-		esKafka, err := s.client.CreateKafkaEventStream(ctx, req2)
+		esKafka, err := s.client.CreateEventStream(ctx, req2)
 		require.NoError(s.T(), err)
 
-		resp, err := s.client.UpdateKafkaEventStream(ctx, esKafka.UUID, testdata.FakeUpdateKafkaEventStreamRequest())
+		resp, err := s.client.UpdateEventStream(ctx, esKafka.UUID, testdata.FakeUpdateEventStreamRequest())
 		require.NoError(t, err)
 
 		assert.Equal(t, string(entities.EventStreamStatusSuspend), resp.Status)

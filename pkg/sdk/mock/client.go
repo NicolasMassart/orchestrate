@@ -749,64 +749,34 @@ func (mr *MockOrchestrateClientMockRecorder) ChainTesseraProxyURL(chainUUID inte
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChainTesseraProxyURL", reflect.TypeOf((*MockOrchestrateClient)(nil).ChainTesseraProxyURL), chainUUID)
 }
 
-// CreateWebhookEventStream mocks base method
-func (m *MockOrchestrateClient) CreateWebhookEventStream(ctx context.Context, request *types.CreateWebhookEventStreamRequest) (*types.EventStreamResponse, error) {
+// CreateEventStream mocks base method
+func (m *MockOrchestrateClient) CreateEventStream(ctx context.Context, request *types.CreateEventStreamRequest) (*types.EventStreamResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateWebhookEventStream", ctx, request)
+	ret := m.ctrl.Call(m, "CreateEventStream", ctx, request)
 	ret0, _ := ret[0].(*types.EventStreamResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// CreateWebhookEventStream indicates an expected call of CreateWebhookEventStream
-func (mr *MockOrchestrateClientMockRecorder) CreateWebhookEventStream(ctx, request interface{}) *gomock.Call {
+// CreateEventStream indicates an expected call of CreateEventStream
+func (mr *MockOrchestrateClientMockRecorder) CreateEventStream(ctx, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateWebhookEventStream", reflect.TypeOf((*MockOrchestrateClient)(nil).CreateWebhookEventStream), ctx, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateEventStream", reflect.TypeOf((*MockOrchestrateClient)(nil).CreateEventStream), ctx, request)
 }
 
-// CreateKafkaEventStream mocks base method
-func (m *MockOrchestrateClient) CreateKafkaEventStream(ctx context.Context, request *types.CreateKafkaEventStreamRequest) (*types.EventStreamResponse, error) {
+// UpdateEventStream mocks base method
+func (m *MockOrchestrateClient) UpdateEventStream(ctx context.Context, uuid string, request *types.UpdateEventStreamRequest) (*types.EventStreamResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateKafkaEventStream", ctx, request)
+	ret := m.ctrl.Call(m, "UpdateEventStream", ctx, uuid, request)
 	ret0, _ := ret[0].(*types.EventStreamResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// CreateKafkaEventStream indicates an expected call of CreateKafkaEventStream
-func (mr *MockOrchestrateClientMockRecorder) CreateKafkaEventStream(ctx, request interface{}) *gomock.Call {
+// UpdateEventStream indicates an expected call of UpdateEventStream
+func (mr *MockOrchestrateClientMockRecorder) UpdateEventStream(ctx, uuid, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateKafkaEventStream", reflect.TypeOf((*MockOrchestrateClient)(nil).CreateKafkaEventStream), ctx, request)
-}
-
-// UpdateWebhookEventStream mocks base method
-func (m *MockOrchestrateClient) UpdateWebhookEventStream(ctx context.Context, uuid string, request *types.UpdateWebhookEventStreamRequest) (*types.EventStreamResponse, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateWebhookEventStream", ctx, uuid, request)
-	ret0, _ := ret[0].(*types.EventStreamResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// UpdateWebhookEventStream indicates an expected call of UpdateWebhookEventStream
-func (mr *MockOrchestrateClientMockRecorder) UpdateWebhookEventStream(ctx, uuid, request interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateWebhookEventStream", reflect.TypeOf((*MockOrchestrateClient)(nil).UpdateWebhookEventStream), ctx, uuid, request)
-}
-
-// UpdateKafkaEventStream mocks base method
-func (m *MockOrchestrateClient) UpdateKafkaEventStream(ctx context.Context, uuid string, request *types.UpdateKafkaEventStreamRequest) (*types.EventStreamResponse, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateKafkaEventStream", ctx, uuid, request)
-	ret0, _ := ret[0].(*types.EventStreamResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// UpdateKafkaEventStream indicates an expected call of UpdateKafkaEventStream
-func (mr *MockOrchestrateClientMockRecorder) UpdateKafkaEventStream(ctx, uuid, request interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateKafkaEventStream", reflect.TypeOf((*MockOrchestrateClient)(nil).UpdateKafkaEventStream), ctx, uuid, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateEventStream", reflect.TypeOf((*MockOrchestrateClient)(nil).UpdateEventStream), ctx, uuid, request)
 }
 
 // GetEventStream mocks base method
@@ -1792,64 +1762,34 @@ func (m *MockEventStreamClient) EXPECT() *MockEventStreamClientMockRecorder {
 	return m.recorder
 }
 
-// CreateWebhookEventStream mocks base method
-func (m *MockEventStreamClient) CreateWebhookEventStream(ctx context.Context, request *types.CreateWebhookEventStreamRequest) (*types.EventStreamResponse, error) {
+// CreateEventStream mocks base method
+func (m *MockEventStreamClient) CreateEventStream(ctx context.Context, request *types.CreateEventStreamRequest) (*types.EventStreamResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateWebhookEventStream", ctx, request)
+	ret := m.ctrl.Call(m, "CreateEventStream", ctx, request)
 	ret0, _ := ret[0].(*types.EventStreamResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// CreateWebhookEventStream indicates an expected call of CreateWebhookEventStream
-func (mr *MockEventStreamClientMockRecorder) CreateWebhookEventStream(ctx, request interface{}) *gomock.Call {
+// CreateEventStream indicates an expected call of CreateEventStream
+func (mr *MockEventStreamClientMockRecorder) CreateEventStream(ctx, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateWebhookEventStream", reflect.TypeOf((*MockEventStreamClient)(nil).CreateWebhookEventStream), ctx, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateEventStream", reflect.TypeOf((*MockEventStreamClient)(nil).CreateEventStream), ctx, request)
 }
 
-// CreateKafkaEventStream mocks base method
-func (m *MockEventStreamClient) CreateKafkaEventStream(ctx context.Context, request *types.CreateKafkaEventStreamRequest) (*types.EventStreamResponse, error) {
+// UpdateEventStream mocks base method
+func (m *MockEventStreamClient) UpdateEventStream(ctx context.Context, uuid string, request *types.UpdateEventStreamRequest) (*types.EventStreamResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateKafkaEventStream", ctx, request)
+	ret := m.ctrl.Call(m, "UpdateEventStream", ctx, uuid, request)
 	ret0, _ := ret[0].(*types.EventStreamResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// CreateKafkaEventStream indicates an expected call of CreateKafkaEventStream
-func (mr *MockEventStreamClientMockRecorder) CreateKafkaEventStream(ctx, request interface{}) *gomock.Call {
+// UpdateEventStream indicates an expected call of UpdateEventStream
+func (mr *MockEventStreamClientMockRecorder) UpdateEventStream(ctx, uuid, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateKafkaEventStream", reflect.TypeOf((*MockEventStreamClient)(nil).CreateKafkaEventStream), ctx, request)
-}
-
-// UpdateWebhookEventStream mocks base method
-func (m *MockEventStreamClient) UpdateWebhookEventStream(ctx context.Context, uuid string, request *types.UpdateWebhookEventStreamRequest) (*types.EventStreamResponse, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateWebhookEventStream", ctx, uuid, request)
-	ret0, _ := ret[0].(*types.EventStreamResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// UpdateWebhookEventStream indicates an expected call of UpdateWebhookEventStream
-func (mr *MockEventStreamClientMockRecorder) UpdateWebhookEventStream(ctx, uuid, request interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateWebhookEventStream", reflect.TypeOf((*MockEventStreamClient)(nil).UpdateWebhookEventStream), ctx, uuid, request)
-}
-
-// UpdateKafkaEventStream mocks base method
-func (m *MockEventStreamClient) UpdateKafkaEventStream(ctx context.Context, uuid string, request *types.UpdateKafkaEventStreamRequest) (*types.EventStreamResponse, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateKafkaEventStream", ctx, uuid, request)
-	ret0, _ := ret[0].(*types.EventStreamResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// UpdateKafkaEventStream indicates an expected call of UpdateKafkaEventStream
-func (mr *MockEventStreamClientMockRecorder) UpdateKafkaEventStream(ctx, uuid, request interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateKafkaEventStream", reflect.TypeOf((*MockEventStreamClient)(nil).UpdateKafkaEventStream), ctx, uuid, request)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateEventStream", reflect.TypeOf((*MockEventStreamClient)(nil).UpdateEventStream), ctx, uuid, request)
 }
 
 // GetEventStream mocks base method

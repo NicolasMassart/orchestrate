@@ -105,10 +105,8 @@ type ContractClient interface {
 }
 
 type EventStreamClient interface {
-	CreateWebhookEventStream(ctx context.Context, request *types.CreateWebhookEventStreamRequest) (*types.EventStreamResponse, error)
-	CreateKafkaEventStream(ctx context.Context, request *types.CreateKafkaEventStreamRequest) (*types.EventStreamResponse, error)
-	UpdateWebhookEventStream(ctx context.Context, uuid string, request *types.UpdateWebhookEventStreamRequest) (*types.EventStreamResponse, error)
-	UpdateKafkaEventStream(ctx context.Context, uuid string, request *types.UpdateKafkaEventStreamRequest) (*types.EventStreamResponse, error)
+	CreateEventStream(ctx context.Context, request *types.CreateEventStreamRequest) (*types.EventStreamResponse, error)
+	UpdateEventStream(ctx context.Context, uuid string, request *types.UpdateEventStreamRequest) (*types.EventStreamResponse, error)
 	GetEventStream(ctx context.Context, uuid string) (*types.EventStreamResponse, error)
 	SearchEventStreams(ctx context.Context, filters *entities.EventStreamFilters) ([]*types.EventStreamResponse, error)
 	DeleteEventStream(ctx context.Context, uuid string) error

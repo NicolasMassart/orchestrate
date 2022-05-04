@@ -221,9 +221,12 @@ func (s *jobsTestSuite) TestUpdatePending() {
 func (s *jobsTestSuite) TestUpdateNotifyWithKafka() {
 	ctx := s.env.ctx
 
-	eventStream, err := s.client.CreateKafkaEventStream(ctx, &api.CreateKafkaEventStreamRequest{
-		Name:  "integration-test-event-stream-kafka",
-		Topic: s.env.notificationTopic,
+	eventStream, err := s.client.CreateEventStream(ctx, &api.CreateEventStreamRequest{
+		Channel: "kafka",
+		Name:    "integration-test-event-stream-kafka",
+		Kafka: &api.KafkaRequest{
+			Topic: s.env.notificationTopic,
+		},
 		Chain: "*",
 	})
 	require.NoError(s.T(), err)
@@ -258,7 +261,7 @@ func (s *jobsTestSuite) TestUpdateNotifyWithKafka() {
 		// @TODO Move to notifier integration tests
 		notificationRes, err := s.env.notifierConsumerTracker.WaitForMinedTransaction(ctx, job.ScheduleUUID, waitForNotificationTimeOut)
 		require.NoError(s.T(), err)
-		
+
 		assert.Equal(s.T(), notificationRes.SourceUUID, job.ScheduleUUID)
 		assert.Equal(s.T(), notificationRes.Data.(*entities.Job).UUID, job.UUID)
 	})
@@ -306,9 +309,12 @@ func (s *jobsTestSuite) TestUpdateNotifyWithWebhook() {
 	webhookDomainURL := "http://webhook.com"
 	webhookURLPath := "/wait-for-notification"
 
-	eventStream, err := s.client.CreateWebhookEventStream(ctx, &api.CreateWebhookEventStreamRequest{
-		Name:  "integration-test-event-stream-webhook",
-		URL:   webhookDomainURL + webhookURLPath,
+	eventStream, err := s.client.CreateEventStream(ctx, &api.CreateEventStreamRequest{
+		Channel: "webhook",
+		Name:    "integration-test-event-stream-webhook",
+		Webhook: &api.WebhookRequest{
+			URL: webhookDomainURL + webhookURLPath,
+		},
 		Chain: chain.Name,
 	})
 	require.NoError(s.T(), err)
@@ -316,7 +322,7 @@ func (s *jobsTestSuite) TestUpdateNotifyWithWebhook() {
 	defer func() {
 		err := s.client.DeleteEventStream(ctx, eventStream.UUID)
 		require.NoError(s.T(), err)
-		
+
 		err = s.client.DeleteChain(ctx, chain.UUID)
 		assert.NoError(s.T(), err)
 	}()

@@ -44,9 +44,12 @@ func RegisterNewChainWithEventStream(ctx context.Context, client sdk.Orchestrate
 		return nil, "", err
 	}
 
-	es, err := client.CreateKafkaEventStream(ctx, &api.CreateKafkaEventStreamRequest{
-		Name:  "chain-" + c.UUID, // Using same reference for future deletion
-		Topic: kafkaTopic,
+	es, err := client.CreateEventStream(ctx, &api.CreateEventStreamRequest{
+		Channel: "kafka",
+		Name:    "chain-" + c.UUID, // Using same reference for future deletion
+		Kafka: &api.KafkaRequest{
+			Topic: kafkaTopic,
+		},
 		Chain: chainName,
 	})
 	if err != nil {
