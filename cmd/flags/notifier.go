@@ -10,19 +10,9 @@ import (
 )
 
 func init() {
-	viper.SetDefault(KafkaConsumerViperKey, kafkaConsumerDefault)
-	_ = viper.BindEnv(KafkaConsumerViperKey, KafkaConsumerEnv)
-
-	viper.SetDefault(KafkaConsumerViperKey, kafkaConsumerDefault)
-	_ = viper.BindEnv(KafkaConsumerViperKey, KafkaConsumerEnv)
+	viper.SetDefault(notifierMaxRetriesViperKey, notifierMaxRetriesDefault)
+	_ = viper.BindEnv(notifierMaxRetriesViperKey, notifierMaxRetriesEnv)
 }
-
-const (
-	notifierKafkaConsumersFlag    = "notifier-kafka-consumers"
-	notifierKafkaConsumerViperKey = "notifier.kafka.consumers"
-	notifierKafkaConsumerDefault  = uint8(1)
-	notifierKafkaConsumerEnv      = "NOTIFIER_KAFKA_NUM_CONSUMERS"
-)
 
 const (
 	notifierMaxRetriesFlag     = "notifier-max-retries"
@@ -33,16 +23,8 @@ const (
 
 func NotifierFlags(f *pflag.FlagSet) {
 	KafkaTopicNotifier(f)
-	notifierKafkaConsumers(f)
 	notifierMaxRetries(f)
 	orchestrateclient.Flags(f)
-}
-
-func notifierKafkaConsumers(f *pflag.FlagSet) {
-	desc := fmt.Sprintf(`Number of parallel kafka consumers to initialize.
-Environment variable: %q`, notifierKafkaConsumerEnv)
-	f.Uint8(notifierKafkaConsumersFlag, notifierKafkaConsumerDefault, desc)
-	_ = viper.BindPFlag(notifierKafkaConsumerViperKey, f.Lookup(notifierKafkaConsumersFlag))
 }
 
 func notifierMaxRetries(f *pflag.FlagSet) {
@@ -56,7 +38,6 @@ func NewNotifierConfig(vipr *viper.Viper) *notifier.Config {
 	return &notifier.Config{
 		Kafka:         NewKafkaConfig(vipr),
 		ConsumerTopic: viper.GetString(NotifierTopicViperKey),
-		NConsumer:     int(vipr.GetUint64(notifierKafkaConsumerViperKey)),
 		MaxRetries:    int(viper.GetUint64(notifierMaxRetriesViperKey)),
 	}
 }

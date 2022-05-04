@@ -34,3 +34,35 @@ func FakeInternalData() *entities.InternalData {
 		StoreID:  "qkm-store-ID",
 	}
 }
+
+type JobMatcher struct {
+	Job *entities.Job
+}
+
+func NewJobMatcher(job *entities.Job) *JobMatcher {
+	return &JobMatcher{
+		Job: job,
+	}
+}
+
+func (j *JobMatcher) Matches(x interface{}) bool {
+	xJob, ok := x.(*entities.Job)
+	if !ok {
+		return false
+	}
+	if xJob.UUID != j.Job.UUID {
+		return false
+	}
+	if xJob.ScheduleUUID != j.Job.ScheduleUUID {
+		return false
+	}
+	if xJob.Status != j.Job.Status {
+		return false
+	}
+	return true
+}
+
+func (j *JobMatcher) String() string {
+	return j.Job.UUID
+}
+

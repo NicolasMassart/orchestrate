@@ -88,11 +88,11 @@ func (s *privTransactionsTestSuite) TestPrivateTransactions_EEA() {
 		})
 		require.NoError(t, err)
 
-		txRes, err := s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, txDeployReq.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
+		txRes, err := s.env.ConsumerTracker.WaitForMinedTransaction(s.ctx, txDeployReq.UUID, s.env.WaitForTxResponseTTL)
 		require.NoError(t, err)
-		assert.Equal(t, txRes.Data.Job.Receipt.PrivateFrom, s.env.TestData.Nodes.Besu[0].PrivateAddress[0])
-		assert.NotEmpty(t, txRes.Data.Job.Receipt.PrivateFor)
-		assert.NotEmpty(t, txRes.Data.Job.Receipt.ContractAddress)
+		assert.Equal(t, txRes.Data.(*entities.Job).Receipt.PrivateFrom, s.env.TestData.Nodes.Besu[0].PrivateAddress[0])
+		assert.NotEmpty(t, txRes.Data.(*entities.Job).Receipt.PrivateFor)
+		assert.NotEmpty(t, txRes.Data.(*entities.Job).Receipt.ContractAddress)
 	})
 
 	s.T().Run("when an user sends a private transaction with invalid private sender it is notified on tx-recover", func(t *testing.T) {
@@ -108,9 +108,9 @@ func (s *privTransactionsTestSuite) TestPrivateTransactions_EEA() {
 		})
 		require.NoError(t, err)
 
-		txRes, err := s.env.ConsumerTracker.WaitForTxFailedNotification(s.ctx, txDeployReq.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
+		txRes, err := s.env.ConsumerTracker.WaitForFailedTransaction(s.ctx, txDeployReq.UUID, s.env.WaitForTxResponseTTL)
 		require.NoError(t, err)
-		assert.NotEmpty(t, txRes.Data.Error)
+		assert.NotEmpty(t, txRes.Error)
 	})
 
 	s.T().Run("when an user sends a private transaction with invalid protocol fail with expected error", func(t *testing.T) {
@@ -157,9 +157,9 @@ func (s *privTransactionsTestSuite) TestPrivateTransactions_GoQuorum() {
 		})
 		require.NoError(t, err)
 
-		txRes, err := s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, txDeployReq.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
+		txRes, err := s.env.ConsumerTracker.WaitForMinedTransaction(s.ctx, txDeployReq.UUID, s.env.WaitForTxResponseTTL)
 		require.NoError(t, err)
-		assert.NotEmpty(t, txRes.Data.Job.Receipt.ContractAddress)
+		assert.NotEmpty(t, txRes.Data.(*entities.Job).Receipt.ContractAddress)
 	})
 
 	s.T().Run("as a user I want to send a private transactions using mandatoryFor and skipping PrivateFrom and be notified when ready", func(t *testing.T) {
@@ -176,9 +176,9 @@ func (s *privTransactionsTestSuite) TestPrivateTransactions_GoQuorum() {
 		})
 		require.NoError(t, err)
 
-		txRes, err := s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, txDeployReq.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
+		txRes, err := s.env.ConsumerTracker.WaitForMinedTransaction(s.ctx, txDeployReq.UUID, s.env.WaitForTxResponseTTL)
 		require.NoError(t, err)
-		assert.NotEmpty(t, txRes.Data.Job.Receipt.ContractAddress)
+		assert.NotEmpty(t, txRes.Data.(*entities.Job).Receipt.ContractAddress)
 	})
 
 	s.T().Run("when an user sends a private transaction with invalid private sender it is notified", func(t *testing.T) {
@@ -194,9 +194,9 @@ func (s *privTransactionsTestSuite) TestPrivateTransactions_GoQuorum() {
 		})
 		require.NoError(t, err)
 
-		txRes, err := s.env.ConsumerTracker.WaitForTxFailedNotification(s.ctx, txDeployReq.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
+		txRes, err := s.env.ConsumerTracker.WaitForFailedTransaction(s.ctx, txDeployReq.UUID, s.env.WaitForTxResponseTTL)
 		require.NoError(t, err)
-		assert.NotEmpty(t, txRes.Data.Error)
+		assert.NotEmpty(t, txRes.Error)
 	})
 
 	s.T().Run("when an user sends a private transaction with invalid protocol fail with expected error", func(t *testing.T) {

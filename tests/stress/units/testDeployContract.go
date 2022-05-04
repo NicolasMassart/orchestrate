@@ -3,17 +3,18 @@ package units
 import (
 	"context"
 	"encoding/json"
-	testutils2 "github.com/consensys/orchestrate/src/infra/messenger/testutils"
+
+	"github.com/consensys/orchestrate/pkg/sdk"
+	"github.com/consensys/orchestrate/tests/pkg/trackers"
 
 	"github.com/consensys/orchestrate/pkg/errors"
-	orchestrateclient "github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/pkg/utils"
 	api "github.com/consensys/orchestrate/src/api/service/types"
 )
 
-func BatchDeployContractTest(ctx context.Context, cfg *WorkloadConfig, client orchestrateclient.OrchestrateClient,
-	consumerTracker *testutils2.NotifierConsumerTracker) error {
+func BatchDeployContractTest(ctx context.Context, cfg *WorkloadConfig, client sdk.OrchestrateClient,
+	consumerTracker *trackers.NotifierConsumerTracker) error {
 	logger := log.WithContext(ctx).SetComponent("stress-test.deploy-contract")
 	nAccount := utils.RandInt(len(cfg.accounts))
 	nArtifact := utils.RandInt(len(cfg.artifacts))
@@ -44,7 +45,7 @@ func BatchDeployContractTest(ctx context.Context, cfg *WorkloadConfig, client or
 		return err
 	}
 
-	_, err = consumerTracker.WaitForTxMinedNotification(ctx, tx.UUID, cfg.kafkaTopic, cfg.waitForEnvelopeTimeout)
+	_, err = consumerTracker.WaitForMinedTransaction(ctx, tx.UUID, cfg.waitForEnvelopeTimeout)
 	if err != nil {
 		if !errors.IsConnectionError(err) {
 			logger = logger.WithField("req", string(sReq))

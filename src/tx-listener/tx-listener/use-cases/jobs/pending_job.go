@@ -3,7 +3,7 @@ package jobs
 import (
 	"context"
 
-	orchestrateclient "github.com/consensys/orchestrate/pkg/sdk/client"
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/infra/ethclient"
@@ -16,12 +16,12 @@ const pendingJobUseCaseComponent = "tx-listener.use-case.pending-job"
 type pendingJobMsg struct {
 	ethClient       ethclient.Client
 	pendingJobState store.PendingJob
-	apiClient       orchestrateclient.OrchestrateClient
+	apiClient       sdk.OrchestrateClient
 	minedJob        usecases.MinedJob
 	logger          *log.Logger
 }
 
-func PendingJob(apiClient orchestrateclient.OrchestrateClient,
+func PendingJob(apiClient sdk.OrchestrateClient,
 	ethClient ethclient.Client,
 	minedJob usecases.MinedJob,
 	pendingJobState store.PendingJob,

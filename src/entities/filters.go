@@ -1,6 +1,10 @@
 package entities
 
-import "time"
+import (
+	"time"
+
+	ethcommon "github.com/ethereum/go-ethereum/common"
+)
 
 type JobFilters struct {
 	TxHashes      []string  `validate:"omitempty,unique,dive,isHash"`
@@ -33,7 +37,14 @@ type EventStreamFilters struct {
 	ChainUUID string   `validate:"omitempty"`
 }
 
+type SubscriptionFilters struct {
+	Addresses []ethcommon.Address `validate:"omitempty,unique"`
+	TenantID  string              `validate:"omitempty"`
+	ChainUUID string              `validate:"omitempty"`
+}
+
 type ChainFilters struct {
 	Names    []string `validate:"omitempty,unique"`
+	ChainID  string   `validate:"omitempty"`
 	TenantID string   `validate:"omitempty"`
 }

@@ -85,6 +85,7 @@ func (agent *PGEventStream) FindOneByTenantAndChain(ctx context.Context, tenantI
 		err2 := agent.client.
 			ModelContext(ctx, eventStream).
 			Where("tenant_id = ?", tenantID).
+			Where("chain_uuid = ?", entities.WildcardChainUUID).
 			WhereAllowedTenants("", tenants).
 			WhereAllowedOwner("", ownerID).
 			SelectOne()

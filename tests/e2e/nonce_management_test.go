@@ -85,7 +85,7 @@ func (s *nonceManagementTestSuite) TestNonceManagement_Recalibrate() {
 			},
 		})
 		require.NoError(s.T(), err)
-		_, err = s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, faucetTxRes.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
+		_, err = s.env.ConsumerTracker.WaitForMinedTransaction(s.ctx, faucetTxRes.UUID, s.env.WaitForTxResponseTTL)
 		require.NoError(s.T(), err)
 
 		txOne, err := s.env.Client.SendTransferTransaction(s.ctx, &types.TransferRequest{
@@ -118,18 +118,18 @@ func (s *nonceManagementTestSuite) TestNonceManagement_Recalibrate() {
 		})
 		require.NoError(s.T(), err)
 
-		txOneRes, err := s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, txOne.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
+		txOneRes, err := s.env.ConsumerTracker.WaitForMinedTransaction(s.ctx, txOne.UUID, s.env.WaitForTxResponseTTL)
 		require.NoError(s.T(), err)
-		assert.Equal(t, uint64(0), *txOneRes.Data.Job.Transaction.Nonce)
+		assert.Equal(t, uint64(0), *txOneRes.Data.(*entities.Job).Transaction.Nonce)
 
 		require.NoError(s.T(), err)
-		txTwoRes, err := s.env.ConsumerTracker.WaitForTxFailedNotification(s.ctx, txTwo.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
+		txTwoRes, err := s.env.ConsumerTracker.WaitForFailedTransaction(s.ctx, txTwo.UUID, s.env.WaitForTxResponseTTL)
 		require.NoError(s.T(), err)
-		assert.NotEmpty(t, txTwoRes.Data.Error)
+		assert.NotEmpty(t, txTwoRes.Error)
 
-		txThreeRes, err := s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, txThree.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
+		txThreeRes, err := s.env.ConsumerTracker.WaitForMinedTransaction(s.ctx, txThree.UUID, s.env.WaitForTxResponseTTL)
 		require.NoError(s.T(), err)
-		assert.Equal(t, uint64(1), *txThreeRes.Data.Job.Transaction.Nonce)
+		assert.Equal(t, uint64(1), *txThreeRes.Data.(*entities.Job).Transaction.Nonce)
 	})
 
 	s.T().Run("as a user I want to recover nonce in case of using same account externally", func(t *testing.T) {
@@ -157,7 +157,7 @@ func (s *nonceManagementTestSuite) TestNonceManagement_Recalibrate() {
 			},
 		})
 		require.NoError(s.T(), err)
-		_, err = s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, faucetTxRes.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
+		_, err = s.env.ConsumerTracker.WaitForMinedTransaction(s.ctx, faucetTxRes.UUID, s.env.WaitForTxResponseTTL)
 		require.NoError(s.T(), err)
 	
 		// Send tx with nonce 0
@@ -192,11 +192,11 @@ func (s *nonceManagementTestSuite) TestNonceManagement_Recalibrate() {
 			},
 		})
 	
-		txOneRes, err := s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, txOne.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
+		txOneRes, err := s.env.ConsumerTracker.WaitForMinedTransaction(s.ctx, txOne.UUID, s.env.WaitForTxResponseTTL)
 		require.NoError(s.T(), err)
-		assert.Equal(t, uint64(0), *txOneRes.Data.Job.Transaction.Nonce)
+		assert.Equal(t, uint64(0), *txOneRes.Data.(*entities.Job).Transaction.Nonce)
 	
-		_, err = s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, txTwo.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
+		_, err = s.env.ConsumerTracker.WaitForMinedTransaction(s.ctx, txTwo.UUID, s.env.WaitForTxResponseTTL)
 		require.NoError(s.T(), err)
 	
 		// Send tx with recalibrated to nonce 2
@@ -212,8 +212,8 @@ func (s *nonceManagementTestSuite) TestNonceManagement_Recalibrate() {
 			},
 		})
 		require.NoError(s.T(), err)
-		txThreeRes, err := s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, txThree.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
+		txThreeRes, err := s.env.ConsumerTracker.WaitForMinedTransaction(s.ctx, txThree.UUID, s.env.WaitForTxResponseTTL)
 		require.NoError(s.T(), err)
-		assert.Equal(t, uint64(2), *txThreeRes.Data.Job.Transaction.Nonce)
+		assert.Equal(t, uint64(2), *txThreeRes.Data.(*entities.Job).Transaction.Nonce)
 	})
 }

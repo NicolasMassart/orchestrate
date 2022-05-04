@@ -5,13 +5,11 @@ import (
 	"net/http"
 
 	"github.com/consensys/orchestrate/pkg/sdk/client"
-	kafkanotifier "github.com/consensys/orchestrate/src/infra/messenger/kafka"
-	webhooknotifier "github.com/consensys/orchestrate/src/infra/messenger/webhook"
-
 	"github.com/consensys/orchestrate/pkg/toolkit/app"
 	authjwt "github.com/consensys/orchestrate/pkg/toolkit/app/auth/jwt"
 	authkey "github.com/consensys/orchestrate/pkg/toolkit/app/auth/key"
 	ethclient "github.com/consensys/orchestrate/src/infra/ethclient/rpc"
+	kafka "github.com/consensys/orchestrate/src/infra/kafka/sarama"
 	"github.com/consensys/orchestrate/src/infra/postgres/gopg"
 	qkmhttp "github.com/consensys/orchestrate/src/infra/quorum-key-manager/http"
 	nonclient "github.com/consensys/orchestrate/src/infra/quorum-key-manager/non-client"
@@ -35,7 +33,7 @@ func New(ctx context.Context, cfg *Config, notifierCfg *notifier.Config) (*Daemo
 		return nil, err
 	}
 
-	kafkaNotifierClient, err := kafkanotifier.NewProducer(cfg.Kafka)
+	kafkaProdClient, err := kafka.NewProducer(cfg.Kafka)
 	if err != nil {
 		return nil, err
 	}
@@ -45,10 +43,7 @@ func New(ctx context.Context, cfg *Config, notifierCfg *notifier.Config) (*Daemo
 	ethclient.Init(ctx)
 	client.Init()
 
-	// Initialize notifier service
-	webhookNotifierClient := webhooknotifier.NewProducer(http.DefaultClient)
-
-	notifierDaemon, err := notifier.New(notifierCfg, postgresClient, client.GlobalClient(), kafkaNotifierClient, webhookNotifierClient)
+	notifierDaemon, err := notifier.New(notifierCfg, postgresClient, client.GlobalClient(), kafkaProdClient, http.DefaultClient)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +56,7 @@ func New(ctx context.Context, cfg *Config, notifierCfg *notifier.Config) (*Daemo
 		qkmClient,
 		cfg.QKM.StoreName,
 		ethclient.GlobalClient(),
-		kafkaNotifierClient,
+		kafkaProdClient,
 		notifierDaemon,
 	)
 

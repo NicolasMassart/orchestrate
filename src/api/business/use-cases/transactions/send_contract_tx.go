@@ -37,11 +37,11 @@ func (uc *sendContractTxUseCase) Execute(ctx context.Context, txRequest *entitie
 	logger.Debug("creating new contract transaction")
 
 	contract, err := uc.getContractUseCase.Execute(ctx, txRequest.Params.ContractName, txRequest.Params.ContractTag)
-	if errors.IsNotFoundError(err) {
-		return nil, errors.InvalidParameterError("contract not found")
-	}
 	if err != nil {
 		return nil, errors.FromError(err).ExtendComponent(sendContractTxComponent)
+	}
+	if contract == nil {
+		return nil, errors.InvalidParameterError("contract not found")
 	}
 
 	// TODO: We restrict the usage of web3-go to only generate the txData but ideally we should use it as much as possible and change the ABI type everywhere in the codebase

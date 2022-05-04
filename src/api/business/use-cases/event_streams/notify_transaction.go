@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/consensys/orchestrate/pkg/errors"
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"github.com/consensys/orchestrate/pkg/types/ethereum"
@@ -11,36 +12,31 @@ import (
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/store"
 	"github.com/consensys/orchestrate/src/entities"
-	"github.com/consensys/orchestrate/src/infra/messenger"
-	"github.com/consensys/orchestrate/src/notifier/service/types"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
 const notifyTransactionComponent = "use-cases.notify_transaction"
 
 type notifyTransactionUseCase struct {
-	db               store.EventStreamAgent
-	messengerCli     messenger.Producer
-	searchContractUC usecases.SearchContractUseCase
-	decodeLogUC      usecases.DecodeEventLogUseCase
-	notifierTopic    string
-	logger           *log.Logger
+	db                  store.EventStreamAgent
+	searchContractUC    usecases.SearchContractUseCase
+	decodeLogUC         usecases.DecodeEventLogUseCase
+	txNotifierMessenger sdk.MessengerNotifier
+	logger              *log.Logger
 }
 
 func NewNotifyTransactionUseCase(
 	db store.EventStreamAgent,
-	messengerCli messenger.Producer,
 	searchContractUC usecases.SearchContractUseCase,
 	decodeLogUC usecases.DecodeEventLogUseCase,
-	notifierTopic string,
+	txNotifierMessenger sdk.MessengerNotifier,
 ) usecases.NotifyTransactionUseCase {
 	return &notifyTransactionUseCase{
-		db:               db,
-		messengerCli:     messengerCli,
-		searchContractUC: searchContractUC,
-		decodeLogUC:      decodeLogUC,
-		notifierTopic:    notifierTopic,
-		logger:           log.NewLogger().SetComponent(notifyTransactionComponent),
+		db:                  db,
+		searchContractUC:    searchContractUC,
+		decodeLogUC:         decodeLogUC,
+		txNotifierMessenger: txNotifierMessenger,
+		logger:              log.NewLogger().SetComponent(notifyTransactionComponent),
 	}
 }
 
@@ -84,20 +80,14 @@ func (uc *notifyTransactionUseCase) Execute(ctx context.Context, job *entities.J
 		}
 	}
 
-	msg := &types.NotificationMessage{
-		Type:        types.TransactionNotificationType,
-		EventStream: eventStream,
-		Job:         job,
-		Error:       errStr,
-	}
-	err = uc.messengerCli.SendNotificationMessage(uc.notifierTopic, msg, job.PartitionKey(), userInfo)
+	err = uc.txNotifierMessenger.TransactionNotificationMessage(ctx, eventStream, job, errStr, userInfo)
 	if err != nil {
 		errMsg := "failed to send notification to notifier service"
 		uc.logger.WithError(err).Error(errMsg)
 		return errors.DependencyFailureError(errMsg).ExtendComponent(notifyTransactionComponent)
 	}
 
-	logger.Debug("notification sent successfully")
+	logger.WithField("event_stream", eventStream.UUID).Debug("notification sent successfully")
 	return nil
 }
 

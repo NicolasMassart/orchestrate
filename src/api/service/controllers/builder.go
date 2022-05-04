@@ -43,26 +43,28 @@ import (
 // @name Authorization
 
 type Builder struct {
-	txCtrl           *TransactionsController
-	schedulesCtrl    *SchedulesController
-	jobsCtrl         *JobsController
-	accountsCtrl     *AccountsController
-	faucetsCtrl      *FaucetsController
-	chainsCtrl       *ChainsController
-	contractsCtrl    *ContractsController
-	eventStreamsCtrl *EventStreamsController
+	txCtrl            *TransactionsController
+	schedulesCtrl     *SchedulesController
+	jobsCtrl          *JobsController
+	accountsCtrl      *AccountsController
+	faucetsCtrl       *FaucetsController
+	chainsCtrl        *ChainsController
+	contractsCtrl     *ContractsController
+	eventStreamsCtrl  *EventStreamsController
+	subscriptionsCtrl *SubscriptionsController
 }
 
 func NewBuilder(ucs usecases.UseCases, keyManagerClient qkm.KeyManagerClient, qkmStoreID string) *Builder {
 	return &Builder{
-		txCtrl:           NewTransactionsController(ucs.Transactions()),
-		schedulesCtrl:    NewSchedulesController(ucs.Schedules()),
-		jobsCtrl:         NewJobsController(ucs.Jobs()),
-		accountsCtrl:     NewAccountsController(ucs.Accounts(), keyManagerClient, qkmStoreID),
-		faucetsCtrl:      NewFaucetsController(ucs.Faucets()),
-		chainsCtrl:       NewChainsController(ucs.Chains()),
-		contractsCtrl:    NewContractsController(ucs.Contracts()),
-		eventStreamsCtrl: NewEventStreamsController(ucs.EventStreams()),
+		txCtrl:            NewTransactionsController(ucs.Transactions()),
+		schedulesCtrl:     NewSchedulesController(ucs.Schedules()),
+		jobsCtrl:          NewJobsController(ucs.Jobs()),
+		accountsCtrl:      NewAccountsController(ucs.Accounts(), keyManagerClient, qkmStoreID),
+		faucetsCtrl:       NewFaucetsController(ucs.Faucets()),
+		chainsCtrl:        NewChainsController(ucs.Chains()),
+		contractsCtrl:     NewContractsController(ucs.Contracts()),
+		eventStreamsCtrl:  NewEventStreamsController(ucs.EventStreams()),
+		subscriptionsCtrl: NewSubscriptionsController(ucs.Subscriptions()),
 	}
 }
 
@@ -81,6 +83,7 @@ func (b *Builder) Build(_ context.Context, _ string, configuration interface{}, 
 	b.chainsCtrl.Append(router)
 	b.contractsCtrl.Append(router)
 	b.eventStreamsCtrl.Append(router)
+	b.subscriptionsCtrl.Append(router)
 
 	return router, nil
 }

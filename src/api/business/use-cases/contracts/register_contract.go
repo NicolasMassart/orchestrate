@@ -36,7 +36,7 @@ func (uc *registerContractUseCase) Execute(ctx context.Context, contract *entiti
 	logger.Debug("registering contract starting...")
 
 	retrievedContract, err := uc.db.Contract().FindOneByNameAndTag(ctx, contract.Name, contract.Tag)
-	if err != nil && !errors.IsNotFoundError(err) {
+	if err != nil {
 		return errors.FromError(err).ExtendComponent(registerContractComponent)
 	}
 

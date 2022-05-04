@@ -109,6 +109,9 @@ func (agent *PGChain) Search(ctx context.Context, filters *entities.ChainFilters
 	if filters.TenantID != "" {
 		q = q.Where("tenant_id = ?", filters.TenantID)
 	}
+	if filters.ChainID != "" {
+		q = q.Where("chain_id = ?", filters.ChainID)
+	}
 
 	err := q.WhereAllowedTenants("", tenants).
 		Order("created_at ASC").

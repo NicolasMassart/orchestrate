@@ -44,10 +44,6 @@ type UpdateJobUseCase interface {
 	Execute(ctx context.Context, jobEntity *entities.Job, nextStatus entities.JobStatus, logMessage string, userInfo *multitenancy.UserInfo) (*entities.Job, error)
 }
 
-type UpdateJobStatusUseCase interface {
-	Execute(ctx context.Context, job *entities.Job, nextStatus entities.JobStatus, msg string) error
-}
-
 type ResendJobTxUseCase interface {
 	Execute(ctx context.Context, jobUUID string, userInfo *multitenancy.UserInfo) error
 }

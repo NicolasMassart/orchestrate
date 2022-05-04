@@ -9,4 +9,5 @@ type UseCases interface {
 	Contracts() ContractUseCases
 	Accounts() AccountUseCases
 	EventStreams() EventStreamsUseCases
+	Subscriptions() SubscriptionUseCases
 }

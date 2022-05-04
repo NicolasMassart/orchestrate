@@ -1,32 +1,28 @@
 package kafka
 
 import (
+	"bytes"
 	"context"
-	"time"
+	encoding "encoding/json"
+	"fmt"
 
-	"github.com/hashicorp/go-multierror"
-	healthz "github.com/heptiolabs/healthcheck"
+	"github.com/consensys/orchestrate/pkg/errors"
+	authutils "github.com/consensys/orchestrate/pkg/toolkit/app/auth/utils"
+	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
+	infra "github.com/consensys/orchestrate/src/infra/api"
+	"github.com/consensys/orchestrate/src/infra/kafka"
+	kafkasarama "github.com/consensys/orchestrate/src/infra/kafka/sarama"
+	"github.com/consensys/orchestrate/src/infra/messenger/types"
 
 	"github.com/Shopify/sarama"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/src/infra/messenger"
 )
 
-const (
-	errorProcessingMessage = "error processing message"
-)
-
-type ConsumerMessageHandler interface {
-	ID() string
-	ProcessMsg(ctx context.Context, rawMsg *sarama.ConsumerMessage, decodedMsg interface{}) error
-	DecodeMessage(rawMsg *sarama.ConsumerMessage) (interface{}, error)
-}
-
 type Consumer struct {
-	consumerGroup sarama.ConsumerGroup
-	handler       ConsumerMessageHandler
+	consumerGroup kafka.ConsumerGroup
+	handler       map[types.ConsumerRequestMessageType]types.MessageHandler
 	topics        []string
-	addrs         []string
 	cancel        context.CancelFunc
 	logger        *log.Logger
 	err           error
@@ -34,8 +30,8 @@ type Consumer struct {
 
 var _ messenger.Consumer = &Consumer{}
 
-func NewMessageConsumer(cfg *Config, topics []string, handler ConsumerMessageHandler) (*Consumer, error) {
-	consumerGroup, err := NewConsumerGroup(cfg)
+func NewMessageConsumer(id string, cfg *kafkasarama.Config, topics []string) (*Consumer, error) {
+	consumerGroup, err := kafkasarama.NewConsumerGroup(cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -43,9 +39,8 @@ func NewMessageConsumer(cfg *Config, topics []string, handler ConsumerMessageHan
 	return &Consumer{
 		consumerGroup: consumerGroup,
 		topics:        topics,
-		addrs:         cfg.URLs,
-		handler:       handler,
-		logger:        log.NewLogger().SetComponent(handler.ID()),
+		logger:        log.NewLogger().SetComponent(id),
+		handler:       map[types.ConsumerRequestMessageType]types.MessageHandler{},
 	}, nil
 }
 
@@ -54,12 +49,7 @@ func (cl *Consumer) Consume(ctx context.Context) error {
 }
 
 func (cl *Consumer) Checker() error {
-	gr := &multierror.Group{}
-	for _, host := range cl.addrs {
-		gr.Go(healthz.TCPDialCheck(host, time.Second*3))
-	}
-
-	return gr.Wait().ErrorOrNil()
+	return cl.consumerGroup.Checker()
 }
 
 func (cl *Consumer) Close() error {
@@ -95,6 +85,10 @@ func (cl *Consumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim sara
 	return cl.err
 }
 
+func (cl *Consumer) AppendHandler(msgType types.ConsumerRequestMessageType, msgHandler types.MessageHandler) {
+	cl.handler[msgType] = msgHandler
+}
+
 func (cl *Consumer) consumeClaimLoop(ctx context.Context, session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	logger := cl.logger.WithContext(ctx)
 	logger.WithField("partition", claim.Partition()).WithField("topic", claim.Topic()).
@@ -114,20 +108,42 @@ func (cl *Consumer) consumeClaimLoop(ctx context.Context, session sarama.Consume
 
 			logger.WithField("timestamp", msg.Timestamp).Trace("message consumed")
 
-			decodedMsg, err := cl.handler.DecodeMessage(msg)
+			req := &types.ConsumerRequestMessage{}
+			err := infra.UnmarshalBody(bytes.NewReader(msg.Value), req)
 			if err != nil {
-				logger.WithError(err).Error("error decoding message", msg)
+				errMessage := "failed to decode notification request"
+				logger.WithError(err).Error(errMessage)
 				session.MarkMessage(msg, "")
 				continue
 			}
 
-			err = cl.handler.ProcessMsg(ctx, msg, decodedMsg)
-			if err != nil {
-				logger.WithError(err).Error(errorProcessingMessage)
-				return err
+			handlerFunc, ok := cl.handler[req.Type]
+			if !ok {
+				errMessage := fmt.Sprintf("missing handler for request type %s", req.Type)
+				logger.Error(errMessage)
+				session.MarkMessage(msg, "")
+				continue
 			}
 
-			logger.Debug("message has been processed successfully")
+			for _, h := range msg.Headers {
+				if string(h.Key) == authutils.UserInfoHeader {
+					userInfo := &multitenancy.UserInfo{}
+					_ = encoding.Unmarshal(h.Value, userInfo)
+					ctx = multitenancy.WithUserInfo(ctx, userInfo)
+				}
+			}
+
+			err = handlerFunc(ctx, req.Body)
+			if err != nil {
+				logger.WithError(err).Error("message has been processed with errors")
+				// Invalid req format do not exit loop
+				if !errors.IsInvalidFormatError(err) {
+					return err
+				}
+			} else {
+				logger.Debug("message has been processed successfully")
+			}
+
 			session.MarkMessage(msg, "")
 			session.Commit()
 		}

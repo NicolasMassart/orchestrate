@@ -25,7 +25,7 @@ func NewDeleteUseCase(db store.EventStreamAgent) usecases.DeleteEventStreamUseCa
 }
 
 func (uc *deleteUseCase) Execute(ctx context.Context, uuid string, userInfo *multitenancy.UserInfo) error {
-	ctx = log.WithFields(ctx, log.Field("event_stream_uuid", uuid))
+	ctx = log.WithFields(ctx, log.Field("event_stream", uuid))
 	logger := uc.logger.WithContext(ctx)
 	logger.Debug("deleting event stream")
 

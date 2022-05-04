@@ -1,7 +1,7 @@
 package builder
 
 import (
-	"github.com/consensys/orchestrate/pkg/sdk/client"
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/src/infra/ethclient"
 	"github.com/consensys/orchestrate/src/tx-sender/tx-sender/nonce"
 	usecases "github.com/consensys/orchestrate/src/tx-sender/tx-sender/use-cases"
@@ -19,7 +19,7 @@ type useCases struct {
 	sendGoQuorumMarkingTx usecases.SendGoQuorumMarkingTxUseCase
 }
 
-func NewUseCases(jobClient client.JobClient,
+func NewUseCases(jobClient sdk.JobClient,
 	keyManagerClient keymanager.KeyManagerClient,
 	ec ethclient.MultiClient,
 	nonceManager nonce.Manager,

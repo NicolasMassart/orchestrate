@@ -30,9 +30,6 @@ func init() {
 
 	viper.SetDefault(NonceManagerExpirationViperKey, nonceManagerExpirationDefault)
 	_ = viper.BindEnv(NonceManagerExpirationViperKey, nonceManagerExpirationEnv)
-
-	viper.SetDefault(KafkaConsumerViperKey, kafkaConsumerDefault)
-	_ = viper.BindEnv(KafkaConsumerViperKey, KafkaConsumerEnv)
 }
 
 const (
@@ -62,13 +59,6 @@ const (
 	nonceManagerExpirationEnv      = "NONCE_MANAGER_EXPIRATION"
 )
 
-const (
-	kafkaConsumersFlag    = "kafka-consumers"
-	KafkaConsumerViperKey = "kafka.consumers"
-	kafkaConsumerDefault  = uint8(1)
-	KafkaConsumerEnv      = "KAFKA_NUM_CONSUMERS"
-)
-
 func TxSenderFlags(f *pflag.FlagSet) {
 	RedisFlags(f)
 	QKMFlags(f)
@@ -86,7 +76,6 @@ func TxSenderFlags(f *pflag.FlagSet) {
 	maxRecovery(f)
 	nonceManagerType(f)
 	nonceManagerExpiration(f)
-	kafkaConsumers(f)
 }
 
 func maxRecovery(f *pflag.FlagSet) {
@@ -110,13 +99,6 @@ Environment variable: %q`, nonceManagerExpirationEnv)
 	_ = viper.BindPFlag(NonceManagerExpirationViperKey, f.Lookup(nonceManagerExpirationFlag))
 }
 
-func kafkaConsumers(f *pflag.FlagSet) {
-	desc := fmt.Sprintf(`Number of parallel kafka consumers to initialize.
-Environment variable: %q`, KafkaConsumerEnv)
-	f.Uint8(kafkaConsumersFlag, kafkaConsumerDefault, desc)
-	_ = viper.BindPFlag(KafkaConsumerViperKey, f.Lookup(kafkaConsumersFlag))
-}
-
 func retryMessageBackOff() backoff.BackOff {
 	bckOff := backoff.NewExponentialBackOff()
 	bckOff.MaxInterval = time.Second * 5
@@ -135,7 +117,6 @@ func NewTxSenderConfig(vipr *viper.Viper) *txsender.Config {
 		NonceManagerType:       vipr.GetString(nonceManagerTypeViperKey),
 		NonceManagerExpiration: vipr.GetDuration(NonceManagerExpirationViperKey),
 		RedisCfg:               NewRedisConfig(vipr),
-		NConsumer:              int(vipr.GetUint64(KafkaConsumerViperKey)),
 		IsMultiTenancyEnabled:  vipr.GetBool(multitenancy.EnabledViperKey),
 		QKM:                    NewQKMConfig(vipr),
 	}

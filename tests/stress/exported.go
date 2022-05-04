@@ -2,8 +2,9 @@ package stress
 
 import (
 	"context"
-	testutils2 "github.com/consensys/orchestrate/src/infra/messenger/testutils"
 	"time"
+
+	"github.com/consensys/orchestrate/tests/pkg/trackers"
 
 	"github.com/consensys/orchestrate/cmd/flags"
 	"github.com/consensys/orchestrate/pkg/backoff"
@@ -46,7 +47,7 @@ func Start(ctx context.Context) error {
 		backoff.IncrementalBackOff(time.Second, time.Second*5, time.Minute))
 	client := orchestrateclient.NewHTTPClient(httpClient, backoffConf)
 
-	consumerTracker, err := testutils2.NewNotifierConsumerTracker(kafkaCfg, []string{cfg.KafkaTopic})
+	consumerTracker, err := trackers.NewNotifierConsumerTacker(*kafkaCfg, []string{cfg.KafkaTopic})
 	if err != nil {
 		return err
 	}

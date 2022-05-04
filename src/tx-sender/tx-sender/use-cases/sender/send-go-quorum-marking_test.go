@@ -8,7 +8,7 @@ import (
 
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
-	"github.com/consensys/orchestrate/pkg/sdk/client/mock"
+	"github.com/consensys/orchestrate/pkg/sdk/mock"
 	api "github.com/consensys/orchestrate/src/api/service/types"
 	testdata2 "github.com/consensys/orchestrate/src/api/service/types/testdata"
 	"github.com/consensys/orchestrate/src/entities"

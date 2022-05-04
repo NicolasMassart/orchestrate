@@ -8,7 +8,7 @@ import (
 	"github.com/cenkalti/backoff/v4"
 	pkgbackoff "github.com/consensys/orchestrate/pkg/backoff"
 	"github.com/consensys/orchestrate/pkg/errors"
-	orchestrateclient "github.com/consensys/orchestrate/pkg/sdk/client"
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/pkg/types/ethereum"
 	"github.com/consensys/orchestrate/pkg/utils"
@@ -23,13 +23,13 @@ import (
 const minedJobUseCaseComponent = "tx-listener.use-case.tx-listener.mined-job"
 
 type minedJobUC struct {
-	client                   orchestrateclient.OrchestrateClient
+	client                   sdk.OrchestrateClient
 	ethClient                ethclient.MultiClient
 	registerDeployedContract usecases.RegisterDeployedContract
 	logger                   *log.Logger
 }
 
-func MinedJobUseCase(client orchestrateclient.OrchestrateClient,
+func MinedJobUseCase(client sdk.OrchestrateClient,
 	ethClient ethclient.MultiClient,
 	registerDeployedContract usecases.RegisterDeployedContract,
 	logger *log.Logger,

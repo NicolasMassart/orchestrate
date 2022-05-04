@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"github.com/consensys/orchestrate/src/api/service/types/testdata"
@@ -18,7 +19,7 @@ import (
 
 type chainsTestSuite struct {
 	suite.Suite
-	client client.OrchestrateClient
+	client sdk.OrchestrateClient
 	env    *IntegrationEnvironment
 }
 

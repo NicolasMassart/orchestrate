@@ -3,7 +3,7 @@ package flags
 import (
 	"fmt"
 
-	"github.com/consensys/orchestrate/src/infra/messenger/kafka"
+	kafka "github.com/consensys/orchestrate/src/infra/kafka/sarama"
 
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -304,5 +304,6 @@ func NewKafkaConfig(vipr *viper.Viper) *kafka.Config {
 		HeartbeatInterval: vipr.GetDuration(kafkaConsumerGroupHeartbeatIntervalViperKey),
 		RebalanceTimeout:  vipr.GetDuration(kafkaConsumerGroupRebalanceTimeoutViperKey),
 		RebalanceStrategy: vipr.GetString(kafkaConsumerGroupRebalanceStrategyViperKey),
+		NConsumers:        vipr.GetInt(kafkaNConsumerViperKey),
 	}
 }

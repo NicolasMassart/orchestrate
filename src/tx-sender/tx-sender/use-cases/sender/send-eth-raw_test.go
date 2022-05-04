@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/consensys/orchestrate/pkg/sdk/client"
-	mock3 "github.com/consensys/orchestrate/pkg/sdk/client/mock"
+	"github.com/consensys/orchestrate/pkg/sdk/mock"
 	apitypes "github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/entities/testdata"
@@ -23,7 +23,7 @@ func TestSendETHRaw_Execute(t *testing.T) {
 	defer ctrl.Finish()
 
 	ec := mock2.NewMockTransactionSender(ctrl)
-	jobClient := mock3.NewMockJobClient(ctrl)
+	jobClient := mock.NewMockJobClient(ctrl)
 	chainRegistryURL := "chainRegistryURL:8081"
 	ctx := context.Background()
 

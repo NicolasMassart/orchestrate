@@ -6,25 +6,24 @@ import (
 	"time"
 
 	"github.com/consensys/orchestrate/pkg/errors"
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/metrics"
 	"github.com/consensys/orchestrate/src/api/store"
 	"github.com/consensys/orchestrate/src/entities"
-	"github.com/consensys/orchestrate/src/infra/messenger"
 )
 
 const updateJobComponent = "use-cases.update-job"
 
 type updateJobUseCase struct {
-	db              store.DB
-	startNextJobUC  usecases.StartNextJobUseCase
-	notifyUC        usecases.NotifyTransactionUseCase
-	metrics         metrics.TransactionSchedulerMetrics
-	txListenerTopic string
-	messenger       messenger.Producer
-	logger          *log.Logger
+	db                  store.DB
+	startNextJobUC      usecases.StartNextJobUseCase
+	notifyUC            usecases.NotifyTransactionUseCase
+	metrics             metrics.TransactionSchedulerMetrics
+	txListenerMessenger sdk.MessengerTxListener
+	logger              *log.Logger
 }
 
 func NewUpdateJobUseCase(
@@ -32,17 +31,15 @@ func NewUpdateJobUseCase(
 	startNextJobUC usecases.StartNextJobUseCase,
 	m metrics.TransactionSchedulerMetrics,
 	notifyUC usecases.NotifyTransactionUseCase,
-	messengerClient messenger.Producer,
-	txListenerTopic string,
+	txListenerMessenger sdk.MessengerTxListener,
 ) usecases.UpdateJobUseCase {
 	return &updateJobUseCase{
-		db:              db,
-		notifyUC:        notifyUC,
-		startNextJobUC:  startNextJobUC,
-		metrics:         m,
-		txListenerTopic: txListenerTopic,
-		messenger:       messengerClient,
-		logger:          log.NewLogger().SetComponent(updateJobComponent),
+		db:                  db,
+		notifyUC:            notifyUC,
+		startNextJobUC:      startNextJobUC,
+		metrics:             m,
+		txListenerMessenger: txListenerMessenger,
+		logger:              log.NewLogger().SetComponent(updateJobComponent),
 	}
 }
 
@@ -75,7 +72,7 @@ func (uc *updateJobUseCase) Execute(ctx context.Context, nextJob *entities.Job, 
 
 	switch nextStatus {
 	case entities.StatusPending:
-		err = uc.messenger.SendJobMessage(uc.txListenerTopic, job, job.ChainUUID, userInfo)
+		err = uc.txListenerMessenger.PendingJobMessage(ctx, job, userInfo)
 		if err != nil {
 			errMsg := "failed to send pending job to tx-listener"
 			uc.logger.WithError(err).Error(errMsg)

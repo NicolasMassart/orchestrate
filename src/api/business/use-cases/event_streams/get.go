@@ -26,7 +26,7 @@ func NewGetUseCase(db store.EventStreamAgent) usecases.GetEventStreamUseCase {
 }
 
 func (uc *getUseCase) Execute(ctx context.Context, uuid string, userInfo *multitenancy.UserInfo) (*entities.EventStream, error) {
-	ctx = log.WithFields(ctx, log.Field("event_stream_uuid", uuid))
+	ctx = log.WithFields(ctx, log.Field("event_stream", uuid))
 	logger := uc.logger.WithContext(ctx)
 
 	e, err := uc.db.FindOneByUUID(ctx, uuid, userInfo.AllowedTenants, userInfo.Username)

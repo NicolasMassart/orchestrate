@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/consensys/orchestrate/pkg/errors"
-	"github.com/consensys/orchestrate/pkg/sdk/client/mock"
+	"github.com/consensys/orchestrate/pkg/sdk/mock"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	api "github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities/testdata"

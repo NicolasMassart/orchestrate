@@ -7,28 +7,28 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/consensys/orchestrate/src/infra/messenger/types"
 	"io/ioutil"
 	"net/http"
 	"testing"
 	"time"
 
+	"github.com/consensys/orchestrate/pkg/sdk"
+	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	testdata2 "github.com/consensys/orchestrate/pkg/types/ethereum/testdata"
 	api "github.com/consensys/orchestrate/src/api/service/types"
-	"github.com/consensys/orchestrate/src/entities"
-	"github.com/stretchr/testify/require"
-	"gopkg.in/h2non/gock.v1"
-
-	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/src/api/service/types/testdata"
+	"github.com/consensys/orchestrate/src/entities"
+	notifierTypes "github.com/consensys/orchestrate/src/notifier/service/types"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"gopkg.in/h2non/gock.v1"
 )
 
 type jobsTestSuite struct {
 	suite.Suite
-	client client.OrchestrateClient
+	client sdk.OrchestrateClient
 	env    *IntegrationEnvironment
 	chain  *api.ChainResponse
 }
@@ -162,10 +162,9 @@ func (s *jobsTestSuite) TestStart() {
 
 		err = s.client.StartJob(ctx, job.UUID)
 		require.NoError(t, err)
-		msgJob, err := s.env.messengerConsumerTracker.WaitForJob(ctx, job.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForNotificationTimeOut)
-		require.NoError(s.T(), err)
-
-		assert.Equal(t, msgJob.UUID, job.UUID)
+		msg, err := s.env.messengerConsumerTracker.WaitForStartedJobMessage(ctx, job.UUID, waitForNotificationTimeOut)
+		require.NoError(t, err)
+		assert.Equal(t, msg.Job.UUID, job.UUID)
 
 		jobRetrieved, err := s.client.GetJob(ctx, job.UUID)
 		require.NoError(t, err)
@@ -188,9 +187,9 @@ func (s *jobsTestSuite) TestStart() {
 		err = s.client.StartJob(ctx, job.UUID)
 		require.NoError(t, err)
 
-		msgJob, err := s.env.messengerConsumerTracker.WaitForJob(ctx, job.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForNotificationTimeOut)
+		msgJob, err := s.env.messengerConsumerTracker.WaitForStartedJobMessage(ctx, job.UUID, waitForNotificationTimeOut)
 		require.NoError(s.T(), err)
-		assert.Equal(t, msgJob.UUID, job.UUID)
+		assert.Equal(t, msgJob.Job.UUID, job.UUID)
 	})
 }
 
@@ -213,7 +212,7 @@ func (s *jobsTestSuite) TestUpdatePending() {
 		})
 		require.NoError(s.T(), err)
 
-		_, err = s.env.messengerConsumerTracker.WaitForJob(ctx, job.UUID, s.env.apiCfg.KafkaTopics.Listener, waitForNotificationTimeOut)
+		_, err = s.env.messengerConsumerTracker.WaitForPendingJobMessage(ctx, job.UUID, waitForNotificationTimeOut)
 		require.NoError(s.T(), err)
 	})
 
@@ -225,13 +224,13 @@ func (s *jobsTestSuite) TestUpdateNotifyWithKafka() {
 	eventStream, err := s.client.CreateKafkaEventStream(ctx, &api.CreateKafkaEventStreamRequest{
 		Name:  "integration-test-event-stream-kafka",
 		Topic: s.env.notificationTopic,
-		Chain: s.chain.Name,
+		Chain: "*",
 	})
 	require.NoError(s.T(), err)
 
 	defer func() {
 		err := s.client.DeleteEventStream(ctx, eventStream.UUID)
-		require.NoError(s.T(), err)
+		assert.NoError(s.T(), err)
 	}()
 
 	s.T().Run("should update job to MINED and notify", func(t *testing.T) {
@@ -252,11 +251,16 @@ func (s *jobsTestSuite) TestUpdateNotifyWithKafka() {
 		})
 		require.NoError(s.T(), err)
 
-		notification, err := s.env.notifierConsumerTracker.WaitForTxMinedNotification(ctx, job.ScheduleUUID, s.env.notificationTopic, waitForNotificationTimeOut)
+		notificationReq, err := s.env.messengerConsumerTracker.WaitForTransactionNotificationMessage(ctx, job.UUID, waitForNotificationTimeOut)
 		require.NoError(s.T(), err)
-
-		assert.Equal(s.T(), notification.SourceUUID, job.ScheduleUUID)
-		assert.Equal(s.T(), notification.Data.(map[string]interface{})["UUID"].(string), job.UUID)
+		assert.Equal(s.T(), notificationReq.Job.UUID, job.UUID)
+		assert.Equal(s.T(), notificationReq.EventStream.UUID, eventStream.UUID)
+		// @TODO Move to notifier integration tests
+		notificationRes, err := s.env.notifierConsumerTracker.WaitForMinedTransaction(ctx, job.ScheduleUUID, waitForNotificationTimeOut)
+		require.NoError(s.T(), err)
+		
+		assert.Equal(s.T(), notificationRes.SourceUUID, job.ScheduleUUID)
+		assert.Equal(s.T(), notificationRes.Data.(*entities.Job).UUID, job.UUID)
 	})
 
 	s.T().Run("should update job to FAILED and notify", func(t *testing.T) {
@@ -277,15 +281,27 @@ func (s *jobsTestSuite) TestUpdateNotifyWithKafka() {
 		})
 		require.NoError(s.T(), err)
 
-		notification, err := s.env.notifierConsumerTracker.WaitForTxFailedNotification(ctx, job.ScheduleUUID, s.env.notificationTopic, waitForNotificationTimeOut)
+		notificationReq, err := s.env.messengerConsumerTracker.WaitForTransactionNotificationMessage(ctx, job.UUID, waitForNotificationTimeOut)
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), notificationReq.Job.UUID, job.UUID)
+		assert.Equal(s.T(), notificationReq.EventStream.UUID, eventStream.UUID)
+		assert.Equal(s.T(), notificationReq.Error, failedErrMsg)
+		// @TODO Move to notifier integration tests
+		notification, err := s.env.notifierConsumerTracker.WaitForFailedTransaction(ctx, job.ScheduleUUID, waitForNotificationTimeOut)
 		require.NoError(s.T(), err)
 		assert.Equal(s.T(), notification.Error, failedErrMsg)
-		assert.Equal(s.T(), notification.SourceUUID, job.ScheduleUUID)
 	})
 }
 
+// @TODO Move to notifier integration tests
 func (s *jobsTestSuite) TestUpdateNotifyWithWebhook() {
 	ctx := s.env.ctx
+
+	chainReq := testdata.FakeRegisterChainRequest()
+	chainReq.URLs = []string{s.env.blockchainNodeURL}
+	chainReq.PrivateTxManagerURL = ""
+	chain, err := s.client.RegisterChain(ctx, chainReq)
+	require.NoError(s.T(), err)
 
 	webhookDomainURL := "http://webhook.com"
 	webhookURLPath := "/wait-for-notification"
@@ -293,13 +309,16 @@ func (s *jobsTestSuite) TestUpdateNotifyWithWebhook() {
 	eventStream, err := s.client.CreateWebhookEventStream(ctx, &api.CreateWebhookEventStreamRequest{
 		Name:  "integration-test-event-stream-webhook",
 		URL:   webhookDomainURL + webhookURLPath,
-		Chain: s.chain.Name,
+		Chain: chain.Name,
 	})
 	require.NoError(s.T(), err)
 
 	defer func() {
 		err := s.client.DeleteEventStream(ctx, eventStream.UUID)
 		require.NoError(s.T(), err)
+		
+		err = s.client.DeleteChain(ctx, chain.UUID)
+		assert.NoError(s.T(), err)
 	}()
 
 	s.T().Run("should update job to MINED and notify", func(t *testing.T) {
@@ -308,12 +327,12 @@ func (s *jobsTestSuite) TestUpdateNotifyWithWebhook() {
 
 		req := testdata.FakeCreateJobRequest()
 		req.ScheduleUUID = schedule.UUID
-		req.ChainUUID = s.chain.UUID
+		req.ChainUUID = chain.UUID
 		req.Transaction.From = nil
 		job, err := s.client.CreateJob(ctx, req)
 		require.NoError(s.T(), err)
 
-		waitNotification := make(chan *types.NotificationResponse, 1)
+		waitNotification := make(chan *notifierTypes.NotificationResponse, 1)
 		waitNotificationErr := make(chan error, 1)
 		gock.New(webhookDomainURL).Post(webhookURLPath).
 			AddMatcher(webhookCallMatcher(waitNotification, waitNotificationErr, waitForNotificationTimeOut)).
@@ -342,12 +361,12 @@ func (s *jobsTestSuite) TestUpdateNotifyWithWebhook() {
 
 		req := testdata.FakeCreateJobRequest()
 		req.ScheduleUUID = schedule.UUID
-		req.ChainUUID = s.chain.UUID
+		req.ChainUUID = chain.UUID
 		req.Transaction.From = nil
 		job, err := s.client.CreateJob(ctx, req)
 		require.NoError(s.T(), err)
 
-		waitNotification := make(chan *types.NotificationResponse, 1)
+		waitNotification := make(chan *notifierTypes.NotificationResponse, 1)
 		waitNotificationErr := make(chan error, 1)
 		gock.New(webhookDomainURL).Post(webhookURLPath).
 			AddMatcher(webhookCallMatcher(waitNotification, waitNotificationErr, waitForNotificationTimeOut)).
@@ -371,7 +390,7 @@ func (s *jobsTestSuite) TestUpdateNotifyWithWebhook() {
 	})
 }
 
-func webhookCallMatcher(cNotification chan *types.NotificationResponse, cErr chan error, duration time.Duration) gock.MatchFunc {
+func webhookCallMatcher(cNotification chan *notifierTypes.NotificationResponse, cErr chan error, duration time.Duration) gock.MatchFunc {
 	ticker := time.NewTicker(duration)
 	defer ticker.Stop()
 	go func() {
@@ -382,7 +401,7 @@ func webhookCallMatcher(cNotification chan *types.NotificationResponse, cErr cha
 	return func(rw *http.Request, grw *gock.Request) (bool, error) {
 		body, _ := ioutil.ReadAll(rw.Body)
 		rw.Body = ioutil.NopCloser(bytes.NewBuffer(body))
-		req := &types.NotificationResponse{}
+		req := &notifierTypes.NotificationResponse{}
 		if err := json.Unmarshal(body, &req); err != nil {
 			cErr <- err
 			return false, err

@@ -3,19 +3,19 @@ package units
 import (
 	"context"
 	"encoding/json"
-	testutils2 "github.com/consensys/orchestrate/src/infra/messenger/testutils"
 
 	"github.com/consensys/orchestrate/pkg/errors"
-	orchestrateclient "github.com/consensys/orchestrate/pkg/sdk/client"
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/pkg/utils"
 	api "github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities"
+	"github.com/consensys/orchestrate/tests/pkg/trackers"
 	"github.com/consensys/orchestrate/tests/stress/assets"
 )
 
-func BatchPrivateTxsTest(ctx context.Context, cfg *WorkloadConfig, client orchestrateclient.OrchestrateClient,
-	consumerTracker *testutils2.NotifierConsumerTracker) error {
+func BatchPrivateTxsTest(ctx context.Context, cfg *WorkloadConfig, client sdk.OrchestrateClient,
+	consumerTracker *trackers.NotifierConsumerTracker) error {
 	logger := log.WithContext(ctx).SetComponent("stress-test.private-txs")
 
 	account := cfg.accounts[utils.RandInt(len(cfg.accounts))]
@@ -60,7 +60,7 @@ func BatchPrivateTxsTest(ctx context.Context, cfg *WorkloadConfig, client orches
 		return err
 	}
 
-	_, err = consumerTracker.WaitForTxMinedNotification(ctx, tx.UUID, cfg.kafkaTopic, cfg.waitForEnvelopeTimeout)
+	_, err = consumerTracker.WaitForMinedTransaction(ctx, tx.UUID, cfg.waitForEnvelopeTimeout)
 	if err != nil {
 		if !errors.IsConnectionError(err) {
 			logger = logger.WithField("req", string(sReq))

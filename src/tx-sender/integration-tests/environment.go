@@ -10,13 +10,14 @@ import (
 	"github.com/alicebob/miniredis"
 	"github.com/cenkalti/backoff/v4"
 	"github.com/consensys/orchestrate/cmd/flags"
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
+	"github.com/consensys/orchestrate/pkg/sdk/messenger"
 	"github.com/consensys/orchestrate/pkg/toolkit/app"
 	httputils "github.com/consensys/orchestrate/pkg/toolkit/app/http"
 	"github.com/consensys/orchestrate/pkg/utils"
 	ethclient "github.com/consensys/orchestrate/src/infra/ethclient/rpc"
-	"github.com/consensys/orchestrate/src/infra/messenger"
-	msgkafka "github.com/consensys/orchestrate/src/infra/messenger/kafka"
+	kafka "github.com/consensys/orchestrate/src/infra/kafka/sarama"
 	"github.com/consensys/orchestrate/src/infra/redis"
 	"github.com/consensys/orchestrate/src/infra/redis/redigo"
 	txsender "github.com/consensys/orchestrate/src/tx-sender"
@@ -51,7 +52,7 @@ type IntegrationEnvironment struct {
 	logger          log.Logger
 	txSender        *app.App
 	client          *docker.Client
-	messengerClient messenger.Producer
+	messengerClient sdk.MessengerTxSender
 	metricsURL      string
 	ns              store.NonceSender
 	redis           redis.Client
@@ -166,11 +167,13 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 		return err
 	}
 
-	env.messengerClient, err = msgkafka.NewProducer(env.txSenderCfg.Kafka)
+	kafkaProd, err := kafka.NewProducer(env.txSenderCfg.Kafka)
 	if err != nil {
 		env.logger.WithError(err).Error("could not initialize kafka producer")
 		return err
 	}
+	
+	env.messengerClient = messenger.NewProducerClient(kafkaProd, env.txSenderCfg.ConsumerTopic)
 
 	// Start tx-sender app
 	err = env.txSender.Start(ctx)

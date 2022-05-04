@@ -10,7 +10,6 @@ package chains
 // 	"github.com/consensys/orchestrate/pkg/errors"
 // 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 // 	storemocks "github.com/consensys/orchestrate/src/tx-listener/store/mocks"
-// 	"github.com/consensys/orchestrate/src/tx-listener/tx-listener/use-cases/mocks"
 // 	ethcommon "github.com/ethereum/go-ethereum/common"
 // 	"github.com/stretchr/testify/require"
 // 
@@ -25,16 +24,14 @@ package chains
 // 	defer ctrl.Finish()
 // 
 // 	pendingJobStore := storemocks.NewMockPendingJob(ctrl)
-// 	retrySessionsStore := storemocks.NewMockRetrySessions(ctrl)
-// 	retryJobSessionManager := mocks.NewMockRetryJobSessionManager(ctrl)
-// 	notifyMinedJobUC := mocks.NewMockNotifyMinedJob(ctrl)
+// 	notifyMinedJobUC := NewMockNotifyMinedJob(ctrl)
 // 	logger := log.NewLogger()
 // 
 // 	chain := testdata.FakeChain()
 // 	expectedErr := fmt.Errorf("expected_err")
 // 
 // 	blockNumber := uint64(1)
-// 	usecase := NewChainBlockUseCase(notifyMinedJobUC, pendingJobStore, retrySessionsStore, logger)
+// 	usecase := NewChainBlockUseCase(notifyMinedJobUC, pendingJobStore, logger)
 // 
 // 	t.Run("should handle mined jobs successfully", func(t *testing.T) {
 // 		jobOne := testdata.FakeJob()

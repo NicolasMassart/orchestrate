@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/consensys/orchestrate/pkg/backoff"
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/spf13/viper"
@@ -13,7 +14,7 @@ import (
 const component = "api.client"
 
 var (
-	client   OrchestrateClient
+	client   sdk.OrchestrateClient
 	initOnce = &sync.Once{}
 )
 
@@ -33,6 +34,6 @@ func Init() {
 	})
 }
 
-func GlobalClient() OrchestrateClient {
+func GlobalClient() sdk.OrchestrateClient {
 	return client
 }

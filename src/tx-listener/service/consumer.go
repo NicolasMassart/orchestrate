@@ -1,18 +1,17 @@
 package service
 
 import (
+	"bytes"
 	"context"
-	encoding "encoding/json"
 	"time"
 
-	"github.com/Shopify/sarama"
 	"github.com/cenkalti/backoff/v4"
 	"github.com/consensys/orchestrate/pkg/errors"
-	authutils "github.com/consensys/orchestrate/pkg/toolkit/app/auth/utils"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
-	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
-	"github.com/consensys/orchestrate/src/entities"
+	"github.com/consensys/orchestrate/src/infra/api"
+	kafka "github.com/consensys/orchestrate/src/infra/kafka/sarama"
 	messenger "github.com/consensys/orchestrate/src/infra/messenger/kafka"
+	"github.com/consensys/orchestrate/src/tx-listener/service/types"
 	"github.com/consensys/orchestrate/src/tx-listener/tx-listener/sessions"
 	usecases "github.com/consensys/orchestrate/src/tx-listener/tx-listener/use-cases"
 )
@@ -21,7 +20,7 @@ const (
 	messageListenerComponent = "service.kafka-consumer"
 )
 
-func NewMessageConsumer(cfg *messenger.Config,
+func NewMessageConsumer(cfg *kafka.Config,
 	topics []string,
 	pendingJobUC usecases.PendingJob,
 	failedJobUC usecases.FailedJob,
@@ -29,11 +28,17 @@ func NewMessageConsumer(cfg *messenger.Config,
 	retryJobSessionMngr sessions.RetryJobSessionManager,
 	bck backoff.BackOff,
 ) (*messenger.Consumer, error) {
-	msgConsumerHandler := newMessageConsumerHandler(pendingJobUC, failedJobUC, chainSessionMngr, retryJobSessionMngr, bck)
-	return messenger.NewMessageConsumer(cfg, topics, msgConsumerHandler)
+	router := NewRouter(pendingJobUC, failedJobUC, chainSessionMngr, retryJobSessionMngr, bck)
+	consumer, err := messenger.NewMessageConsumer(messageListenerComponent, cfg, topics)
+	if err != nil {
+		return nil, err
+	}
+
+	consumer.AppendHandler(PendingJobMessageType, router.HandlePendingJob)
+	return consumer, nil
 }
 
-type messageConsumerHandler struct {
+type Router struct {
 	pendingJobUC        usecases.PendingJob
 	failedJobUC         usecases.FailedJob
 	retryBackOff        backoff.BackOff
@@ -42,14 +47,12 @@ type messageConsumerHandler struct {
 	logger              *log.Logger
 }
 
-var _ messenger.ConsumerMessageHandler = &messageConsumerHandler{}
-
-func newMessageConsumerHandler(pendingJobUC usecases.PendingJob,
+func NewRouter(pendingJobUC usecases.PendingJob,
 	failedJobUC usecases.FailedJob,
 	chainSessionMngr sessions.ChainSessionManager,
 	retryJobSessionMngr sessions.RetryJobSessionManager,
-	bck backoff.BackOff) *messageConsumerHandler {
-	return &messageConsumerHandler{
+	bck backoff.BackOff) *Router {
+	return &Router{
 		retryJobSessionMngr: retryJobSessionMngr,
 		chainSessionMngr:    chainSessionMngr,
 		pendingJobUC:        pendingJobUC,
@@ -59,20 +62,16 @@ func newMessageConsumerHandler(pendingJobUC usecases.PendingJob,
 	}
 }
 
-func (mch *messageConsumerHandler) ProcessMsg(ctx context.Context, rawMsg *sarama.ConsumerMessage, decodedMsg interface{}) error {
-	job := decodedMsg.(*entities.Job)
-	logger := mch.logger.WithField("job", job.UUID).WithField("schedule", job.ScheduleUUID)
-	for _, h := range rawMsg.Headers {
-		if string(h.Key) == authutils.UserInfoHeader {
-			userInfo := &multitenancy.UserInfo{}
-			_ = encoding.Unmarshal(h.Value, userInfo)
-			ctx = multitenancy.WithUserInfo(ctx, userInfo)
-		}
+func (mch *Router) HandlePendingJob(ctx context.Context, rawReq []byte) error {
+	req := &types.PendingJobMessageRequest{}
+	err := api.UnmarshalBody(bytes.NewReader(rawReq), req)
+	if err != nil {
+		return errors.InvalidFormatError("invalid pending job request type")
 	}
 
 	return backoff.RetryNotify(
 		func() error {
-			err := mch.processTask(ctx, job, logger)
+			err := mch.processPendingJob(ctx, req)
 			switch {
 			// Exits if not errors
 			case err == nil:
@@ -84,44 +83,39 @@ func (mch *messageConsumerHandler) ProcessMsg(ctx context.Context, rawMsg *saram
 			case errors.IsConnectionError(err):
 				return err
 			default: // Remaining error types (err != nil)
-				err = mch.failedJobUC.Execute(ctx, job, err.Error())
+				err = mch.failedJobUC.Execute(ctx, req.Job, err.Error())
 				if err != nil {
 					return backoff.Permanent(err)
 				}
-				return nil
 			}
+
+			return nil
 		},
 		mch.retryBackOff,
 		func(err error, duration time.Duration) {
-			logger.WithError(err).Warnf("error processing job, retrying in %v...", duration)
+			mch.logger.WithError(err).Warnf("error processing message, retrying in %v...", duration)
 		},
 	)
 }
 
-func (mch *messageConsumerHandler) DecodeMessage(rawMsg *sarama.ConsumerMessage) (interface{}, error) {
-	return messenger.DecodeJobMessage(rawMsg)
-}
-
-func (mch *messageConsumerHandler) ID() string {
-	return messageListenerComponent
-}
-
-func (mch *messageConsumerHandler) processTask(ctx context.Context, job *entities.Job, logger *log.Logger) error {
-	err := mch.pendingJobUC.Execute(ctx, job)
+func (mch *Router) processPendingJob(ctx context.Context, req *types.PendingJobMessageRequest) error {
+	logger := mch.logger.WithField("job", req.Job.UUID).WithField("schedule", req.Job.ScheduleUUID)
+	err := mch.pendingJobUC.Execute(ctx, req.Job)
 	if err != nil {
 		logger.WithError(err).Error("failed to handle pending job")
 		return err
 	}
 
-	if job.ShouldBeRetried() {
-		err = mch.retryJobSessionMngr.StartSession(ctx, job)
+	if req.Job.ShouldBeRetried() {
+		err = mch.retryJobSessionMngr.StartSession(ctx, req.Job)
 		if err != nil && !errors.IsAlreadyExistsError(err) {
 			logger.WithError(err).Error("failed to start tx-sentry session")
 			return err
 		}
 	}
 
-	err = mch.chainSessionMngr.StartSession(ctx, job.ChainUUID)
+	// @TODO Use full Chain object to avoid re fetching
+	err = mch.chainSessionMngr.StartSession(ctx, req.Job.ChainUUID)
 	if err != nil && !errors.IsAlreadyExistsError(err) {
 		logger.WithError(err).Error("failed to start chain mch session")
 		return err

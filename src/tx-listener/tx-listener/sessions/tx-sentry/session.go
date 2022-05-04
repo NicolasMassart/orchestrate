@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/consensys/orchestrate/pkg/errors"
-	orchestrateclient "github.com/consensys/orchestrate/pkg/sdk/client"
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/src/api/service/formatters"
 	"github.com/consensys/orchestrate/src/api/service/types"
@@ -18,7 +18,7 @@ const retryJobSessionComponent = "tx-listener.retry-job.session"
 
 type RetryJobSession struct {
 	sendRetryJobUseCase usecases.RetryJob
-	client              orchestrateclient.OrchestrateClient
+	client              sdk.OrchestrateClient
 	pendingJobState     store.PendingJob
 	logger              *log.Logger
 	job                 *entities.Job
@@ -33,7 +33,7 @@ type sessionData struct {
 	lastChildJobUUID string
 }
 
-func NewRetryJobSession(client orchestrateclient.OrchestrateClient, sendRetryJobUseCase usecases.RetryJob, pendingJobState store.PendingJob, job *entities.Job, logger *log.Logger) *RetryJobSession {
+func NewRetryJobSession(client sdk.OrchestrateClient, sendRetryJobUseCase usecases.RetryJob, pendingJobState store.PendingJob, job *entities.Job, logger *log.Logger) *RetryJobSession {
 	return &RetryJobSession{
 		sendRetryJobUseCase: sendRetryJobUseCase,
 		client:              client,

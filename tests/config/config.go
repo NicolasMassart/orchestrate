@@ -3,11 +3,13 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	broker "github.com/consensys/orchestrate/src/infra/messenger/kafka"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/consensys/orchestrate/pkg/utils"
+	kafka "github.com/consensys/orchestrate/src/infra/kafka/sarama"
 
 	"github.com/consensys/orchestrate/cmd/flags"
 	"github.com/consensys/orchestrate/pkg/backoff"
@@ -18,7 +20,7 @@ import (
 
 type Config struct {
 	TestData       *TestDataCfg
-	KafkaCfg       *broker.Config
+	KafkaCfg       *kafka.Config
 	OrchestrateCfg *orchestrateclient.Config
 	Artifacts      map[string]*Artifact
 }
@@ -45,6 +47,9 @@ func NewE2eConfig(vipr *viper.Viper) (*Config, error) {
 	}
 	if testData.Timeout == "" {
 		testData.Timeout = "30s"
+	}
+	if testData.Topic == "" {
+		testData.Topic = "test-topic-" + utils.RandString(5)
 	}
 
 	cfg.Artifacts, err = readArtifacts(testData.ArtifactPath)

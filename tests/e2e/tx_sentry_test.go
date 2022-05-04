@@ -86,7 +86,7 @@ func (s *txSentryTestSuite) TestTxSentry_Successful() {
 		},
 	})
 	require.NoError(s.T(), err)
-	_, err = s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, faucetSpammerTxRes.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
+	_, err = s.env.ConsumerTracker.WaitForMinedTransaction(s.ctx, faucetSpammerTxRes.UUID, s.env.WaitForTxResponseTTL)
 	require.NoError(s.T(), err)
 
 	// Run in loop to simulate an active network
@@ -108,7 +108,7 @@ func (s *txSentryTestSuite) TestTxSentry_Successful() {
 				},
 			})
 			if spammerTx != nil {
-				_, _ = s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, spammerTx.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
+				_, _ = s.env.ConsumerTracker.WaitForMinedTransaction(s.ctx, spammerTx.UUID, s.env.WaitForTxResponseTTL)
 			}
 		}
 	}()
@@ -126,7 +126,7 @@ func (s *txSentryTestSuite) TestTxSentry_Successful() {
 			},
 		})
 		require.NoError(s.T(), err)
-		_, err = s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, faucetTxRes.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
+		_, err = s.env.ConsumerTracker.WaitForMinedTransaction(s.ctx, faucetTxRes.UUID, s.env.WaitForTxResponseTTL)
 		require.NoError(s.T(), err)
 
 		txOne, err := s.env.Client.SendTransferTransaction(s.ctx, &types.TransferRequest{
@@ -147,9 +147,9 @@ func (s *txSentryTestSuite) TestTxSentry_Successful() {
 		})
 		require.NoError(s.T(), err)
 
-		txOneRes, err := s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, txOne.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
+		txOneRes, err := s.env.ConsumerTracker.WaitForMinedTransaction(s.ctx, txOne.UUID, s.env.WaitForTxResponseTTL)
 		require.NoError(s.T(), err)
-		require.Equal(t, uint64(1), txOneRes.Data.Job.Receipt.Status)
+		require.Equal(t, uint64(1), txOneRes.Data.(*entities.Job).Receipt.Status)
 
 		finalTxReqStatus, err := s.env.Client.GetTxRequest(s.ctx, txOne.UUID)
 		require.NoError(s.T(), err)
@@ -187,7 +187,7 @@ func (s *txSentryTestSuite) TestTxSentry_Successful() {
 			},
 		})
 		require.NoError(s.T(), err)
-		_, err = s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, faucetTxRes.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
+		_, err = s.env.ConsumerTracker.WaitForMinedTransaction(s.ctx, faucetTxRes.UUID, s.env.WaitForTxResponseTTL)
 		require.NoError(s.T(), err)
 
 		txOne, err := s.env.Client.SendTransferTransaction(s.ctx, &types.TransferRequest{
@@ -206,9 +206,9 @@ func (s *txSentryTestSuite) TestTxSentry_Successful() {
 		})
 		require.NoError(s.T(), err)
 
-		txOneRes, err := s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, txOne.UUID, s.env.KafkaTopic, s.env.WaitForTxResponseTTL)
+		txOneRes, err := s.env.ConsumerTracker.WaitForMinedTransaction(s.ctx, txOne.UUID, s.env.WaitForTxResponseTTL)
 		require.NoError(s.T(), err)
-		require.Equal(t, uint64(1), txOneRes.Data.Job.Receipt.Status)
+		require.Equal(t, uint64(1), txOneRes.Data.(*entities.Job).Receipt.Status)
 
 		finalTxReqStatus, err := s.env.Client.GetTxRequest(s.ctx, txOne.UUID)
 		require.NoError(s.T(), err)
@@ -277,7 +277,7 @@ func (s *txSentryTestSuite) TestTxSentry_Failure() {
 		})
 
 		require.NoError(s.T(), err)
-		_, err = s.env.ConsumerTracker.WaitForTxMinedNotification(s.ctx, txRes.UUID, s.env.KafkaTopic, time.Second*(types.SentryMaxRetries+5))
+		_, err = s.env.ConsumerTracker.WaitForMinedTransaction(s.ctx, txRes.UUID, time.Second*(types.SentryMaxRetries+5))
 		require.Error(t, err)
 
 		finalTxReqStatus, err := s.env.Client.GetTxRequest(s.ctx, txRes.UUID)

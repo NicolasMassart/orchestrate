@@ -14,7 +14,7 @@ import (
 
 func FormatSendTxRequest(sendTxRequest *types.SendTransactionRequest, idempotencyKey string) *entities.TxRequest {
 	if sendTxRequest.Params.ContractTag == "" {
-		sendTxRequest.Params.ContractTag = entities.DefaultTagValue
+		sendTxRequest.Params.ContractTag = entities.DefaultContractTagValue
 	}
 
 	txRequest := &entities.TxRequest{
@@ -55,7 +55,7 @@ func FormatSendTxRequest(sendTxRequest *types.SendTransactionRequest, idempotenc
 
 func FormatDeployContractRequest(deployRequest *types.DeployContractRequest, idempotencyKey string) *entities.TxRequest {
 	if deployRequest.Params.ContractTag == "" {
-		deployRequest.Params.ContractTag = entities.DefaultTagValue
+		deployRequest.Params.ContractTag = entities.DefaultContractTagValue
 	}
 
 	txRequest := &entities.TxRequest{

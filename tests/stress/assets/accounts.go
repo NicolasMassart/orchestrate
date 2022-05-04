@@ -4,16 +4,15 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	api "github.com/consensys/orchestrate/src/api/service/types"
 	ethcommon "github.com/ethereum/go-ethereum/common"
-
-	orchestrateclient "github.com/consensys/orchestrate/pkg/sdk/client"
 )
 
 var accountCtxKey ctxKey = "accounts"
 
-func CreateNewAccount(ctx context.Context, client orchestrateclient.OrchestrateClient) (context.Context, error) {
+func CreateNewAccount(ctx context.Context, client sdk.OrchestrateClient) (context.Context, error) {
 	logger := log.FromContext(ctx)
 	logger.Debug("registering new account...")
 	resp, err := client.CreateAccount(ctx, &api.CreateAccountRequest{})

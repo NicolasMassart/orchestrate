@@ -1,12 +1,11 @@
 package notifier
 
 import (
-	"github.com/consensys/orchestrate/src/infra/messenger/kafka"
+	kafka "github.com/consensys/orchestrate/src/infra/kafka/sarama"
 )
 
 type Config struct {
 	Kafka         *kafka.Config
 	ConsumerTopic string
-	NConsumer     int
 	MaxRetries    int
 }

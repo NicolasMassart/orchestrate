@@ -3,12 +3,13 @@ package api
 import (
 	"github.com/consensys/orchestrate/pkg/toolkit/app"
 	"github.com/consensys/orchestrate/src/api/proxy"
-	"github.com/consensys/orchestrate/src/infra/messenger/kafka"
+	kafka "github.com/consensys/orchestrate/src/infra/kafka/sarama"
 	"github.com/consensys/orchestrate/src/infra/postgres/gopg"
 	quorumkeymanager "github.com/consensys/orchestrate/src/infra/quorum-key-manager/http"
 )
 
 type TopicConfig struct {
+	API      string
 	Sender   string
 	Listener string
 	Notifier string

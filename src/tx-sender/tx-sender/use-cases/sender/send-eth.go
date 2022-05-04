@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/consensys/orchestrate/pkg/errors"
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/src/entities"
@@ -23,14 +24,14 @@ type sendETHTxUseCase struct {
 	nonceChecker     nonce.Manager
 	ec               ethclient.TransactionSender
 	chainRegistryURL string
-	jobClient        client.JobClient
+	jobClient        sdk.JobClient
 	logger           *log.Logger
 }
 
 func NewSendEthTxUseCase(signTx usecases.SignETHTransactionUseCase,
 	crafter usecases.CraftTransactionUseCase,
 	ec ethclient.TransactionSender,
-	jobClient client.JobClient,
+	jobClient sdk.JobClient,
 	chainRegistryURL string,
 	nonceChecker nonce.Manager,
 ) usecases.SendETHTxUseCase {

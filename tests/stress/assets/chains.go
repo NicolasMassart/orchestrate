@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/consensys/orchestrate/pkg/sdk"
 	orchestrateclient "github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	api "github.com/consensys/orchestrate/src/api/service/types"
@@ -22,7 +23,7 @@ type RegisteredChainData struct {
 	EventStreamUUID string
 }
 
-func RegisterNewChainWithEventStream(ctx context.Context, client orchestrateclient.OrchestrateClient, ec ethclient.ChainSyncReader,
+func RegisterNewChainWithEventStream(ctx context.Context, client sdk.OrchestrateClient, ec ethclient.ChainSyncReader,
 	proxyHost, chainName string, chainData *config.ChainDataCfg, kafkaTopic string,
 ) (context.Context, string, error) {
 	logger := log.FromContext(ctx).WithField("name", chainName).WithField("urls", chainData.URLs)
@@ -65,7 +66,7 @@ func RegisterNewChainWithEventStream(ctx context.Context, client orchestrateclie
 	), c.UUID, nil
 }
 
-func DeregisterChainAndEventStreams(ctx context.Context, client orchestrateclient.OrchestrateClient, chain *RegisteredChainData) error {
+func DeregisterChainAndEventStreams(ctx context.Context, client sdk.OrchestrateClient, chain *RegisteredChainData) error {
 	logger := log.FromContext(ctx).WithField("uuid", chain.UUID).WithField("name", chain.Name)
 	logger.WithContext(ctx).Debug("deleting chain")
 

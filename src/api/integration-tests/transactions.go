@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/consensys/orchestrate/pkg/sdk"
 	clientutils "github.com/consensys/orchestrate/pkg/toolkit/app/http/client-utils"
 	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/consensys/orchestrate/src/api/service/controllers"
@@ -25,7 +26,7 @@ import (
 // transactionsTestSuite is a test suite for Transaction Scheduler Transactions controller
 type transactionsTestSuite struct {
 	suite.Suite
-	client   client.OrchestrateClient
+	client   sdk.OrchestrateClient
 	contract *api.ContractResponse
 	env      *IntegrationEnvironment
 }
@@ -66,10 +67,10 @@ func (s *transactionsTestSuite) TestDeployContract() {
 		assert.Equal(t, txRequest.Params.From.Hex(), job.Transaction.From)
 		assert.Equal(t, entities.EthereumTransaction, job.Type)
 
-		msgJob, err := s.env.messengerConsumerTracker.WaitForJob(ctx, job.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForNotificationTimeOut)
+		msgJob, err := s.env.messengerConsumerTracker.WaitForStartedJobMessage(ctx, job.UUID, waitForNotificationTimeOut)
 		require.NoError(s.T(), err)
-		assert.Equal(t, msgJob.UUID, job.UUID)
-		assert.Equal(t, entities.EthereumTransaction, msgJob.Type)
+		assert.Equal(t, msgJob.Job.UUID, job.UUID)
+		assert.Equal(t, entities.EthereumTransaction, msgJob.Job.Type)
 	})
 }
 
@@ -111,11 +112,11 @@ func (s *transactionsTestSuite) TestSendTransaction() {
 		assert.Equal(t, txRequest.Params.To.Hex(), job.Transaction.To)
 		assert.Equal(t, entities.EthereumTransaction, job.Type)
 
-		msgJob, err := s.env.messengerConsumerTracker.WaitForJob(ctx, job.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForNotificationTimeOut)
+		msgJob, err := s.env.messengerConsumerTracker.WaitForStartedJobMessage(ctx, job.UUID, waitForNotificationTimeOut)
 		require.NoError(s.T(), err)
-		assert.Equal(t, msgJob.UUID, job.UUID)
-		assert.Equal(t, job.ScheduleUUID, msgJob.ScheduleUUID)
-		assert.True(t, msgJob.InternalData.OneTimeKey)
+		assert.Equal(t, msgJob.Job.UUID, job.UUID)
+		assert.Equal(t, job.ScheduleUUID, msgJob.Job.ScheduleUUID)
+		assert.True(t, msgJob.Job.InternalData.OneTimeKey)
 	})
 
 	s.T().Run("should succeed if payloads and idempotency key are the same and return same schedule", func(t *testing.T) {
@@ -194,7 +195,9 @@ func (s *transactionsTestSuite) TestSendTransaction() {
 
 		_, err := s.client.SendContractTransaction(ctx, txRequest)
 
-		assert.Equal(t, http.StatusUnprocessableEntity, err.(*client.HTTPErr).Code())
+		httpErr, ok := err.(*client.HTTPErr)
+		require.True(t, ok, err)
+		assert.Equal(t, http.StatusUnprocessableEntity, httpErr.Code())
 	})
 
 	s.T().Run("should fail with 422 if account does not exist", func(t *testing.T) {
@@ -205,7 +208,9 @@ func (s *transactionsTestSuite) TestSendTransaction() {
 
 		_, err := s.client.SendContractTransaction(ctx, txRequest)
 
-		assert.Equal(t, http.StatusUnprocessableEntity, err.(*client.HTTPErr).Code())
+		httpErr, ok := err.(*client.HTTPErr)
+		require.True(t, ok, err)
+		assert.Equal(t, http.StatusUnprocessableEntity, httpErr.Code())
 	})
 }
 
@@ -245,10 +250,10 @@ func (s *transactionsTestSuite) TestSendEEATransaction() {
 		assert.Equal(t, entities.StatusCreated, markingTxJob.Status)
 		assert.Equal(t, entities.EEAMarkingTransaction, markingTxJob.Type)
 
-		msgJob, err := s.env.messengerConsumerTracker.WaitForJob(ctx, privTxJob.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForNotificationTimeOut)
+		msgJob, err := s.env.messengerConsumerTracker.WaitForStartedJobMessage(ctx, privTxJob.UUID, waitForNotificationTimeOut)
 		require.NoError(s.T(), err)
-		assert.Equal(t, privTxJob.UUID, msgJob.UUID)
-		assert.Equal(t, entities.EEAPrivateTransaction, msgJob.Type)
+		assert.Equal(t, privTxJob.UUID, msgJob.Job.UUID)
+		assert.Equal(t, entities.EEAPrivateTransaction, msgJob.Job.Type)
 	})
 }
 
@@ -283,11 +288,11 @@ func (s *transactionsTestSuite) TestSendRawTransaction() {
 		assert.Equal(t, txRequest.Params.Raw.String(), job.Transaction.Raw)
 		assert.Equal(t, entities.EthereumRawTransaction, job.Type)
 
-		msgJob, err := s.env.messengerConsumerTracker.WaitForJob(ctx, job.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForNotificationTimeOut)
+		msgJob, err := s.env.messengerConsumerTracker.WaitForStartedJobMessage(ctx, job.UUID, waitForNotificationTimeOut)
 		require.NoError(s.T(), err)
-		assert.Equal(t, job.ScheduleUUID, msgJob.ScheduleUUID)
-		assert.Equal(t, job.UUID, msgJob.UUID)
-		assert.Equal(t, entities.EthereumRawTransaction, msgJob.Type)
+		assert.Equal(t, job.ScheduleUUID, msgJob.Job.ScheduleUUID)
+		assert.Equal(t, job.UUID, msgJob.Job.UUID)
+		assert.Equal(t, entities.EthereumRawTransaction, msgJob.Job.Type)
 	})
 }
 
@@ -367,10 +372,10 @@ func (s *transactionsTestSuite) TestSendGoQuorumTransaction() {
 		assert.Equal(t, entities.StatusCreated, markingTxJob.Status)
 		assert.Equal(t, entities.GoQuorumMarkingTransaction, markingTxJob.Type)
 
-		msgJob, err := s.env.messengerConsumerTracker.WaitForJob(ctx, privTxJob.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForNotificationTimeOut)
+		msgJob, err := s.env.messengerConsumerTracker.WaitForStartedJobMessage(ctx, privTxJob.UUID, waitForNotificationTimeOut)
 		require.NoError(s.T(), err)
-		assert.Equal(t, privTxJob.UUID, msgJob.UUID)
-		assert.Equal(t, entities.GoQuorumPrivateTransaction, msgJob.Type)
+		assert.Equal(t, privTxJob.UUID, msgJob.Job.UUID)
+		assert.Equal(t, entities.GoQuorumPrivateTransaction, msgJob.Job.Type)
 	})
 }
 
@@ -390,7 +395,7 @@ func (s *transactionsTestSuite) TestSendCallOffTransaction() {
 	txResponse, err := s.client.SendDeployTransaction(ctx, txDeployRequest)
 	require.NoError(s.T(), err)
 
-	_, err = s.env.messengerConsumerTracker.WaitForJob(ctx, txResponse.Jobs[0].UUID, s.env.apiCfg.KafkaTopics.Sender, waitForNotificationTimeOut)
+	_, err = s.env.messengerConsumerTracker.WaitForStartedJobMessage(ctx, txResponse.Jobs[0].UUID, waitForNotificationTimeOut)
 	require.NoError(s.T(), err)
 
 	// Emulate an update done by tx-sender after sending tx to blockchain
@@ -411,13 +416,13 @@ func (s *transactionsTestSuite) TestSendCallOffTransaction() {
 		parentJob := txResponse.Jobs[len(txResponse.Jobs)-2]
 		callOffJob := txResponse.Jobs[len(txResponse.Jobs)-1]
 
-		msgJob, err := s.env.messengerConsumerTracker.WaitForJob(ctx, callOffJob.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForNotificationTimeOut)
+		msgJob, err := s.env.messengerConsumerTracker.WaitForStartedJobMessage(ctx, callOffJob.UUID, waitForNotificationTimeOut)
 		require.NoError(s.T(), err)
 
 		assert.Equal(t, callOffJob.ParentJobUUID, parentJob.UUID)
 		assert.Empty(t, callOffJob.Transaction.Data)
 		assert.Equal(t, "0x2af8", callOffJob.Transaction.GasFeeCap)
-		assert.Equal(t, callOffJob.UUID, msgJob.UUID)
+		assert.Equal(t, callOffJob.UUID, msgJob.Job.UUID)
 	})
 }
 
@@ -437,7 +442,7 @@ func (s *transactionsTestSuite) TestSendSpeedUpTransaction() {
 	txResponse, err := s.client.SendDeployTransaction(ctx, txDeployRequest)
 	require.NoError(s.T(), err)
 
-	_, err = s.env.messengerConsumerTracker.WaitForJob(ctx, txResponse.Jobs[0].UUID, s.env.apiCfg.KafkaTopics.Sender, waitForNotificationTimeOut)
+	_, err = s.env.messengerConsumerTracker.WaitForStartedJobMessage(ctx, txResponse.Jobs[0].UUID, waitForNotificationTimeOut)
 	require.NoError(s.T(), err)
 
 	// Emulate an update done by tx-sender after sending tx to blockchain
@@ -458,12 +463,12 @@ func (s *transactionsTestSuite) TestSendSpeedUpTransaction() {
 		parentJob := txResponse.Jobs[len(txResponse.Jobs)-2]
 		speedUpJob := txResponse.Jobs[len(txResponse.Jobs)-1]
 
-		msgJob, err := s.env.messengerConsumerTracker.WaitForJob(ctx, speedUpJob.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForNotificationTimeOut)
+		msgJob, err := s.env.messengerConsumerTracker.WaitForStartedJobMessage(ctx, speedUpJob.UUID, waitForNotificationTimeOut)
 		require.NoError(s.T(), err)
 
 		assert.Equal(t, speedUpJob.ParentJobUUID, parentJob.UUID)
 		assert.Equal(t, speedUpJob.Transaction.Data, parentJob.Transaction.Data)
 		assert.Equal(t, "0x2af8", speedUpJob.Transaction.GasFeeCap)
-		assert.Equal(t, speedUpJob.UUID, msgJob.UUID)
+		assert.Equal(t, speedUpJob.UUID, msgJob.Job.UUID)
 	})
 }

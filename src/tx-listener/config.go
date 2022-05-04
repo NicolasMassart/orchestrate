@@ -3,7 +3,7 @@ package txlistener
 import (
 	"time"
 
-	"github.com/consensys/orchestrate/src/infra/messenger/kafka"
+	kafka "github.com/consensys/orchestrate/src/infra/kafka/sarama"
 
 	orchestrateclient "github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app"

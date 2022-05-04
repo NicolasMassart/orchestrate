@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/utils"
 	api "github.com/consensys/orchestrate/src/api/service/types"
@@ -25,7 +26,7 @@ import (
 
 type contractsTestSuite struct {
 	suite.Suite
-	client client.OrchestrateClient
+	client sdk.OrchestrateClient
 	env    *IntegrationEnvironment
 }
 
@@ -65,7 +66,7 @@ func (s *contractsTestSuite) TestRegister() {
 		}
 
 		assert.Equal(t, txRequest.Name, resp.Name)
-		assert.Equal(t, entities.DefaultTagValue, resp.Tag)
+		assert.Equal(t, entities.DefaultContractTagValue, resp.Tag)
 		assert.Equal(t, txRequest.DeployedBytecode, resp.DeployedBytecode)
 		assert.Equal(t, txRequest.Bytecode, resp.Bytecode)
 	})

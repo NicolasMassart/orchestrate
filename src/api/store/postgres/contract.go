@@ -159,10 +159,10 @@ LIMIT 1
 func (agent *PGContract) FindOneByNameAndTag(ctx context.Context, name, tag string) (*entities.Contract, error) {
 	artifact, err := agent.findArtifactByNameAndTag(ctx, name, tag)
 	if err != nil {
-		errMessage := "could not find contract by name and tag"
 		if errors.IsNotFoundError(err) {
-			return nil, errors.FromError(err).SetMessage(errMessage)
+			return nil, nil
 		}
+		errMessage := "failed find contract by name and tag"
 		agent.logger.WithContext(ctx).WithError(err).Error(errMessage)
 		return nil, errors.FromError(err).SetMessage(errMessage)
 	}

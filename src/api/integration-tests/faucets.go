@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/api/service/types/testdata"
@@ -21,7 +22,7 @@ import (
 
 type faucetsTestSuite struct {
 	suite.Suite
-	client  client.OrchestrateClient
+	client  sdk.OrchestrateClient
 	env     *IntegrationEnvironment
 	chain   *types.ChainResponse
 	account *types.AccountResponse
@@ -278,15 +279,15 @@ func (s *faucetsTestSuite) TestSuccess_TxsWithFaucet() {
 		assert.Equal(t, txRequest.Params.To.Hex(), txJobRes.Transaction.To)
 		assert.Equal(t, entities.EthereumTransaction, txJobRes.Type)
 	
-		fctEvlp, err := s.env.messengerConsumerTracker.WaitForJob(ctx, faucetJobRes.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForNotificationTimeOut)
+		fctEvlp, err := s.env.messengerConsumerTracker.WaitForStartedJobMessage(ctx, faucetJobRes.UUID, waitForNotificationTimeOut)
 		require.NoError(t, err)
-		assert.Equal(t, faucetJobRes.ScheduleUUID, fctEvlp.ScheduleUUID)
-		assert.Equal(t, faucetJobRes.UUID, fctEvlp.UUID)
+		assert.Equal(t, faucetJobRes.ScheduleUUID, fctEvlp.Job.ScheduleUUID)
+		assert.Equal(t, faucetJobRes.UUID, fctEvlp.Job.UUID)
 	
-		jobEvlp, err := s.env.messengerConsumerTracker.WaitForJob(ctx, txJobRes.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForNotificationTimeOut)
+		jobEvlp, err := s.env.messengerConsumerTracker.WaitForStartedJobMessage(ctx, txJobRes.UUID, waitForNotificationTimeOut)
 		require.NoError(t, err)
-		assert.Equal(t, txJobRes.ScheduleUUID, jobEvlp.ScheduleUUID)
-		assert.Equal(t, txJobRes.UUID, jobEvlp.UUID)
+		assert.Equal(t, txJobRes.ScheduleUUID, jobEvlp.Job.ScheduleUUID)
+		assert.Equal(t, txJobRes.UUID, jobEvlp.Job.UUID)
 	})
 
 	s.T().Run("should send a raw transaction with an additional faucet job", func(t *testing.T) {
@@ -317,14 +318,14 @@ func (s *faucetsTestSuite) TestSuccess_TxsWithFaucet() {
 		assert.Equal(t, "0x4c7aF4B315644848f400b7344A8e73Cf227812b4", txJob.Transaction.From)
 		assert.Equal(t, entities.EthereumRawTransaction, txJob.Type)
 	
-		fctEvlp, err := s.env.messengerConsumerTracker.WaitForJob(ctx, faucetJob.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForNotificationTimeOut)
+		fctEvlp, err := s.env.messengerConsumerTracker.WaitForStartedJobMessage(ctx, faucetJob.UUID, waitForNotificationTimeOut)
 		require.NoError(t, err)
-		assert.Equal(t, faucetJob.ScheduleUUID, fctEvlp.ScheduleUUID)
-		assert.Equal(t, faucetJob.UUID, fctEvlp.UUID)
-	
-		jobEvlp, err := s.env.messengerConsumerTracker.WaitForJob(ctx, txJob.UUID, s.env.apiCfg.KafkaTopics.Sender, waitForNotificationTimeOut)
+		assert.Equal(t, faucetJob.ScheduleUUID, fctEvlp.Job.ScheduleUUID)
+		// assert.Equal(t, faucetJob.UUID, fctEvlp.Job.UUID)
+		
+		jobEvlp, err := s.env.messengerConsumerTracker.WaitForStartedJobMessage(ctx, txJob.UUID, waitForNotificationTimeOut)
 		require.NoError(t, err)
-		assert.Equal(t, txJob.ScheduleUUID, jobEvlp.ScheduleUUID)
-		assert.Equal(t, txJob.UUID, jobEvlp.UUID)
+		assert.Equal(t, txJob.ScheduleUUID, jobEvlp.Job.ScheduleUUID)
+		assert.Equal(t, txJob.UUID, jobEvlp.Job.UUID)
 	})
 }

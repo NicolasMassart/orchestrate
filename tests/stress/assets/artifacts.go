@@ -2,14 +2,13 @@ package assets
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
 
-	"encoding/json"
-
-	"github.com/consensys/orchestrate/pkg/sdk/client"
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	api "github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities"
@@ -24,7 +23,7 @@ type Artifact struct {
 	DeployedBytecode string
 }
 
-func RegisterNewContract(ctx context.Context, cClient client.ContractClient, artifactPath, name string) (context.Context, error) {
+func RegisterNewContract(ctx context.Context, cClient sdk.ContractClient, artifactPath, name string) (context.Context, error) {
 	logger := log.FromContext(ctx).WithField("name", name)
 	logger.Debug("registering new contract")
 	contract, err := readContract(ctx, artifactPath, fmt.Sprintf("%s.json", name))

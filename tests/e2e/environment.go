@@ -3,9 +3,11 @@ package e2e
 import (
 	"context"
 	"fmt"
-	"github.com/consensys/orchestrate/src/infra/messenger/testutils"
 	"net/http"
 	"time"
+
+	"github.com/consensys/orchestrate/pkg/sdk"
+	"github.com/consensys/orchestrate/tests/pkg/trackers"
 
 	orchestrateclient "github.com/consensys/orchestrate/pkg/sdk/client"
 	pkghttp "github.com/consensys/orchestrate/pkg/toolkit/app/http"
@@ -26,8 +28,8 @@ type Environment struct {
 	Logger               *log.Logger
 	HTTPClient           *http.Client
 	EthClient            *rpc.Client
-	Client               orchestrateclient.OrchestrateClient
-	ConsumerTracker      *testutils.NotifierConsumerTracker
+	Client               sdk.OrchestrateClient
+	ConsumerTracker      *trackers.NotifierConsumerTracker
 	KafkaTopic           string
 	TestData             *config.TestDataCfg
 	Artifacts            map[string]*config.Artifact
@@ -78,8 +80,7 @@ func NewEnvironment(ctx context.Context, ctxCancel context.CancelFunc) (*Environ
 	orchClient := orchestrateclient.NewHTTPClient(httpClient, cfg.OrchestrateCfg)
 	ethClient := rpc.NewClient(httpClient)
 
-	kafkaTopic := "test-topic-" + utils.RandString(5)
-	consumerTracker, err := testutils.NewNotifierConsumerTracker(cfg.KafkaCfg, []string{kafkaTopic})
+	consumerTracker, err := trackers.NewNotifierConsumerTacker(*cfg.KafkaCfg, []string{cfg.TestData.Topic})
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +93,7 @@ func NewEnvironment(ctx context.Context, ctxCancel context.CancelFunc) (*Environ
 		HTTPClient:           httpClient,
 		EthClient:            ethClient,
 		ConsumerTracker:      consumerTracker,
-		KafkaTopic:           kafkaTopic,
+		KafkaTopic:           cfg.TestData.Topic,
 		TestData:             cfg.TestData,
 		Artifacts:            cfg.Artifacts,
 		UserInfo:             userInfo,

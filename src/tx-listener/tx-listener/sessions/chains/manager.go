@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/consensys/orchestrate/pkg/errors"
-	orchestrateclient "github.com/consensys/orchestrate/pkg/sdk/client"
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/src/api/service/formatters"
 	"github.com/consensys/orchestrate/src/infra/ethclient"
@@ -16,14 +16,14 @@ const listenBlocksComponent = "tx-listener.chains.session-manager"
 
 type ChainSessionMngr struct {
 	ethClient       ethclient.Client
-	apiClient       orchestrateclient.OrchestrateClient
+	apiClient       sdk.OrchestrateClient
 	chainBlockTxsUC usecases.ChainBlock
 	logger          *log.Logger
 	pendingJobState store.PendingJob
 	chainState      store.Chain
 }
 
-func ChainSessionManager(apiClient orchestrateclient.OrchestrateClient,
+func ChainSessionManager(apiClient sdk.OrchestrateClient,
 	ethClient ethclient.Client,
 	chainBlockTxsUC usecases.ChainBlock,
 	pendingJobState store.PendingJob,

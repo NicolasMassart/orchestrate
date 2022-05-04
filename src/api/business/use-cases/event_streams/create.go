@@ -47,7 +47,9 @@ func (uc *createUseCase) Execute(ctx context.Context, eventStream *entities.Even
 		return nil, errors.AlreadyExistsError(errMsg).ExtendComponent(createEventStreamComponent)
 	}
 
-	if chainName != "" {
+	if chainName == entities.WildcardChainName {
+		eventStream.ChainUUID = entities.WildcardChainUUID
+	} else if chainName != "" {
 		chains, err2 := uc.searchChainsUC.Execute(ctx, &entities.ChainFilters{Names: []string{chainName}}, userInfo)
 		if err2 != nil {
 			return nil, err2

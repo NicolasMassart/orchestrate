@@ -231,7 +231,7 @@ func (s *txListenerJobTestSuite) TestRetryJob() {
 func (s *txListenerJobTestSuite) sendJobMessage(job *entities.Job) error {
 	s.env.logger.WithField("job", job.UUID).WithField("topic", s.env.cfg.ConsumerTopic).
 		Info("sending message")
-	err := s.env.messengerClient.SendJobMessage(s.env.cfg.ConsumerTopic, job, job.ChainUUID, multitenancy.NewInternalAdminUser())
+	err := s.env.messengerClient.PendingJobMessage(s.env.ctx, job, multitenancy.NewInternalAdminUser())
 	if err != nil {
 		return err
 	}

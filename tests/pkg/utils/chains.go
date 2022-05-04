@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/src/api/service/types"
@@ -38,7 +39,7 @@ func WaitForProxy(ctx context.Context, chainProxyURL string, ec ethclient.ChainS
 	)
 }
 
-func RegisterChainAndWaitForProxy(ctx context.Context, sdkClient client.OrchestrateClient, ec ethclient.ChainSyncReader, req *types.RegisterChainRequest) (*types.ChainResponse, error) {
+func RegisterChainAndWaitForProxy(ctx context.Context, sdkClient sdk.OrchestrateClient, ec ethclient.ChainSyncReader, req *types.RegisterChainRequest) (*types.ChainResponse, error) {
 	chainRes, err := sdkClient.RegisterChain(ctx, req)
 	if err != nil {
 		return nil, err

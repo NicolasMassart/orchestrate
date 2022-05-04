@@ -18,5 +18,5 @@ type CreateTxNotificationUseCase interface {
 }
 
 type SendNotificationUseCase interface {
-	Execute(ctx context.Context, notif *entities.Notification, eventStream *entities.EventStream) error
+	Execute(ctx context.Context, eventStream *entities.EventStream, notif *entities.Notification) error
 }

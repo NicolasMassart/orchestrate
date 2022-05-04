@@ -5,7 +5,7 @@ import (
 	"math/big"
 
 	"github.com/consensys/orchestrate/pkg/errors"
-	orchestrateclient "github.com/consensys/orchestrate/pkg/sdk/client"
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	api "github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities"
@@ -20,12 +20,12 @@ const registerDeployContractComponent = "tx-listener.use-case.tx-listener.regist
 
 type registerDeployedContractUseCase struct {
 	chainState store.Chain
-	client     orchestrateclient.OrchestrateClient
+	client     sdk.OrchestrateClient
 	ethClient  ethclient.MultiClient
 	logger     *log.Logger
 }
 
-func RegisterDeployedContractUseCase(client orchestrateclient.OrchestrateClient,
+func RegisterDeployedContractUseCase(client sdk.OrchestrateClient,
 	ethClient ethclient.MultiClient,
 	chainState store.Chain,
 	logger *log.Logger,

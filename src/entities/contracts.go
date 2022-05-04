@@ -8,7 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
-const DefaultTagValue = "latest"
+const DefaultContractTagValue = "latest"
 
 type Contract struct {
 	Name             string
@@ -58,7 +58,7 @@ type RawABI struct {
 }
 
 func (c *Contract) String() string {
-	tag := DefaultTagValue
+	tag := DefaultContractTagValue
 	if c.Tag != "" {
 		tag = c.Tag
 	}

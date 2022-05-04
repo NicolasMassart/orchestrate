@@ -2,19 +2,18 @@ package service
 
 import (
 	"context"
-	encoding "encoding/json"
+	"encoding/json"
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
-	"github.com/consensys/orchestrate/pkg/sdk/client"
-	authutils "github.com/consensys/orchestrate/pkg/toolkit/app/auth/utils"
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
-	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"github.com/consensys/orchestrate/src/entities"
-	"github.com/consensys/orchestrate/src/infra/messenger/kafka"
-	utils2 "github.com/consensys/orchestrate/src/tx-sender/tx-sender/utils"
+	kafka "github.com/consensys/orchestrate/src/infra/kafka/sarama"
+	messenger "github.com/consensys/orchestrate/src/infra/messenger/kafka"
+	"github.com/consensys/orchestrate/src/tx-sender/service/types"
+	"github.com/consensys/orchestrate/src/tx-sender/tx-sender/utils"
 
-	"github.com/Shopify/sarama"
 	"github.com/consensys/orchestrate/pkg/errors"
 	usecases "github.com/consensys/orchestrate/src/tx-sender/tx-sender/use-cases"
 )
@@ -23,20 +22,27 @@ const (
 	messageListenerComponent = "service.kafka-consumer"
 )
 
-func NewMessageConsumer(cfg *kafka.Config, topics []string, useCases usecases.UseCases, jobClient client.JobClient, bck backoff.BackOff) (*kafka.Consumer, error) {
-	msgConsumerHandler := newMessageConsumerHandler(useCases, jobClient, bck)
-	return kafka.NewMessageConsumer(cfg, topics, msgConsumerHandler)
+func NewMessageConsumer(cfg *kafka.Config, topics []string, useCases usecases.UseCases, jobClient sdk.JobClient, bck backoff.BackOff) (*messenger.Consumer, error) {
+	consumer, err := messenger.NewMessageConsumer(messageListenerComponent, cfg, topics)
+	if err != nil {
+		return nil, err
+	}
+
+	router := newRouter(useCases, jobClient, bck)
+	consumer.AppendHandler(StartedJobMessageType, router.HandleStartedJob)
+
+	return consumer, nil
 }
 
-type messageConsumerHandler struct {
+type Router struct {
 	useCases     usecases.UseCases
 	retryBackOff backoff.BackOff
-	jobClient    client.JobClient
+	jobClient    sdk.JobClient
 	logger       *log.Logger
 }
 
-func newMessageConsumerHandler(useCases usecases.UseCases, jobClient client.JobClient, bck backoff.BackOff) *messageConsumerHandler {
-	return &messageConsumerHandler{
+func newRouter(useCases usecases.UseCases, jobClient sdk.JobClient, bck backoff.BackOff) *Router {
+	return &Router{
 		useCases:     useCases,
 		retryBackOff: bck,
 		jobClient:    jobClient,
@@ -44,40 +50,18 @@ func newMessageConsumerHandler(useCases usecases.UseCases, jobClient client.JobC
 	}
 }
 
-func (mch *messageConsumerHandler) DecodeMessage(rawMsg *sarama.ConsumerMessage) (interface{}, error) {
-	return kafka.DecodeJobMessage(rawMsg)
-}
-
-func (mch *messageConsumerHandler) ID() string {
-	return messageListenerComponent
-}
-
-func (mch *messageConsumerHandler) ProcessMsg(ctx context.Context, rawMsg *sarama.ConsumerMessage, decodedMsg interface{}) error {
-	job := decodedMsg.(*entities.Job)
-	logger := mch.logger.WithField("job", job.UUID).WithField("schedule", job.ScheduleUUID)
-	for _, h := range rawMsg.Headers {
-		if string(h.Key) == authutils.UserInfoHeader {
-			userInfo := &multitenancy.UserInfo{}
-			_ = encoding.Unmarshal(h.Value, userInfo)
-			ctx = multitenancy.WithUserInfo(ctx, userInfo)
-		}
-	}
-
-	err := mch.processTask(ctx, job, logger)
+func (mch *Router) HandleStartedJob(ctx context.Context, rawReq []byte) error {
+	req := &types.StartedJobReq{}
+	err := json.Unmarshal(rawReq, req)
 	if err != nil {
-		serr := utils2.UpdateJobStatus(ctx, mch.jobClient, job, entities.StatusFailed, err.Error(), nil)
-		if serr != nil {
-			return serr
-		}
+		mch.logger.Warnf("%q", rawReq)
+		return errors.InvalidFormatError("invalid start job request type")
 	}
 
-	return nil
-}
-
-func (mch *messageConsumerHandler) processTask(ctx context.Context, job *entities.Job, logger *log.Logger) error {
-	return backoff.RetryNotify(
+	logger := mch.logger.WithField("job", req.Job.UUID).WithField("schedule", req.Job.ScheduleUUID)
+	err = backoff.RetryNotify(
 		func() error {
-			err := mch.executeSendJob(ctx, job)
+			err = mch.executeSendJob(ctx, req.Job)
 			switch {
 			// Exits if not errors
 			case err == nil:
@@ -94,20 +78,20 @@ func (mch *messageConsumerHandler) processTask(ctx context.Context, job *entitie
 			switch {
 			// Retry over same message
 			case errors.IsInvalidNonceWarning(err):
-				resetJobTx(job)
-				serr = utils2.UpdateJobStatus(ctx, mch.jobClient, job,
+				resetJobTx(req.Job)
+				serr = utils.UpdateJobStatus(ctx, mch.jobClient, req.Job,
 					entities.StatusRecovering, err.Error(), nil)
 				if serr == nil {
 					return err
 				}
 			case errors.IsKnownTransactionError(err) || errors.IsNonceTooLowError(err):
-				if job.InternalData.ParentJobUUID != "" {
+				if req.Job.InternalData.ParentJobUUID != "" {
 					logger.WithError(err).Warn("ignoring known transaction or nonce too low when it is a child job...")
 					return nil
 				}
 				return err
 			default:
-				serr = utils2.UpdateJobStatus(ctx, mch.jobClient, job,
+				serr = utils.UpdateJobStatus(ctx, mch.jobClient, req.Job,
 					entities.StatusFailed, err.Error(), nil)
 			}
 
@@ -127,9 +111,18 @@ func (mch *messageConsumerHandler) processTask(ctx context.Context, job *entitie
 			logger.WithError(err).Warnf("error processing job, retrying in %v...", duration)
 		},
 	)
+
+	if err != nil {
+		serr := utils.UpdateJobStatus(ctx, mch.jobClient, req.Job, entities.StatusFailed, err.Error(), nil)
+		if serr != nil {
+			return serr
+		}
+	}
+
+	return nil
 }
 
-func (mch *messageConsumerHandler) executeSendJob(ctx context.Context, job *entities.Job) error {
+func (mch *Router) executeSendJob(ctx context.Context, job *entities.Job) error {
 	switch job.Type {
 	case entities.GoQuorumPrivateTransaction:
 		return mch.useCases.SendGoQuorumPrivateTx().Execute(ctx, job)

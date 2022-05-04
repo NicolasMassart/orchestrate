@@ -36,6 +36,9 @@ func (uc *getContractUseCase) Execute(ctx context.Context, name, tag string) (*e
 	if err != nil {
 		return nil, errors.FromError(err).ExtendComponent(getContractComponent)
 	}
+	if contract == nil {
+		return nil, nil
+	}
 
 	contract.ABI, err = abi.JSON(strings.NewReader(contract.RawABI))
 	if err != nil {

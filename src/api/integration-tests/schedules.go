@@ -3,18 +3,19 @@
 package integrationtests
 
 import (
+	"testing"
+
+	"github.com/consensys/orchestrate/pkg/sdk"
+	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
-	"github.com/consensys/orchestrate/pkg/sdk/client"
-	"testing"
 )
 
 // schedulesTestSuite is a test suite for Schedules controller
 type schedulesTestSuite struct {
 	suite.Suite
-	client client.OrchestrateClient
+	client sdk.OrchestrateClient
 	env    *IntegrationEnvironment
 }
 

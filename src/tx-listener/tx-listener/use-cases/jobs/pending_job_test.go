@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/consensys/orchestrate/pkg/sdk/client/mock"
+	"github.com/consensys/orchestrate/pkg/sdk/mock"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	proto "github.com/consensys/orchestrate/pkg/types/ethereum"
 	"github.com/consensys/orchestrate/src/tx-listener/tx-listener/use-cases/mocks"

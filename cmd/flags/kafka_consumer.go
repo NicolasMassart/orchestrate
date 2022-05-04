@@ -24,6 +24,8 @@ func init() {
 	_ = viper.BindEnv(kafkaConsumerGroupRebalanceTimeoutViperKey, kafkaConsumerGroupRebalanceTimeoutEnv)
 	viper.SetDefault(ConsumerGroupNameViperKey, consumerGroupNameDefault)
 	_ = viper.BindEnv(ConsumerGroupNameViperKey, consumerGroupNameEnv)
+	viper.SetDefault(kafkaNConsumerViperKey, kafkaNConsumerDefault)
+	_ = viper.BindEnv(kafkaNConsumerViperKey, kafkaNConsumerEnv)
 }
 
 var rebalanceStrategy = map[string]sarama.BalanceStrategy{
@@ -40,6 +42,7 @@ func KafkaConsumerFlags(f *pflag.FlagSet) {
 	kafkaConsumerGroupHeartbeatInterval(f)
 	kafkaConsumerGroupRebalanceTimeout(f)
 	kafkaConsumerGroupRebalanceStrategy(f)
+	kafkaNumberConsumers(f)
 }
 
 // Kafka Consumer group environment variables
@@ -152,4 +155,18 @@ func kafkaConsumerGroupRebalanceStrategy(f *pflag.FlagSet) {
 Environment variable: %q`, reflect.ValueOf(rebalanceStrategy).MapKeys(), kafkaConsumerGroupRebalanceStrategyEnv)
 	f.String(kafkaConsumerGroupRebalanceStrategyFlag, kafkaConsumerGroupRebalanceStrategyDefault, desc)
 	_ = viper.BindPFlag(kafkaConsumerGroupRebalanceStrategyViperKey, f.Lookup(kafkaConsumerGroupRebalanceStrategyFlag))
+}
+
+const (
+	kafkaNConsumersFlag    = "kafka-num-consumers"
+	kafkaNConsumerViperKey = "kafka.num-consumers"
+	kafkaNConsumerDefault  = uint8(1)
+	kafkaNConsumerEnv      = "KAFKA_NUM_CONSUMERS"
+)
+
+func kafkaNumberConsumers(f *pflag.FlagSet) {
+	desc := fmt.Sprintf(`Number of parallel kafka consumers to initialize.
+Environment variable: %q`, kafkaNConsumerEnv)
+	f.Uint8(kafkaNConsumersFlag, kafkaNConsumerDefault, desc)
+	_ = viper.BindPFlag(kafkaNConsumerViperKey, f.Lookup(kafkaNConsumersFlag))
 }

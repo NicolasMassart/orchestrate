@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/consensys/orchestrate/pkg/errors"
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/src/entities"
@@ -20,7 +21,7 @@ type sendEEAPrivateTxUseCase struct {
 	crafter          usecases.CraftTransactionUseCase
 	signTx           usecases.SignETHTransactionUseCase
 	nonceManager     nonce.Manager
-	jobClient        client.JobClient
+	jobClient        sdk.JobClient
 	ec               ethclient.EEATransactionSender
 	chainRegistryURL string
 	logger           *log.Logger
@@ -29,7 +30,7 @@ type sendEEAPrivateTxUseCase struct {
 func NewSendEEAPrivateTxUseCase(signTx usecases.SignEEATransactionUseCase,
 	crafter usecases.CraftTransactionUseCase,
 	ec ethclient.EEATransactionSender,
-	jobClient client.JobClient,
+	jobClient sdk.JobClient,
 	chainRegistryURL string,
 	nonceManager nonce.Manager,
 ) usecases.SendEEAPrivateTxUseCase {

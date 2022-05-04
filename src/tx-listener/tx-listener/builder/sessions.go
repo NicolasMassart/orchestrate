@@ -1,7 +1,7 @@
 package builder
 
 import (
-	orchestrateclient "github.com/consensys/orchestrate/pkg/sdk/client"
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/src/infra/ethclient"
 	"github.com/consensys/orchestrate/src/tx-listener/store"
@@ -24,7 +24,7 @@ func (b *sessionMngrs) RetryJobSessionManager() sessions.RetryJobSessionManager 
 	return b.retryJobSessionMngr
 }
 
-func NewSessionManagers(apiClient orchestrateclient.OrchestrateClient,
+func NewSessionManagers(apiClient sdk.OrchestrateClient,
 	ethClient ethclient.MultiClient,
 	jobUCs usecases.JobUseCases,
 	chainUCs usecases.ChainUseCases,

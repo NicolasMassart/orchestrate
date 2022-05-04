@@ -13,6 +13,10 @@ func init() {
 	_ = viper.BindEnv(TxSenderViperKey, txSenderTopicEnv)
 	viper.SetDefault(TxListenerViperKey, txListenerTopicDefault)
 	_ = viper.BindEnv(TxListenerViperKey, txListenerTopicEnv)
+	viper.SetDefault(NotifierTopicViperKey, notifierTopicDefault)
+	_ = viper.BindEnv(NotifierTopicViperKey, notifierTopicEnv)
+	viper.SetDefault(APITopicViperKey, apiTopicDefault)
+	_ = viper.BindEnv(APITopicViperKey, apiTopicEnv)
 }
 
 const (
@@ -52,8 +56,22 @@ const (
 )
 
 func KafkaTopicNotifier(f *pflag.FlagSet) {
-	desc := fmt.Sprintf(`Topic for messages between the API and the Notifier MS.
+	desc := fmt.Sprintf(`Topic for messages between the API and the Notifier.
 Environment variable: %q`, notifierTopicEnv)
 	f.String(notifierTopicFlag, notifierTopicDefault, desc)
 	_ = viper.BindPFlag(NotifierTopicViperKey, f.Lookup(notifierTopicFlag))
+}
+
+const (
+	apiTopicFlag     = "topic-api"
+	APITopicViperKey = "topic.api"
+	apiTopicEnv      = "TOPIC_api"
+	apiTopicDefault  = "topic-api"
+)
+
+func KafkaTopicAPI(f *pflag.FlagSet) {
+	desc := fmt.Sprintf(`Topic for messages between the other services and the API.
+Environment variable: %q`, apiTopicEnv)
+	f.String(apiTopicFlag, apiTopicDefault, desc)
+	_ = viper.BindPFlag(APITopicViperKey, f.Lookup(apiTopicFlag))
 }

@@ -4,7 +4,9 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/consensys/orchestrate/src/infra/messenger"
+	orchMessenger "github.com/consensys/orchestrate/pkg/sdk/messenger"
+	service "github.com/consensys/orchestrate/src/api/service/listener"
+	"github.com/consensys/orchestrate/src/infra/kafka"
 	"github.com/consensys/orchestrate/src/infra/postgres"
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http/middleware/httpcache"
@@ -33,7 +35,7 @@ func NewAPI(
 	keyManagerClient qkmclient.KeyManagerClient,
 	qkmStoreID string,
 	ec ethclient.Client,
-	messengerClient messenger.Producer,
+	kafkaProducer kafka.Producer,
 	notifierDaemon app.Daemon,
 ) (*app.App, error) {
 	// Metrics
@@ -50,10 +52,9 @@ func NewAPI(
 		keyManagerClient,
 		qkmStoreID,
 		ec,
-		messengerClient,
-		cfg.KafkaTopics.Sender,
-		cfg.KafkaTopics.Listener,
-		cfg.KafkaTopics.Notifier,
+		orchMessenger.NewProducerClient(kafkaProducer, cfg.KafkaTopics.Sender),
+		orchMessenger.NewProducerClient(kafkaProducer, cfg.KafkaTopics.Listener),
+		orchMessenger.NewProducerClient(kafkaProducer, cfg.KafkaTopics.Notifier),
 	)
 
 	// Option of the API
@@ -93,11 +94,17 @@ func NewAPI(
 		accessLogMid = app.NonOpt()
 	}
 
+	msgConsumer, err := service.NewMessageConsumer(cfg.Kafka, []string{cfg.KafkaTopics.API},
+		ucs.Subscriptions().NotifySubscription(), ucs.Jobs().Update())
+	if err != nil {
+		return nil, err
+	}
+
 	// Create app
 	appli, err := app.New(
 		cfg.App,
 		app.MultiTenancyOpt("auth", jwt, key, cfg.Multitenancy),
-		ReadinessOpt(db, messengerClient),
+		ReadinessOpt(db, kafkaProducer),
 		app.MetricsOpt(appMetrics),
 		accessLogMid,
 		rateLimitOpt,
@@ -110,15 +117,16 @@ func NewAPI(
 		return nil, err
 	}
 
+	appli.RegisterDaemon(NewConsumerService(msgConsumer))
 	appli.RegisterDaemon(notifierDaemon)
 
 	return appli, nil
 }
 
-func ReadinessOpt(postgresClient postgres.Client, producerCli messenger.Producer) app.Option {
+func ReadinessOpt(postgresClient postgres.Client, producer kafka.Producer) app.Option {
 	return func(ap *app.App) error {
 		ap.AddReadinessCheck("database", func() error { return postgresClient.Exec("SELECT 1") })
-		ap.AddReadinessCheck("kafka", producerCli.Checker)
+		ap.AddReadinessCheck("kafka", producer.Checker)
 		return nil
 	}
 }

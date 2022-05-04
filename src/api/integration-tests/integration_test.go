@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http"
 	"github.com/consensys/orchestrate/pkg/utils"
@@ -22,7 +23,7 @@ import (
 type apiTestSuite struct {
 	suite.Suite
 	env    *IntegrationEnvironment
-	client client.OrchestrateClient
+	client sdk.OrchestrateClient
 }
 
 func (s *apiTestSuite) SetupSuite() {

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/consensys/orchestrate/pkg/errors"
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/pkg/utils"
@@ -19,13 +20,13 @@ const sendGoQuorumPrivateTxComponent = "use-cases.send-go-quorum-private-tx"
 type sendGoQuorumPrivateTxUseCase struct {
 	ec               ethclient.QuorumTransactionSender
 	chainRegistryURL string
-	jobClient        client.JobClient
+	jobClient        sdk.JobClient
 	crafter          usecases.CraftTransactionUseCase
 	logger           *log.Logger
 }
 
 func NewSendGoQuorumPrivateTxUseCase(ec ethclient.QuorumTransactionSender, crafter usecases.CraftTransactionUseCase,
-	jobClient client.JobClient, chainRegistryURL string) usecases.SendGoQuorumPrivateTxUseCase {
+	jobClient sdk.JobClient, chainRegistryURL string) usecases.SendGoQuorumPrivateTxUseCase {
 	return &sendGoQuorumPrivateTxUseCase{
 		ec:               ec,
 		chainRegistryURL: chainRegistryURL,

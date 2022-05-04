@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/consensys/orchestrate/pkg/errors"
-	orchestrateclient "github.com/consensys/orchestrate/pkg/sdk/client"
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities"
@@ -14,11 +14,11 @@ import (
 const failedSessionJobComponent = "tx-listener.use-case.tx-sentry.failed-job"
 
 type failedJobUseCase struct {
-	client orchestrateclient.OrchestrateClient
+	client sdk.OrchestrateClient
 	logger *log.Logger
 }
 
-func FailedJobUseCase(client orchestrateclient.OrchestrateClient, logger *log.Logger) usecases.FailedJob {
+func FailedJobUseCase(client sdk.OrchestrateClient, logger *log.Logger) usecases.FailedJob {
 	return &failedJobUseCase{
 		client: client,
 		logger: logger.SetComponent(failedSessionJobComponent),

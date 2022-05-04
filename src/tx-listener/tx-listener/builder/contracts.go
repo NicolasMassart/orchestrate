@@ -1,7 +1,7 @@
 package builder
 
 import (
-	orchestrateclient "github.com/consensys/orchestrate/pkg/sdk/client"
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/src/infra/ethclient"
 	"github.com/consensys/orchestrate/src/tx-listener/store"
@@ -17,7 +17,7 @@ func (s *contractsUCs) RegisterDeployedContractUseCase() usecases.RegisterDeploy
 	return s.registerDeployedContractUseCase
 }
 
-func NewContractUseCases(apiClient orchestrateclient.OrchestrateClient,
+func NewContractUseCases(apiClient sdk.OrchestrateClient,
 	ethClient ethclient.MultiClient,
 	state store.State,
 	logger *log.Logger,

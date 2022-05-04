@@ -19,6 +19,7 @@ type DB interface {
 	Contract() ContractAgent
 	Chain() ChainAgent
 	EventStream() EventStreamAgent
+	Subscription() SubscriptionAgent
 	RunInTransaction(ctx context.Context, persistFunc func(db DB) error) error
 }
 
@@ -91,4 +92,13 @@ type EventStreamAgent interface {
 	FindOneByTenantAndChain(ctx context.Context, tenantID, chainUUID string, tenants []string, ownerID string) (*entities.EventStream, error)
 	Delete(ctx context.Context, uuid string, tenants []string, ownerID string) error
 	Update(ctx context.Context, eventStream *entities.EventStream, tenants []string, ownerID string) (*entities.EventStream, error)
+}
+
+type SubscriptionAgent interface {
+	Insert(ctx context.Context, subscription *entities.Subscription) (*entities.Subscription, error)
+	Search(ctx context.Context, filters *entities.SubscriptionFilters, tenants []string, ownerID string) ([]*entities.Subscription, error)
+	FindOneByUUID(ctx context.Context, uuid string, tenants []string, ownerID string) (*entities.Subscription, error)
+	FindOneByAddressAndTenant(ctx context.Context, address *ethcommon.Address, tenantID string, tenants []string, ownerID string) (*entities.Subscription, error)
+	Delete(ctx context.Context, uuid string, tenants []string, ownerID string) error
+	Update(ctx context.Context, subscription *entities.Subscription, tenants []string, ownerID string) (*entities.Subscription, error)
 }

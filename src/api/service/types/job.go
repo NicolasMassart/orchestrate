@@ -28,6 +28,26 @@ type UpdateJobRequest struct {
 	Message     string                 `json:"message,omitempty" example:"Update message"`              // Update message.
 }
 
+// @TODO Support job update message consumer
+type JobUpdateMessageRequest struct {
+	JobUUID      string                   `json:"jobUUID,omitempty"`
+	InternalData *entities.InternalData   `json:"internal_data,omitempty"`
+	Transaction  *entities.ETHTransaction `json:"transaction,omitempty"`
+	Receipt      *ethereum.Receipt        `json:"receipt,omitempty"`
+	Status       entities.JobStatus       `json:"status,omitempty" validate:"isJobStatus" example:"MINED"` // Status of the job.
+	Message      string                   `json:"message,omitempty" example:"Update message"`              // Update message.
+}
+
+func (req *JobUpdateMessageRequest) ToJobEntity() *entities.Job {
+	return &entities.Job{
+		UUID:         req.JobUUID,
+		Transaction:  req.Transaction,
+		InternalData: req.InternalData,
+		Receipt:      req.Receipt,
+		Status:       req.Status,
+	}
+}
+
 type JobResponse struct {
 	UUID          string                 `json:"uuid" example:"b4374e6f-b28a-4bad-b4fe-bda36eaf849c"`                    // UUID of the job.
 	ChainUUID     string                 `json:"chainUUID" example:"b4374e6f-b28a-4bad-b4fe-bda36eaf849c"`               // UUID of the chain on which the job was created.

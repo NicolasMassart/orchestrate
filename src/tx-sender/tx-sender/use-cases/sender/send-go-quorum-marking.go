@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/consensys/orchestrate/pkg/errors"
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/src/entities"
@@ -21,7 +22,7 @@ type sendGoQuorumMarkingTxUseCase struct {
 	signTx           usecases.SignETHTransactionUseCase
 	crafter          usecases.CraftTransactionUseCase
 	nonceChecker     nonce.Manager
-	jobClient        client.JobClient
+	jobClient        sdk.JobClient
 	ec               ethclient.QuorumTransactionSender
 	chainRegistryURL string
 	logger           *log.Logger
@@ -30,7 +31,7 @@ type sendGoQuorumMarkingTxUseCase struct {
 func NewSendGoQuorumMarkingTxUseCase(signTx usecases.SignGoQuorumPrivateTransactionUseCase,
 	crafter usecases.CraftTransactionUseCase,
 	ec ethclient.QuorumTransactionSender,
-	jobClient client.JobClient,
+	jobClient sdk.JobClient,
 	chainRegistryURL string,
 	nonceChecker nonce.Manager,
 ) usecases.SendGoQuorumMarkingTxUseCase {

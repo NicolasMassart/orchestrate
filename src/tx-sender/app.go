@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"github.com/consensys/orchestrate/src/infra/messenger"
 	"github.com/consensys/orchestrate/src/tx-sender/tx-sender/nonce"
@@ -12,7 +13,6 @@ import (
 
 	"github.com/cenkalti/backoff/v4"
 	"github.com/consensys/orchestrate/pkg/errors"
-	api "github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/src/infra/ethclient"
@@ -29,7 +29,7 @@ const component = "application"
 
 type txSenderDaemon struct {
 	keyManagerClient keymanager.KeyManagerClient
-	jobClient        api.JobClient
+	jobClient        sdk.JobClient
 	ec               ethclient.MultiClient
 	nonceManager     nonce.Manager
 	consumers        []messenger.Consumer
@@ -41,7 +41,7 @@ type txSenderDaemon struct {
 func NewTxSender(
 	config *Config,
 	keyManagerClient keymanager.KeyManagerClient,
-	apiClient api.OrchestrateClient,
+	apiClient sdk.OrchestrateClient,
 	ec ethclient.MultiClient,
 	redisCli redis.Client,
 ) (*app.App, error) {
@@ -56,8 +56,8 @@ func NewTxSender(
 
 	// Create business layer use cases
 	useCases := builder.NewUseCases(apiClient, keyManagerClient, ec, nm, config.ProxyURL)
-	consumers := make([]messenger.Consumer, config.NConsumer)
-	for idx := 0; idx < config.NConsumer; idx++ {
+	consumers := make([]messenger.Consumer, config.Kafka.NConsumers)
+	for idx := 0; idx < config.Kafka.NConsumers; idx++ {
 		var err error
 		consumers[idx], err = service.NewMessageConsumer(config.Kafka, []string{config.ConsumerTopic}, useCases, apiClient, config.BckOff)
 		if err != nil {
@@ -134,7 +134,7 @@ func (d *txSenderDaemon) Close() error {
 	return gerr
 }
 
-func readinessOpt(apiClient api.MetricClient, redisCli redis.Client, consumer messenger.Consumer) app.Option {
+func readinessOpt(apiClient sdk.MetricClient, redisCli redis.Client, consumer messenger.Consumer) app.Option {
 	return func(ap *app.App) error {
 		ap.AddReadinessCheck("kafka", consumer.Checker)
 		ap.AddReadinessCheck("api", apiClient.Checker())

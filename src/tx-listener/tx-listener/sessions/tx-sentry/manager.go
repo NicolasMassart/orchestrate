@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/consensys/orchestrate/pkg/errors"
-	orchestrateclient "github.com/consensys/orchestrate/pkg/sdk/client"
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/tx-listener/store"
@@ -16,13 +16,13 @@ const retryJobSessionMngrComponent = "tx-listener.use-case.tx-sentry.session-man
 
 type RetryJobSessionMngr struct {
 	sendRetryJobUseCase usecases.RetryJob
-	client              orchestrateclient.OrchestrateClient
+	client              sdk.OrchestrateClient
 	retrySessionState   store.RetryJobSession
 	pendingJobState     store.PendingJob
 	logger              *log.Logger
 }
 
-func NewRetrySessionManager(client orchestrateclient.OrchestrateClient,
+func NewRetrySessionManager(client sdk.OrchestrateClient,
 	sendRetryJobUseCase usecases.RetryJob,
 	retrySessionState store.RetryJobSession,
 	pendingJobState store.PendingJob,

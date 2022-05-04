@@ -4,12 +4,13 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/src/api/service/types"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
-func ImportOrFetchAccount(ctx context.Context, sdkClient client.OrchestrateClient, address string, req *types.ImportAccountRequest) (*types.AccountResponse, error) {
+func ImportOrFetchAccount(ctx context.Context, sdkClient sdk.OrchestrateClient, address string, req *types.ImportAccountRequest) (*types.AccountResponse, error) {
 	faucetAccRes, err := sdkClient.ImportAccount(ctx, req)
 	if err == nil {
 		return faucetAccRes, nil

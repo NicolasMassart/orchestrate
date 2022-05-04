@@ -6,8 +6,6 @@ import (
 	"context"
 	"testing"
 
-	mocks2 "github.com/consensys/orchestrate/src/api/business/use-cases/mocks"
-
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"github.com/consensys/orchestrate/src/api/store/mocks"
@@ -23,10 +21,9 @@ func TestUpdate(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockDB := mocks.NewMockEventStreamAgent(ctrl)
-	searchChainsUC := mocks2.NewMockSearchChainsUseCase(ctrl)
 
 	userInfo := multitenancy.NewUserInfo("tenantOne", "username")
-	usecase := NewUpdateUseCase(mockDB, searchChainsUC)
+	usecase := NewUpdateUseCase(mockDB)
 
 	t.Run("should update event stream successfully", func(t *testing.T) {
 		eventStream := testdata.FakeWebhookEventStream()

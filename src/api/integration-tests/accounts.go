@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/consensys/orchestrate/pkg/ethereum/account"
+	"github.com/consensys/orchestrate/pkg/sdk"
 	qkm "github.com/consensys/orchestrate/src/infra/quorum-key-manager/testutils"
 	utilstypes "github.com/consensys/quorum-key-manager/src/utils/api/types"
 	ethcommon "github.com/ethereum/go-ethereum/common"
@@ -28,7 +29,7 @@ import (
 
 type accountsTestSuite struct {
 	suite.Suite
-	client            client.OrchestrateClient
+	client            sdk.OrchestrateClient
 	env               *IntegrationEnvironment
 	defaultQKMStoreID string
 }

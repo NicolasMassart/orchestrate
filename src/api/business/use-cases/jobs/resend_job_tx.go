@@ -4,28 +4,26 @@ import (
 	"context"
 
 	"github.com/consensys/orchestrate/pkg/errors"
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	"github.com/consensys/orchestrate/src/api/store"
-	"github.com/consensys/orchestrate/src/infra/messenger"
 )
 
 const resendJobTxComponent = "use-cases.resend-job-tx"
 
 type resendJobTxUseCase struct {
-	db          store.DB
-	messenger   messenger.Producer
-	topicSender string
-	logger      *log.Logger
+	db                store.DB
+	txSenderMessenger sdk.MessengerTxSender
+	logger            *log.Logger
 }
 
-func NewResendJobTxUseCase(db store.DB, kafkaProducer messenger.Producer, topicSender string) usecases.ResendJobTxUseCase {
+func NewResendJobTxUseCase(db store.DB, txSenderMessenger sdk.MessengerTxSender) usecases.ResendJobTxUseCase {
 	return &resendJobTxUseCase{
-		db:          db,
-		messenger:   kafkaProducer,
-		topicSender: topicSender,
-		logger:      log.NewLogger().SetComponent(resendJobTxComponent),
+		db:                db,
+		txSenderMessenger: txSenderMessenger,
+		logger:            log.NewLogger().SetComponent(resendJobTxComponent),
 	}
 }
 
@@ -41,7 +39,7 @@ func (uc *resendJobTxUseCase) Execute(ctx context.Context, jobUUID string, userI
 	}
 
 	job.InternalData.ParentJobUUID = jobUUID
-	err = uc.messenger.SendJobMessage(uc.topicSender, job, job.PartitionKey(), userInfo)
+	err = uc.txSenderMessenger.StartedJobMessage(ctx, job, userInfo)
 	if err != nil {
 		logger.WithError(err).Error("failed to send resend job envelope")
 		return err

@@ -14,21 +14,19 @@ import (
 const updateEventStreamComponent = "use-cases.update-event_stream"
 
 type updateUseCase struct {
-	db             store.EventStreamAgent
-	searchChainsUC usecases.SearchChainsUseCase
-	logger         *log.Logger
+	db     store.EventStreamAgent
+	logger *log.Logger
 }
 
-func NewUpdateUseCase(db store.EventStreamAgent, searchChainsUC usecases.SearchChainsUseCase) usecases.UpdateEventStreamUseCase {
+func NewUpdateUseCase(db store.EventStreamAgent) usecases.UpdateEventStreamUseCase {
 	return &updateUseCase{
-		db:             db,
-		searchChainsUC: searchChainsUC,
-		logger:         log.NewLogger().SetComponent(updateEventStreamComponent),
+		db:     db,
+		logger: log.NewLogger().SetComponent(updateEventStreamComponent),
 	}
 }
 
 func (uc *updateUseCase) Execute(ctx context.Context, eventStream *entities.EventStream, userInfo *multitenancy.UserInfo) (*entities.EventStream, error) {
-	ctx = log.WithFields(ctx, log.Field("name", eventStream.Name), log.Field("event_stream_uuid", eventStream.UUID))
+	ctx = log.WithFields(ctx, log.Field("event_stream", eventStream.UUID))
 	logger := uc.logger.WithContext(ctx)
 
 	logger.Debug("updating event stream")

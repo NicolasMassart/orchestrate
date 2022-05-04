@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/src/api/service/types/testdata"
 	ethclient "github.com/consensys/orchestrate/src/infra/ethclient/rpc"
@@ -16,7 +17,7 @@ import (
 
 type proxyTestSuite struct {
 	suite.Suite
-	client client.OrchestrateClient
+	client sdk.OrchestrateClient
 	env    *IntegrationEnvironment
 }
 

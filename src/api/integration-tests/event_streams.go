@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/consensys/orchestrate/src/api/service/types"
@@ -19,7 +20,7 @@ import (
 
 type eventStreamsTestSuite struct {
 	suite.Suite
-	client client.OrchestrateClient
+	client sdk.OrchestrateClient
 	env    *IntegrationEnvironment
 	chain  *types.ChainResponse
 }

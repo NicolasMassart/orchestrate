@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/consensys/orchestrate/pkg/errors"
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/src/entities"
@@ -19,11 +20,11 @@ const sendETHRawTxComponent = "use-cases.send-eth-raw-tx"
 type sendETHRawTxUseCase struct {
 	ec               ethclient.TransactionSender
 	chainRegistryURL string
-	jobClient        client.JobClient
+	jobClient        sdk.JobClient
 	logger           *log.Logger
 }
 
-func NewSendETHRawTxUseCase(ec ethclient.TransactionSender, jobClient client.JobClient,
+func NewSendETHRawTxUseCase(ec ethclient.TransactionSender, jobClient sdk.JobClient,
 	chainRegistryURL string) usecases.SendETHRawTxUseCase {
 	return &sendETHRawTxUseCase{
 		jobClient:        jobClient,

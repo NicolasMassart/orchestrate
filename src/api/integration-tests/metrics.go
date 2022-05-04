@@ -8,14 +8,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/consensys/orchestrate/pkg/sdk/client"
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http"
 	httpmetrics "github.com/consensys/orchestrate/pkg/toolkit/app/http/metrics"
 	metrics1 "github.com/consensys/orchestrate/pkg/toolkit/app/metrics"
 	testutils2 "github.com/consensys/orchestrate/pkg/toolkit/app/metrics/testutils"
 	tpcmetrics "github.com/consensys/orchestrate/pkg/toolkit/tcp/metrics"
-	"github.com/consensys/orchestrate/src/api/service/types/testdata"
 	"github.com/consensys/orchestrate/src/api/metrics"
+	"github.com/consensys/orchestrate/src/api/service/types/testdata"
 	"github.com/consensys/orchestrate/src/infra/api"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -23,7 +23,7 @@ import (
 
 type metricsTestSuite struct {
 	suite.Suite
-	client client.OrchestrateClient
+	client sdk.OrchestrateClient
 	env    *IntegrationEnvironment
 }
 

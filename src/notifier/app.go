@@ -3,21 +3,22 @@ package notifier
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"time"
 
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/src/infra/postgres"
 	postgresstore "github.com/consensys/orchestrate/src/notifier/store/postgres"
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app"
+	"github.com/consensys/orchestrate/src/infra/kafka"
 	"github.com/consensys/orchestrate/src/notifier/service"
 
 	"github.com/cenkalti/backoff/v4"
 	"github.com/consensys/orchestrate/pkg/errors"
-	api "github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"github.com/consensys/orchestrate/src/infra/messenger"
-	"github.com/consensys/orchestrate/src/infra/messenger/kafka"
 	"github.com/consensys/orchestrate/src/notifier/notifier/builder"
 	"github.com/hashicorp/go-multierror"
 )
@@ -33,20 +34,19 @@ type Daemon struct {
 
 var _ app.Daemon = &Daemon{}
 
-func New(
-	config *Config,
+func New(config *Config,
 	db postgres.Client,
-	eventStreamClient api.EventStreamClient,
-	kafkaNotifier, webhookNotifier messenger.Producer,
+	eventStreamClient sdk.EventStreamClient,
+	kafkaProducer kafka.Producer,
+	webhookClient *http.Client,
 ) (*Daemon, error) {
 	// Create business layer use cases
-	useCases := builder.NewUseCases(postgresstore.NewPGNotification(db), kafkaNotifier, webhookNotifier)
-	msgConsumerHandler := service.NewMessageConsumerHandler(useCases, eventStreamClient, config.MaxRetries)
+	useCases := builder.NewUseCases(postgresstore.NewPGNotification(db), kafkaProducer, webhookClient)
 
-	consumers := make([]messenger.Consumer, config.NConsumer)
-	for idx := 0; idx < config.NConsumer; idx++ {
+	consumers := make([]messenger.Consumer, config.Kafka.NConsumers)
+	for idx := 0; idx < config.Kafka.NConsumers; idx++ {
 		var err error
-		consumers[idx], err = kafka.NewMessageConsumer(config.Kafka, []string{config.ConsumerTopic}, msgConsumerHandler)
+		consumers[idx], err = service.NewMessageConsumer(config.Kafka, []string{config.ConsumerTopic}, useCases, eventStreamClient, config.MaxRetries)
 		if err != nil {
 			return nil, err
 		}

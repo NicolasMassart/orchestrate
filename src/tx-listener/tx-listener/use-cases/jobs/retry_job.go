@@ -6,7 +6,7 @@ import (
 	"math/big"
 
 	"github.com/consensys/orchestrate/pkg/errors"
-	orchestrateclient "github.com/consensys/orchestrate/pkg/sdk/client"
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities"
@@ -17,11 +17,11 @@ import (
 const retryJobUseCaseComponent = "tx-listener.use-case.retry-job"
 
 type retryJobUseCase struct {
-	client orchestrateclient.OrchestrateClient
+	client sdk.OrchestrateClient
 	logger *log.Logger
 }
 
-func RetryJobUseCase(client orchestrateclient.OrchestrateClient, logger *log.Logger) usecases.RetryJob {
+func RetryJobUseCase(client sdk.OrchestrateClient, logger *log.Logger) usecases.RetryJob {
 	return &retryJobUseCase{
 		client: client,
 		logger: logger.SetComponent(retryJobUseCaseComponent),

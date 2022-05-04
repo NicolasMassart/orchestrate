@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/consensys/orchestrate/pkg/errors"
-	orchestrateclient "github.com/consensys/orchestrate/pkg/sdk/client"
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/infra/ethclient"
@@ -22,7 +22,7 @@ const waitForNEmptyBlocks = 3
 
 type ChainListenerSession struct {
 	ethClient         ethclient.Client
-	apiClient         orchestrateclient.OrchestrateClient
+	apiClient         sdk.OrchestrateClient
 	chainBlockTxsUC   usecases.ChainBlock
 	logger            *log.Logger
 	chain             *entities.Chain
@@ -34,7 +34,7 @@ type ChainListenerSession struct {
 	cerr              chan error
 }
 
-func NewChainListenerSession(apiClient orchestrateclient.OrchestrateClient,
+func NewChainListenerSession(apiClient sdk.OrchestrateClient,
 	ethClient ethclient.Client,
 	chainBlockTxsUC usecases.ChainBlock,
 	chain *entities.Chain,

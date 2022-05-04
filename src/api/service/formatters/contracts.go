@@ -23,7 +23,7 @@ func FormatRegisterContractRequest(req *types.RegisterContractRequest) (*entitie
 
 	tag := req.Tag
 	if tag == "" {
-		tag = entities.DefaultTagValue
+		tag = entities.DefaultContractTagValue
 	}
 
 	parsedABI, err := abi.JSON(strings.NewReader(string(rawABI)))

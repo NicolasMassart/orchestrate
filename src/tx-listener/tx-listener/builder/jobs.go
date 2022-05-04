@@ -1,7 +1,7 @@
 package builder
 
 import (
-	orchestrateclient "github.com/consensys/orchestrate/pkg/sdk/client"
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/src/infra/ethclient"
 	"github.com/consensys/orchestrate/src/tx-listener/store"
@@ -32,7 +32,7 @@ func (b *jobUCs) FailedJobUseCase() usecases.FailedJob {
 	return b.failedJob
 }
 
-func NewJobUseCases(apiClient orchestrateclient.OrchestrateClient,
+func NewJobUseCases(apiClient sdk.OrchestrateClient,
 	ethClient ethclient.MultiClient,
 	contractUCs usecases.ContractsUseCases,
 	state store.State,

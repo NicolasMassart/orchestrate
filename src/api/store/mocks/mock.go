@@ -162,6 +162,20 @@ func (mr *MockDBMockRecorder) EventStream() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EventStream", reflect.TypeOf((*MockDB)(nil).EventStream))
 }
 
+// Subscription mocks base method
+func (m *MockDB) Subscription() store.SubscriptionAgent {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Subscription")
+	ret0, _ := ret[0].(store.SubscriptionAgent)
+	return ret0
+}
+
+// Subscription indicates an expected call of Subscription
+func (mr *MockDBMockRecorder) Subscription() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Subscription", reflect.TypeOf((*MockDB)(nil).Subscription))
+}
+
 // RunInTransaction mocks base method
 func (m *MockDB) RunInTransaction(ctx context.Context, persistFunc func(store.DB) error) error {
 	m.ctrl.T.Helper()
@@ -1029,4 +1043,116 @@ func (m *MockEventStreamAgent) Update(ctx context.Context, eventStream *entities
 func (mr *MockEventStreamAgentMockRecorder) Update(ctx, eventStream, tenants, ownerID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockEventStreamAgent)(nil).Update), ctx, eventStream, tenants, ownerID)
+}
+
+// MockSubscriptionAgent is a mock of SubscriptionAgent interface
+type MockSubscriptionAgent struct {
+	ctrl     *gomock.Controller
+	recorder *MockSubscriptionAgentMockRecorder
+}
+
+// MockSubscriptionAgentMockRecorder is the mock recorder for MockSubscriptionAgent
+type MockSubscriptionAgentMockRecorder struct {
+	mock *MockSubscriptionAgent
+}
+
+// NewMockSubscriptionAgent creates a new mock instance
+func NewMockSubscriptionAgent(ctrl *gomock.Controller) *MockSubscriptionAgent {
+	mock := &MockSubscriptionAgent{ctrl: ctrl}
+	mock.recorder = &MockSubscriptionAgentMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockSubscriptionAgent) EXPECT() *MockSubscriptionAgentMockRecorder {
+	return m.recorder
+}
+
+// Insert mocks base method
+func (m *MockSubscriptionAgent) Insert(ctx context.Context, subscription *entities.Subscription) (*entities.Subscription, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Insert", ctx, subscription)
+	ret0, _ := ret[0].(*entities.Subscription)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Insert indicates an expected call of Insert
+func (mr *MockSubscriptionAgentMockRecorder) Insert(ctx, subscription interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockSubscriptionAgent)(nil).Insert), ctx, subscription)
+}
+
+// Search mocks base method
+func (m *MockSubscriptionAgent) Search(ctx context.Context, filters *entities.SubscriptionFilters, tenants []string, ownerID string) ([]*entities.Subscription, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Search", ctx, filters, tenants, ownerID)
+	ret0, _ := ret[0].([]*entities.Subscription)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Search indicates an expected call of Search
+func (mr *MockSubscriptionAgentMockRecorder) Search(ctx, filters, tenants, ownerID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockSubscriptionAgent)(nil).Search), ctx, filters, tenants, ownerID)
+}
+
+// FindOneByUUID mocks base method
+func (m *MockSubscriptionAgent) FindOneByUUID(ctx context.Context, uuid string, tenants []string, ownerID string) (*entities.Subscription, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindOneByUUID", ctx, uuid, tenants, ownerID)
+	ret0, _ := ret[0].(*entities.Subscription)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindOneByUUID indicates an expected call of FindOneByUUID
+func (mr *MockSubscriptionAgentMockRecorder) FindOneByUUID(ctx, uuid, tenants, ownerID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindOneByUUID", reflect.TypeOf((*MockSubscriptionAgent)(nil).FindOneByUUID), ctx, uuid, tenants, ownerID)
+}
+
+// FindOneByAddressAndTenant mocks base method
+func (m *MockSubscriptionAgent) FindOneByAddressAndTenant(ctx context.Context, address *common.Address, tenantID string, tenants []string, ownerID string) (*entities.Subscription, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindOneByAddressAndTenant", ctx, address, tenantID, tenants, ownerID)
+	ret0, _ := ret[0].(*entities.Subscription)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindOneByAddressAndTenant indicates an expected call of FindOneByAddressAndTenant
+func (mr *MockSubscriptionAgentMockRecorder) FindOneByAddressAndTenant(ctx, address, tenantID, tenants, ownerID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindOneByAddressAndTenant", reflect.TypeOf((*MockSubscriptionAgent)(nil).FindOneByAddressAndTenant), ctx, address, tenantID, tenants, ownerID)
+}
+
+// Delete mocks base method
+func (m *MockSubscriptionAgent) Delete(ctx context.Context, uuid string, tenants []string, ownerID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", ctx, uuid, tenants, ownerID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete
+func (mr *MockSubscriptionAgentMockRecorder) Delete(ctx, uuid, tenants, ownerID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockSubscriptionAgent)(nil).Delete), ctx, uuid, tenants, ownerID)
+}
+
+// Update mocks base method
+func (m *MockSubscriptionAgent) Update(ctx context.Context, subscription *entities.Subscription, tenants []string, ownerID string) (*entities.Subscription, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update", ctx, subscription, tenants, ownerID)
+	ret0, _ := ret[0].(*entities.Subscription)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Update indicates an expected call of Update
+func (mr *MockSubscriptionAgentMockRecorder) Update(ctx, subscription, tenants, ownerID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockSubscriptionAgent)(nil).Update), ctx, subscription, tenants, ownerID)
 }

@@ -12,7 +12,9 @@ import (
 
 	"github.com/cenkalti/backoff/v4"
 	"github.com/consensys/orchestrate/cmd/flags"
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
+	"github.com/consensys/orchestrate/pkg/sdk/messenger"
 	"github.com/consensys/orchestrate/pkg/toolkit/app"
 	httputils "github.com/consensys/orchestrate/pkg/toolkit/app/http"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
@@ -21,8 +23,7 @@ import (
 	"github.com/consensys/orchestrate/src/entities/testdata"
 	ethclient2 "github.com/consensys/orchestrate/src/infra/ethclient"
 	ethclient "github.com/consensys/orchestrate/src/infra/ethclient/rpc"
-	"github.com/consensys/orchestrate/src/infra/messenger"
-	msgkafka "github.com/consensys/orchestrate/src/infra/messenger/kafka"
+	kafka "github.com/consensys/orchestrate/src/infra/kafka/sarama"
 	txlistener "github.com/consensys/orchestrate/src/tx-listener"
 	listenermetrics "github.com/consensys/orchestrate/src/tx-listener/tx-listener/metrics"
 	"github.com/consensys/orchestrate/tests/pkg/docker"
@@ -56,7 +57,7 @@ type IntegrationEnvironment struct {
 	T                 *testing.T
 	logger            *log.Logger
 	app               *app.App
-	messengerClient   messenger.Producer
+	messengerClient   sdk.MessengerTxListener
 	ethClient         ethclient2.MultiClient
 	client            *docker.Client
 	cfg               *txlistener.Config
@@ -169,11 +170,14 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 
 	env.chain = newChain(env.blockchainNodeURL)
 
-	env.messengerClient, err = msgkafka.NewProducer(env.cfg.Kafka)
+	kafkaProd, err := kafka.NewProducer(env.cfg.Kafka)
 	if err != nil {
 		env.logger.WithError(err).Error("could not initialize kafka producer")
 		return err
 	}
+
+	
+	env.messengerClient = messenger.NewProducerClient(kafkaProd, env.cfg.ConsumerTopic)
 
 	// Start tx-sender app
 	err = env.app.Start(ctx)
