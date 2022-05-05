@@ -18,10 +18,10 @@ type CreateSubscriptionRequest struct {
 
 func (r *CreateSubscriptionRequest) ToEntity(address ethcommon.Address) *entities.Subscription {
 	subscription := &entities.Subscription{
-		Address:      address,
-		ContractName: r.ContractName,
-		ContractTag:  r.ContractTag,
-		FromBlock:    r.FromBlock,
+		ContractAddress: address,
+		ContractName:    r.ContractName,
+		ContractTag:     r.ContractTag,
+		FromBlock:       r.FromBlock,
 	}
 
 	if subscription.ContractTag == "" {

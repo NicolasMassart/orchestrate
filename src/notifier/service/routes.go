@@ -1,8 +1,8 @@
 package service
 
 import (
-	"github.com/consensys/orchestrate/src/infra/messenger/types"
+	"github.com/consensys/orchestrate/src/infra/messenger"
 )
 
-var ContractEventMessageType types.ConsumerRequestMessageType = "contract_event"
-var TransactionMessageType types.ConsumerRequestMessageType = "transaction_notification"
+var ContractEventMessageType messenger.ConsumerRequestMessageType = "contract_event"
+var TransactionMessageType messenger.ConsumerRequestMessageType = "transaction_notification"

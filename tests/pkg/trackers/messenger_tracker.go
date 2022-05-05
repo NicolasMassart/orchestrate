@@ -11,7 +11,6 @@ import (
 	kafka "github.com/consensys/orchestrate/src/infra/kafka/sarama"
 	"github.com/consensys/orchestrate/src/infra/messenger"
 	messengerkafka "github.com/consensys/orchestrate/src/infra/messenger/kafka"
-	"github.com/consensys/orchestrate/src/infra/messenger/types"
 	notifier2 "github.com/consensys/orchestrate/src/notifier/service"
 	notifierTypes "github.com/consensys/orchestrate/src/notifier/service/types"
 	txlistener "github.com/consensys/orchestrate/src/tx-listener/service"
@@ -61,7 +60,7 @@ func NewMessengerConsumerTracker(cfg kafka.Config, topics []string) (*MessengerC
 	return msg, nil
 }
 
-func (m *MessengerConsumerTracker) trackMessageType(msgType types.ConsumerRequestMessageType, req interface{}, keyGenFunc KeyGenFunc) {
+func (m *MessengerConsumerTracker) trackMessageType(msgType messenger.ConsumerRequestMessageType, req interface{}, keyGenFunc KeyGenFunc) {
 	m.consumer.AppendHandler(msgType, m.trackMessageHandle(req, msgType, keyGenFunc))
 }
 
@@ -109,7 +108,7 @@ func (m *MessengerConsumerTracker) Close() error {
 	return m.consumer.Close()
 }
 
-func (m *MessengerConsumerTracker) trackMessageHandle(req interface{}, msgType types.ConsumerRequestMessageType, keyGenFunc KeyGenFunc) types.MessageHandler {
+func (m *MessengerConsumerTracker) trackMessageHandle(req interface{}, msgType messenger.ConsumerRequestMessageType, keyGenFunc KeyGenFunc) messenger.MessageHandler {
 	return func(_ context.Context, rawReq []byte) error {
 		err := json.Unmarshal(rawReq, req)
 

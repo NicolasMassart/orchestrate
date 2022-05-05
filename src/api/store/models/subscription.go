@@ -12,7 +12,7 @@ type Subscription struct {
 
 	ID              int `pg:"alias:id"`
 	UUID            string
-	Address         string
+	ContractAddress string
 	ContractName    string
 	ContractTag     string
 	EventStreamUUID string    `pg:"alias:event_stream_uuid"`
@@ -26,7 +26,7 @@ type Subscription struct {
 func NewSubscription(sub *entities.Subscription) *Subscription {
 	es := &Subscription{
 		UUID:            sub.UUID,
-		Address:         sub.Address.String(),
+		ContractAddress: sub.ContractAddress.String(),
 		ContractName:    sub.ContractName,
 		ContractTag:     sub.ContractTag,
 		ChainUUID:       sub.ChainUUID,
@@ -52,7 +52,7 @@ func NewSubscriptions(subs []*Subscription) []*entities.Subscription {
 func (e *Subscription) ToEntity() *entities.Subscription {
 	es := &entities.Subscription{
 		UUID:            e.UUID,
-		Address:         ethcommon.HexToAddress(e.Address),
+		ContractAddress: ethcommon.HexToAddress(e.ContractAddress),
 		ContractName:    e.ContractName,
 		ContractTag:     e.ContractTag,
 		EventStreamUUID: e.EventStreamUUID,

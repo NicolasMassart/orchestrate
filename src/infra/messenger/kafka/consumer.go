@@ -12,7 +12,6 @@ import (
 	infra "github.com/consensys/orchestrate/src/infra/api"
 	"github.com/consensys/orchestrate/src/infra/kafka"
 	kafkasarama "github.com/consensys/orchestrate/src/infra/kafka/sarama"
-	"github.com/consensys/orchestrate/src/infra/messenger/types"
 
 	"github.com/Shopify/sarama"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
@@ -21,7 +20,7 @@ import (
 
 type Consumer struct {
 	consumerGroup kafka.ConsumerGroup
-	handler       map[types.ConsumerRequestMessageType]types.MessageHandler
+	handler       map[messenger.ConsumerRequestMessageType]messenger.MessageHandler
 	topics        []string
 	cancel        context.CancelFunc
 	logger        *log.Logger
@@ -40,7 +39,7 @@ func NewMessageConsumer(id string, cfg *kafkasarama.Config, topics []string) (*C
 		consumerGroup: consumerGroup,
 		topics:        topics,
 		logger:        log.NewLogger().SetComponent(id),
-		handler:       map[types.ConsumerRequestMessageType]types.MessageHandler{},
+		handler:       map[messenger.ConsumerRequestMessageType]messenger.MessageHandler{},
 	}, nil
 }
 
@@ -85,7 +84,7 @@ func (cl *Consumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim sara
 	return cl.err
 }
 
-func (cl *Consumer) AppendHandler(msgType types.ConsumerRequestMessageType, msgHandler types.MessageHandler) {
+func (cl *Consumer) AppendHandler(msgType messenger.ConsumerRequestMessageType, msgHandler messenger.MessageHandler) {
 	cl.handler[msgType] = msgHandler
 }
 
@@ -108,7 +107,7 @@ func (cl *Consumer) consumeClaimLoop(ctx context.Context, session sarama.Consume
 
 			logger.WithField("timestamp", msg.Timestamp).Trace("message consumed")
 
-			req := &types.ConsumerRequestMessage{}
+			req := &ConsumerRequestMessage{}
 			err := infra.UnmarshalBody(bytes.NewReader(msg.Value), req)
 			if err != nil {
 				errMessage := "failed to decode notification request"

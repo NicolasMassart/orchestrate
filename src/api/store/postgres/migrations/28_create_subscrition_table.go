@@ -12,7 +12,7 @@ func createSubscriptionsTable(db migrations.DB) error {
 CREATE TABLE subscriptions (
 	id SERIAL PRIMARY KEY,
     uuid UUID NOT NULL,
-	address TEXT,
+	contract_address TEXT,
     tenant_id TEXT NOT NULL,
     owner_id TEXT,
     contract_name TEXT,
@@ -23,7 +23,7 @@ CREATE TABLE subscriptions (
 	updated_at TIMESTAMPTZ DEFAULT (now() at time zone 'utc') NOT NULL
 );
 
-CREATE UNIQUE INDEX subscription_unique_address_chain__idx ON subscriptions (address, chain_uuid, tenant_id, owner_id);
+CREATE UNIQUE INDEX subscription_unique_address_chain__idx ON subscriptions (contract_address, chain_uuid, tenant_id, owner_id);
 `)
 	if err != nil {
 		log.WithError(err).Error("Could not create subscriptions table")

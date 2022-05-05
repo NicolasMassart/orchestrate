@@ -1,7 +1,7 @@
 package service
 
 import (
-	"github.com/consensys/orchestrate/src/infra/messenger/types"
+	"github.com/consensys/orchestrate/src/infra/messenger"
 )
 
-var StartedJobMessageType types.ConsumerRequestMessageType = "started-job"
+var StartedJobMessageType messenger.ConsumerRequestMessageType = "started-job"

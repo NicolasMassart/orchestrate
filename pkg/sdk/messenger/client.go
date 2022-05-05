@@ -8,7 +8,8 @@ import (
 	"github.com/consensys/orchestrate/pkg/toolkit/app/auth/utils"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"github.com/consensys/orchestrate/src/infra/kafka"
-	"github.com/consensys/orchestrate/src/infra/messenger/types"
+	"github.com/consensys/orchestrate/src/infra/messenger"
+	types "github.com/consensys/orchestrate/src/infra/messenger/kafka"
 )
 
 type ProducerClient struct {
@@ -25,7 +26,7 @@ func NewProducerClient(client kafka.Producer, topic string) *ProducerClient {
 	}
 }
 
-func (c *ProducerClient) sendMessage(msgType types.ConsumerRequestMessageType, msgBody interface{}, partitionKey string, userInfo *multitenancy.UserInfo) error {
+func (c *ProducerClient) sendMessage(msgType messenger.ConsumerRequestMessageType, msgBody interface{}, partitionKey string, userInfo *multitenancy.UserInfo) error {
 	bBody, err := json.Marshal(msgBody)
 	if err != nil {
 		return errors.EncodingError("failed to marshall consumer message body")

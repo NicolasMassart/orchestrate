@@ -43,7 +43,7 @@ func NewCreateUseCase(db store.SubscriptionAgent,
 
 func (uc *createUseCase) Execute(ctx context.Context, subscription *entities.Subscription, chainName,
 	eventStreamName string, userInfo *multitenancy.UserInfo) (*entities.Subscription, error) {
-	ctx = log.WithFields(ctx, log.Field("address", subscription.Address))
+	ctx = log.WithFields(ctx, log.Field("address", subscription.ContractAddress))
 	logger := uc.logger.WithContext(ctx)
 
 	logger.Debug("creating new subscription")
@@ -60,7 +60,7 @@ func (uc *createUseCase) Execute(ctx context.Context, subscription *entities.Sub
 	subscription.ChainUUID = chains[0].UUID
 
 	subscriptions, err := uc.db.Search(ctx,
-		&entities.SubscriptionFilters{Addresses: []ethcommon.Address{subscription.Address},
+		&entities.SubscriptionFilters{Addresses: []ethcommon.Address{subscription.ContractAddress},
 			ChainUUID: subscription.ChainUUID, TenantID: userInfo.TenantID},
 		userInfo.AllowedTenants,
 		userInfo.Username)

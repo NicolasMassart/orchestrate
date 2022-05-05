@@ -8,7 +8,7 @@ import (
 
 type Subscription struct {
 	UUID            string
-	Address         ethcommon.Address
+	ContractAddress ethcommon.Address
 	ChainUUID       string
 	ContractName    string
 	ContractTag     string

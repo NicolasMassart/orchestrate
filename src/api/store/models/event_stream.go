@@ -44,12 +44,16 @@ func NewEventStream(eventStream *entities.EventStream) *EventStream {
 
 	switch eventStream.Channel {
 	case entities.EventStreamChannelKafka:
-		es.Specs = &EventStreamSpecs{
-			Kafka: eventStream.Kafka,
+		if eventStream.Kafka != nil {
+			es.Specs = &EventStreamSpecs{
+				Kafka: eventStream.Kafka,
+			}
 		}
 	case entities.EventStreamChannelWebhook:
-		es.Specs = &EventStreamSpecs{
-			WebHook: eventStream.Webhook,
+		if eventStream.Webhook != nil {
+			es.Specs = &EventStreamSpecs{
+				WebHook: eventStream.Webhook,
+			}
 		}
 	}
 

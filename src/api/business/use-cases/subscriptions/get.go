@@ -34,7 +34,7 @@ func (uc *getUseCase) Execute(ctx context.Context, uuid string, userInfo *multit
 		return nil, errors.FromError(err).ExtendComponent(getSubscriptionComponent)
 	}
 
-	logger.WithField("address", e.Address.String()).WithField("chain", e.ChainUUID).
+	logger.WithField("address", e.ContractAddress.String()).WithField("chain", e.ChainUUID).
 		Debug("subscription found successfully")
 	return e, nil
 }
