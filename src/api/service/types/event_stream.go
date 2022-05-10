@@ -139,3 +139,8 @@ func NewEventStreamResponses(eventStreams []*entities.EventStream) []*EventStrea
 
 	return response
 }
+
+type UpdateEventStreamRequestMessage struct {
+	UUID   string                     `json:"uuid,omitempty" validate:"required" example:"b4374e6f-b28a-4bad-b4fe-bda36eaf849c"`
+	Status entities.EventStreamStatus `json:"status,omitempty" validate:"required,isEventStreamStatus" example:"SUSPENDED"`
+}

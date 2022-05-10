@@ -1,10 +1,8 @@
 package listener
 
-import (
-	"github.com/consensys/orchestrate/src/infra/messenger"
-)
-
-var (
-	EventLogsMessageType messenger.ConsumerRequestMessageType = "event-logs"
-	JobUpdateMessageType messenger.ConsumerRequestMessageType = "job-update"
+const (
+	EventLogsMessageType          = "event-logs"
+	UpdateJobMessageType          = "update-job"
+	UpdateEventStreamMessageType  = "update-event-stream"
+	UpdateNotificationMessageType = "update-notification"
 )

@@ -7,14 +7,14 @@ import (
 type EventStreamChannel string
 type EventStreamStatus string
 
-var (
+const (
 	EventStreamChannelWebhook EventStreamChannel = "webhook"
 	EventStreamChannelKafka   EventStreamChannel = "kafka"
 )
 
-var (
+const (
 	EventStreamStatusLive    EventStreamStatus = "LIVE"
-	EventStreamStatusSuspend EventStreamStatus = "SUSPEND"
+	EventStreamStatusSuspend EventStreamStatus = "SUSPENDED"
 )
 
 const WildcardChainUUID = "00000000-0000-0000-0000-000000000000"

@@ -6,7 +6,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/consensys/orchestrate/src/notifier/store"
+	"github.com/consensys/orchestrate/pkg/sdk"
+	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
@@ -22,20 +23,25 @@ type sendUseCase struct {
 	logger        *log.Logger
 	kafkaProducer kafka.Producer
 	webhookClient *http.Client
-	db            store.NotificationAgent
+	messenger     sdk.MessengerAPI
 }
 
-func NewSendUseCase(db store.NotificationAgent, kafkaProducer kafka.Producer, webhookClient *http.Client) usecases.SendNotificationUseCase {
+func NewSendUseCase(
+	kafkaProducer kafka.Producer,
+	webhookClient *http.Client,
+	messenger sdk.MessengerAPI,
+) usecases.SendNotificationUseCase {
 	return &sendUseCase{
-		db:            db,
 		kafkaProducer: kafkaProducer,
 		webhookClient: webhookClient,
+		messenger:     messenger,
 		logger:        log.NewLogger().SetComponent(sendComponent),
 	}
 }
 
 func (uc *sendUseCase) Execute(ctx context.Context, eventStream *entities.EventStream, notif *entities.Notification) error {
 	logger := uc.logger.WithContext(log.WithFields(ctx, log.Field("notification", notif.UUID), log.Field("event_stream", eventStream.UUID)))
+	userInfo := multitenancy.NewInternalAdminUser()
 
 	if eventStream.Status == entities.EventStreamStatusSuspend {
 		logger.Warn("event stream is suspended")
@@ -45,22 +51,28 @@ func (uc *sendUseCase) Execute(ctx context.Context, eventStream *entities.EventS
 	var err error
 	switch eventStream.Channel {
 	case entities.EventStreamChannelKafka:
-		err = uc.sendKafkaNotificationResponse(ctx, eventStream, notif)
+		err = uc.kafkaProducer.Send(types.NewNotificationResponse(notif), eventStream.Kafka.Topic, eventStream.ChainUUID, nil)
 	case entities.EventStreamChannelWebhook:
 		err = uc.sendWebhookNotificationResponse(ctx, eventStream, notif)
 	default:
 		return errors.InvalidParameterError("invalid event stream channel")
 	}
 	if err != nil {
-		errMessage := "failed to send notification to the specified event stream"
-		logger.WithError(err).Error(errMessage)
-		return errors.DependencyFailureError(errMessage)
+		logger.WithError(err).Warn("failed to send notification")
+
+		err = uc.messenger.EventStreamUpdateMessage(ctx, eventStream.UUID, entities.EventStreamStatusSuspend, userInfo)
+		if err != nil {
+			errMessage := "failed to suspend event stream"
+			logger.WithError(err).Error(errMessage)
+			return errors.DependencyFailureError(errMessage)
+		}
 	}
 
-	notif.Status = entities.NotificationStatusSent
-	_, err = uc.db.Update(ctx, notif)
+	err = uc.messenger.NotificationUpdateMessage(ctx, notif.UUID, entities.NotificationStatusSent, userInfo)
 	if err != nil {
-		return errors.FromError(err).ExtendComponent(createTxComponent)
+		errMessage := "failed to acknowledge notification"
+		logger.WithError(err).Error(errMessage)
+		return errors.DependencyFailureError(errMessage)
 	}
 
 	logger.Info("transaction notification sent successfully")
@@ -71,7 +83,7 @@ func (uc *sendUseCase) sendWebhookNotificationResponse(ctx context.Context, even
 	body := new(bytes.Buffer)
 	err := json.NewEncoder(body).Encode(types.NewNotificationResponse(notif))
 	if err != nil {
-		return errors.EncodingError(err.Error())
+		return err
 	}
 	req, _ := http.NewRequestWithContext(ctx, http.MethodPost, eventStream.Webhook.URL, body)
 	req.Header.Set("Content-Type", "application/json")
@@ -81,16 +93,7 @@ func (uc *sendUseCase) sendWebhookNotificationResponse(ctx context.Context, even
 
 	_, err = uc.webhookClient.Do(req)
 	if err != nil {
-		return errors.HTTPConnectionError(err.Error())
-	}
-
-	return nil
-}
-
-func (uc *sendUseCase) sendKafkaNotificationResponse(_ context.Context, eventStream *entities.EventStream, notif *entities.Notification) error {
-	err := uc.kafkaProducer.Send(types.NewNotificationResponse(notif), eventStream.Kafka.Topic, eventStream.ChainUUID, nil)
-	if err != nil {
-		return errors.KafkaConnectionError("could not send notification response. %s", err.Error())
+		return err
 	}
 
 	return nil

@@ -172,8 +172,10 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 		env.logger.WithError(err).Error("could not initialize kafka producer")
 		return err
 	}
-	
-	env.messengerClient = messenger.NewProducerClient(kafkaProd, env.txSenderCfg.ConsumerTopic)
+
+	env.messengerClient = messenger.NewProducerClient(&messenger.Config{
+		TopicTxSender: env.txSenderCfg.ConsumerTopic,
+	}, kafkaProd)
 
 	// Start tx-sender app
 	err = env.txSender.Start(ctx)
@@ -229,11 +231,7 @@ func newTxSender(txSenderConfig *txsender.Config, redisCli redis.Client) (*app.A
 
 	txSenderConfig.NonceMaxRecovery = maxRecoveryDefault
 
-	return txsender.NewTxSender(txSenderConfig,
-		qkmClient,
-		apiClient,
-		ec,
-		redisCli)
+	return txsender.NewTxSender(txSenderConfig, qkmClient, apiClient, ec, redisCli)
 }
 
 func testBackOff() backoff.BackOff {

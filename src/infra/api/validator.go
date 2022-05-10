@@ -233,6 +233,19 @@ func isEventStreamStatus(fl validator.FieldLevel) bool {
 	return true
 }
 
+func isNotificationStatus(fl validator.FieldLevel) bool {
+	if fl.Field().String() != "" {
+		switch fl.Field().String() {
+		case string(entities.NotificationStatusSent), string(entities.NotificationStatusPending):
+			return true
+		default:
+			return false
+		}
+	}
+
+	return true
+}
+
 func isChannel(fl validator.FieldLevel) bool {
 	if fl.Field().String() != "" {
 		switch fl.Field().String() {
@@ -268,6 +281,7 @@ func init() {
 	_ = validate.RegisterValidation("isPrivacyFlag", isPrivacyFlag)
 	_ = validate.RegisterValidation("isEventStreamStatus", isEventStreamStatus)
 	_ = validate.RegisterValidation("isChannel", isChannel)
+	_ = validate.RegisterValidation("isNotificationStatus", isNotificationStatus)
 }
 
 func GetValidator() *validator.Validate {

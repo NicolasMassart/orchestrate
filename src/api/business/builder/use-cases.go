@@ -28,20 +28,16 @@ func NewUseCases(
 	keyManagerClient qkmclient.EthClient,
 	qkmStoreID string,
 	ec ethclient.Client,
-	txSenderMessenger sdk.MessengerTxSender,
-	txListenerMessenger sdk.MessengerTxListener,
-	notifierMessenger sdk.MessengerNotifier,
+	messengerClient sdk.OrchestrateMessenger,
 ) usecases.UseCases {
 	chainUseCases := newChainUseCases(db, ec)
 	contractUseCases := newContractUseCases(db)
 	faucetUseCases := newFaucetUseCases(db)
 	getFaucetCandidateUC := faucets.NewGetFaucetCandidateUseCase(faucetUseCases.Search(), ec)
 	scheduleUseCases := newScheduleUseCases(db)
-	eventStreamUseCases := newEventStreamUseCases(db.EventStream(), contractUseCases, chainUseCases, notifierMessenger)
-	subscriptionsUseCases := NewSubscriptionUseCases(db.Subscription(), contractUseCases, chainUseCases,
-		eventStreamUseCases, txListenerMessenger, notifierMessenger)
-	jobUseCases := newJobUseCases(db, appMetrics, txSenderMessenger, txListenerMessenger, eventStreamUseCases,
-		chainUseCases, qkmStoreID)
+	eventStreamUseCases := newEventStreamUseCases(db, contractUseCases, chainUseCases, messengerClient)
+	subscriptionsUseCases := NewSubscriptionUseCases(db.Subscription(), contractUseCases, chainUseCases, eventStreamUseCases, messengerClient)
+	jobUseCases := newJobUseCases(db, appMetrics, messengerClient, eventStreamUseCases, chainUseCases, qkmStoreID)
 	transactionUseCases := newTransactionUseCases(db, chainUseCases.Search(), getFaucetCandidateUC,
 		scheduleUseCases, jobUseCases, contractUseCases.Get())
 	accountUseCases := newAccountUseCases(db, keyManagerClient, chainUseCases.Search(),

@@ -18,6 +18,7 @@ type PGStore struct {
 	chain         store.ChainAgent
 	eventStream   store.EventStreamAgent
 	subscription  store.SubscriptionAgent
+	notification  store.NotificationAgent
 	client        postgres.Client
 }
 
@@ -35,6 +36,7 @@ func New(client postgres.Client) *PGStore {
 		chain:         NewPGChain(client),
 		eventStream:   NewPGEventStream(client),
 		subscription:  NewPGSubscription(client),
+		notification:  NewPGNotification(client),
 		client:        client,
 	}
 }
@@ -77,6 +79,10 @@ func (s *PGStore) EventStream() store.EventStreamAgent {
 
 func (s *PGStore) Subscription() store.SubscriptionAgent {
 	return s.subscription
+}
+
+func (s *PGStore) Notification() store.NotificationAgent {
+	return s.notification
 }
 
 func (s *PGStore) RunInTransaction(ctx context.Context, persist func(a store.DB) error) error {

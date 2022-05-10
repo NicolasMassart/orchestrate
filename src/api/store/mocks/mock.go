@@ -176,6 +176,20 @@ func (mr *MockDBMockRecorder) Subscription() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Subscription", reflect.TypeOf((*MockDB)(nil).Subscription))
 }
 
+// Notification mocks base method
+func (m *MockDB) Notification() store.NotificationAgent {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Notification")
+	ret0, _ := ret[0].(store.NotificationAgent)
+	return ret0
+}
+
+// Notification indicates an expected call of Notification
+func (mr *MockDBMockRecorder) Notification() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Notification", reflect.TypeOf((*MockDB)(nil).Notification))
+}
+
 // RunInTransaction mocks base method
 func (m *MockDB) RunInTransaction(ctx context.Context, persistFunc func(store.DB) error) error {
 	m.ctrl.T.Helper()
@@ -1155,4 +1169,57 @@ func (m *MockSubscriptionAgent) Update(ctx context.Context, subscription *entiti
 func (mr *MockSubscriptionAgentMockRecorder) Update(ctx, subscription, tenants, ownerID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockSubscriptionAgent)(nil).Update), ctx, subscription, tenants, ownerID)
+}
+
+// MockNotificationAgent is a mock of NotificationAgent interface
+type MockNotificationAgent struct {
+	ctrl     *gomock.Controller
+	recorder *MockNotificationAgentMockRecorder
+}
+
+// MockNotificationAgentMockRecorder is the mock recorder for MockNotificationAgent
+type MockNotificationAgentMockRecorder struct {
+	mock *MockNotificationAgent
+}
+
+// NewMockNotificationAgent creates a new mock instance
+func NewMockNotificationAgent(ctrl *gomock.Controller) *MockNotificationAgent {
+	mock := &MockNotificationAgent{ctrl: ctrl}
+	mock.recorder = &MockNotificationAgentMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockNotificationAgent) EXPECT() *MockNotificationAgentMockRecorder {
+	return m.recorder
+}
+
+// Insert mocks base method
+func (m *MockNotificationAgent) Insert(ctx context.Context, notif *entities.Notification) (*entities.Notification, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Insert", ctx, notif)
+	ret0, _ := ret[0].(*entities.Notification)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Insert indicates an expected call of Insert
+func (mr *MockNotificationAgentMockRecorder) Insert(ctx, notif interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockNotificationAgent)(nil).Insert), ctx, notif)
+}
+
+// Update mocks base method
+func (m *MockNotificationAgent) Update(ctx context.Context, notif *entities.Notification) (*entities.Notification, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update", ctx, notif)
+	ret0, _ := ret[0].(*entities.Notification)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Update indicates an expected call of Update
+func (mr *MockNotificationAgentMockRecorder) Update(ctx, notif interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockNotificationAgent)(nil).Update), ctx, notif)
 }

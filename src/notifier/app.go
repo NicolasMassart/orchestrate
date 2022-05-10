@@ -6,10 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/consensys/orchestrate/pkg/sdk"
-	"github.com/consensys/orchestrate/src/infra/postgres"
-	postgresstore "github.com/consensys/orchestrate/src/notifier/store/postgres"
+	usecases "github.com/consensys/orchestrate/src/notifier/notifier/use-cases/notifications"
 
+	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/toolkit/app"
 	"github.com/consensys/orchestrate/src/infra/kafka"
 	"github.com/consensys/orchestrate/src/notifier/service"
@@ -19,7 +18,6 @@ import (
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"github.com/consensys/orchestrate/src/infra/messenger"
-	"github.com/consensys/orchestrate/src/notifier/notifier/builder"
 	"github.com/hashicorp/go-multierror"
 )
 
@@ -35,18 +33,17 @@ type Daemon struct {
 var _ app.Daemon = &Daemon{}
 
 func New(config *Config,
-	db postgres.Client,
-	eventStreamClient sdk.EventStreamClient,
 	kafkaProducer kafka.Producer,
 	webhookClient *http.Client,
+	messengerClient sdk.MessengerAPI,
 ) (*Daemon, error) {
 	// Create business layer use cases
-	useCases := builder.NewUseCases(postgresstore.NewPGNotification(db), kafkaProducer, webhookClient)
+	useCases := usecases.NewSendUseCase(kafkaProducer, webhookClient, messengerClient)
 
 	consumers := make([]messenger.Consumer, config.Kafka.NConsumers)
 	for idx := 0; idx < config.Kafka.NConsumers; idx++ {
 		var err error
-		consumers[idx], err = service.NewMessageConsumer(config.Kafka, []string{config.ConsumerTopic}, useCases, eventStreamClient, config.MaxRetries)
+		consumers[idx], err = service.NewMessageConsumer(config.Kafka, []string{config.ConsumerTopic}, useCases, config.MaxRetries)
 		if err != nil {
 			return nil, err
 		}

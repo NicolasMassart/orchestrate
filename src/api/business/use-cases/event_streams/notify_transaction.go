@@ -18,7 +18,7 @@ import (
 const notifyTransactionComponent = "use-cases.notify_transaction"
 
 type notifyTransactionUseCase struct {
-	db                  store.EventStreamAgent
+	db                  store.DB
 	searchContractUC    usecases.SearchContractUseCase
 	decodeLogUC         usecases.DecodeEventLogUseCase
 	txNotifierMessenger sdk.MessengerNotifier
@@ -26,7 +26,7 @@ type notifyTransactionUseCase struct {
 }
 
 func NewNotifyTransactionUseCase(
-	db store.EventStreamAgent,
+	db store.DB,
 	searchContractUC usecases.SearchContractUseCase,
 	decodeLogUC usecases.DecodeEventLogUseCase,
 	txNotifierMessenger sdk.MessengerNotifier,
@@ -43,7 +43,7 @@ func NewNotifyTransactionUseCase(
 func (uc *notifyTransactionUseCase) Execute(ctx context.Context, job *entities.Job, errStr string, userInfo *multitenancy.UserInfo) error {
 	ctx = log.WithFields(ctx, log.Field("id", job.ScheduleUUID))
 
-	eventStream, err := uc.db.FindOneByTenantAndChain(ctx, job.TenantID, job.ChainUUID, userInfo.AllowedTenants, userInfo.Username)
+	eventStream, err := uc.db.EventStream().FindOneByTenantAndChain(ctx, job.TenantID, job.ChainUUID, userInfo.AllowedTenants, userInfo.Username)
 	if err != nil {
 		return errors.FromError(err).ExtendComponent(notifyTransactionComponent)
 	}
@@ -80,14 +80,27 @@ func (uc *notifyTransactionUseCase) Execute(ctx context.Context, job *entities.J
 		}
 	}
 
-	err = uc.txNotifierMessenger.TransactionNotificationMessage(ctx, eventStream, job, errStr, userInfo)
+	notif, err := uc.db.Notification().Insert(ctx, &entities.Notification{
+		SourceUUID: job.ScheduleUUID,
+		SourceType: entities.NotificationSourceTypeJob,
+		Status:     entities.NotificationStatusPending,
+		Type:       jobStatusToNotificationType(job.Status),
+		APIVersion: "v1",
+		Error:      errStr,
+	})
+	if err != nil {
+		return errors.FromError(err).ExtendComponent(notifyTransactionComponent)
+	}
+	notif.Job = job
+
+	err = uc.txNotifierMessenger.TransactionNotificationMessage(ctx, eventStream, notif, userInfo)
 	if err != nil {
 		errMsg := "failed to send notification to notifier service"
 		uc.logger.WithError(err).Error(errMsg)
 		return errors.DependencyFailureError(errMsg).ExtendComponent(notifyTransactionComponent)
 	}
 
-	logger.WithField("event_stream", eventStream.UUID).Debug("notification sent successfully")
+	logger.WithField("event_stream", eventStream.UUID).WithField("notification", notif.UUID).Debug("notification sent successfully to notifier service")
 	return nil
 }
 
@@ -122,4 +135,15 @@ func (uc *notifyTransactionUseCase) attachContractData(ctx context.Context, rece
 	receipt.ContractTag = eventContract.Tag
 
 	return nil
+}
+
+func jobStatusToNotificationType(jobStatus entities.JobStatus) entities.NotificationType {
+	switch jobStatus {
+	case entities.StatusFailed:
+		return entities.NotificationTypeTxFailed
+	case entities.StatusMined:
+		return entities.NotificationTypeTxMined
+	}
+
+	return ""
 }

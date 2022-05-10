@@ -256,7 +256,7 @@ func (s *jobsTestSuite) TestUpdateNotifyWithKafka() {
 
 		notificationReq, err := s.env.messengerConsumerTracker.WaitForTransactionNotificationMessage(ctx, job.UUID, waitForNotificationTimeOut)
 		require.NoError(s.T(), err)
-		assert.Equal(s.T(), notificationReq.Job.UUID, job.UUID)
+		assert.Equal(s.T(), notificationReq.Notification.Job.UUID, job.UUID)
 		assert.Equal(s.T(), notificationReq.EventStream.UUID, eventStream.UUID)
 		// @TODO Move to notifier integration tests
 		notificationRes, err := s.env.notifierConsumerTracker.WaitForMinedTransaction(ctx, job.ScheduleUUID, waitForNotificationTimeOut)
@@ -286,9 +286,10 @@ func (s *jobsTestSuite) TestUpdateNotifyWithKafka() {
 
 		notificationReq, err := s.env.messengerConsumerTracker.WaitForTransactionNotificationMessage(ctx, job.UUID, waitForNotificationTimeOut)
 		require.NoError(s.T(), err)
-		assert.Equal(s.T(), notificationReq.Job.UUID, job.UUID)
+		assert.Equal(s.T(), notificationReq.Notification.SourceUUID, job.ScheduleUUID)
 		assert.Equal(s.T(), notificationReq.EventStream.UUID, eventStream.UUID)
-		assert.Equal(s.T(), notificationReq.Error, failedErrMsg)
+		assert.Equal(s.T(), notificationReq.Notification.Error, failedErrMsg)
+
 		// @TODO Move to notifier integration tests
 		notification, err := s.env.notifierConsumerTracker.WaitForFailedTransaction(ctx, job.ScheduleUUID, waitForNotificationTimeOut)
 		require.NoError(s.T(), err)

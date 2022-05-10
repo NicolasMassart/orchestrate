@@ -10,16 +10,15 @@ import (
 	"github.com/consensys/orchestrate/src/notifier/service/types"
 )
 
-func (c *ProducerClient) TransactionNotificationMessage(_ context.Context, eventStream *entities.EventStream, job *entities.Job, errMsg string, userInfo *multitenancy.UserInfo) error {
-	return c.sendMessage(service.TransactionMessageType, &types.TransactionMessageRequest{
-		EventStream: eventStream,
-		Job:         job,
-		Error:       errMsg,
-	}, job.PartitionKey(), userInfo)
+func (c *ProducerClient) TransactionNotificationMessage(_ context.Context, eventStream *entities.EventStream, notif *entities.Notification, userInfo *multitenancy.UserInfo) error {
+	return c.sendMessage(c.cfg.TopicTxNotifier, service.TransactionMessageType, &types.TransactionMessageRequest{
+		EventStream:  eventStream,
+		Notification: notif,
+	}, notif.Job.PartitionKey(), userInfo)
 }
 
 func (c *ProducerClient) ContractEventNotificationMessage(_ context.Context, eventStream *entities.EventStream, subscriptionUUID string, eventLogs []*ethereum.Log, userInfo *multitenancy.UserInfo) error {
-	return c.sendMessage(service.ContractEventMessageType, &types.ContractEventMessageRequest{
+	return c.sendMessage(c.cfg.TopicTxNotifier, service.ContractEventMessageType, &types.ContractEventMessageRequest{
 		EventStream:      eventStream,
 		SubscriptionUUID: subscriptionUUID,
 		EventLogs:        eventLogs,

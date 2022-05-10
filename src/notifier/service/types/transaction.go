@@ -5,7 +5,6 @@ import (
 )
 
 type TransactionMessageRequest struct {
-	EventStream *entities.EventStream `json:"eventStream" validate:"required"`
-	Job         *entities.Job         `json:"job"`
-	Error       string                `json:"error" example:"insufficient gas"`
+	EventStream  *entities.EventStream  `json:"eventStream" validate:"required"`
+	Notification *entities.Notification `json:"notification" validate:"required"`
 }

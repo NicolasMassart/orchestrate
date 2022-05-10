@@ -17,14 +17,17 @@ type OrchestrateMessenger interface {
 	MessengerTxSender
 }
 
-// @TODO Use MessageRequest types as input for methods, same than Orchestrate HTT client
+// @TODO Use MessageRequest types as input for methods, same than Orchestrate HTTP client
+
 type MessengerAPI interface {
 	ContractEventLogsMessage(ctx context.Context, chainUUID string, logs []*ethereum.Log, userInfo *multitenancy.UserInfo) error
 	JobUpdateMessage(ctx context.Context, jobUUID string, status entities.JobStatus, msg string, userInfo *multitenancy.UserInfo) error
+	EventStreamUpdateMessage(ctx context.Context, eventStreamUUID string, status entities.EventStreamStatus, userInfo *multitenancy.UserInfo) error
+	NotificationUpdateMessage(ctx context.Context, notifUUID string, status entities.NotificationStatus, userInfo *multitenancy.UserInfo) error
 }
 
 type MessengerNotifier interface {
-	TransactionNotificationMessage(ctx context.Context, eventStream *entities.EventStream, job *entities.Job, errMsg string, userInfo *multitenancy.UserInfo) error
+	TransactionNotificationMessage(ctx context.Context, eventStream *entities.EventStream, notif *entities.Notification, userInfo *multitenancy.UserInfo) error
 	ContractEventNotificationMessage(ctx context.Context, eventStream *entities.EventStream, subscriptionUUID string, eventLogs []*ethereum.Log, userInfo *multitenancy.UserInfo) error
 }
 

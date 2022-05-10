@@ -23,17 +23,16 @@ func NewSubscriptionUseCases(
 	contracts usecases.ContractUseCases,
 	chains usecases.ChainUseCases,
 	eventstreams usecases.EventStreamsUseCases,
-	txListenerMessenger sdk.MessengerTxListener,
-	notifierMessenger sdk.MessengerNotifier,
+	messengerClient sdk.OrchestrateMessenger,
 ) *subscriptionUseCases {
 	searchUC := subscriptions.NewSearchUseCase(db)
 	return &subscriptionUseCases{
 		get:       subscriptions.NewGetUseCase(db),
-		create:    subscriptions.NewCreateUseCase(db, chains.Search(), contracts.Get(), eventstreams.Search(), txListenerMessenger),
+		create:    subscriptions.NewCreateUseCase(db, chains.Search(), contracts.Get(), eventstreams.Search(), messengerClient),
 		search:    searchUC,
-		notifySub: subscriptions.NewNotifySubscriptionEventUseCase(db, searchUC, contracts.Search(), eventstreams.Get(), contracts.DecodeLog(), notifierMessenger),
-		update:    subscriptions.NewUpdateUseCase(db, eventstreams.Search(), txListenerMessenger),
-		delete:    subscriptions.NewDeleteUseCase(db, txListenerMessenger),
+		notifySub: subscriptions.NewNotifySubscriptionEventUseCase(db, searchUC, contracts.Search(), eventstreams.Get(), contracts.DecodeLog(), messengerClient),
+		update:    subscriptions.NewUpdateUseCase(db, eventstreams.Search(), messengerClient),
+		delete:    subscriptions.NewDeleteUseCase(db, messengerClient),
 	}
 }
 

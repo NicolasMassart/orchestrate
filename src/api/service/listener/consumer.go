@@ -29,7 +29,7 @@ func NewMessageConsumer(cfg *kafka.Config,
 	}
 	router := NewRouter(notifySubscriptionUC, updateJobUC)
 	consumer.AppendHandler(EventLogsMessageType, router.HandleEventLogs)
-	consumer.AppendHandler(JobUpdateMessageType, router.HandleJobUpdate)
+	consumer.AppendHandler(UpdateJobMessageType, router.HandleJobUpdate)
 	return consumer, nil
 }
 

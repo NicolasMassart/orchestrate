@@ -46,7 +46,7 @@ func NewMessengerConsumerTracker(cfg kafka.Config, topics []string) (*MessengerC
 		tracker:      NewConsumerTracker(chanRegistry, logger),
 		logger:       logger,
 	}
-	
+
 	msg.trackMessageType(txsender.StartedJobMessageType, &txsenderTypes.StartedJobReq{}, func(req interface{}) string {
 		return req.(*txsenderTypes.StartedJobReq).Job.UUID
 	})
@@ -54,7 +54,7 @@ func NewMessengerConsumerTracker(cfg kafka.Config, topics []string) (*MessengerC
 		return req.(*txlistenerTypes.PendingJobMessageRequest).Job.UUID
 	})
 	msg.trackMessageType(notifier2.TransactionMessageType, &notifierTypes.TransactionMessageRequest{}, func(req interface{}) string {
-		return req.(*notifierTypes.TransactionMessageRequest).Job.UUID
+		return req.(*notifierTypes.TransactionMessageRequest).Notification.Job.UUID
 	})
 
 	return msg, nil
@@ -66,7 +66,7 @@ func (m *MessengerConsumerTracker) trackMessageType(msgType messenger.ConsumerRe
 
 func (m *MessengerConsumerTracker) WaitForStartedJobMessage(ctx context.Context, msgId string, timeout time.Duration) (*txsenderTypes.StartedJobReq, error) {
 	msg, err := m.tracker.WaitForMessage(ctx, keyGenOf(msgId, string(txsender.StartedJobMessageType)), timeout)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	req, ok := msg.(*txsenderTypes.StartedJobReq)
@@ -78,7 +78,7 @@ func (m *MessengerConsumerTracker) WaitForStartedJobMessage(ctx context.Context,
 
 func (m *MessengerConsumerTracker) WaitForPendingJobMessage(ctx context.Context, msgId string, timeout time.Duration) (*txlistenerTypes.PendingJobMessageRequest, error) {
 	msg, err := m.tracker.WaitForMessage(ctx, keyGenOf(msgId, string(txlistener.PendingJobMessageType)), timeout)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	req, ok := msg.(*txlistenerTypes.PendingJobMessageRequest)
@@ -90,7 +90,7 @@ func (m *MessengerConsumerTracker) WaitForPendingJobMessage(ctx context.Context,
 
 func (m *MessengerConsumerTracker) WaitForTransactionNotificationMessage(ctx context.Context, msgId string, timeout time.Duration) (*notifierTypes.TransactionMessageRequest, error) {
 	msg, err := m.tracker.WaitForMessage(ctx, keyGenOf(msgId, string(notifier2.TransactionMessageType)), timeout)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	req, ok := msg.(*notifierTypes.TransactionMessageRequest)

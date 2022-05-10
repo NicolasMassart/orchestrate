@@ -24,10 +24,15 @@ func TestNotifyTx(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockDB := mocks.NewMockEventStreamAgent(ctrl)
+	mockDB := mocks.NewMockDB(ctrl)
+	mockEventStream := mocks.NewMockEventStreamAgent(ctrl)
+	mockNotification := mocks.NewMockNotificationAgent(ctrl)
 	messenger := mock.NewMockMessengerNotifier(ctrl)
 	searchContractsUC := mocks3.NewMockSearchContractUseCase(ctrl)
 	decodeLogUC := mocks3.NewMockDecodeEventLogUseCase(ctrl)
+
+	mockDB.EXPECT().EventStream().Return(mockEventStream).AnyTimes()
+	mockDB.EXPECT().Notification().Return(mockNotification).AnyTimes()
 
 	userInfo := multitenancy.NewUserInfo("tenantOne", "username")
 	errStr := "error"
@@ -36,10 +41,20 @@ func TestNotifyTx(t *testing.T) {
 
 	t.Run("should execute use case successfully", func(t *testing.T) {
 		job := testdata.FakeJob()
+		job.Status = entities.StatusFailed
 		eventStream := testdata.FakeWebhookEventStream()
+		expectedNotif := &entities.Notification{
+			SourceUUID: job.ScheduleUUID,
+			SourceType: entities.NotificationSourceTypeJob,
+			Status:     entities.NotificationStatusPending,
+			Type:       entities.NotificationTypeTxFailed,
+			APIVersion: "v1",
+			Error:      errStr,
+		}
 
-		mockDB.EXPECT().FindOneByTenantAndChain(gomock.Any(), job.TenantID, job.ChainUUID, userInfo.AllowedTenants, userInfo.Username).Return(eventStream, nil)
-		messenger.EXPECT().TransactionNotificationMessage(gomock.Any(), eventStream, job, errStr, userInfo).Return(nil)
+		mockEventStream.EXPECT().FindOneByTenantAndChain(gomock.Any(), job.TenantID, job.ChainUUID, userInfo.AllowedTenants, userInfo.Username).Return(eventStream, nil)
+		mockNotification.EXPECT().Insert(gomock.Any(), expectedNotif).Return(expectedNotif, nil)
+		messenger.EXPECT().TransactionNotificationMessage(gomock.Any(), eventStream, expectedNotif, userInfo).Return(nil)
 
 		err := usecase.Execute(ctx, job, errStr, userInfo)
 
@@ -49,7 +64,7 @@ func TestNotifyTx(t *testing.T) {
 	t.Run("should do nothing if no event stream is found", func(t *testing.T) {
 		job := testdata.FakeJob()
 
-		mockDB.EXPECT().FindOneByTenantAndChain(gomock.Any(), job.TenantID, job.ChainUUID, userInfo.AllowedTenants, userInfo.Username).Return(nil, nil)
+		mockEventStream.EXPECT().FindOneByTenantAndChain(gomock.Any(), job.TenantID, job.ChainUUID, userInfo.AllowedTenants, userInfo.Username).Return(nil, nil)
 
 		err := usecase.Execute(ctx, job, errStr, userInfo)
 
@@ -63,7 +78,7 @@ func TestNotifyTx(t *testing.T) {
 
 		eventStream := testdata.FakeWebhookEventStream()
 
-		mockDB.EXPECT().FindOneByTenantAndChain(gomock.Any(), job.TenantID, job.ChainUUID, userInfo.AllowedTenants, userInfo.Username).Return(eventStream, nil)
+		mockEventStream.EXPECT().FindOneByTenantAndChain(gomock.Any(), job.TenantID, job.ChainUUID, userInfo.AllowedTenants, userInfo.Username).Return(eventStream, nil)
 
 		err := usecase.Execute(ctx, job, errStr, userInfo)
 
@@ -74,7 +89,7 @@ func TestNotifyTx(t *testing.T) {
 		job := testdata.FakeJob()
 		expectedErr := errors.NotFoundError("error")
 
-		mockDB.EXPECT().FindOneByTenantAndChain(gomock.Any(), job.TenantID, job.ChainUUID, userInfo.AllowedTenants, userInfo.Username).Return(nil, expectedErr)
+		mockEventStream.EXPECT().FindOneByTenantAndChain(gomock.Any(), job.TenantID, job.ChainUUID, userInfo.AllowedTenants, userInfo.Username).Return(nil, expectedErr)
 
 		err := usecase.Execute(ctx, job, errStr, userInfo)
 

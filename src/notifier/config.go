@@ -6,6 +6,7 @@ import (
 
 type Config struct {
 	Kafka         *kafka.Config
+	TopicAPI      string
 	ConsumerTopic string
 	MaxRetries    int
 }

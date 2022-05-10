@@ -3,6 +3,7 @@ package integrationtests
 import (
 	"context"
 	"fmt"
+	"github.com/consensys/orchestrate/pkg/sdk/messenger"
 	"os"
 	"path"
 	"strconv"
@@ -93,6 +94,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 	envQKMHostPort = strconv.Itoa(utils.RandIntRange(10000, 15235))
 	envVaultHostPort = strconv.Itoa(utils.RandIntRange(10000, 15235))
 
+	apiTopic := "topic-api"
 	txSenderTopic := "topic-tx-sender"
 	txListenerTopic := "topic-tx-listener"
 	notifierTopic := "topic-notifier"
@@ -111,6 +113,7 @@ func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, er
 		"--rest-port=" + envHTTPPort,
 		"--db-port=" + envPGHostPort,
 		"--kafka-url=" + kafkaExternalHostname,
+		"--topic-api=" + apiTopic,
 		"--topic-tx-listener=" + txListenerTopic,
 		"--topic-tx-sender=" + txSenderTopic,
 		"--topic-notifier=" + notifierTopic,
@@ -310,18 +313,18 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 		env.logger.WithError(err).Error("could initialize kafka internal Consumer")
 		return err
 	}
-	
+
 	// Start internal kafka consumer
 	env.notifierConsumerTracker, err = trackers.NewNotifierConsumerTacker(*env.apiCfg.Kafka, []string{env.notificationTopic})
 	if err != nil {
 		env.logger.WithError(err).Error("could initialize kafka internal Consumer")
 		return err
 	}
-	
+
 	go func() {
 		_ = env.messengerConsumerTracker.Consume(ctx)
 	}()
-	
+
 	go func() {
 		_ = env.notifierConsumerTracker.Consume(ctx)
 	}()
@@ -444,6 +447,13 @@ func newAPI(ctx context.Context, cfg *api.Config, notifierConfig *notifier.Confi
 		return nil, err
 	}
 
+	messengerClient := messenger.NewProducerClient(&messenger.Config{
+		TopicAPI:        notifierConfig.TopicAPI,
+		TopicTxListener: cfg.KafkaTopics.Listener,
+		TopicTxSender:   cfg.KafkaTopics.Sender,
+		TopicTxNotifier: cfg.KafkaTopics.Notifier,
+	}, kafkaProducer)
+
 	authjwt.Init(ctx)
 	authkey.Init(ctx)
 	ethclient.Init(ctx)
@@ -452,7 +462,12 @@ func newAPI(ctx context.Context, cfg *api.Config, notifierConfig *notifier.Confi
 	interceptedHTTPClient := httputils.NewClient(httputils.NewDefaultConfig())
 	gock.InterceptClient(interceptedHTTPClient)
 
-	notifierDaemon, err := notifier.New(notifierConfig, postgresClient, orchestrateclient.GlobalClient(), kafkaProducer, interceptedHTTPClient)
+	notifierDaemon, err := notifier.New(
+		notifierConfig,
+		kafkaProducer,
+		interceptedHTTPClient,
+		messengerClient,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -465,7 +480,7 @@ func newAPI(ctx context.Context, cfg *api.Config, notifierConfig *notifier.Confi
 		qkmClient,
 		cfg.QKM.StoreName,
 		ethclient.GlobalClient(),
-		kafkaProducer,
+		messengerClient,
 		notifierDaemon,
 	)
 }

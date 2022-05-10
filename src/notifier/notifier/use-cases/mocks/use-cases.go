@@ -7,99 +7,9 @@ package mocks
 import (
 	context "context"
 	entities "github.com/consensys/orchestrate/src/entities"
-	usecases "github.com/consensys/orchestrate/src/notifier/notifier/use-cases"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
-
-// MockUseCases is a mock of UseCases interface
-type MockUseCases struct {
-	ctrl     *gomock.Controller
-	recorder *MockUseCasesMockRecorder
-}
-
-// MockUseCasesMockRecorder is the mock recorder for MockUseCases
-type MockUseCasesMockRecorder struct {
-	mock *MockUseCases
-}
-
-// NewMockUseCases creates a new mock instance
-func NewMockUseCases(ctrl *gomock.Controller) *MockUseCases {
-	mock := &MockUseCases{ctrl: ctrl}
-	mock.recorder = &MockUseCasesMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockUseCases) EXPECT() *MockUseCasesMockRecorder {
-	return m.recorder
-}
-
-// Send mocks base method
-func (m *MockUseCases) Send() usecases.SendNotificationUseCase {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Send")
-	ret0, _ := ret[0].(usecases.SendNotificationUseCase)
-	return ret0
-}
-
-// Send indicates an expected call of Send
-func (mr *MockUseCasesMockRecorder) Send() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Send", reflect.TypeOf((*MockUseCases)(nil).Send))
-}
-
-// CreateTransaction mocks base method
-func (m *MockUseCases) CreateTransaction() usecases.CreateTxNotificationUseCase {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateTransaction")
-	ret0, _ := ret[0].(usecases.CreateTxNotificationUseCase)
-	return ret0
-}
-
-// CreateTransaction indicates an expected call of CreateTransaction
-func (mr *MockUseCasesMockRecorder) CreateTransaction() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTransaction", reflect.TypeOf((*MockUseCases)(nil).CreateTransaction))
-}
-
-// MockCreateTxNotificationUseCase is a mock of CreateTxNotificationUseCase interface
-type MockCreateTxNotificationUseCase struct {
-	ctrl     *gomock.Controller
-	recorder *MockCreateTxNotificationUseCaseMockRecorder
-}
-
-// MockCreateTxNotificationUseCaseMockRecorder is the mock recorder for MockCreateTxNotificationUseCase
-type MockCreateTxNotificationUseCaseMockRecorder struct {
-	mock *MockCreateTxNotificationUseCase
-}
-
-// NewMockCreateTxNotificationUseCase creates a new mock instance
-func NewMockCreateTxNotificationUseCase(ctrl *gomock.Controller) *MockCreateTxNotificationUseCase {
-	mock := &MockCreateTxNotificationUseCase{ctrl: ctrl}
-	mock.recorder = &MockCreateTxNotificationUseCaseMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockCreateTxNotificationUseCase) EXPECT() *MockCreateTxNotificationUseCaseMockRecorder {
-	return m.recorder
-}
-
-// Execute mocks base method
-func (m *MockCreateTxNotificationUseCase) Execute(ctx context.Context, job *entities.Job, errStr string) (*entities.Notification, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Execute", ctx, job, errStr)
-	ret0, _ := ret[0].(*entities.Notification)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Execute indicates an expected call of Execute
-func (mr *MockCreateTxNotificationUseCaseMockRecorder) Execute(ctx, job, errStr interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockCreateTxNotificationUseCase)(nil).Execute), ctx, job, errStr)
-}
 
 // MockSendNotificationUseCase is a mock of SendNotificationUseCase interface
 type MockSendNotificationUseCase struct {
@@ -125,15 +35,15 @@ func (m *MockSendNotificationUseCase) EXPECT() *MockSendNotificationUseCaseMockR
 }
 
 // Execute mocks base method
-func (m *MockSendNotificationUseCase) Execute(ctx context.Context, notif *entities.Notification, eventStream *entities.EventStream) error {
+func (m *MockSendNotificationUseCase) Execute(ctx context.Context, eventStream *entities.EventStream, notif *entities.Notification) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Execute", ctx, notif, eventStream)
+	ret := m.ctrl.Call(m, "Execute", ctx, eventStream, notif)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Execute indicates an expected call of Execute
-func (mr *MockSendNotificationUseCaseMockRecorder) Execute(ctx, notif, eventStream interface{}) *gomock.Call {
+func (mr *MockSendNotificationUseCaseMockRecorder) Execute(ctx, eventStream, notif interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockSendNotificationUseCase)(nil).Execute), ctx, notif, eventStream)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockSendNotificationUseCase)(nil).Execute), ctx, eventStream, notif)
 }

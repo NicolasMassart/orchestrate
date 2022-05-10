@@ -176,8 +176,7 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 		return err
 	}
 
-	
-	env.messengerClient = messenger.NewProducerClient(kafkaProd, env.cfg.ConsumerTopic)
+	env.messengerClient = messenger.NewProducerClient(&messenger.Config{TopicTxListener: env.cfg.ConsumerTopic}, kafkaProd)
 
 	// Start tx-sender app
 	err = env.app.Start(ctx)
@@ -200,7 +199,7 @@ func (env *IntegrationEnvironment) Teardown(ctx context.Context) {
 	if err != nil {
 		env.logger.WithError(err).Error("could delete chain")
 	}
-	
+
 	err = env.client.Down(ctx, kafkaContainerID)
 	if err != nil {
 		env.logger.WithError(err).Error("could not down Kafka")

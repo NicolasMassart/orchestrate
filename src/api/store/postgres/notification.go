@@ -4,12 +4,13 @@ import (
 	"context"
 	"time"
 
+	"github.com/consensys/orchestrate/src/api/store"
+	"github.com/consensys/orchestrate/src/api/store/models"
+
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/infra/postgres"
-	"github.com/consensys/orchestrate/src/notifier/store"
-	"github.com/consensys/orchestrate/src/notifier/store/models"
 	"github.com/gofrs/uuid"
 )
 

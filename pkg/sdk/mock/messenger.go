@@ -64,18 +64,46 @@ func (mr *MockOrchestrateMessengerMockRecorder) JobUpdateMessage(ctx, jobUUID, s
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JobUpdateMessage", reflect.TypeOf((*MockOrchestrateMessenger)(nil).JobUpdateMessage), ctx, jobUUID, status, msg, userInfo)
 }
 
-// TransactionNotificationMessage mocks base method
-func (m *MockOrchestrateMessenger) TransactionNotificationMessage(ctx context.Context, eventStream *entities.EventStream, job *entities.Job, errMsg string, userInfo *multitenancy.UserInfo) error {
+// EventStreamUpdateMessage mocks base method
+func (m *MockOrchestrateMessenger) EventStreamUpdateMessage(ctx context.Context, eventStreamUUID string, status entities.EventStreamStatus, userInfo *multitenancy.UserInfo) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TransactionNotificationMessage", ctx, eventStream, job, errMsg, userInfo)
+	ret := m.ctrl.Call(m, "EventStreamUpdateMessage", ctx, eventStreamUUID, status, userInfo)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// EventStreamUpdateMessage indicates an expected call of EventStreamUpdateMessage
+func (mr *MockOrchestrateMessengerMockRecorder) EventStreamUpdateMessage(ctx, eventStreamUUID, status, userInfo interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EventStreamUpdateMessage", reflect.TypeOf((*MockOrchestrateMessenger)(nil).EventStreamUpdateMessage), ctx, eventStreamUUID, status, userInfo)
+}
+
+// NotificationUpdateMessage mocks base method
+func (m *MockOrchestrateMessenger) NotificationUpdateMessage(ctx context.Context, notifUUID string, status entities.NotificationStatus, userInfo *multitenancy.UserInfo) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NotificationUpdateMessage", ctx, notifUUID, status, userInfo)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// NotificationUpdateMessage indicates an expected call of NotificationUpdateMessage
+func (mr *MockOrchestrateMessengerMockRecorder) NotificationUpdateMessage(ctx, notifUUID, status, userInfo interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotificationUpdateMessage", reflect.TypeOf((*MockOrchestrateMessenger)(nil).NotificationUpdateMessage), ctx, notifUUID, status, userInfo)
+}
+
+// TransactionNotificationMessage mocks base method
+func (m *MockOrchestrateMessenger) TransactionNotificationMessage(ctx context.Context, eventStream *entities.EventStream, notif *entities.Notification, userInfo *multitenancy.UserInfo) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "TransactionNotificationMessage", ctx, eventStream, notif, userInfo)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // TransactionNotificationMessage indicates an expected call of TransactionNotificationMessage
-func (mr *MockOrchestrateMessengerMockRecorder) TransactionNotificationMessage(ctx, eventStream, job, errMsg, userInfo interface{}) *gomock.Call {
+func (mr *MockOrchestrateMessengerMockRecorder) TransactionNotificationMessage(ctx, eventStream, notif, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransactionNotificationMessage", reflect.TypeOf((*MockOrchestrateMessenger)(nil).TransactionNotificationMessage), ctx, eventStream, job, errMsg, userInfo)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransactionNotificationMessage", reflect.TypeOf((*MockOrchestrateMessenger)(nil).TransactionNotificationMessage), ctx, eventStream, notif, userInfo)
 }
 
 // ContractEventNotificationMessage mocks base method
@@ -213,6 +241,34 @@ func (mr *MockMessengerAPIMockRecorder) JobUpdateMessage(ctx, jobUUID, status, m
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JobUpdateMessage", reflect.TypeOf((*MockMessengerAPI)(nil).JobUpdateMessage), ctx, jobUUID, status, msg, userInfo)
 }
 
+// EventStreamUpdateMessage mocks base method
+func (m *MockMessengerAPI) EventStreamUpdateMessage(ctx context.Context, eventStreamUUID string, status entities.EventStreamStatus, userInfo *multitenancy.UserInfo) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "EventStreamUpdateMessage", ctx, eventStreamUUID, status, userInfo)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// EventStreamUpdateMessage indicates an expected call of EventStreamUpdateMessage
+func (mr *MockMessengerAPIMockRecorder) EventStreamUpdateMessage(ctx, eventStreamUUID, status, userInfo interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EventStreamUpdateMessage", reflect.TypeOf((*MockMessengerAPI)(nil).EventStreamUpdateMessage), ctx, eventStreamUUID, status, userInfo)
+}
+
+// NotificationUpdateMessage mocks base method
+func (m *MockMessengerAPI) NotificationUpdateMessage(ctx context.Context, notifUUID string, status entities.NotificationStatus, userInfo *multitenancy.UserInfo) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NotificationUpdateMessage", ctx, notifUUID, status, userInfo)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// NotificationUpdateMessage indicates an expected call of NotificationUpdateMessage
+func (mr *MockMessengerAPIMockRecorder) NotificationUpdateMessage(ctx, notifUUID, status, userInfo interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotificationUpdateMessage", reflect.TypeOf((*MockMessengerAPI)(nil).NotificationUpdateMessage), ctx, notifUUID, status, userInfo)
+}
+
 // MockMessengerNotifier is a mock of MessengerNotifier interface
 type MockMessengerNotifier struct {
 	ctrl     *gomock.Controller
@@ -237,17 +293,17 @@ func (m *MockMessengerNotifier) EXPECT() *MockMessengerNotifierMockRecorder {
 }
 
 // TransactionNotificationMessage mocks base method
-func (m *MockMessengerNotifier) TransactionNotificationMessage(ctx context.Context, eventStream *entities.EventStream, job *entities.Job, errMsg string, userInfo *multitenancy.UserInfo) error {
+func (m *MockMessengerNotifier) TransactionNotificationMessage(ctx context.Context, eventStream *entities.EventStream, notif *entities.Notification, userInfo *multitenancy.UserInfo) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TransactionNotificationMessage", ctx, eventStream, job, errMsg, userInfo)
+	ret := m.ctrl.Call(m, "TransactionNotificationMessage", ctx, eventStream, notif, userInfo)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // TransactionNotificationMessage indicates an expected call of TransactionNotificationMessage
-func (mr *MockMessengerNotifierMockRecorder) TransactionNotificationMessage(ctx, eventStream, job, errMsg, userInfo interface{}) *gomock.Call {
+func (mr *MockMessengerNotifierMockRecorder) TransactionNotificationMessage(ctx, eventStream, notif, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransactionNotificationMessage", reflect.TypeOf((*MockMessengerNotifier)(nil).TransactionNotificationMessage), ctx, eventStream, job, errMsg, userInfo)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransactionNotificationMessage", reflect.TypeOf((*MockMessengerNotifier)(nil).TransactionNotificationMessage), ctx, eventStream, notif, userInfo)
 }
 
 // ContractEventNotificationMessage mocks base method

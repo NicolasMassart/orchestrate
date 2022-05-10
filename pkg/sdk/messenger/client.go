@@ -14,19 +14,23 @@ import (
 
 type ProducerClient struct {
 	client kafka.Producer
-	topic  string
+	cfg    *Config
 }
 
 var _ sdk.OrchestrateMessenger = &ProducerClient{}
 
-func NewProducerClient(client kafka.Producer, topic string) *ProducerClient {
+func NewProducerClient(cfg *Config, client kafka.Producer) *ProducerClient {
 	return &ProducerClient{
 		client: client,
-		topic:  topic,
+		cfg:    cfg,
 	}
 }
 
-func (c *ProducerClient) sendMessage(msgType messenger.ConsumerRequestMessageType, msgBody interface{}, partitionKey string, userInfo *multitenancy.UserInfo) error {
+func (c *ProducerClient) sendMessage(topic string, msgType messenger.ConsumerRequestMessageType, msgBody interface{}, partitionKey string, userInfo *multitenancy.UserInfo) error {
+	if topic == "" {
+		return errors.InvalidParameterError("topic not defined")
+	}
+
 	bBody, err := json.Marshal(msgBody)
 	if err != nil {
 		return errors.EncodingError("failed to marshall consumer message body")
@@ -40,7 +44,7 @@ func (c *ProducerClient) sendMessage(msgType messenger.ConsumerRequestMessageTyp
 	err = c.client.Send(&types.ConsumerRequestMessage{
 		Type: msgType,
 		Body: bBody,
-	}, c.topic, partitionKey, headers)
+	}, topic, partitionKey, headers)
 
 	if err != nil {
 		return err

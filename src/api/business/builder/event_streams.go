@@ -19,18 +19,18 @@ type eventStreamUseCases struct {
 var _ usecases.EventStreamsUseCases = &eventStreamUseCases{}
 
 func newEventStreamUseCases(
-	db store.EventStreamAgent,
+	db store.DB,
 	contracts usecases.ContractUseCases,
 	chains usecases.ChainUseCases,
 	txNotifierMessenger sdk.MessengerNotifier,
 ) *eventStreamUseCases {
 	return &eventStreamUseCases{
-		get:      streams.NewGetUseCase(db),
-		create:   streams.NewCreateUseCase(db, chains.Search()),
-		search:   streams.NewSearchUseCase(db),
+		get:      streams.NewGetUseCase(db.EventStream()),
+		create:   streams.NewCreateUseCase(db.EventStream(), chains.Search()),
+		search:   streams.NewSearchUseCase(db.EventStream()),
 		notifyTx: streams.NewNotifyTransactionUseCase(db, contracts.Search(), contracts.DecodeLog(), txNotifierMessenger),
-		update:   streams.NewUpdateUseCase(db),
-		delete:   streams.NewDeleteUseCase(db),
+		update:   streams.NewUpdateUseCase(db.EventStream()),
+		delete:   streams.NewDeleteUseCase(db.EventStream()),
 	}
 }
 

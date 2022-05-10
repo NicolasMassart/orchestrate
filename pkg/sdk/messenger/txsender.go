@@ -10,7 +10,7 @@ import (
 )
 
 func (c *ProducerClient) StartedJobMessage(_ context.Context, job *entities.Job, userInfo *multitenancy.UserInfo) error {
-	return c.sendMessage(service.StartedJobMessageType, &types.StartedJobReq{
+	return c.sendMessage(c.cfg.TopicTxSender, service.StartedJobMessageType, &types.StartedJobReq{
 		Job: job,
 	}, job.PartitionKey(), userInfo)
 }

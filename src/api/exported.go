@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/consensys/orchestrate/pkg/sdk/messenger"
+
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/toolkit/app"
 	authjwt "github.com/consensys/orchestrate/pkg/toolkit/app/auth/jwt"
@@ -37,13 +39,19 @@ func New(ctx context.Context, cfg *Config, notifierCfg *notifier.Config) (*Daemo
 	if err != nil {
 		return nil, err
 	}
+	messengerClient := messenger.NewProducerClient(&messenger.Config{
+		TopicAPI:        notifierCfg.TopicAPI,
+		TopicTxListener: cfg.KafkaTopics.Listener,
+		TopicTxSender:   cfg.KafkaTopics.Sender,
+		TopicTxNotifier: cfg.KafkaTopics.Notifier,
+	}, kafkaProdClient)
 
 	authjwt.Init(ctx)
 	authkey.Init(ctx)
 	ethclient.Init(ctx)
 	client.Init()
 
-	notifierDaemon, err := notifier.New(notifierCfg, postgresClient, client.GlobalClient(), kafkaProdClient, http.DefaultClient)
+	notifierDaemon, err := notifier.New(notifierCfg, kafkaProdClient, http.DefaultClient, messengerClient)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +64,7 @@ func New(ctx context.Context, cfg *Config, notifierCfg *notifier.Config) (*Daemo
 		qkmClient,
 		cfg.QKM.StoreName,
 		ethclient.GlobalClient(),
-		kafkaProdClient,
+		messengerClient,
 		notifierDaemon,
 	)
 

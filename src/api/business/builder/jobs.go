@@ -21,13 +21,12 @@ type jobUseCases struct {
 func newJobUseCases(
 	db store.DB,
 	appMetrics metrics.TransactionSchedulerMetrics,
-	txSenderMessenger sdk.MessengerTxSender,
-	txListenerMessenger sdk.MessengerTxListener,
+	messengerClient sdk.OrchestrateMessenger,
 	eventStreams usecases.EventStreamsUseCases,
 	chains usecases.ChainUseCases,
 	qkmStoreID string,
 ) *jobUseCases {
-	startJobUC := jobs.NewStartJobUseCase(db, txSenderMessenger, appMetrics)
+	startJobUC := jobs.NewStartJobUseCase(db, messengerClient, appMetrics)
 	startNextJobUC := jobs.NewStartNextJobUseCase(db, startJobUC)
 	createJobUC := jobs.NewCreateJobUseCase(db, chains.Get(), qkmStoreID)
 
@@ -35,9 +34,9 @@ func newJobUseCases(
 		create:   createJobUC,
 		get:      jobs.NewGetJobUseCase(db),
 		search:   jobs.NewSearchJobsUseCase(db),
-		update:   jobs.NewUpdateJobUseCase(db, startNextJobUC, appMetrics, eventStreams.NotifyTransaction(), txListenerMessenger),
+		update:   jobs.NewUpdateJobUseCase(db, startNextJobUC, appMetrics, eventStreams.NotifyTransaction(), messengerClient),
 		start:    startJobUC,
-		resendTx: jobs.NewResendJobTxUseCase(db, txSenderMessenger),
+		resendTx: jobs.NewResendJobTxUseCase(db, messengerClient),
 		retryTx:  jobs.NewRetryJobTxUseCase(db, createJobUC, startJobUC),
 	}
 }

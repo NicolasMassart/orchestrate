@@ -5,7 +5,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/src/infra/api"
 	kafka "github.com/consensys/orchestrate/src/infra/kafka/sarama"
 	messenger "github.com/consensys/orchestrate/src/infra/messenger/kafka"
@@ -23,11 +22,10 @@ const (
 
 func NewMessageConsumer(cfg *kafka.Config,
 	topics []string,
-	useCases usecases.UseCases,
-	eventStreamClient sdk.EventStreamClient,
+	sendUC usecases.SendNotificationUseCase,
 	maxRetries int,
 ) (*messenger.Consumer, error) {
-	router := NewRouter(useCases, eventStreamClient, maxRetries)
+	router := NewRouter(sendUC, maxRetries)
 	consumer, err := messenger.NewMessageConsumer(messageListenerComponent, cfg, topics)
 	if err != nil {
 		return nil, err
@@ -38,18 +36,16 @@ func NewMessageConsumer(cfg *kafka.Config,
 }
 
 type Router struct {
-	useCases          usecases.UseCases
-	maxRetries        int
-	eventStreamClient sdk.EventStreamClient
-	logger            *log.Logger
+	sendUC     usecases.SendNotificationUseCase
+	maxRetries int
+	logger     *log.Logger
 }
 
-func NewRouter(useCases usecases.UseCases, eventStreamClient sdk.EventStreamClient, maxRetries int) *Router {
+func NewRouter(sendUC usecases.SendNotificationUseCase, maxRetries int) *Router {
 	return &Router{
-		useCases:          useCases,
-		maxRetries:        maxRetries,
-		eventStreamClient: eventStreamClient,
-		logger:            log.NewLogger().SetComponent(messageListenerComponent),
+		sendUC:     sendUC,
+		maxRetries: maxRetries,
+		logger:     log.NewLogger().SetComponent(messageListenerComponent),
 	}
 }
 
@@ -62,8 +58,7 @@ func (mch *Router) HandleTransactionReq(ctx context.Context, rawReq []byte) erro
 
 	err = backoff.RetryNotify(
 		func() error {
-			// Move to router method logic
-			err = mch.sendTxNotification(ctx, req)
+			err = mch.sendUC.Execute(ctx, req.EventStream, req.Notification)
 			switch {
 			// Exits if not errors
 			case err == nil:
@@ -85,20 +80,6 @@ func (mch *Router) HandleTransactionReq(ctx context.Context, rawReq []byte) erro
 	)
 	if err != nil {
 		// TODO: suspend the event stream if maxRetries is reached for the given notification
-		return err
-	}
-
-	return nil
-}
-
-func (mch *Router) sendTxNotification(ctx context.Context, req *types.TransactionMessageRequest) error {
-	// Validate request notifier
-	notif, err := mch.useCases.CreateTransaction().Execute(ctx, req.Job, req.Error)
-	if err != nil {
-		return err
-	}
-	err = mch.useCases.Send().Execute(ctx, req.EventStream, notif)
-	if err != nil {
 		return err
 	}
 

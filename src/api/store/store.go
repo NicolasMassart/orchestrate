@@ -20,6 +20,7 @@ type DB interface {
 	Chain() ChainAgent
 	EventStream() EventStreamAgent
 	Subscription() SubscriptionAgent
+	Notification() NotificationAgent
 	RunInTransaction(ctx context.Context, persistFunc func(db DB) error) error
 }
 
@@ -101,4 +102,9 @@ type SubscriptionAgent interface {
 	FindOneByAddressAndTenant(ctx context.Context, address *ethcommon.Address, tenantID string, tenants []string, ownerID string) (*entities.Subscription, error)
 	Delete(ctx context.Context, uuid string, tenants []string, ownerID string) error
 	Update(ctx context.Context, subscription *entities.Subscription, tenants []string, ownerID string) (*entities.Subscription, error)
+}
+
+type NotificationAgent interface {
+	Insert(ctx context.Context, notif *entities.Notification) (*entities.Notification, error)
+	Update(ctx context.Context, notif *entities.Notification) (*entities.Notification, error)
 }
