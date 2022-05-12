@@ -6,6 +6,8 @@ import (
 	"github.com/Shopify/sarama"
 )
 
+//go:generate mockgen -source=kafka.go -destination=mocks/kafka.go -package=mocks
+
 type ConsumerGroup interface {
 	Consume(ctx context.Context, topics []string, handler sarama.ConsumerGroupHandler) error
 	Errors() <-chan error

@@ -15,6 +15,7 @@ import (
 	"github.com/consensys/orchestrate/src/infra/postgres/gopg"
 	qkmhttp "github.com/consensys/orchestrate/src/infra/quorum-key-manager/http"
 	nonclient "github.com/consensys/orchestrate/src/infra/quorum-key-manager/non-client"
+	webhook "github.com/consensys/orchestrate/src/infra/webhook/http"
 	"github.com/consensys/orchestrate/src/notifier"
 	qkmclient "github.com/consensys/quorum-key-manager/pkg/client"
 )
@@ -45,13 +46,14 @@ func New(ctx context.Context, cfg *Config, notifierCfg *notifier.Config) (*Daemo
 		TopicTxSender:   cfg.KafkaTopics.Sender,
 		TopicTxNotifier: cfg.KafkaTopics.Notifier,
 	}, kafkaProdClient)
+	webhookProducer := webhook.New(http.DefaultClient)
 
 	authjwt.Init(ctx)
 	authkey.Init(ctx)
 	ethclient.Init(ctx)
 	client.Init()
 
-	notifierDaemon, err := notifier.New(notifierCfg, kafkaProdClient, http.DefaultClient, messengerClient)
+	notifierDaemon, err := notifier.New(notifierCfg, kafkaProdClient, webhookProducer, messengerClient)
 	if err != nil {
 		return nil, err
 	}

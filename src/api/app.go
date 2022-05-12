@@ -96,7 +96,10 @@ func NewAPI(
 	msgConsumer, err := service.NewMessageConsumer(
 		cfg.Kafka,
 		[]string{cfg.KafkaTopics.API},
-		ucs.Subscriptions().NotifySubscription(), ucs.Jobs().Update(),
+		ucs.Subscriptions().NotifySubscription(),
+		ucs.Jobs().Update(),
+		ucs.Notifications().Ack(),
+		ucs.EventStreams().Update(),
 	)
 	if err != nil {
 		return nil, err

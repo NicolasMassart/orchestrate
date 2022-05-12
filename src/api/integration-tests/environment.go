@@ -19,6 +19,7 @@ import (
 	"github.com/go-pg/pg/v9"
 
 	"github.com/consensys/orchestrate/src/infra/quorum-key-manager/http"
+	webhook "github.com/consensys/orchestrate/src/infra/webhook/http"
 
 	authjwt "github.com/consensys/orchestrate/pkg/toolkit/app/auth/jwt"
 
@@ -461,11 +462,12 @@ func newAPI(ctx context.Context, cfg *api.Config, notifierConfig *notifier.Confi
 
 	interceptedHTTPClient := httputils.NewClient(httputils.NewDefaultConfig())
 	gock.InterceptClient(interceptedHTTPClient)
+	webhookProducer := webhook.New(interceptedHTTPClient)
 
 	notifierDaemon, err := notifier.New(
 		notifierConfig,
 		kafkaProducer,
-		interceptedHTTPClient,
+		webhookProducer,
 		messengerClient,
 	)
 	if err != nil {

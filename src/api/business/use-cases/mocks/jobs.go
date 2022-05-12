@@ -361,43 +361,6 @@ func (mr *MockUpdateJobUseCaseMockRecorder) Execute(ctx, jobEntity, nextStatus, 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockUpdateJobUseCase)(nil).Execute), ctx, jobEntity, nextStatus, logMessage, userInfo)
 }
 
-// MockUpdateJobStatusUseCase is a mock of UpdateJobStatusUseCase interface
-type MockUpdateJobStatusUseCase struct {
-	ctrl     *gomock.Controller
-	recorder *MockUpdateJobStatusUseCaseMockRecorder
-}
-
-// MockUpdateJobStatusUseCaseMockRecorder is the mock recorder for MockUpdateJobStatusUseCase
-type MockUpdateJobStatusUseCaseMockRecorder struct {
-	mock *MockUpdateJobStatusUseCase
-}
-
-// NewMockUpdateJobStatusUseCase creates a new mock instance
-func NewMockUpdateJobStatusUseCase(ctrl *gomock.Controller) *MockUpdateJobStatusUseCase {
-	mock := &MockUpdateJobStatusUseCase{ctrl: ctrl}
-	mock.recorder = &MockUpdateJobStatusUseCaseMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockUpdateJobStatusUseCase) EXPECT() *MockUpdateJobStatusUseCaseMockRecorder {
-	return m.recorder
-}
-
-// Execute mocks base method
-func (m *MockUpdateJobStatusUseCase) Execute(ctx context.Context, job *entities.Job, nextStatus entities.JobStatus, msg string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Execute", ctx, job, nextStatus, msg)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Execute indicates an expected call of Execute
-func (mr *MockUpdateJobStatusUseCaseMockRecorder) Execute(ctx, job, nextStatus, msg interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockUpdateJobStatusUseCase)(nil).Execute), ctx, job, nextStatus, msg)
-}
-
 // MockResendJobTxUseCase is a mock of ResendJobTxUseCase interface
 type MockResendJobTxUseCase struct {
 	ctrl     *gomock.Controller

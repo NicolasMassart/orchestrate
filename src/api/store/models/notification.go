@@ -23,12 +23,15 @@ type Notification struct {
 
 func NewNotification(notif *entities.Notification) *Notification {
 	return &Notification{
+		UUID:       notif.UUID,
 		SourceUUID: notif.SourceUUID,
 		SourceType: notif.SourceType.String(),
 		Status:     notif.Status.String(),
 		Type:       notif.Type.String(),
 		APIVersion: notif.APIVersion,
 		Error:      notif.Error,
+		CreatedAt:  notif.CreatedAt,
+		UpdatedAt:  notif.UpdatedAt,
 	}
 }
 

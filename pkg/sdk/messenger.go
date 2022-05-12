@@ -22,8 +22,8 @@ type OrchestrateMessenger interface {
 type MessengerAPI interface {
 	ContractEventLogsMessage(ctx context.Context, chainUUID string, logs []*ethereum.Log, userInfo *multitenancy.UserInfo) error
 	JobUpdateMessage(ctx context.Context, jobUUID string, status entities.JobStatus, msg string, userInfo *multitenancy.UserInfo) error
-	EventStreamUpdateMessage(ctx context.Context, eventStreamUUID string, status entities.EventStreamStatus, userInfo *multitenancy.UserInfo) error
-	NotificationUpdateMessage(ctx context.Context, notifUUID string, status entities.NotificationStatus, userInfo *multitenancy.UserInfo) error
+	EventStreamSuspendMessage(ctx context.Context, eventStreamUUID string, userInfo *multitenancy.UserInfo) error
+	NotificationAckMessage(ctx context.Context, notifUUID string, userInfo *multitenancy.UserInfo) error
 }
 
 type MessengerNotifier interface {

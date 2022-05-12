@@ -94,18 +94,18 @@ func (mr *MockSubscriptionUseCasesMockRecorder) Search() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockSubscriptionUseCases)(nil).Search))
 }
 
-// NotifyTransaction mocks base method
-func (m *MockSubscriptionUseCases) NotifyTransaction() usecases.NotifyTransactionUseCase {
+// NotifySubscription mocks base method
+func (m *MockSubscriptionUseCases) NotifySubscription() usecases.NotifySubscriptionEventUseCase {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "NotifyTransaction")
-	ret0, _ := ret[0].(usecases.NotifyTransactionUseCase)
+	ret := m.ctrl.Call(m, "NotifySubscription")
+	ret0, _ := ret[0].(usecases.NotifySubscriptionEventUseCase)
 	return ret0
 }
 
-// NotifyTransaction indicates an expected call of NotifyTransaction
-func (mr *MockSubscriptionUseCasesMockRecorder) NotifyTransaction() *gomock.Call {
+// NotifySubscription indicates an expected call of NotifySubscription
+func (mr *MockSubscriptionUseCasesMockRecorder) NotifySubscription() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyTransaction", reflect.TypeOf((*MockSubscriptionUseCases)(nil).NotifyTransaction))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifySubscription", reflect.TypeOf((*MockSubscriptionUseCases)(nil).NotifySubscription))
 }
 
 // Delete mocks base method

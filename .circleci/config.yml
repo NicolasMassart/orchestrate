@@ -462,6 +462,8 @@ workflows:
           requires:
             - push-orchestrate-dev-image-linux/amd64
           filters:
+            branches:
+              ignore: /.*/
             tags:
               only: /^v.*/
       - run-e2e:

@@ -3,8 +3,9 @@ package notifier
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"time"
+
+	"github.com/consensys/orchestrate/src/infra/webhook"
 
 	usecases "github.com/consensys/orchestrate/src/notifier/notifier/use-cases/notifications"
 
@@ -34,7 +35,7 @@ var _ app.Daemon = &Daemon{}
 
 func New(config *Config,
 	kafkaProducer kafka.Producer,
-	webhookClient *http.Client,
+	webhookClient webhook.Producer,
 	messengerClient sdk.MessengerAPI,
 ) (*Daemon, error) {
 	// Create business layer use cases

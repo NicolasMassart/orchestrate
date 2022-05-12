@@ -10,4 +10,5 @@ type UseCases interface {
 	Accounts() AccountUseCases
 	EventStreams() EventStreamsUseCases
 	Subscriptions() SubscriptionUseCases
+	Notifications() NotificationsUseCases
 }

@@ -25,16 +25,14 @@ func (c *ProducerClient) JobUpdateMessage(_ context.Context, jobUUID string, sta
 	}, jobUUID, userInfo)
 }
 
-func (c *ProducerClient) EventStreamUpdateMessage(_ context.Context, eventStreamUUID string, status entities.EventStreamStatus, userInfo *multitenancy.UserInfo) error {
-	return c.sendMessage(c.cfg.TopicAPI, listener.UpdateEventStreamMessageType, &types.UpdateEventStreamRequestMessage{
-		UUID:   eventStreamUUID,
-		Status: status,
+func (c *ProducerClient) EventStreamSuspendMessage(_ context.Context, eventStreamUUID string, userInfo *multitenancy.UserInfo) error {
+	return c.sendMessage(c.cfg.TopicAPI, listener.SuspendEventStreamMessageType, &types.SuspendEventStreamRequestMessage{
+		UUID: eventStreamUUID,
 	}, eventStreamUUID, userInfo)
 }
 
-func (c *ProducerClient) NotificationUpdateMessage(_ context.Context, notifUUID string, status entities.NotificationStatus, userInfo *multitenancy.UserInfo) error {
-	return c.sendMessage(c.cfg.TopicAPI, listener.UpdateNotificationMessageType, &types.UpdateNotificationRequestMessage{
-		UUID:   notifUUID,
-		Status: status,
+func (c *ProducerClient) NotificationAckMessage(_ context.Context, notifUUID string, userInfo *multitenancy.UserInfo) error {
+	return c.sendMessage(c.cfg.TopicAPI, listener.AckNotificationMessageType, &types.AckNotificationRequestMessage{
+		UUID: notifUUID,
 	}, notifUUID, userInfo)
 }

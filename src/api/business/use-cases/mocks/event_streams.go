@@ -220,18 +220,18 @@ func (m *MockUpdateEventStreamUseCase) EXPECT() *MockUpdateEventStreamUseCaseMoc
 }
 
 // Execute mocks base method
-func (m *MockUpdateEventStreamUseCase) Execute(ctx context.Context, eventStream *entities.EventStream, chainName string, userInfo *multitenancy.UserInfo) (*entities.EventStream, error) {
+func (m *MockUpdateEventStreamUseCase) Execute(ctx context.Context, eventStream *entities.EventStream, userInfo *multitenancy.UserInfo) (*entities.EventStream, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Execute", ctx, eventStream, chainName, userInfo)
+	ret := m.ctrl.Call(m, "Execute", ctx, eventStream, userInfo)
 	ret0, _ := ret[0].(*entities.EventStream)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Execute indicates an expected call of Execute
-func (mr *MockUpdateEventStreamUseCaseMockRecorder) Execute(ctx, eventStream, chainName, userInfo interface{}) *gomock.Call {
+func (mr *MockUpdateEventStreamUseCaseMockRecorder) Execute(ctx, eventStream, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockUpdateEventStreamUseCase)(nil).Execute), ctx, eventStream, chainName, userInfo)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockUpdateEventStreamUseCase)(nil).Execute), ctx, eventStream, userInfo)
 }
 
 // MockSearchEventStreamsUseCase is a mock of SearchEventStreamsUseCase interface

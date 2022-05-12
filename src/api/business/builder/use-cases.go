@@ -20,6 +20,7 @@ type useCases struct {
 	accountUseCases      usecases.AccountUseCases
 	eventStreamUseCases  usecases.EventStreamsUseCases
 	subscriptionUseCases usecases.SubscriptionUseCases
+	notificationUseCases usecases.NotificationsUseCases
 }
 
 func NewUseCases(
@@ -53,6 +54,7 @@ func NewUseCases(
 		accountUseCases:      accountUseCases,
 		eventStreamUseCases:  eventStreamUseCases,
 		subscriptionUseCases: subscriptionsUseCases,
+		notificationUseCases: NewNotificationUseCases(db.Notification()),
 	}
 }
 
@@ -90,4 +92,8 @@ func (ucs *useCases) EventStreams() usecases.EventStreamsUseCases {
 
 func (ucs *useCases) Subscriptions() usecases.SubscriptionUseCases {
 	return ucs.subscriptionUseCases
+}
+
+func (ucs *useCases) Notifications() usecases.NotificationsUseCases {
+	return ucs.notificationUseCases
 }

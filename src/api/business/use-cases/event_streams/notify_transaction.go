@@ -93,11 +93,13 @@ func (uc *notifyTransactionUseCase) Execute(ctx context.Context, job *entities.J
 	}
 	notif.Job = job
 
-	err = uc.txNotifierMessenger.TransactionNotificationMessage(ctx, eventStream, notif, userInfo)
-	if err != nil {
-		errMsg := "failed to send notification to notifier service"
-		uc.logger.WithError(err).Error(errMsg)
-		return errors.DependencyFailureError(errMsg).ExtendComponent(notifyTransactionComponent)
+	if eventStream.Status == entities.EventStreamStatusLive {
+		err = uc.txNotifierMessenger.TransactionNotificationMessage(ctx, eventStream, notif, userInfo)
+		if err != nil {
+			errMsg := "failed to send notification to notifier service"
+			uc.logger.WithError(err).Error(errMsg)
+			return errors.DependencyFailureError(errMsg).ExtendComponent(notifyTransactionComponent)
+		}
 	}
 
 	logger.WithField("event_stream", eventStream.UUID).WithField("notification", notif.UUID).Debug("notification sent successfully to notifier service")
