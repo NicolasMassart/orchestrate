@@ -21,7 +21,7 @@ type sendEEAPrivateTxUseCase struct {
 	crafter          usecases.CraftTransactionUseCase
 	signTx           usecases.SignETHTransactionUseCase
 	nonceManager     nonce.Manager
-	jobClient        sdk.JobClient
+	messengerAPI     sdk.MessengerAPI
 	ec               ethclient.EEATransactionSender
 	chainRegistryURL string
 	logger           *log.Logger
@@ -30,12 +30,12 @@ type sendEEAPrivateTxUseCase struct {
 func NewSendEEAPrivateTxUseCase(signTx usecases.SignEEATransactionUseCase,
 	crafter usecases.CraftTransactionUseCase,
 	ec ethclient.EEATransactionSender,
-	jobClient sdk.JobClient,
+	messengerAPI sdk.MessengerAPI,
 	chainRegistryURL string,
 	nonceManager nonce.Manager,
 ) usecases.SendEEAPrivateTxUseCase {
 	return &sendEEAPrivateTxUseCase{
-		jobClient:        jobClient,
+		messengerAPI:     messengerAPI,
 		chainRegistryURL: chainRegistryURL,
 		signTx:           signTx,
 		ec:               ec,
@@ -80,7 +80,7 @@ func (uc *sendEEAPrivateTxUseCase) Execute(ctx context.Context, job *entities.Jo
 		return err
 	}
 
-	err = utils2.UpdateJobStatus(ctx, uc.jobClient, job, entities.StatusStored, "", job.Transaction)
+	err = utils2.UpdateJobStatus(ctx, uc.messengerAPI, job, entities.StatusStored, "", job.Transaction)
 	if err != nil {
 		return errors.FromError(err).ExtendComponent(sendEEAPrivateTxComponent)
 	}

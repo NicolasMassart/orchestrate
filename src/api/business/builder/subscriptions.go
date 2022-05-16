@@ -10,7 +10,6 @@ import (
 type subscriptionUseCases struct {
 	create    usecases.CreateSubscriptionUseCase
 	search    usecases.SearchSubscriptionUseCase
-	notifySub usecases.NotifySubscriptionEventUseCase
 	get       usecases.GetSubscriptionUseCase
 	update    usecases.UpdateSubscriptionUseCase
 	delete    usecases.DeleteSubscriptionUseCase
@@ -19,20 +18,19 @@ type subscriptionUseCases struct {
 var _ usecases.SubscriptionUseCases = &subscriptionUseCases{}
 
 func NewSubscriptionUseCases(
-	db store.SubscriptionAgent,
+	db store.DB,
 	contracts usecases.ContractUseCases,
 	chains usecases.ChainUseCases,
-	eventstreams usecases.EventStreamsUseCases,
+	searchEventStreams usecases.SearchEventStreamsUseCase,
 	messengerClient sdk.OrchestrateMessenger,
 ) *subscriptionUseCases {
-	searchUC := subscriptions.NewSearchUseCase(db)
+	searchUC := subscriptions.NewSearchUseCase(db.Subscription())
 	return &subscriptionUseCases{
-		get:       subscriptions.NewGetUseCase(db),
-		create:    subscriptions.NewCreateUseCase(db, chains.Search(), contracts.Get(), eventstreams.Search(), messengerClient),
+		get:       subscriptions.NewGetUseCase(db.Subscription()),
+		create:    subscriptions.NewCreateUseCase(db.Subscription(), chains.Search(), contracts.Get(), searchEventStreams, messengerClient),
 		search:    searchUC,
-		notifySub: subscriptions.NewNotifySubscriptionEventUseCase(db, searchUC, contracts.Search(), eventstreams.Get(), contracts.DecodeLog(), messengerClient),
-		update:    subscriptions.NewUpdateUseCase(db, eventstreams.Search(), messengerClient),
-		delete:    subscriptions.NewDeleteUseCase(db, messengerClient),
+		update:    subscriptions.NewUpdateUseCase(db.Subscription(), searchEventStreams, messengerClient),
+		delete:    subscriptions.NewDeleteUseCase(db.Subscription(), messengerClient),
 	}
 }
 
@@ -42,10 +40,6 @@ func (u *subscriptionUseCases) Search() usecases.SearchSubscriptionUseCase {
 
 func (u *subscriptionUseCases) Create() usecases.CreateSubscriptionUseCase {
 	return u.create
-}
-
-func (u *subscriptionUseCases) NotifySubscription() usecases.NotifySubscriptionEventUseCase {
-	return u.notifySub
 }
 
 func (u *subscriptionUseCases) Get() usecases.GetSubscriptionUseCase {

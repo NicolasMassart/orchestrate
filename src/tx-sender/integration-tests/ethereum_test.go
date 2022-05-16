@@ -17,7 +17,6 @@ import (
 	"github.com/consensys/orchestrate/pkg/toolkit/app/http"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"github.com/consensys/orchestrate/pkg/utils"
-	api "github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/entities/testdata"
 	infra "github.com/consensys/orchestrate/src/infra/api"
@@ -72,15 +71,16 @@ func (s *txSenderEthereumTestSuite) TestPublic() {
 			AddMatcher(ethCallMatcher(wg, "eth_sendRawTransaction", signedRawTx)).
 			Reply(http2.StatusOK).BodyString("{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":\"" + txHash + "\"}")
 
-		gock.New(apiURL).
-			Patch(fmt.Sprintf("/jobs/%s", jobMsg.UUID)).
-			AddMatcher(txStatusUpdateMatcher(wg, entities.StatusPending, "", "", "")).
-			Reply(http2.StatusOK).JSON(&api.JobResponse{})
+		wg.Go(func() error {
+			_, err := s.env.messengerConsumerTracker.WaitForUpdateJobMessage(s.env.ctx, jobMsg.UUID, entities.StatusPending, waitForEnvelopeTimeOut)
+			return err
+		})
 
 		err := s.sendJobMessage(jobMsg)
 		require.NoError(s.T(), err)
 
 		err = waitTimeout(wg, waitForEnvelopeTimeOut)
+
 		assert.NoError(t, err)
 	})
 
@@ -129,10 +129,10 @@ func (s *txSenderEthereumTestSuite) TestPublic() {
 			AddMatcher(ethCallMatcher(wg, "eth_sendRawTransaction", signedRawTx)).
 			Reply(http2.StatusOK).BodyString("{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":\"" + txHash + "\"}")
 
-		gock.New(apiURL).
-			Patch(fmt.Sprintf("/jobs/%s", jobMsg.UUID)).
-			AddMatcher(txStatusUpdateMatcher(wg, entities.StatusPending, "", "", "2500100000")).
-			Reply(http2.StatusOK).JSON(&api.JobResponse{})
+		wg.Go(func() error {
+			_, err := s.env.messengerConsumerTracker.WaitForUpdateJobMessage(s.env.ctx, jobMsg.UUID, entities.StatusPending, waitForEnvelopeTimeOut)
+			return err
+		})
 
 		err := s.sendJobMessage(jobMsg)
 		require.NoError(t, err)
@@ -180,20 +180,23 @@ func (s *txSenderEthereumTestSuite) TestPublic() {
 			AddMatcher(ethCallMatcher(wg, "eth_getTransactionCount", jobMsg.Transaction.From.String(), "pending")).
 			Reply(http2.StatusOK).BodyString("{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":\"0x0\"}")
 
-		gock.New(apiURL).
-			Patch(fmt.Sprintf("/jobs/%s", jobMsg.UUID)).
-			AddMatcher(txStatusUpdateMatcher(wg, entities.StatusPending, "", "", "")).
-			Reply(http2.StatusOK).JSON(&api.JobResponse{})
+		wg.Go(func() error {
+			_, err := s.env.messengerConsumerTracker.WaitForUpdateJobMessage(s.env.ctx, jobMsg.UUID, entities.StatusPending, waitForEnvelopeTimeOut)
+			return err
+		})
 
 		gock.New(apiURL).
 			Post(fmt.Sprintf("/proxy/chains/%s", jobMsg.ChainUUID)).
 			AddMatcher(ethCallMatcher(wg, "eth_sendRawTransaction", signedRawTx)).
 			Reply(http2.StatusTooManyRequests).BodyString("")
 
-		gock.New(apiURL).
-			Patch(fmt.Sprintf("/jobs/%s", jobMsg.UUID)).
-			AddMatcher(txStatusUpdateMatcher(wg, entities.StatusResending, "", "6000000", "")).
-			Reply(http2.StatusOK).JSON(&api.JobResponse{})
+		wg.Go(func() error {
+			req, err := s.env.messengerConsumerTracker.WaitForUpdateJobMessage(s.env.ctx, jobMsg.UUID, entities.StatusResending, waitForEnvelopeTimeOut)
+			if req != nil {
+				assert.Equal(t, "0x5b8d80", req.Transaction.GasPrice.String())
+			}
+			return err
+		})
 
 		gock.New(apiURL).
 			Post(fmt.Sprintf("/proxy/chains/%s", jobMsg.ChainUUID)).
@@ -219,16 +222,16 @@ func (s *txSenderEthereumTestSuite) TestPublic() {
 			AddMatcher(ethCallMatcher(wg, "eth_sendRawTransaction")).
 			Reply(http2.StatusOK).BodyString("{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":\"" + txHash + "\"}")
 
-		gock.New(apiURL).
-			Patch(fmt.Sprintf("/jobs/%s", jobMsg.UUID)).
-			AddMatcher(txStatusUpdateMatcher(wg, entities.StatusPending, "", "", "")).
-			Reply(http2.StatusOK).JSON(&api.JobResponse{})
+		wg.Go(func() error {
+			_, err := s.env.messengerConsumerTracker.WaitForUpdateJobMessage(s.env.ctx, jobMsg.UUID, entities.StatusPending, waitForEnvelopeTimeOut)
+			return err
+		})
 
 		// IMPORTANT: As we cannot infer txHash before hand, status will be updated to WARNING
-		gock.New(apiURL).
-			Patch(fmt.Sprintf("/jobs/%s", jobMsg.UUID)).
-			AddMatcher(txStatusUpdateMatcher(wg, entities.StatusWarning, "", "", "")).
-			Reply(http2.StatusOK).JSON(&api.JobResponse{})
+		wg.Go(func() error {
+			_, err := s.env.messengerConsumerTracker.WaitForUpdateJobMessage(s.env.ctx, jobMsg.UUID, entities.StatusWarning, waitForEnvelopeTimeOut)
+			return err
+		})
 
 		err := s.sendJobMessage(jobMsg)
 		require.NoError(t, err)
@@ -260,10 +263,10 @@ func (s *txSenderEthereumTestSuite) TestPublic() {
 			Post(fmt.Sprintf("/stores/%s/ethereum/%s/sign-transaction", qkmStoreName, jobMsg.Transaction.From.String())).
 			Reply(http2.StatusOK).BodyString(signedRawTx)
 
-		gock.New(apiURL).
-			Patch(fmt.Sprintf("/jobs/%s", jobMsg.UUID)).
-			AddMatcher(txStatusUpdateMatcher(wg, entities.StatusPending, "", "", "")).
-			Reply(http2.StatusOK).JSON(&api.JobResponse{})
+		wg.Go(func() error {
+			_, err := s.env.messengerConsumerTracker.WaitForUpdateJobMessage(s.env.ctx, jobMsg.UUID, entities.StatusPending, waitForEnvelopeTimeOut)
+			return err
+		})
 
 		gock.New(apiURL).
 			Post(fmt.Sprintf("/proxy/chains/%s", jobMsg.ChainUUID)).
@@ -296,10 +299,10 @@ func (s *txSenderEthereumTestSuite) TestPublic() {
 			Post(fmt.Sprintf("/stores/%s/ethereum/%s/sign-transaction", qkmStoreName, jobMsg.Transaction.From.String())).
 			Reply(http2.StatusBadRequest)
 
-		gock.New(apiURL).
-			Patch(fmt.Sprintf("/jobs/%s", jobMsg.UUID)).
-			AddMatcher(txStatusUpdateMatcher(wg, entities.StatusFailed, "", "", "")).
-			Reply(http2.StatusOK).JSON(&api.JobResponse{})
+		wg.Go(func() error {
+			_, err := s.env.messengerConsumerTracker.WaitForUpdateJobMessage(s.env.ctx, jobMsg.UUID, entities.StatusFailed, waitForEnvelopeTimeOut)
+			return err
+		})
 
 		err := s.sendJobMessage(jobMsg)
 		require.NoError(t, err)
@@ -327,20 +330,20 @@ func (s *txSenderEthereumTestSuite) TestPublic() {
 			Post(fmt.Sprintf("/stores/%s/ethereum/%s/sign-transaction", qkmStoreName, jobMsg.Transaction.From.String())).
 			Reply(http2.StatusOK).BodyString(signedRawTx)
 
-		gock.New(apiURL).
-			Patch(fmt.Sprintf("/jobs/%s", jobMsg.UUID)).
-			AddMatcher(txStatusUpdateMatcher(wg, entities.StatusPending, "", "", "")).
-			Reply(http2.StatusOK).JSON(&api.JobResponse{})
+		wg.Go(func() error {
+			_, err := s.env.messengerConsumerTracker.WaitForUpdateJobMessage(s.env.ctx, jobMsg.UUID, entities.StatusPending, waitForEnvelopeTimeOut)
+			return err
+		})
 
 		gock.New(apiURL).
 			Post(fmt.Sprintf("/proxy/chains/%s", jobMsg.ChainUUID)).
 			AddMatcher(ethCallMatcher(wg, "eth_sendRawTransaction", signedRawTx)).
 			Reply(http2.StatusOK).BodyString("{\"jsonrpc\":\"2.0\",\"id\":1,\"error\":\"invalid_raw\"}")
 
-		gock.New(apiURL).
-			Patch(fmt.Sprintf("/jobs/%s", jobMsg.UUID)).
-			AddMatcher(txStatusUpdateMatcher(wg, entities.StatusFailed, "", "", "")).
-			Reply(http2.StatusOK).JSON(&api.JobResponse{})
+		wg.Go(func() error {
+			_, err := s.env.messengerConsumerTracker.WaitForUpdateJobMessage(s.env.ctx, jobMsg.UUID, entities.StatusFailed, waitForEnvelopeTimeOut)
+			return err
+		})
 
 		err := s.sendJobMessage(jobMsg)
 		require.NoError(t, err)
@@ -358,10 +361,10 @@ func (s *txSenderEthereumTestSuite) TestPublic() {
 		url := fmt.Sprintf("/stores/%s/ethereum/accounts/%s/sign-transaction", qkmStoreName, jobMsg.Transaction.From.String())
 		gock.New(keyManagerURL).Post(url).Reply(http2.StatusUnauthorized)
 
-		gock.New(apiURL).
-			Patch(fmt.Sprintf("/jobs/%s", jobMsg.UUID)).
-			AddMatcher(txStatusUpdateMatcher(wg, entities.StatusFailed, "", "", "")).
-			Reply(http2.StatusOK).JSON(&api.JobResponse{})
+		wg.Go(func() error {
+			_, err := s.env.messengerConsumerTracker.WaitForUpdateJobMessage(s.env.ctx, jobMsg.UUID, entities.StatusFailed, waitForEnvelopeTimeOut)
+			return err
+		})
 
 		err := s.sendJobMessage(jobMsg)
 		require.NoError(t, err)
@@ -390,10 +393,10 @@ func (s *txSenderEthereumTestSuite) TestRawPublic() {
 			AddMatcher(ethCallMatcher(wg, "eth_sendRawTransaction", raw)).
 			Reply(http2.StatusOK).BodyString("{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":\"" + txHash + "\"}")
 
-		gock.New(apiURL).
-			Patch(fmt.Sprintf("/jobs/%s", jobMsg.UUID)).
-			AddMatcher(txStatusUpdateMatcher(wg, entities.StatusPending, "", "", "")).
-			Reply(http2.StatusOK).JSON(&api.JobResponse{})
+		wg.Go(func() error {
+			_, err := s.env.messengerConsumerTracker.WaitForUpdateJobMessage(s.env.ctx, jobMsg.UUID, entities.StatusPending, waitForEnvelopeTimeOut)
+			return err
+		})
 
 		err := s.sendJobMessage(jobMsg)
 		require.NoError(t, err)
@@ -412,20 +415,20 @@ func (s *txSenderEthereumTestSuite) TestRawPublic() {
 		jobMsg.Transaction.Hash = utils.StringToETHHash(txHash)
 		jobMsg.InternalData.OneTimeKey = true
 
-		gock.New(apiURL).
-			Patch(fmt.Sprintf("/jobs/%s", jobMsg.UUID)).
-			AddMatcher(txStatusUpdateMatcher(wg, entities.StatusPending, "", "", "")).
-			Reply(http2.StatusOK).JSON(&api.JobResponse{})
+		wg.Go(func() error {
+			_, err := s.env.messengerConsumerTracker.WaitForUpdateJobMessage(s.env.ctx, jobMsg.UUID, entities.StatusPending, waitForEnvelopeTimeOut)
+			return err
+		})
 
 		gock.New(apiURL).
 			Post(fmt.Sprintf("/proxy/chains/%s", jobMsg.ChainUUID)).
 			AddMatcher(ethCallMatcher(wg, "eth_sendRawTransaction", raw)).
 			Reply(429).BodyString("")
 
-		gock.New(apiURL).
-			Patch(fmt.Sprintf("/jobs/%s", jobMsg.UUID)).
-			AddMatcher(txStatusUpdateMatcher(wg, entities.StatusResending, "", "", "")).
-			Reply(http2.StatusOK).JSON(&api.JobResponse{})
+		wg.Go(func() error {
+			_, err := s.env.messengerConsumerTracker.WaitForUpdateJobMessage(s.env.ctx, jobMsg.UUID, entities.StatusResending, waitForEnvelopeTimeOut)
+			return err
+		})
 
 		gock.New(apiURL).
 			Post(fmt.Sprintf("/proxy/chains/%s", jobMsg.ChainUUID)).
@@ -454,15 +457,15 @@ func (s *txSenderEthereumTestSuite) TestRawPublic() {
 			AddMatcher(ethCallMatcher(wg, "eth_sendRawTransaction", raw)).
 			Reply(http2.StatusOK).BodyString("{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":\"invalid_raw\"}")
 
-		gock.New(apiURL).
-			Patch(fmt.Sprintf("/jobs/%s", jobMsg.UUID)).
-			AddMatcher(txStatusUpdateMatcher(wg, entities.StatusPending, "", "", "")).
-			Reply(http2.StatusOK).JSON(&api.JobResponse{})
+		wg.Go(func() error {
+			_, err := s.env.messengerConsumerTracker.WaitForUpdateJobMessage(s.env.ctx, jobMsg.UUID, entities.StatusPending, waitForEnvelopeTimeOut)
+			return err
+		})
 
-		gock.New(apiURL).
-			Patch(fmt.Sprintf("/jobs/%s", jobMsg.UUID)).
-			AddMatcher(txStatusUpdateMatcher(wg, entities.StatusFailed, "", "", "")).
-			Reply(http2.StatusOK).JSON(&api.JobResponse{})
+		wg.Go(func() error {
+			_, err := s.env.messengerConsumerTracker.WaitForUpdateJobMessage(s.env.ctx, jobMsg.UUID, entities.StatusFailed, waitForEnvelopeTimeOut)
+			return err
+		})
 
 		err := s.sendJobMessage(jobMsg)
 		require.NoError(t, err)
@@ -508,10 +511,10 @@ func (s *txSenderEthereumTestSuite) TestEEA() {
 			AddMatcher(ethCallMatcher(wg, "priv_distributeRawTransaction", signedRawTx)).
 			Reply(http2.StatusOK).BodyString("{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":\"" + txHash + "\"}")
 
-		gock.New(apiURL).
-			Patch(fmt.Sprintf("/jobs/%s", jobMsg.UUID)).
-			AddMatcher(txStatusUpdateMatcher(wg, entities.StatusStored, "", "", "")).
-			Reply(http2.StatusOK).JSON(&api.JobResponse{})
+		wg.Go(func() error {
+			_, err := s.env.messengerConsumerTracker.WaitForUpdateJobMessage(s.env.ctx, jobMsg.UUID, entities.StatusStored, waitForEnvelopeTimeOut)
+			return err
+		})
 
 		err := s.sendJobMessage(jobMsg)
 		require.NoError(t, err)
@@ -534,10 +537,10 @@ func (s *txSenderEthereumTestSuite) TestEEA() {
 			AddMatcher(ethCallMatcher(wg, "priv_distributeRawTransaction")).
 			Reply(http2.StatusOK).BodyString("{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":\"" + txHash + "\"}")
 
-		gock.New(apiURL).
-			Patch(fmt.Sprintf("/jobs/%s", jobMsg.UUID)).
-			AddMatcher(txStatusUpdateMatcher(wg, entities.StatusStored, "", "", "")).
-			Reply(http2.StatusOK).JSON(&api.JobResponse{})
+		wg.Go(func() error {
+			_, err := s.env.messengerConsumerTracker.WaitForUpdateJobMessage(s.env.ctx, jobMsg.UUID, entities.StatusStored, waitForEnvelopeTimeOut)
+			return err
+		})
 
 		err := s.sendJobMessage(jobMsg)
 		require.NoError(t, err)
@@ -560,10 +563,10 @@ func (s *txSenderEthereumTestSuite) TestEEA() {
 			AddMatcher(ethCallMatcher(wg, "priv_distributeRawTransaction")).
 			Reply(http2.StatusOK).BodyString("{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":\"invalid_raw\"}")
 
-		gock.New(apiURL).
-			Patch(fmt.Sprintf("/jobs/%s", jobMsg.UUID)).
-			AddMatcher(txStatusUpdateMatcher(wg, entities.StatusFailed, "", "", "")).
-			Reply(http2.StatusOK).JSON(&api.JobResponse{})
+		wg.Go(func() error {
+			_, err := s.env.messengerConsumerTracker.WaitForUpdateJobMessage(s.env.ctx, jobMsg.UUID, entities.StatusFailed, waitForEnvelopeTimeOut)
+			return err
+		})
 
 		err := s.sendJobMessage(jobMsg)
 		require.NoError(t, err)
@@ -612,10 +615,10 @@ func (s *txSenderEthereumTestSuite) TestTesseraMarking() {
 			})).
 			Reply(http2.StatusOK).BodyString("{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":\"" + txHash + "\"}")
 
-		gock.New(apiURL).
-			Patch(fmt.Sprintf("/jobs/%s", jobMsg.UUID)).
-			AddMatcher(txStatusUpdateMatcher(wg, entities.StatusPending, "", "", "")).
-			Reply(http2.StatusOK).JSON(&api.JobResponse{})
+		wg.Go(func() error {
+			_, err := s.env.messengerConsumerTracker.WaitForUpdateJobMessage(s.env.ctx, jobMsg.UUID, entities.StatusPending, waitForEnvelopeTimeOut)
+			return err
+		})
 
 		err := s.sendJobMessage(jobMsg)
 		require.NoError(t, err)
@@ -651,10 +654,10 @@ func (s *txSenderEthereumTestSuite) TestTesseraMarking() {
 			AddMatcher(ethCallMatcher(wg, "eth_getTransactionCount")).
 			Reply(http2.StatusOK).BodyString("{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":\"0x0\"}")
 
-		gock.New(apiURL).
-			Patch(fmt.Sprintf("/jobs/%s", jobMsg.UUID)).
-			AddMatcher(txStatusUpdateMatcher(wg, entities.StatusPending, "", "", "")).
-			Reply(http2.StatusOK).JSON(&api.JobResponse{})
+		wg.Go(func() error {
+			_, err := s.env.messengerConsumerTracker.WaitForUpdateJobMessage(s.env.ctx, jobMsg.UUID, entities.StatusPending, waitForEnvelopeTimeOut)
+			return err
+		})
 
 		gock.New(apiURL).
 			Post(fmt.Sprintf("/proxy/chains/%s", jobMsg.ChainUUID)).
@@ -664,10 +667,10 @@ func (s *txSenderEthereumTestSuite) TestTesseraMarking() {
 			})).
 			Reply(429).BodyString("")
 
-		gock.New(apiURL).
-			Patch(fmt.Sprintf("/jobs/%s", jobMsg.UUID)).
-			AddMatcher(txStatusUpdateMatcher(wg, entities.StatusResending, "", "", "")).
-			Reply(http2.StatusOK).JSON(&api.JobResponse{})
+		wg.Go(func() error {
+			_, err := s.env.messengerConsumerTracker.WaitForUpdateJobMessage(s.env.ctx, jobMsg.UUID, entities.StatusResending, waitForEnvelopeTimeOut)
+			return err
+		})
 
 		gock.New(apiURL).
 			Post(fmt.Sprintf("/proxy/chains/%s", jobMsg.ChainUUID)).
@@ -698,16 +701,16 @@ func (s *txSenderEthereumTestSuite) TestTesseraMarking() {
 			AddMatcher(ethCallMatcher(wg, "eth_sendRawPrivateTransaction")).
 			Reply(http2.StatusOK).BodyString("{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":\"" + txHash + "\"}")
 
-		gock.New(apiURL).
-			Patch(fmt.Sprintf("/jobs/%s", jobMsg.UUID)).
-			AddMatcher(txStatusUpdateMatcher(wg, entities.StatusPending, "", "", "")).
-			Reply(http2.StatusOK).JSON(&api.JobResponse{})
+		wg.Go(func() error {
+			_, err := s.env.messengerConsumerTracker.WaitForUpdateJobMessage(s.env.ctx, jobMsg.UUID, entities.StatusPending, waitForEnvelopeTimeOut)
+			return err
+		})
 
 		// HASH won't match
-		gock.New(apiURL).
-			Patch(fmt.Sprintf("/jobs/%s", jobMsg.UUID)).
-			AddMatcher(txStatusUpdateMatcher(wg, entities.StatusWarning, "", "", "")).
-			Reply(http2.StatusOK).JSON(&api.JobResponse{})
+		wg.Go(func() error {
+			_, err := s.env.messengerConsumerTracker.WaitForUpdateJobMessage(s.env.ctx, jobMsg.UUID, entities.StatusWarning, waitForEnvelopeTimeOut)
+			return err
+		})
 
 		err := s.sendJobMessage(jobMsg)
 		require.NoError(t, err)
@@ -742,15 +745,15 @@ func (s *txSenderEthereumTestSuite) TestTesseraMarking() {
 			AddMatcher(ethCallMatcher(wg, "eth_sendRawPrivateTransaction")).
 			Reply(http2.StatusOK).BodyString("{\"jsonrpc\":\"2.0\",\"id\":1,\"error\":\"invalid_raw\"}")
 
-		gock.New(apiURL).
-			Patch(fmt.Sprintf("/jobs/%s", jobMsg.UUID)).
-			AddMatcher(txStatusUpdateMatcher(wg, entities.StatusPending, "", "", "")).
-			Reply(http2.StatusOK).JSON(&api.JobResponse{})
+		wg.Go(func() error {
+			_, err := s.env.messengerConsumerTracker.WaitForUpdateJobMessage(s.env.ctx, jobMsg.UUID, entities.StatusPending, waitForEnvelopeTimeOut)
+			return err
+		})
 
-		gock.New(apiURL).
-			Patch(fmt.Sprintf("/jobs/%s", jobMsg.UUID)).
-			AddMatcher(txStatusUpdateMatcher(wg, entities.StatusFailed, "", "", "")).
-			Reply(http2.StatusOK).JSON(&api.JobResponse{})
+		wg.Go(func() error {
+			_, err := s.env.messengerConsumerTracker.WaitForUpdateJobMessage(s.env.ctx, jobMsg.UUID, entities.StatusFailed, waitForEnvelopeTimeOut)
+			return err
+		})
 
 		err := s.sendJobMessage(jobMsg)
 		require.NoError(t, err)
@@ -778,10 +781,10 @@ func (s *txSenderEthereumTestSuite) TestTesseraPrivate() {
 			Post(fmt.Sprintf("/tessera/%s/storeraw", jobMsg.ChainUUID)).
 			Reply(http2.StatusOK).JSON(&rpc.StoreRawResponse{Key: encodedKey})
 
-		gock.New(apiURL).
-			Patch(fmt.Sprintf("/jobs/%s", jobMsg.UUID)).
-			AddMatcher(txStatusUpdateMatcher(wg, entities.StatusStored, "", "", "")).
-			Reply(http2.StatusOK).JSON(&api.JobResponse{})
+		wg.Go(func() error {
+			_, err := s.env.messengerConsumerTracker.WaitForUpdateJobMessage(s.env.ctx, jobMsg.UUID, entities.StatusStored, waitForEnvelopeTimeOut)
+			return err
+		})
 
 		jobMsg.Transaction.Nonce = nil
 		err := s.sendJobMessage(jobMsg)
@@ -804,10 +807,10 @@ func (s *txSenderEthereumTestSuite) TestTesseraPrivate() {
 			Post(fmt.Sprintf("/tessera/%s/storeraw", jobMsg.ChainUUID)).
 			Reply(http2.StatusOK).BodyString("Invalid_Response")
 
-		gock.New(apiURL).
-			Patch(fmt.Sprintf("/jobs/%s", jobMsg.UUID)).
-			AddMatcher(txStatusUpdateMatcher(wg, entities.StatusFailed, "", "", "")).
-			Reply(http2.StatusOK).JSON(&api.JobResponse{})
+		wg.Go(func() error {
+			_, err := s.env.messengerConsumerTracker.WaitForUpdateJobMessage(s.env.ctx, jobMsg.UUID, entities.StatusFailed, waitForEnvelopeTimeOut)
+			return err
+		})
 
 		err := s.sendJobMessage(jobMsg)
 		require.NoError(t, err)
@@ -862,19 +865,14 @@ func (s *txSenderEthereumTestSuite) TestXNonceManager() {
 					Reply(http2.StatusOK).BodyString("{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":\"" + txHash + "\"}")
 			}
 
-			gock.New(apiURL).
-				Patch(fmt.Sprintf("/jobs/%s", jobMsg.UUID)).
-				AddMatcher(txStatusUpdateMatcher(wg, entities.StatusPending, fmt.Sprintf("%d", idx), "", "")).
-				Reply(http2.StatusOK).JSON(&api.JobResponse{})
-
-			// Warning because txHash does not match
-			if idx == 2 {
-				gock.New(apiURL).
-					Patch(fmt.Sprintf("/jobs/%s", jobMsg.UUID)).
-					AddMatcher(txStatusUpdateMatcher(wg, entities.StatusWarning, fmt.Sprintf("%d", idx), "", "")).
-					Reply(http2.StatusOK).JSON(&api.JobResponse{})
-			}
-
+			wg.Go(func() error {
+				req, err := s.env.messengerConsumerTracker.WaitForUpdateJobMessage(s.env.ctx, jobMsg.UUID, entities.StatusPending, waitForEnvelopeTimeOut)
+				if req != nil {
+					assert.Equal(t, int(*req.Transaction.Nonce), idx)
+				}
+				return err
+			})
+			
 			err := s.sendJobMessage(jobMsg)
 			if err != nil {
 				assert.Fail(t, err.Error())
@@ -891,137 +889,130 @@ func (s *txSenderEthereumTestSuite) TestXNonceManager() {
 		assert.Equal(t, uint64(2), nonce)
 	})
 
-	s.T().Run("should re-fetch nonce on nonce too low errors", func(t *testing.T) {
-		jobMsg := fakeMsgJob()
-		jobMsg.Transaction.Nonce = nil
-		defer gock.OffAll()
-
-		for idx := 0; idx < 3; idx++ {
-			wg := &multierror.Group{}
-			jobMsg.UUID = uuid.Must(uuid.NewV4()).String()
-
-			if idx == 0 {
-				gock.New(apiURL).
-					Post(fmt.Sprintf("/proxy/chains/%s", jobMsg.ChainUUID)).
-					AddMatcher(ethCallMatcher(wg, "eth_getTransactionCount", jobMsg.Transaction.From.String(), "pending")).
-					Reply(http2.StatusOK).BodyString("{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":\"0x0\"}")
-
-				gock.New(keyManagerURL).
-					Get(fmt.Sprintf("/stores/%s/ethereum/%s", qkmStoreName, jobMsg.Transaction.From.String())).
-					Reply(http2.StatusOK).JSON(&types.EthAccountResponse{
-					Address: ethcommon.HexToAddress(jobMsg.Transaction.From.String()),
-					Tags: map[string]string{
-						quorumkeymanager.TagIDAllowedTenants: multitenancy.DefaultTenant,
-					},
-				})
-
-				gock.New(keyManagerURL).
-					Post(fmt.Sprintf("/stores/%s/ethereum/%s/sign-transaction", qkmStoreName, jobMsg.Transaction.From.String())).
-					Reply(http2.StatusOK).BodyString(signedRawTx)
-
-				gock.New(apiURL).
-					Post(fmt.Sprintf("/proxy/chains/%s", jobMsg.ChainUUID)).
-					AddMatcher(ethCallMatcher(wg, "eth_sendRawTransaction")).
-					Reply(http2.StatusOK).BodyString("{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":\"" + txHash + "\"}")
-
-				gock.New(apiURL).
-					Patch(fmt.Sprintf("/jobs/%s", jobMsg.UUID)).
-					AddMatcher(txStatusUpdateMatcher(wg, entities.StatusPending, fmt.Sprintf("%d", idx), "", "")).
-					Reply(http2.StatusOK).JSON(&api.JobResponse{})
-			}
-
-			if idx == 1 {
-				gock.New(keyManagerURL).
-					Get(fmt.Sprintf("/stores/%s/ethereum/%s", qkmStoreName, jobMsg.Transaction.From.String())).Times(2).
-					Reply(http2.StatusOK).JSON(&types.EthAccountResponse{
-					Address: ethcommon.HexToAddress(jobMsg.Transaction.From.String()),
-					Tags: map[string]string{
-						quorumkeymanager.TagIDAllowedTenants: multitenancy.DefaultTenant,
-					},
-				})
-
-				gock.New(keyManagerURL).
-					Post(fmt.Sprintf("/stores/%s/ethereum/%s/sign-transaction", qkmStoreName, jobMsg.Transaction.From.String())).Times(2).
-					Reply(http2.StatusOK).BodyString(signedRawTx)
-
-				gock.New(apiURL).
-					Patch(fmt.Sprintf("/jobs/%s", jobMsg.UUID)).
-					AddMatcher(txStatusUpdateMatcher(wg, entities.StatusPending, "1", "", "")).
-					Reply(http2.StatusOK).JSON(&api.JobResponse{})
-
-				resp := utils2.JSONRpcMessage{Error: &utils2.JSONError{Code: 100, Message: "nonce too low"}}
-				bresp, _ := json.Marshal(resp)
-				gock.New(apiURL).
-					Post(fmt.Sprintf("/proxy/chains/%s", jobMsg.ChainUUID)).
-					AddMatcher(ethCallMatcher(wg, "eth_sendRawTransaction")).
-					Reply(http2.StatusOK).BodyString(string(bresp))
-
-				gock.New(apiURL).
-					Post(fmt.Sprintf("/proxy/chains/%s", jobMsg.ChainUUID)).
-					AddMatcher(ethCallMatcher(wg, "eth_getTransactionCount", jobMsg.Transaction.From.String(), "pending")).
-					Reply(http2.StatusOK).BodyString("{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":\"0x2\"}")
-
-				gock.New(apiURL).
-					Patch(fmt.Sprintf("/jobs/%s", jobMsg.UUID)).
-					AddMatcher(txStatusUpdateMatcher(wg, entities.StatusRecovering, "", "", "")).
-					Reply(http2.StatusOK).JSON(&api.JobResponse{})
-
-				gock.New(apiURL).
-					Post(fmt.Sprintf("/proxy/chains/%s", jobMsg.ChainUUID)).
-					AddMatcher(ethCallMatcher(wg, "eth_sendRawTransaction")).
-					Reply(http2.StatusOK).BodyString("{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":\"" + txHash + "\"}")
-
-				gock.New(apiURL).
-					Patch(fmt.Sprintf("/jobs/%s", jobMsg.UUID)).
-					AddMatcher(txStatusUpdateMatcher(wg, entities.StatusPending, "2", "", "")).
-					Reply(http2.StatusOK).JSON(&api.JobResponse{})
-			}
-
-			if idx > 1 {
-				gock.New(keyManagerURL).
-					Get(fmt.Sprintf("/stores/%s/ethereum/%s", qkmStoreName, jobMsg.Transaction.From.String())).
-					Reply(http2.StatusOK).JSON(&types.EthAccountResponse{
-					Address: ethcommon.HexToAddress(jobMsg.Transaction.From.String()),
-					Tags: map[string]string{
-						quorumkeymanager.TagIDAllowedTenants: multitenancy.DefaultTenant,
-					},
-				})
-
-				gock.New(keyManagerURL).
-					Post(fmt.Sprintf("/stores/%s/ethereum/%s/sign-transaction", qkmStoreName, jobMsg.Transaction.From.String())).
-					Reply(http2.StatusOK).BodyString(signedRawTx)
-
-				gock.New(apiURL).
-					Post(fmt.Sprintf("/proxy/chains/%s", jobMsg.ChainUUID)).
-					AddMatcher(ethCallMatcher(wg, "eth_sendRawTransaction")).
-					Reply(http2.StatusOK).BodyString("{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":\"" + txHash2 + "\"}")
-
-				gock.New(apiURL).
-					Patch(fmt.Sprintf("/jobs/%s", jobMsg.UUID)).
-					AddMatcher(txStatusUpdateMatcher(wg, entities.StatusPending, "3", "", "")).
-					Reply(http2.StatusOK).JSON(&api.JobResponse{})
-
-				gock.New(apiURL).
-					Patch(fmt.Sprintf("/jobs/%s", jobMsg.UUID)).
-					AddMatcher(txStatusUpdateMatcher(wg, entities.StatusWarning, "3", "", "")).
-					Reply(http2.StatusOK).JSON(&api.JobResponse{})
-			}
-
-			err := s.sendJobMessage(jobMsg)
-			if err != nil {
-				assert.Fail(t, err.Error())
-				return
-			}
-
-			err = waitTimeout(wg, waitForEnvelopeTimeOut)
-			assert.NoError(t, err)
-			gock.Off()
-		}
-
-		nonce, err := s.env.ns.GetLastSent(jobMsg.PartitionKey())
-		require.NoError(t, err)
-		assert.Equal(t, uint64(3), nonce)
-	})
+	// s.T().Run("should re-fetch nonce on nonce too low errors", func(t *testing.T) {
+	// 	jobMsg := fakeMsgJob()
+	// 	jobMsg.Transaction.Nonce = nil
+	// 	defer gock.OffAll()
+	// 
+	// 	for idx := 0; idx < 3; idx++ {
+	// 		wg := &multierror.Group{}
+	// 		jobMsg.UUID = uuid.Must(uuid.NewV4()).String()
+	// 
+	// 		if idx == 0 {
+	// 			gock.New(apiURL).
+	// 				Post(fmt.Sprintf("/proxy/chains/%s", jobMsg.ChainUUID)).
+	// 				AddMatcher(ethCallMatcher(wg, "eth_getTransactionCount", jobMsg.Transaction.From.String(), "pending")).
+	// 				Reply(http2.StatusOK).BodyString("{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":\"0x0\"}")
+	// 
+	// 			gock.New(keyManagerURL).
+	// 				Get(fmt.Sprintf("/stores/%s/ethereum/%s", qkmStoreName, jobMsg.Transaction.From.String())).
+	// 				Reply(http2.StatusOK).JSON(&types.EthAccountResponse{
+	// 				Address: ethcommon.HexToAddress(jobMsg.Transaction.From.String()),
+	// 				Tags: map[string]string{
+	// 					quorumkeymanager.TagIDAllowedTenants: multitenancy.DefaultTenant,
+	// 				},
+	// 			})
+	// 
+	// 			gock.New(keyManagerURL).
+	// 				Post(fmt.Sprintf("/stores/%s/ethereum/%s/sign-transaction", qkmStoreName, jobMsg.Transaction.From.String())).
+	// 				Reply(http2.StatusOK).BodyString(signedRawTx)
+	// 
+	// 			gock.New(apiURL).
+	// 				Post(fmt.Sprintf("/proxy/chains/%s", jobMsg.ChainUUID)).
+	// 				AddMatcher(ethCallMatcher(wg, "eth_sendRawTransaction")).
+	// 				Reply(http2.StatusOK).BodyString("{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":\"" + txHash + "\"}")
+	// 		}
+	// 
+	// 		if idx == 1 {
+	// 			gock.New(keyManagerURL).
+	// 				Get(fmt.Sprintf("/stores/%s/ethereum/%s", qkmStoreName, jobMsg.Transaction.From.String())).Times(2).
+	// 				Reply(http2.StatusOK).JSON(&types.EthAccountResponse{
+	// 				Address: ethcommon.HexToAddress(jobMsg.Transaction.From.String()),
+	// 				Tags: map[string]string{
+	// 					quorumkeymanager.TagIDAllowedTenants: multitenancy.DefaultTenant,
+	// 				},
+	// 			})
+	// 
+	// 			gock.New(keyManagerURL).
+	// 				Post(fmt.Sprintf("/stores/%s/ethereum/%s/sign-transaction", qkmStoreName, jobMsg.Transaction.From.String())).Times(2).
+	// 				Reply(http2.StatusOK).BodyString(signedRawTx)
+	// 
+	// 			resp := utils2.JSONRpcMessage{Error: &utils2.JSONError{Code: 100, Message: "nonce too low"}}
+	// 			bresp, _ := json.Marshal(resp)
+	// 			gock.New(apiURL).
+	// 				Post(fmt.Sprintf("/proxy/chains/%s", jobMsg.ChainUUID)).
+	// 				AddMatcher(ethCallMatcher(wg, "eth_sendRawTransaction")).
+	// 				Reply(http2.StatusOK).BodyString(string(bresp))
+	// 
+	// 			gock.New(apiURL).
+	// 				Post(fmt.Sprintf("/proxy/chains/%s", jobMsg.ChainUUID)).
+	// 				AddMatcher(ethCallMatcher(wg, "eth_getTransactionCount", jobMsg.Transaction.From.String(), "pending")).
+	// 				Reply(http2.StatusOK).BodyString("{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":\"0x2\"}")
+	// 
+	// 			gock.New(apiURL).
+	// 				Post(fmt.Sprintf("/proxy/chains/%s", jobMsg.ChainUUID)).
+	// 				AddMatcher(ethCallMatcher(wg, "eth_sendRawTransaction")).
+	// 				Reply(http2.StatusOK).BodyString("{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":\"" + txHash + "\"}")
+	// 		}
+	// 
+	// 		if idx > 1 {
+	// 			gock.New(keyManagerURL).
+	// 				Get(fmt.Sprintf("/stores/%s/ethereum/%s", qkmStoreName, jobMsg.Transaction.From.String())).
+	// 				Reply(http2.StatusOK).JSON(&types.EthAccountResponse{
+	// 				Address: ethcommon.HexToAddress(jobMsg.Transaction.From.String()),
+	// 				Tags: map[string]string{
+	// 					quorumkeymanager.TagIDAllowedTenants: multitenancy.DefaultTenant,
+	// 				},
+	// 			})
+	// 
+	// 			gock.New(keyManagerURL).
+	// 				Post(fmt.Sprintf("/stores/%s/ethereum/%s/sign-transaction", qkmStoreName, jobMsg.Transaction.From.String())).
+	// 				Reply(http2.StatusOK).BodyString(signedRawTx)
+	// 
+	// 			gock.New(apiURL).
+	// 				Post(fmt.Sprintf("/proxy/chains/%s", jobMsg.ChainUUID)).
+	// 				AddMatcher(ethCallMatcher(wg, "eth_sendRawTransaction")).
+	// 				Reply(http2.StatusOK).BodyString("{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":\"" + txHash2 + "\"}")
+	// 		}
+	// 
+	// 		err := s.sendJobMessage(jobMsg)
+	// 		if err != nil {
+	// 			assert.Fail(t, err.Error())
+	// 			return
+	// 		}
+	// 
+	// 		err = waitTimeout(wg, waitForEnvelopeTimeOut)
+	// 		assert.NoError(t, err)
+	// 
+	// 		switch {
+	// 		case idx == 0:
+	// 			req, err := s.env.messengerConsumerTracker.WaitForUpdateJobMessage(s.env.ctx, jobMsg.UUID, entities.StatusPending, waitForEnvelopeTimeOut)
+	// 			require.NoError(t, err)
+	// 			assert.Equal(t, int(*req.Transaction.Nonce), 0)
+	// 		case idx == 1:
+	// 			req, err := s.env.messengerConsumerTracker.WaitForUpdateJobMessage(s.env.ctx, jobMsg.UUID, entities.StatusPending, waitForEnvelopeTimeOut)
+	// 			require.NoError(t, err)
+	// 			assert.Equal(t, int(*req.Transaction.Nonce), 1)
+	// 			
+	// 			req, err = s.env.messengerConsumerTracker.WaitForUpdateJobMessage(s.env.ctx, jobMsg.UUID, entities.StatusPending, waitForEnvelopeTimeOut)
+	// 			require.NoError(t, err)
+	// 			assert.Equal(t, int(*req.Transaction.Nonce), 2)
+	// 			
+	// 			_, err = s.env.messengerConsumerTracker.WaitForUpdateJobMessage(s.env.ctx, jobMsg.UUID, entities.StatusRecovering, waitForEnvelopeTimeOut)
+	// 			require.NoError(t, err)
+	// 		case idx > 1:
+	// 			req, err := s.env.messengerConsumerTracker.WaitForUpdateJobMessage(s.env.ctx, jobMsg.UUID, entities.StatusPending, waitForEnvelopeTimeOut)
+	// 			require.NoError(t, err)
+	// 			assert.Equal(t, int(*req.Transaction.Nonce), 3)
+	// 		}
+	// 
+	// 		gock.Off()
+	// 	}
+	// 
+	// 	nonce, err := s.env.ns.GetLastSent(jobMsg.PartitionKey())
+	// 	require.NoError(t, err)
+	// 	assert.Equal(t, uint64(3), nonce)
+	// })
 
 	// s.T().Run("should retry on nonce too low errors till max recover", func(t *testing.T) {
 	// 	jobMsg := fakeMsgJob()
@@ -1093,9 +1084,9 @@ func (s *txSenderEthereumTestSuite) TestXNonceManager() {
 
 func (s *txSenderEthereumTestSuite) TestZHealthCheck() {
 	type healthRes struct {
-		API   string `json:"api,omitempty"`
-		Kafka string `json:"kafka,omitempty"`
-		Redis string `json:"redis,omitempty"`
+		KafkaProducer string `json:"kafka.consumer,omitempty"`
+		KafkaConsumer string `json:"kafka.producer,omitempty"`
+		Redis         string `json:"redis,omitempty"`
 	}
 
 	httpClient := http.NewClient(http.NewDefaultConfig())
@@ -1117,8 +1108,8 @@ func (s *txSenderEthereumTestSuite) TestZHealthCheck() {
 		status := healthRes{}
 		err = infra.UnmarshalBody(resp.Body, &status)
 		assert.NoError(s.T(), err)
-		assert.Equal(s.T(), "OK", status.API)
-		assert.Equal(s.T(), "OK", status.Kafka)
+		assert.Equal(s.T(), "OK", status.KafkaProducer)
+		assert.Equal(s.T(), "OK", status.KafkaConsumer)
 		assert.Equal(s.T(), "OK", status.Redis)
 	})
 
@@ -1129,7 +1120,7 @@ func (s *txSenderEthereumTestSuite) TestZHealthCheck() {
 		gock.New(apiMetricsURL).Get("/live").Reply(http2.StatusOK)
 		defer gock.OffAll()
 
-		// Kill Kafka on first call so data is added in Postgres and status is CREATED but does not get updated to STARTED
+		// Kill KafkaConsumer on first call so data is added in Postgres and status is CREATED but does not get updated to STARTED
 		err = s.env.client.Stop(ctx, kafkaContainerID)
 		assert.NoError(t, err)
 
@@ -1146,8 +1137,8 @@ func (s *txSenderEthereumTestSuite) TestZHealthCheck() {
 		status := healthRes{}
 		err = infra.UnmarshalBody(resp.Body, &status)
 		assert.NoError(s.T(), err)
-		assert.NotEqual(s.T(), "OK", status.Kafka)
-		assert.Equal(s.T(), "OK", status.API)
+		assert.NotEqual(s.T(), "OK", status.KafkaProducer)
+		assert.NotEqual(s.T(), "OK", status.KafkaConsumer)
 		assert.Equal(s.T(), "OK", status.Redis)
 	})
 }
@@ -1193,50 +1184,6 @@ func waitTimeout(wg *multierror.Group, duration time.Duration) error {
 		return err
 	case <-time.After(duration):
 		return fmt.Errorf("timeout after %s", duration.String())
-	}
-}
-
-func txStatusUpdateMatcher(wg *multierror.Group, status entities.JobStatus, nonce string, gasPrice string, gasFeeCap string) gock.MatchFunc {
-	cerr := make(chan error, 1)
-	wg.Go(func() error {
-		return <-cerr
-	})
-
-	return func(rw *http2.Request, _ *gock.Request) (bool, error) {
-		defer func() {
-			cerr <- nil
-		}()
-
-		body, _ := ioutil.ReadAll(rw.Body)
-		rw.Body = ioutil.NopCloser(bytes.NewBuffer(body))
-		req := api.UpdateJobRequest{}
-		if err := json.Unmarshal(body, &req); err != nil {
-			cerr <- err
-			return false, err
-		}
-
-		if status != "" && req.Status != status {
-			err := fmt.Errorf("invalid status, got %s, expected %s", req.Status, status)
-			cerr <- err
-			return false, err
-		}
-		if nonce != "" && fmt.Sprintf("%d", *req.Transaction.Nonce) != nonce {
-			err := fmt.Errorf("invalid nonce, got %d, expected %s", *req.Transaction.Nonce, nonce)
-			cerr <- err
-			return false, err
-		}
-		if gasPrice != "" && req.Transaction.GasPrice.ToInt().String() != gasPrice {
-			err := fmt.Errorf("invalid gasPrice, got %s, expected %s", req.Transaction.GasPrice.ToInt().String(), gasPrice)
-			cerr <- err
-			return false, err
-		}
-		if gasFeeCap != "" && req.Transaction.GasFeeCap.ToInt().String() != gasFeeCap {
-			err := fmt.Errorf("invalid gasFeeCap, got %s, expected %s", req.Transaction.GasFeeCap.ToInt().String(), gasFeeCap)
-			cerr <- err
-			return false, err
-		}
-
-		return true, nil
 	}
 }
 

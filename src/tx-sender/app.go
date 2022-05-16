@@ -6,7 +6,9 @@ import (
 	"time"
 
 	"github.com/consensys/orchestrate/pkg/sdk"
+	sdkMessenger "github.com/consensys/orchestrate/pkg/sdk/messenger"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
+	"github.com/consensys/orchestrate/src/infra/kafka"
 	"github.com/consensys/orchestrate/src/infra/messenger"
 	"github.com/consensys/orchestrate/src/tx-sender/tx-sender/nonce"
 	"github.com/consensys/orchestrate/src/tx-sender/tx-sender/nonce/manager"
@@ -29,7 +31,7 @@ const component = "application"
 
 type txSenderDaemon struct {
 	keyManagerClient keymanager.KeyManagerClient
-	jobClient        sdk.JobClient
+	messengerAPI     sdk.MessengerAPI
 	ec               ethclient.MultiClient
 	nonceManager     nonce.Manager
 	consumers        []messenger.Consumer
@@ -41,7 +43,7 @@ type txSenderDaemon struct {
 func NewTxSender(
 	config *Config,
 	keyManagerClient keymanager.KeyManagerClient,
-	apiClient sdk.OrchestrateClient,
+	kafkaProducer kafka.Producer,
 	ec ethclient.MultiClient,
 	redisCli redis.Client,
 ) (*app.App, error) {
@@ -54,12 +56,15 @@ func NewTxSender(
 			config.ProxyURL, config.NonceMaxRecovery)
 	}
 
+	sdkMessengerCli := sdkMessenger.NewProducerClient(config.Messenger, kafkaProducer)
 	// Create business layer use cases
-	useCases := builder.NewUseCases(apiClient, keyManagerClient, ec, nm, config.ProxyURL)
+	useCases := builder.NewUseCases(sdkMessengerCli, keyManagerClient, ec, nm, config.ProxyURL)
+
+	jobRouter := service.NewJobHandler(useCases, sdkMessengerCli, config.BckOff)
 	consumers := make([]messenger.Consumer, config.Kafka.NConsumers)
 	for idx := 0; idx < config.Kafka.NConsumers; idx++ {
 		var err error
-		consumers[idx], err = service.NewMessageConsumer(config.Kafka, []string{config.ConsumerTopic}, useCases, apiClient, config.BckOff)
+		consumers[idx], err = service.NewMessageConsumer(config.Kafka, []string{config.ConsumerTopic}, jobRouter)
 		if err != nil {
 			return nil, err
 		}
@@ -67,7 +72,7 @@ func NewTxSender(
 
 	txSenderDaemon := &txSenderDaemon{
 		keyManagerClient: keyManagerClient,
-		jobClient:        apiClient,
+		messengerAPI:     sdkMessengerCli,
 		consumers:        consumers,
 		config:           config,
 		ec:               ec,
@@ -75,7 +80,7 @@ func NewTxSender(
 		logger:           log.NewLogger().SetComponent(component),
 	}
 
-	appli, err := app.New(config.App, readinessOpt(apiClient, redisCli, consumers[0]), app.MetricsOpt())
+	appli, err := app.New(config.App, readinessOpt(kafkaProducer, redisCli, consumers[0]), app.MetricsOpt())
 	if err != nil {
 		return nil, err
 	}
@@ -134,10 +139,10 @@ func (d *txSenderDaemon) Close() error {
 	return gerr
 }
 
-func readinessOpt(apiClient sdk.MetricClient, redisCli redis.Client, consumer messenger.Consumer) app.Option {
+func readinessOpt(producer kafka.Producer, redisCli redis.Client, consumer messenger.Consumer) app.Option {
 	return func(ap *app.App) error {
-		ap.AddReadinessCheck("kafka", consumer.Checker)
-		ap.AddReadinessCheck("api", apiClient.Checker())
+		ap.AddReadinessCheck("kafka.consumer", consumer.Checker)
+		ap.AddReadinessCheck("kafka.producer", producer.Checker)
 		if redisCli != nil {
 			ap.AddReadinessCheck("redis", redisCli.Ping)
 		}

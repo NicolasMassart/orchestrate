@@ -24,19 +24,19 @@ type sendETHTxUseCase struct {
 	nonceChecker     nonce.Manager
 	ec               ethclient.TransactionSender
 	chainRegistryURL string
-	jobClient        sdk.JobClient
+	messengerAPI     sdk.MessengerAPI
 	logger           *log.Logger
 }
 
 func NewSendEthTxUseCase(signTx usecases.SignETHTransactionUseCase,
 	crafter usecases.CraftTransactionUseCase,
 	ec ethclient.TransactionSender,
-	jobClient sdk.JobClient,
+	messengerAPI sdk.MessengerAPI,
 	chainRegistryURL string,
 	nonceChecker nonce.Manager,
 ) usecases.SendETHTxUseCase {
 	return &sendETHTxUseCase{
-		jobClient:        jobClient,
+		messengerAPI:     messengerAPI,
 		ec:               ec,
 		chainRegistryURL: chainRegistryURL,
 		signTx:           signTx,
@@ -65,7 +65,7 @@ func (uc *sendETHTxUseCase) Execute(ctx context.Context, job *entities.Job) erro
 
 	// In case of job resending we don't need to sign again
 	if job.InternalData.ParentJobUUID == job.UUID || job.Status == entities.StatusPending || job.Status == entities.StatusResending {
-		err = utils2.UpdateJobStatus(ctx, uc.jobClient, job, entities.StatusResending, "", job.Transaction)
+		err = utils2.UpdateJobStatus(ctx, uc.messengerAPI, job, entities.StatusResending, "", job.Transaction)
 		if err != nil {
 			return errors.FromError(err).ExtendComponent(sendETHTxComponent)
 		}
@@ -75,7 +75,7 @@ func (uc *sendETHTxUseCase) Execute(ctx context.Context, job *entities.Job) erro
 			return errors.FromError(err).ExtendComponent(sendETHTxComponent)
 		}
 
-		err = utils2.UpdateJobStatus(ctx, uc.jobClient, job, entities.StatusPending, "", job.Transaction)
+		err = utils2.UpdateJobStatus(ctx, uc.messengerAPI, job, entities.StatusPending, "", job.Transaction)
 		if err != nil {
 			return errors.FromError(err).ExtendComponent(sendETHTxComponent)
 		}
@@ -97,7 +97,7 @@ func (uc *sendETHTxUseCase) Execute(ctx context.Context, job *entities.Job) erro
 	if txHash.String() != job.Transaction.Hash.String() {
 		warnMessage := fmt.Sprintf("expected transaction hash %s, but got %s. overriding", job.Transaction.Hash, txHash)
 		job.Transaction.Hash = txHash
-		err = utils2.UpdateJobStatus(ctx, uc.jobClient, job, entities.StatusWarning, warnMessage, job.Transaction)
+		err = utils2.UpdateJobStatus(ctx, uc.messengerAPI, job, entities.StatusWarning, warnMessage, job.Transaction)
 		if err != nil {
 			return errors.FromError(err).ExtendComponent(sendETHTxComponent)
 		}

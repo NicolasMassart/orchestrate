@@ -37,7 +37,7 @@ Environment variable: %q`, notifierMaxRetriesEnv)
 func NewNotifierConfig(vipr *viper.Viper) *notifier.Config {
 	return &notifier.Config{
 		Kafka:         NewKafkaConfig(vipr),
-		TopicAPI:      viper.GetString(APITopicViperKey),
+		Messenger:     NewConsumerConfig(vipr),
 		ConsumerTopic: viper.GetString(NotifierTopicViperKey),
 		MaxRetries:    int(viper.GetUint64(notifierMaxRetriesViperKey)),
 	}

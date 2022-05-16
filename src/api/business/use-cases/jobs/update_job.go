@@ -58,6 +58,17 @@ func (uc *updateJobUseCase) Execute(ctx context.Context, nextJob *entities.Job, 
 		nextJob.Status = nextStatus
 	}
 
+	if prevJob.Status == nextStatus {
+		logger.WithField("status", nextStatus).Warn("job is already at requested next status")
+		return prevJob, nil
+	}
+
+	if nextJob.Status != "" && !canUpdateStatus(nextJob.Status, prevJob.Status) {
+		errMessage := "invalid status update for the current job state"
+		logger.WithField("status", prevJob.Status).WithField("next_status", nextStatus).Error(errMessage)
+		return nil, errors.InvalidStateError(errMessage).ExtendComponent(updateJobComponent)
+	}
+
 	err = uc.updateJob(ctx, nextJob, nextStatus, nextStatusMsg, prevJob.InternalData.ParentJobUUID, userInfo)
 	if err != nil {
 		return nil, errors.FromError(err).ExtendComponent(updateJobComponent)
@@ -168,20 +179,6 @@ func (uc *updateJobUseCase) addJobStatusMetrics(prevJob *entities.Job, nextJobSt
 	uc.addMetrics(time.Since(prevJob.UpdatedAt), prevJob.Status, nextJobStatus, prevJob.ChainUUID)
 }
 
-func isValidJobStatus(nextStatus entities.JobStatus) bool {
-	if nextStatus == entities.StatusResending {
-		return false
-	}
-	if nextStatus == entities.StatusWarning {
-		return false
-	}
-	if nextStatus == entities.StatusRecovering {
-		return false
-	}
-
-	return true
-}
-
 func (uc *updateJobUseCase) addMetrics(elapseTime time.Duration, previousStatus, nextStatus entities.JobStatus, chainUUID string) {
 	if previousStatus == nextStatus {
 		return
@@ -202,5 +199,42 @@ func (uc *updateJobUseCase) addMetrics(elapseTime time.Duration, previousStatus,
 			"prev_status", string(previousStatus),
 			"status", string(nextStatus),
 		)...).Observe(elapseTime.Seconds())
+	}
+}
+
+func isValidJobStatus(nextStatus entities.JobStatus) bool {
+	if nextStatus == entities.StatusResending {
+		return false
+	}
+	if nextStatus == entities.StatusWarning {
+		return false
+	}
+	if nextStatus == entities.StatusRecovering {
+		return false
+	}
+
+	return true
+}
+
+func canUpdateStatus(nextStatus, status entities.JobStatus) bool {
+	switch nextStatus {
+	case entities.StatusCreated:
+		return false
+	case entities.StatusStarted:
+		return status == entities.StatusCreated
+	case entities.StatusPending:
+		return status == entities.StatusStarted || status == entities.StatusRecovering
+	case entities.StatusResending:
+		return status == entities.StatusPending || status == entities.StatusResending
+	case entities.StatusRecovering:
+		return status == entities.StatusStarted || status == entities.StatusRecovering || status == entities.StatusPending
+	case entities.StatusMined, entities.StatusNeverMined:
+		return status == entities.StatusPending
+	case entities.StatusStored:
+		return status == entities.StatusStarted || status == entities.StatusRecovering
+	case entities.StatusFailed:
+		return status == entities.StatusStarted || status == entities.StatusRecovering || status == entities.StatusPending || status == entities.StatusWarning || status == entities.StatusResending
+	default: // For warning, they can be added at any time
+		return true
 	}
 }

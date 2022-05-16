@@ -3,9 +3,9 @@ package types
 import (
 	"time"
 
-	"github.com/consensys/orchestrate/pkg/types/ethereum"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
 type RegisterContractRequest struct {
@@ -52,8 +52,8 @@ type SearchContractRequest struct {
 }
 
 type EventLogsMessageRequest struct {
-	ChainUUID string
-	Address   ethcommon.Address
-	EventLogs []*ethereum.Log
-	CreatedAt time.Time
+	ChainUUID string            `json:"chain_uuid" validate:"required"`
+	Address   ethcommon.Address `json:"address" validate:"required"`
+	EventLogs []ethtypes.Log    `json:"event_logs" validate:"omitempty"`
+	CreatedAt time.Time         `json:"created_at" validate:"omitempty"`
 }

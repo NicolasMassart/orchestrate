@@ -43,7 +43,7 @@ func (c *SubscriptionsController) Append(router *mux.Router) {
 // @Failure      400      {object}  infra.ErrorResponse    "Invalid request"
 // @Failure      401      {object}  infra.ErrorResponse    "Unauthorized"
 // @Failure      500      {object}  infra.ErrorResponse    "Internal server error"
-// @Router       /subscriptions [post]
+// @Router       /subscriptions/{address} [post]
 func (c *SubscriptionsController) create(rw http.ResponseWriter, request *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	ctx := request.Context()
@@ -55,8 +55,9 @@ func (c *SubscriptionsController) create(rw http.ResponseWriter, request *http.R
 		return
 	}
 
-	qAddress := request.URL.Query().Get("address")
-	es, err := c.ucs.Create().Execute(ctx, req.ToEntity(ethcommon.HexToAddress(qAddress)), req.Chain, req.EventStream, multitenancy.UserInfoValue(ctx))
+	qAddress := mux.Vars(request)["address"]
+	req.Address = ethcommon.HexToAddress(qAddress)
+	es, err := c.ucs.Create().Execute(ctx, req.ToEntity(), req.Chain, req.EventStream, multitenancy.UserInfoValue(ctx))
 	if err != nil {
 		infra.WriteHTTPErrorResponse(rw, err)
 		return

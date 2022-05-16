@@ -1,5 +1,3 @@
-// +build unit
-
 package service
 
 import (
@@ -9,10 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Shopify/sarama"
 	"github.com/cenkalti/backoff/v4"
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/sdk/mock"
+	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/entities/testdata"
 	"github.com/consensys/orchestrate/src/tx-listener/service/types"
 	mocks3 "github.com/consensys/orchestrate/src/tx-listener/tx-listener/sessions/mocks"
@@ -23,9 +21,9 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type messageListenerCtrlTestSuite struct {
+type jobHandlerTestSuite struct {
 	suite.Suite
-	consumerRouter      *Router
+	router              *JobHandler
 	pendingJobUC        *mocks.MockPendingJob
 	failedJobUC         *mocks.MockFailedJob
 	chainSessionMngr    *mocks3.MockChainSessionManager
@@ -35,12 +33,12 @@ type messageListenerCtrlTestSuite struct {
 	allowedTenants      []string
 }
 
-func TestMessageListener(t *testing.T) {
-	s := new(messageListenerCtrlTestSuite)
+func TestJobHandler(t *testing.T) {
+	s := new(jobHandlerTestSuite)
 	suite.Run(t, s)
 }
 
-func (s *messageListenerCtrlTestSuite) SetupTest() {
+func (s *jobHandlerTestSuite) SetupTest() {
 	ctrl := gomock.NewController(s.T())
 	defer ctrl.Finish()
 
@@ -53,113 +51,103 @@ func (s *messageListenerCtrlTestSuite) SetupTest() {
 	s.apiClient = mock.NewMockOrchestrateClient(ctrl)
 
 	bckoff := backoff.WithMaxRetries(backoff.NewConstantBackOff(time.Millisecond*100), 2)
-	s.consumerRouter = NewRouter(s.pendingJobUC, s.failedJobUC, s.chainSessionMngr, s.retryJobSessionMngr, bckoff)
+	s.router = NewJobHandler(s.pendingJobUC, s.failedJobUC, s.chainSessionMngr, s.retryJobSessionMngr, bckoff)
 }
 
-func (s *messageListenerCtrlTestSuite) TestMessageListener_PublicEthereum() {
+func (s *jobHandlerTestSuite) TestMessageListener_PublicEthereum() {
 	s.T().Run("should handle new pending job successfully", func(t *testing.T) {
 		job := testdata.FakeJob()
 		job.TenantID = s.tenantID
 		job.InternalData.RetryInterval = time.Second
 
-		s.pendingJobUC.EXPECT().Execute(gomock.Any(), testdata.NewJobMatcher(job)).Return(nil)
+		msg := newPendingJobMsg(job, 1)
+		s.pendingJobUC.EXPECT().Execute(gomock.Any(), testdata.NewJobMatcher(job), msg).Return(nil)
 		s.retryJobSessionMngr.EXPECT().StartSession(gomock.Any(), testdata.NewJobMatcher(job)).Return(nil)
 		s.chainSessionMngr.EXPECT().StartSession(gomock.Any(), job.ChainUUID).Return(nil)
 
-		bRawMsg, _ := json.Marshal(&types.PendingJobMessageRequest{
-			Job: job,
-		})
-		err := s.consumerRouter.HandlePendingJob(context.Background(), bRawMsg)
+		err := s.router.HandlePendingJobMessage(context.Background(), msg)
 		require.NoError(t, err)
 	})
-	
+
 	s.T().Run("should handle new pending job ignoring already exiting retry sessions", func(t *testing.T) {
 		job := testdata.FakeJob()
 		job.TenantID = s.tenantID
 		job.InternalData.RetryInterval = time.Second
-		msg := &sarama.ConsumerMessage{}
-		msg.Value, _ = json.Marshal(job)
-	
-		s.pendingJobUC.EXPECT().Execute(gomock.Any(), testdata.NewJobMatcher(job)).Return(nil)
-		s.retryJobSessionMngr.EXPECT().StartSession(gomock.Any(), testdata.NewJobMatcher(job)).Return(errors.AlreadyExistsError(""))
+		msg := newPendingJobMsg(job, 1)
+
 		s.chainSessionMngr.EXPECT().StartSession(gomock.Any(), job.ChainUUID).Return(nil)
-	
-		bRawMsg, _ := json.Marshal(&types.PendingJobMessageRequest{
-			Job: job,
-		})
-		err := s.consumerRouter.HandlePendingJob(context.Background(), bRawMsg)
+		s.pendingJobUC.EXPECT().Execute(gomock.Any(), testdata.NewJobMatcher(job), msg).Return(nil)
+		s.retryJobSessionMngr.EXPECT().StartSession(gomock.Any(), testdata.NewJobMatcher(job)).Return(errors.AlreadyExistsError(""))
+
+		err := s.router.HandlePendingJobMessage(context.Background(), msg)
 		require.NoError(t, err)
 	})
-	
+
 	s.T().Run("should handle new pending job ignoring already exiting chain listening sessions", func(t *testing.T) {
 		job := testdata.FakeJob()
 		job.TenantID = s.tenantID
 		job.InternalData.RetryInterval = time.Second
-		msg := &sarama.ConsumerMessage{}
-		msg.Value, _ = json.Marshal(job)
-	
-		s.pendingJobUC.EXPECT().Execute(gomock.Any(), testdata.NewJobMatcher(job)).Return(nil)
-		s.retryJobSessionMngr.EXPECT().StartSession(gomock.Any(), testdata.NewJobMatcher(job)).Return(nil)
+		msg := newPendingJobMsg(job, 1)
+
 		s.chainSessionMngr.EXPECT().StartSession(gomock.Any(), job.ChainUUID).Return(errors.AlreadyExistsError(""))
-	
-		bRawMsg, _ := json.Marshal(&types.PendingJobMessageRequest{
-			Job: job,
-		})
-		err := s.consumerRouter.HandlePendingJob(context.Background(), bRawMsg)
+		s.pendingJobUC.EXPECT().Execute(gomock.Any(), testdata.NewJobMatcher(job), msg).Return(nil)
+		s.retryJobSessionMngr.EXPECT().StartSession(gomock.Any(), testdata.NewJobMatcher(job)).Return(nil)
+
+		err := s.router.HandlePendingJobMessage(context.Background(), msg)
 		require.NoError(t, err)
 	})
-	
+
 	s.T().Run("should fail with same error if start chain listening fails", func(t *testing.T) {
 		job := testdata.FakeJob()
 		job.TenantID = s.tenantID
-		msg := &sarama.ConsumerMessage{}
-		msg.Value, _ = json.Marshal(job)
-	
+		msg := newPendingJobMsg(job, 1)
+
 		expectedErr := fmt.Errorf("failed to start chain session")
-		s.pendingJobUC.EXPECT().Execute(gomock.Any(), testdata.NewJobMatcher(job)).Return(nil)
 		s.chainSessionMngr.EXPECT().StartSession(gomock.Any(), job.ChainUUID).Return(expectedErr)
 		s.failedJobUC.EXPECT().Execute(gomock.Any(), testdata.NewJobMatcher(job), expectedErr.Error()).Return(nil)
-	
-		bRawMsg, _ := json.Marshal(&types.PendingJobMessageRequest{
-			Job: job,
-		})
-		err := s.consumerRouter.HandlePendingJob(context.Background(), bRawMsg)
+
+		err := s.router.HandlePendingJobMessage(context.Background(), msg)
 		assert.NoError(t, err)
 	})
-	
+
 	s.T().Run("should fail with same error if retry job session fails", func(t *testing.T) {
 		job := testdata.FakeJob()
 		job.TenantID = s.tenantID
 		job.InternalData.RetryInterval = time.Second
-		msg := &sarama.ConsumerMessage{}
-		msg.Value, _ = json.Marshal(job)
-	
+		msg := newPendingJobMsg(job, 1)
+
 		expectedErr := fmt.Errorf("failed to start chain session")
-		s.pendingJobUC.EXPECT().Execute(gomock.Any(), testdata.NewJobMatcher(job)).Return(nil)
+		s.chainSessionMngr.EXPECT().StartSession(gomock.Any(), job.ChainUUID).Return(nil)
+		s.pendingJobUC.EXPECT().Execute(gomock.Any(), testdata.NewJobMatcher(job), msg).Return(nil)
 		s.retryJobSessionMngr.EXPECT().StartSession(gomock.Any(), testdata.NewJobMatcher(job)).Return(expectedErr)
 		s.failedJobUC.EXPECT().Execute(gomock.Any(), testdata.NewJobMatcher(job), expectedErr.Error()).Return(nil)
-	
-		bRawMsg, _ := json.Marshal(&types.PendingJobMessageRequest{
-			Job: job,
-		})
-		err := s.consumerRouter.HandlePendingJob(context.Background(), bRawMsg)
+
+		err := s.router.HandlePendingJobMessage(context.Background(), msg)
 		assert.NoError(t, err)
 	})
-	
+
 	s.T().Run("should fail with same error if retry job session fails", func(t *testing.T) {
 		job := testdata.FakeJob()
 		job.TenantID = s.tenantID
-		msg := &sarama.ConsumerMessage{}
-		msg.Value, _ = json.Marshal(job)
-	
-		expectedErr := fmt.Errorf("failed to start chain session")
-		s.pendingJobUC.EXPECT().Execute(gomock.Any(), testdata.NewJobMatcher(job)).Return(expectedErr)
+		msg := newPendingJobMsg(job, 2)
+
+		s.chainSessionMngr.EXPECT().StartSession(gomock.Any(), job.ChainUUID).Return(nil)
+		expectedErr := fmt.Errorf("failed to start retry session")
+		s.pendingJobUC.EXPECT().Execute(gomock.Any(), testdata.NewJobMatcher(job), msg).Return(expectedErr)
 		s.failedJobUC.EXPECT().Execute(gomock.Any(), testdata.NewJobMatcher(job), expectedErr.Error()).Return(nil)
-	
-		bRawMsg, _ := json.Marshal(&types.PendingJobMessageRequest{
-			Job: job,
-		})
-		err := s.consumerRouter.HandlePendingJob(context.Background(), bRawMsg)
+
+		err := s.router.HandlePendingJobMessage(context.Background(), msg)
 		assert.NoError(t, err)
 	})
+}
+
+func newPendingJobMsg(job *entities.Job, offset int64) *entities.Message {
+	bMsgBody, _ := json.Marshal(&types.PendingJobMessageRequest{
+		Job: job,
+	})
+	return &entities.Message{
+		Type:   PendingJobMessageType,
+		Body:   bMsgBody,
+		Offset: offset,
+	}
 }

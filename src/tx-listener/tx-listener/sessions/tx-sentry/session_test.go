@@ -1,5 +1,4 @@
 // +build unit
-// +build !race
 
 package txsentry
 
@@ -29,7 +28,8 @@ func TestRetryJobSession_Execute(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	apiClient := mock.NewMockOrchestrateClient(ctrl)
+	msgAPI := mock.NewMockMessengerAPI(ctrl)
+	jobAPIClient := mock.NewMockJobClient(ctrl)
 	retryJobUseCase := mocks.NewMockRetryJob(ctrl)
 	pendingJobState := mocks2.NewMockPendingJob(ctrl)
 	logger := log.NewLogger()
@@ -40,14 +40,14 @@ func TestRetryJobSession_Execute(t *testing.T) {
 		job.InternalData.RetryInterval = defaultRetryInterval
 		cStopErr := make(chan error, 1)
 
-		apiClient.EXPECT().SearchJob(gomock.Any(), gomock.Any()).Return([]*api.JobResponse{}, nil)
+		jobAPIClient.EXPECT().SearchJob(gomock.Any(), gomock.Any()).Return([]*api.JobResponse{}, nil)
 		pendingJobState.EXPECT().GetByTxHash(gomock.Any(), job.ChainUUID, job.Transaction.Hash).
 			Times(2).Return(job, nil)
 		prevRetryCall := retryJobUseCase.EXPECT().Execute(gomock.Any(), job, job.UUID, 0).Return(childJob.UUID, nil)
 		retryJobUseCase.EXPECT().Execute(gomock.Any(), job, childJob.UUID, 1).After(prevRetryCall).
 			Return("", nil)
 
-		usecase := NewRetryJobSession(apiClient, retryJobUseCase, pendingJobState, job, logger)
+		usecase := NewRetryJobSession(msgAPI, jobAPIClient, retryJobUseCase, pendingJobState, job, logger)
 		go func() {
 			err := usecase.Start(ctx)
 			cStopErr <- err
@@ -71,12 +71,12 @@ func TestRetryJobSession_Execute(t *testing.T) {
 		job.InternalData.RetryInterval = defaultRetryInterval
 		cStopErr := make(chan error, 1)
 
-		apiClient.EXPECT().SearchJob(gomock.Any(), gomock.Any()).Return([]*api.JobResponse{}, nil)
+		jobAPIClient.EXPECT().SearchJob(gomock.Any(), gomock.Any()).Return([]*api.JobResponse{}, nil)
 		prevPendingCall := pendingJobState.EXPECT().GetByTxHash(gomock.Any(), job.ChainUUID, job.Transaction.Hash).Return(job, nil)
 		pendingJobState.EXPECT().GetByTxHash(gomock.Any(), job.ChainUUID, job.Transaction.Hash).After(prevPendingCall).Return(nil, errors.NotFoundError(""))
 		retryJobUseCase.EXPECT().Execute(gomock.Any(), job, job.UUID, 0).Return(childJob.UUID, nil)
 
-		usecase := NewRetryJobSession(apiClient, retryJobUseCase, pendingJobState, job, logger)
+		usecase := NewRetryJobSession(msgAPI, jobAPIClient, retryJobUseCase, pendingJobState, job, logger)
 		go func() {
 			err := usecase.Start(ctx)
 			cStopErr <- err
@@ -98,11 +98,11 @@ func TestRetryJobSession_Execute(t *testing.T) {
 		cStopErr := make(chan error, 1)
 
 		expectedErr := fmt.Errorf("failed to retry")
-		apiClient.EXPECT().SearchJob(gomock.Any(), gomock.Any()).Return([]*api.JobResponse{}, nil)
+		jobAPIClient.EXPECT().SearchJob(gomock.Any(), gomock.Any()).Return([]*api.JobResponse{}, nil)
 		pendingJobState.EXPECT().GetByTxHash(gomock.Any(), job.ChainUUID, job.Transaction.Hash).Return(job, nil)
 		retryJobUseCase.EXPECT().Execute(gomock.Any(), job, job.UUID, 0).Return("", expectedErr)
 
-		usecase := NewRetryJobSession(apiClient, retryJobUseCase, pendingJobState, job, logger)
+		usecase := NewRetryJobSession(msgAPI, jobAPIClient, retryJobUseCase, pendingJobState, job, logger)
 		go func() {
 			err := usecase.Start(ctx)
 			cStopErr <- err

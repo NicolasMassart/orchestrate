@@ -8,17 +8,17 @@ import (
 )
 
 type CreateSubscriptionRequest struct {
-	Address      *ethcommon.Address `json:"address,omitempty" validate:"omitempty" example:"0x1abae27a0cbfb02945720425d3b80c7e097285534"`
-	Chain        string             `json:"chain,omitempty" validate:"omitempty" example:"mainnet"`
-	ContractName string             `json:"contractName" validate:"required" example:"MyContract"` // Name of the contract.
-	ContractTag  string             `json:"contractTag,omitempty" example:"v1.1.0"`
-	EventStream  string             `json:"event_stream,omitempty" validate:"omitempty" example:"myWeebhookStream"`
-	FromBlock    *uint64            `json:"fromBlock,omitempty" example:"123"`
+	Address      ethcommon.Address `json:"-"`
+	Chain        string            `json:"chain" validate:"required" example:"mainnet"`
+	EventStream  string            `json:"eventStream,omitempty" validate:"required" example:"myWeebhookStream"`
+	ContractName string            `json:"contractName" validate:"required" example:"MyContract"` // Name of the contract.
+	ContractTag  string            `json:"contractTag,omitempty" example:"v1.1.0"`
+	FromBlock    *uint64           `json:"fromBlock,omitempty" example:"123"`
 }
 
-func (r *CreateSubscriptionRequest) ToEntity(address ethcommon.Address) *entities.Subscription {
+func (r *CreateSubscriptionRequest) ToEntity() *entities.Subscription {
 	subscription := &entities.Subscription{
-		ContractAddress: address,
+		ContractAddress: r.Address,
 		ContractName:    r.ContractName,
 		ContractTag:     r.ContractTag,
 		FromBlock:       r.FromBlock,

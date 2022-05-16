@@ -7,10 +7,8 @@ package mocks
 import (
 	context "context"
 	multitenancy "github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
-	ethereum "github.com/consensys/orchestrate/pkg/types/ethereum"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	entities "github.com/consensys/orchestrate/src/entities"
-	common "github.com/ethereum/go-ethereum/common"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -92,20 +90,6 @@ func (m *MockSubscriptionUseCases) Search() usecases.SearchSubscriptionUseCase {
 func (mr *MockSubscriptionUseCasesMockRecorder) Search() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockSubscriptionUseCases)(nil).Search))
-}
-
-// NotifySubscription mocks base method
-func (m *MockSubscriptionUseCases) NotifySubscription() usecases.NotifySubscriptionEventUseCase {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "NotifySubscription")
-	ret0, _ := ret[0].(usecases.NotifySubscriptionEventUseCase)
-	return ret0
-}
-
-// NotifySubscription indicates an expected call of NotifySubscription
-func (mr *MockSubscriptionUseCasesMockRecorder) NotifySubscription() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifySubscription", reflect.TypeOf((*MockSubscriptionUseCases)(nil).NotifySubscription))
 }
 
 // Delete mocks base method
@@ -272,43 +256,6 @@ func (m *MockSearchSubscriptionUseCase) Execute(ctx context.Context, filters *en
 func (mr *MockSearchSubscriptionUseCaseMockRecorder) Execute(ctx, filters, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockSearchSubscriptionUseCase)(nil).Execute), ctx, filters, userInfo)
-}
-
-// MockNotifySubscriptionEventUseCase is a mock of NotifySubscriptionEventUseCase interface
-type MockNotifySubscriptionEventUseCase struct {
-	ctrl     *gomock.Controller
-	recorder *MockNotifySubscriptionEventUseCaseMockRecorder
-}
-
-// MockNotifySubscriptionEventUseCaseMockRecorder is the mock recorder for MockNotifySubscriptionEventUseCase
-type MockNotifySubscriptionEventUseCaseMockRecorder struct {
-	mock *MockNotifySubscriptionEventUseCase
-}
-
-// NewMockNotifySubscriptionEventUseCase creates a new mock instance
-func NewMockNotifySubscriptionEventUseCase(ctrl *gomock.Controller) *MockNotifySubscriptionEventUseCase {
-	mock := &MockNotifySubscriptionEventUseCase{ctrl: ctrl}
-	mock.recorder = &MockNotifySubscriptionEventUseCaseMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockNotifySubscriptionEventUseCase) EXPECT() *MockNotifySubscriptionEventUseCaseMockRecorder {
-	return m.recorder
-}
-
-// Execute mocks base method
-func (m *MockNotifySubscriptionEventUseCase) Execute(ctx context.Context, chainUUID string, address common.Address, eventLogs []*ethereum.Log, userInfo *multitenancy.UserInfo) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Execute", ctx, chainUUID, address, eventLogs, userInfo)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Execute indicates an expected call of Execute
-func (mr *MockNotifySubscriptionEventUseCaseMockRecorder) Execute(ctx, chainUUID, address, eventLogs, userInfo interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockNotifySubscriptionEventUseCase)(nil).Execute), ctx, chainUUID, address, eventLogs, userInfo)
 }
 
 // MockDeleteSubscriptionUseCase is a mock of DeleteSubscriptionUseCase interface

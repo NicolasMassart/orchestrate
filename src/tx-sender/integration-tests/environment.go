@@ -28,6 +28,7 @@ import (
 	kafkaDocker "github.com/consensys/orchestrate/tests/pkg/docker/container/kafka"
 	"github.com/consensys/orchestrate/tests/pkg/docker/container/zookeeper"
 	integrationtest "github.com/consensys/orchestrate/tests/pkg/integration-test"
+	"github.com/consensys/orchestrate/tests/pkg/trackers"
 	qkmclient "github.com/consensys/quorum-key-manager/pkg/client"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -35,7 +36,7 @@ import (
 	"gopkg.in/h2non/gock.v1"
 )
 
-const kafkaContainerID = "Kafka-tx-sender"
+const kafkaContainerID = "KafkaConsumer-tx-sender"
 const zookeeperContainerID = "zookeeper-tx-sender"
 const apiURL = "http://api:8081"
 const keyManagerURL = "http://key-manager:8081"
@@ -48,15 +49,16 @@ var envKafkaHostPort string
 var envMetricsPort string
 
 type IntegrationEnvironment struct {
-	ctx             context.Context
-	logger          log.Logger
-	txSender        *app.App
-	client          *docker.Client
-	messengerClient sdk.MessengerTxSender
-	metricsURL      string
-	ns              store.NonceSender
-	redis           redis.Client
-	txSenderCfg     *txsender.Config
+	ctx                      context.Context
+	logger                   log.Logger
+	txSender                 *app.App
+	client                   *docker.Client
+	messengerConsumerTracker *trackers.MessengerConsumerTracker
+	messengerClient          sdk.MessengerTxSender
+	metricsURL               string
+	ns                       store.NonceSender
+	redis                    redis.Client
+	txSenderCfg              *txsender.Config
 }
 
 func NewIntegrationEnvironment(ctx context.Context) (*IntegrationEnvironment, error) {
@@ -140,7 +142,7 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 		return err
 	}
 
-	// Start Kafka + zookeeper
+	// Start KafkaConsumer + zookeeper
 	err = env.client.Up(ctx, zookeeperContainerID, networkName)
 	if err != nil {
 		env.logger.WithError(err).Error("could not up zookeeper")
@@ -149,19 +151,19 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 
 	err = env.client.Up(ctx, kafkaContainerID, networkName)
 	if err != nil {
-		env.logger.WithError(err).Error("could not up Kafka")
+		env.logger.WithError(err).Error("could not up KafkaConsumer")
 		return err
 	}
 
 	err = env.client.WaitTillIsReady(ctx, kafkaContainerID, 20*time.Second)
 	if err != nil {
-		env.logger.WithError(err).Error("could not start Kafka")
+		env.logger.WithError(err).Error("could not start KafkaConsumer")
 		return err
 	}
 
 	// Create app
 	env.txSenderCfg.BckOff = testBackOff()
-	env.txSender, err = newTxSender(env.txSenderCfg, env.redis)
+	env.txSender, err = newTxSender(env.txSenderCfg, env.redis, env.logger)
 	if err != nil {
 		env.logger.WithError(err).Error("could not initialize tx-sender")
 		return err
@@ -176,6 +178,17 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 	env.messengerClient = messenger.NewProducerClient(&messenger.Config{
 		TopicTxSender: env.txSenderCfg.ConsumerTopic,
 	}, kafkaProd)
+	
+	// Start internal kafka consumer
+	env.messengerConsumerTracker, err = trackers.NewMessengerConsumerTracker(*env.txSenderCfg.Kafka, []string{env.txSenderCfg.Messenger.TopicAPI})
+	if err != nil {
+		env.logger.WithError(err).Error("could initialize kafka internal Consumer")
+		return err
+	}
+	
+	go func() {
+		_ = env.messengerConsumerTracker.Consume(ctx)
+	}()
 
 	// Start tx-sender app
 	err = env.txSender.Start(ctx)
@@ -201,7 +214,7 @@ func (env *IntegrationEnvironment) Teardown(ctx context.Context) {
 
 	err = env.client.Down(ctx, kafkaContainerID)
 	if err != nil {
-		env.logger.WithError(err).Error("could not down Kafka")
+		env.logger.WithError(err).Error("could not down KafkaConsumer")
 	}
 
 	err = env.client.Down(ctx, zookeeperContainerID)
@@ -215,7 +228,7 @@ func (env *IntegrationEnvironment) Teardown(ctx context.Context) {
 	}
 }
 
-func newTxSender(txSenderConfig *txsender.Config, redisCli redis.Client) (*app.App, error) {
+func newTxSender(cfg *txsender.Config, redisCli redis.Client, logger log.Logger) (*app.App, error) {
 	// Initialize dependencies
 	httpClient := httputils.NewClient(httputils.NewDefaultConfig())
 	gock.InterceptClient(httpClient)
@@ -225,13 +238,18 @@ func newTxSender(txSenderConfig *txsender.Config, redisCli redis.Client) (*app.A
 		URL: keyManagerURL,
 	})
 
+	kafkaProd, err := kafka.NewProducer(cfg.Kafka)
+	if err != nil {
+		logger.WithError(err).Error("could not initialize kafka producer")
+		return nil, err
+	}
+
 	conf2 := client.NewConfig(apiURL, "", nil)
 	conf2.MetricsURL = apiMetricsURL
-	apiClient := client.NewHTTPClient(httpClient, conf2)
 
-	txSenderConfig.NonceMaxRecovery = maxRecoveryDefault
+	cfg.NonceMaxRecovery = maxRecoveryDefault
 
-	return txsender.NewTxSender(txSenderConfig, qkmClient, apiClient, ec, redisCli)
+	return txsender.NewTxSender(cfg, qkmClient, kafkaProd, ec, redisCli)
 }
 
 func testBackOff() backoff.BackOff {

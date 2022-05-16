@@ -3,11 +3,12 @@ package integrationtests
 import (
 	"context"
 	"fmt"
-	"github.com/consensys/orchestrate/pkg/sdk/messenger"
 	"os"
 	"path"
 	"strconv"
 	"time"
+
+	"github.com/consensys/orchestrate/pkg/sdk/messenger"
 
 	orchestrateclient "github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/src/infra/kafka/sarama"
@@ -309,7 +310,8 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 	}
 
 	// Start internal kafka consumer
-	env.messengerConsumerTracker, err = trackers.NewMessengerConsumerTracker(*env.apiCfg.Kafka, []string{env.apiCfg.KafkaTopics.Sender, env.apiCfg.KafkaTopics.Listener, env.apiCfg.KafkaTopics.Notifier})
+	env.messengerConsumerTracker, err = trackers.NewMessengerConsumerTracker(*env.apiCfg.Kafka, []string{env.apiCfg.Messenger.TopicTxSender,
+		env.apiCfg.Messenger.TopicTxListener, env.apiCfg.Messenger.TopicNotifier})
 	if err != nil {
 		env.logger.WithError(err).Error("could initialize kafka internal Consumer")
 		return err
@@ -449,10 +451,10 @@ func newAPI(ctx context.Context, cfg *api.Config, notifierConfig *notifier.Confi
 	}
 
 	messengerClient := messenger.NewProducerClient(&messenger.Config{
-		TopicAPI:        notifierConfig.TopicAPI,
-		TopicTxListener: cfg.KafkaTopics.Listener,
-		TopicTxSender:   cfg.KafkaTopics.Sender,
-		TopicTxNotifier: cfg.KafkaTopics.Notifier,
+		TopicAPI:        notifierConfig.Messenger.TopicAPI,
+		TopicTxListener: cfg.Messenger.TopicTxListener,
+		TopicTxSender:   cfg.Messenger.TopicTxSender,
+		TopicNotifier:   notifierConfig.ConsumerTopic,
 	}, kafkaProducer)
 
 	authjwt.Init(ctx)

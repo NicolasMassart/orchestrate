@@ -8,12 +8,13 @@ import (
 )
 
 type eventStreamUseCases struct {
-	create   usecases.CreateEventStreamUseCase
-	search   usecases.SearchEventStreamsUseCase
-	notifyTx usecases.NotifyTransactionUseCase
-	get      usecases.GetEventStreamUseCase
-	update   usecases.UpdateEventStreamUseCase
-	delete   usecases.DeleteEventStreamUseCase
+	create               usecases.CreateEventStreamUseCase
+	search               usecases.SearchEventStreamsUseCase
+	notifyTx             usecases.NotifyTransactionUseCase
+	notifyContractEvents usecases.NotifyContractEventsUseCase
+	get                  usecases.GetEventStreamUseCase
+	update               usecases.UpdateEventStreamUseCase
+	delete               usecases.DeleteEventStreamUseCase
 }
 
 var _ usecases.EventStreamsUseCases = &eventStreamUseCases{}
@@ -25,12 +26,13 @@ func newEventStreamUseCases(
 	txNotifierMessenger sdk.MessengerNotifier,
 ) *eventStreamUseCases {
 	return &eventStreamUseCases{
-		get:      streams.NewGetUseCase(db.EventStream()),
-		create:   streams.NewCreateUseCase(db.EventStream(), chains.Search()),
-		search:   streams.NewSearchUseCase(db.EventStream()),
-		notifyTx: streams.NewNotifyTransactionUseCase(db, contracts.Search(), contracts.DecodeLog(), txNotifierMessenger),
-		update:   streams.NewUpdateUseCase(db.EventStream()),
-		delete:   streams.NewDeleteUseCase(db.EventStream()),
+		get:                  streams.NewGetUseCase(db.EventStream()),
+		create:               streams.NewCreateUseCase(db.EventStream(), chains.Search()),
+		search:               streams.NewSearchUseCase(db.EventStream()),
+		notifyTx:             streams.NewNotifyTransactionUseCase(db, contracts.Search(), contracts.DecodeLog(), txNotifierMessenger),
+		notifyContractEvents: streams.NewNotifyContractEventsUseCase(db, contracts.Search(), contracts.DecodeLog(), txNotifierMessenger),
+		update:               streams.NewUpdateUseCase(db.EventStream()),
+		delete:               streams.NewDeleteUseCase(db.EventStream()),
 	}
 }
 
@@ -44,6 +46,10 @@ func (u *eventStreamUseCases) Create() usecases.CreateEventStreamUseCase {
 
 func (u *eventStreamUseCases) NotifyTransaction() usecases.NotifyTransactionUseCase {
 	return u.notifyTx
+}
+
+func (u *eventStreamUseCases) NotifyContractEvents() usecases.NotifyContractEventsUseCase {
+	return u.notifyContractEvents
 }
 
 func (u *eventStreamUseCases) Get() usecases.GetEventStreamUseCase {

@@ -93,14 +93,14 @@ func NewAPI(
 		accessLogMid = app.NonOpt()
 	}
 
+	subscriptionRouter := service.NewSubscriptionRouter(ucs.EventStreams().NotifyContractEvents())
+	jobRouter := service.NewJobHandler(ucs.Jobs().Update())
+	notificationRouter := service.NewNotificationHandler(ucs.Notifications().Ack())
+	eventStreamRouter := service.NewEventStreamHandler(ucs.EventStreams().Update())
+
 	msgConsumer, err := service.NewMessageConsumer(
-		cfg.Kafka,
-		[]string{cfg.KafkaTopics.API},
-		ucs.Subscriptions().NotifySubscription(),
-		ucs.Jobs().Update(),
-		ucs.Notifications().Ack(),
-		ucs.EventStreams().Update(),
-	)
+		cfg.Kafka, []string{cfg.Messenger.TopicAPI},
+		jobRouter, subscriptionRouter, notificationRouter, eventStreamRouter)
 	if err != nil {
 		return nil, err
 	}

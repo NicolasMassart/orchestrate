@@ -29,7 +29,7 @@ func TestUpdateJob_Execute(t *testing.T) {
 	startNextJobUC := mocks2.NewMockStartNextJobUseCase(ctrl)
 	metrics := mock.NewMockTransactionSchedulerMetrics(ctrl)
 	notifyTxUC := mocks2.NewMockNotifyTransactionUseCase(ctrl)
-	
+
 	messengerTxListener := mock3.NewMockMessengerTxListener(ctrl)
 
 	jobsLatencyHistogram := mock2.NewMockHistogram(ctrl)
@@ -55,31 +55,35 @@ func TestUpdateJob_Execute(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("should execute use case for PENDING status successfully", func(t *testing.T) {
-		jobEntity := testdata.FakeJob()
+		curJob := testdata.FakeJob()
+		curJob.Status = entities.StatusStarted
 		nextStatus := entities.StatusPending
 		statusMsg := "tx pending"
-		jobDA.EXPECT().FindOneByUUID(gomock.Any(), jobEntity.UUID, userInfo.AllowedTenants, userInfo.Username, gomock.Any()).
-			Times(2).Return(jobEntity, nil)
+		jobDA.EXPECT().FindOneByUUID(gomock.Any(), curJob.UUID, userInfo.AllowedTenants, userInfo.Username, gomock.Any()).
+			Times(2).Return(curJob, nil)
 
-		messengerTxListener.EXPECT().PendingJobMessage(gomock.Any(), jobEntity, userInfo)
+		messengerTxListener.EXPECT().PendingJobMessage(gomock.Any(), curJob, userInfo)
 		jobDA.EXPECT().Update(gomock.Any(), gomock.Any(), gomock.Any()).
 			DoAndReturn(func(ctx context.Context, job *entities.Job, log *entities.Log) error {
-				assert.Equal(t, jobEntity.UUID, job.UUID)
+				assert.Equal(t, curJob.UUID, job.UUID)
 				assert.Equal(t, nextStatus, job.Status)
 				assert.Equal(t, nextStatus, log.Status)
 				assert.Equal(t, statusMsg, log.Message)
 				return nil
 			})
 
-		_, err := usecase.Execute(ctx, jobEntity, nextStatus, statusMsg, userInfo)
+		_, err := usecase.Execute(ctx, &entities.Job{
+			UUID: curJob.UUID,
+		}, nextStatus, statusMsg, userInfo)
 
 		assert.NoError(t, err)
 	})
 
 	t.Run("should execute use case for MINED status successfully", func(t *testing.T) {
-		jobEntity := testdata.FakeJob()
+		curJob := testdata.FakeJob()
+		curJob.Status = entities.StatusPending
 		nextJobEntity := testdata.FakeJob()
-		jobEntity.NextJobUUID = nextJobEntity.UUID
+		curJob.NextJobUUID = nextJobEntity.UUID
 
 		siblingJob := testdata.FakeJob()
 		siblingJob.Status = entities.StatusPending
@@ -87,15 +91,15 @@ func TestUpdateJob_Execute(t *testing.T) {
 		nextStatus := entities.StatusMined
 		statusMsg := "tx mined"
 
-		jobDA.EXPECT().FindOneByUUID(gomock.Any(), jobEntity.UUID, userInfo.AllowedTenants, userInfo.Username, gomock.Any()).
-			Times(2).Return(jobEntity, nil)
+		jobDA.EXPECT().FindOneByUUID(gomock.Any(), curJob.UUID, userInfo.AllowedTenants, userInfo.Username, gomock.Any()).
+			Times(2).Return(curJob, nil)
 
-		jobDA.EXPECT().GetSiblingJobs(gomock.Any(), jobEntity.UUID, userInfo.AllowedTenants, userInfo.Username).
+		jobDA.EXPECT().GetSiblingJobs(gomock.Any(), curJob.UUID, userInfo.AllowedTenants, userInfo.Username).
 			Return(siblingJobEntities, nil)
 
 		jobDA.EXPECT().Update(gomock.Any(), gomock.Any(), gomock.Any()).
 			DoAndReturn(func(ctx context.Context, job *entities.Job, log *entities.Log) error {
-				assert.Equal(t, jobEntity.UUID, job.UUID)
+				assert.Equal(t, curJob.UUID, job.UUID)
 				assert.Equal(t, nextStatus, job.Status)
 				assert.Equal(t, nextStatus, log.Status)
 				assert.Equal(t, statusMsg, log.Message)
@@ -110,98 +114,112 @@ func TestUpdateJob_Execute(t *testing.T) {
 				return nil
 			})
 
-		notifyTxUC.EXPECT().Execute(gomock.Any(), jobEntity, "", userInfo).Return(nil)
+		notifyTxUC.EXPECT().Execute(gomock.Any(), curJob, "", userInfo).Return(nil)
 
-		startNextJobUC.EXPECT().Execute(gomock.Any(), jobEntity.UUID, userInfo).Return(nil)
+		startNextJobUC.EXPECT().Execute(gomock.Any(), curJob.UUID, userInfo).Return(nil)
 
-		_, err := usecase.Execute(ctx, jobEntity, nextStatus, statusMsg, userInfo)
+		_, err := usecase.Execute(ctx, &entities.Job{
+			UUID: curJob.UUID,
+		}, nextStatus, statusMsg, userInfo)
 
 		assert.NoError(t, err)
 	})
 
 	t.Run("should execute use case for FAILED status successfully", func(t *testing.T) {
-		jobEntity := testdata.FakeJob()
+		curJob := testdata.FakeJob()
+		curJob.Status = entities.StatusPending
 		nextStatus := entities.StatusFailed
 		statusMsg := "tx failed"
-		jobDA.EXPECT().FindOneByUUID(gomock.Any(), jobEntity.UUID, userInfo.AllowedTenants, userInfo.Username, gomock.Any()).
-			Times(2).Return(jobEntity, nil)
+		jobDA.EXPECT().FindOneByUUID(gomock.Any(), curJob.UUID, userInfo.AllowedTenants, userInfo.Username, gomock.Any()).
+			Times(2).Return(curJob, nil)
 
 		jobDA.EXPECT().Update(gomock.Any(), gomock.Any(), gomock.Any()).
 			DoAndReturn(func(ctx context.Context, job *entities.Job, log *entities.Log) error {
-				assert.Equal(t, jobEntity.UUID, job.UUID)
+				assert.Equal(t, curJob.UUID, job.UUID)
 				assert.Equal(t, nextStatus, job.Status)
 				assert.Equal(t, nextStatus, log.Status)
 				assert.Equal(t, statusMsg, log.Message)
 				return nil
 			})
-		notifyTxUC.EXPECT().Execute(gomock.Any(), jobEntity, statusMsg, userInfo).Return(nil)
+		notifyTxUC.EXPECT().Execute(gomock.Any(), curJob, statusMsg, userInfo).Return(nil)
 
-		_, err := usecase.Execute(ctx, jobEntity, nextStatus, statusMsg, userInfo)
+		_, err := usecase.Execute(ctx, &entities.Job{
+			UUID: curJob.UUID,
+		}, nextStatus, statusMsg, userInfo)
 
 		assert.NoError(t, err)
 	})
 
 	t.Run("should execute use case for STORED status successfully", func(t *testing.T) {
-		jobEntity := testdata.FakeJob()
+		curJob := testdata.FakeJob()
+		curJob.Status = entities.StatusStarted
 		nextStatus := entities.StatusStored
 		statusMsg := "tx stored"
 		nextJobEntity := testdata.FakeJob()
-		jobEntity.NextJobUUID = nextJobEntity.UUID
+		curJob.NextJobUUID = nextJobEntity.UUID
 
-		jobDA.EXPECT().FindOneByUUID(gomock.Any(), jobEntity.UUID, userInfo.AllowedTenants, userInfo.Username, gomock.Any()).
-			Times(2).Return(jobEntity, nil)
+		jobDA.EXPECT().FindOneByUUID(gomock.Any(), curJob.UUID, userInfo.AllowedTenants, userInfo.Username, gomock.Any()).
+			Times(2).Return(curJob, nil)
 
 		jobDA.EXPECT().Update(gomock.Any(), gomock.Any(), gomock.Any()).
 			DoAndReturn(func(ctx context.Context, job *entities.Job, log *entities.Log) error {
-				assert.Equal(t, jobEntity.UUID, job.UUID)
+				assert.Equal(t, curJob.UUID, job.UUID)
 				assert.Equal(t, nextStatus, job.Status)
 				assert.Equal(t, nextStatus, log.Status)
 				assert.Equal(t, statusMsg, log.Message)
 				return nil
 			})
 
-		startNextJobUC.EXPECT().Execute(gomock.Any(), jobEntity.UUID, userInfo).Return(nil)
-		_, err := usecase.Execute(ctx, jobEntity, nextStatus, statusMsg, userInfo)
+		startNextJobUC.EXPECT().Execute(gomock.Any(), curJob.UUID, userInfo).Return(nil)
+		_, err := usecase.Execute(ctx, &entities.Job{
+			UUID: curJob.UUID,
+		}, nextStatus, statusMsg, userInfo)
 
 		assert.NoError(t, err)
 	})
 
 	t.Run("should execute use case for RESENDING status successfully", func(t *testing.T) {
-		jobEntity := testdata.FakeJob()
+		curJob := testdata.FakeJob()
+		curJob.Status = entities.StatusPending
 		nextStatus := entities.StatusResending
 
-		jobDA.EXPECT().FindOneByUUID(gomock.Any(), jobEntity.UUID, userInfo.AllowedTenants, userInfo.Username, gomock.Any()).
-			Times(2).Return(jobEntity, nil)
+		jobDA.EXPECT().FindOneByUUID(gomock.Any(), curJob.UUID, userInfo.AllowedTenants, userInfo.Username, gomock.Any()).
+			Times(2).Return(curJob, nil)
 
 		jobDA.EXPECT().Update(gomock.Any(), gomock.Any(), gomock.Any()).
 			DoAndReturn(func(ctx context.Context, job *entities.Job, log *entities.Log) error {
-				assert.Equal(t, jobEntity.UUID, job.UUID)
-				assert.Equal(t, jobEntity.Status, job.Status)
+				assert.Equal(t, curJob.UUID, job.UUID)
+				assert.Equal(t, curJob.Status, entities.StatusPending)
 				assert.Equal(t, nextStatus, log.Status)
 				return nil
 			})
 
-		_, err := usecase.Execute(ctx, jobEntity, nextStatus, "", userInfo)
+		_, err := usecase.Execute(ctx, &entities.Job{
+			UUID: curJob.UUID,
+		}, nextStatus, "", userInfo)
 
 		assert.NoError(t, err)
 	})
 
 	t.Run("should execute use case for WARNING status successfully", func(t *testing.T) {
-		jobEntity := testdata.FakeJob()
+		curJob := testdata.FakeJob()
+		curJob.Status = entities.StatusPending
 		nextStatus := entities.StatusWarning
 
-		jobDA.EXPECT().FindOneByUUID(gomock.Any(), jobEntity.UUID, userInfo.AllowedTenants, userInfo.Username, gomock.Any()).
-			Times(2).Return(jobEntity, nil)
+		jobDA.EXPECT().FindOneByUUID(gomock.Any(), curJob.UUID, userInfo.AllowedTenants, userInfo.Username, gomock.Any()).
+			Times(2).Return(curJob, nil)
 
 		jobDA.EXPECT().Update(gomock.Any(), gomock.Any(), gomock.Any()).
 			DoAndReturn(func(ctx context.Context, job *entities.Job, log *entities.Log) error {
-				assert.Equal(t, jobEntity.UUID, job.UUID)
-				assert.Equal(t, jobEntity.Status, job.Status)
+				assert.Equal(t, curJob.UUID, job.UUID)
+				assert.Equal(t, curJob.Status, entities.StatusPending)
 				assert.Equal(t, nextStatus, log.Status)
 				return nil
 			})
 
-		_, err := usecase.Execute(ctx, jobEntity, nextStatus, "", userInfo)
+		_, err := usecase.Execute(ctx, &entities.Job{
+			UUID: curJob.UUID,
+		}, nextStatus, "", userInfo)
 
 		assert.NoError(t, err)
 	})

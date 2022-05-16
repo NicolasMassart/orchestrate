@@ -32,16 +32,19 @@ func (b *jobUCs) FailedJobUseCase() usecases.FailedJob {
 	return b.failedJob
 }
 
-func NewJobUseCases(apiClient sdk.OrchestrateClient,
+func NewJobUseCases(messengerAPI sdk.MessengerAPI,
+	apiClient sdk.OrchestrateClient,
 	ethClient ethclient.MultiClient,
 	contractUCs usecases.ContractsUseCases,
 	state store.State,
 	logger *log.Logger,
 ) usecases.JobUseCases {
-	minedJobUC := jobs.MinedJobUseCase(apiClient, ethClient, contractUCs.RegisterDeployedContractUseCase(), logger)
-	pendingJobUC := jobs.PendingJob(apiClient, ethClient, minedJobUC, state.PendingJobState(), logger)
+	completedJob := jobs.CompletedUseCase(state.PendingJobState(), state.MessengerState(), logger)
+	minedJobUC := jobs.MinedJobUseCase(messengerAPI, apiClient, ethClient, completedJob,
+		contractUCs.RegisterDeployedContractUseCase(), state.PendingJobState(), logger)
+	pendingJobUC := jobs.PendingJob(apiClient, ethClient, minedJobUC, state.PendingJobState(), state.MessengerState(), logger)
+	failedJobUC := jobs.FailedJobUseCase(messengerAPI, completedJob, state.PendingJobState(), logger)
 	retryJobUC := jobs.RetryJobUseCase(apiClient, logger)
-	failedJobUC := jobs.FailedJobUseCase(apiClient, logger)
 
 	return &jobUCs{
 		pendingJob: pendingJobUC,

@@ -4,5 +4,5 @@ type Config struct {
 	TopicAPI        string
 	TopicTxListener string
 	TopicTxSender   string
-	TopicTxNotifier string
+	TopicNotifier   string
 }

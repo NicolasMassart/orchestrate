@@ -2,6 +2,8 @@ package entities
 
 import (
 	"time"
+
+	"github.com/consensys/orchestrate/pkg/types/ethereum"
 )
 
 type NotificationType string
@@ -34,6 +36,7 @@ func (n *NotificationSourceType) String() string {
 	return string(*n)
 }
 
+// @TODO Refactor to decouple message types
 type Notification struct {
 	SourceUUID string
 	SourceType NotificationSourceType
@@ -42,6 +45,7 @@ type Notification struct {
 	Type       NotificationType
 	APIVersion string
 	Job        *Job
+	EventLogs  []*ethereum.Log
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 	Error      string

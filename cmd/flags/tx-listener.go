@@ -58,13 +58,17 @@ func NewTxListenerConfig(vipr *viper.Viper) *txlistener.Config {
 	httpClientCfg := http.NewDefaultConfig()
 	httpClientCfg.XAPIKey = vipr.GetString(authkey.APIKeyViperKey)
 
+	kafkaCfg := NewKafkaConfig(vipr)
+	kafkaCfg.DisableCommitOnRead = true
+
 	return &txlistener.Config{
 		IsMultiTenancyEnabled: viper.GetBool(multitenancy.EnabledViperKey),
 		App:                   app.NewConfig(vipr),
 		ConsumerTopic:         viper.GetString(TxListenerViperKey),
+		Messenger:             NewConsumerConfig(vipr),
 		HTTPClient:            httpClientCfg,
 		API:                   orchestrateclient.NewConfigFromViper(vipr, orchestrateAPIBackOff),
 		RetryInterval:         vipr.GetDuration(providerRefreshIntervalViperKey),
-		Kafka:                 NewKafkaConfig(vipr),
+		Kafka:                 kafkaCfg,
 	}
 }

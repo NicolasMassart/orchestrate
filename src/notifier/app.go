@@ -39,12 +39,14 @@ func New(config *Config,
 	messengerClient sdk.MessengerAPI,
 ) (*Daemon, error) {
 	// Create business layer use cases
-	useCases := usecases.NewSendUseCase(kafkaProducer, webhookClient, messengerClient)
+	sendUC := usecases.NewSendUseCase(kafkaProducer, webhookClient, messengerClient)
 
+	txRouter := service.NewTransactionHandler(sendUC, config.MaxRetries)
+	subRouter := service.NewSubscriptionHandler(sendUC, config.MaxRetries)
 	consumers := make([]messenger.Consumer, config.Kafka.NConsumers)
 	for idx := 0; idx < config.Kafka.NConsumers; idx++ {
 		var err error
-		consumers[idx], err = service.NewMessageConsumer(config.Kafka, []string{config.ConsumerTopic}, useCases, config.MaxRetries)
+		consumers[idx], err = service.NewMessageConsumer(config.Kafka, []string{config.ConsumerTopic}, txRouter, subRouter)
 		if err != nil {
 			return nil, err
 		}

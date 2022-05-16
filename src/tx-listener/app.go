@@ -8,7 +8,9 @@ import (
 	"github.com/cenkalti/backoff/v4"
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/sdk"
+	orchMessenger "github.com/consensys/orchestrate/pkg/sdk/messenger"
 	"github.com/consensys/orchestrate/src/infra/ethclient"
+	"github.com/consensys/orchestrate/src/infra/kafka"
 	"github.com/consensys/orchestrate/src/infra/messenger"
 	"github.com/consensys/orchestrate/src/tx-listener/service"
 	"github.com/consensys/orchestrate/src/tx-listener/tx-listener/builder"
@@ -29,25 +31,34 @@ type Service struct {
 }
 
 func NewTxListener(cfg *Config,
+	kafkaProducer kafka.Producer,
 	apiClient sdk.OrchestrateClient,
 	ethClient ethclient.MultiClient,
 	listenerMetrics prometheus.Collector,
 ) (*app.App, error) {
 	logger := log.NewLogger()
 
+	messengerAPI := orchMessenger.NewProducerClient(cfg.Messenger, kafkaProducer)
+
 	state := builder.NewStoreState()
 	contractUCs := builder.NewContractUseCases(apiClient, ethClient, state, logger)
-	jobUCs := builder.NewJobUseCases(apiClient, ethClient, contractUCs, state, logger)
-	chainUCs := builder.NewChainUseCases(jobUCs, state, logger)
-	sessionMngrs := builder.NewSessionManagers(apiClient, ethClient, jobUCs, chainUCs, state, logger)
+	jobUCs := builder.NewJobUseCases(messengerAPI, apiClient, ethClient, contractUCs, state, logger)
+	subscriptionUCs := builder.NewSubscriptionUseCase(messengerAPI, apiClient, ethClient, state.SubscriptionState(), logger)
+	chainUCs := builder.NewChainUseCases(apiClient, ethClient, jobUCs, subscriptionUCs, state, logger)
+	sessionMngrs := builder.NewSessionManagers(messengerAPI, apiClient, ethClient, jobUCs, chainUCs, state, logger)
+
+	bckOff := backoff.NewConstantBackOff(cfg.RetryInterval) // @TODO Replace by config
+
+	jobRouter := service.NewJobHandler(jobUCs.PendingJobUseCase(), jobUCs.FailedJobUseCase(),
+		sessionMngrs.ChainSessionManager(), sessionMngrs.RetryJobSessionManager(), bckOff)
+	subscriptionRouter := service.NewSubscriptionHandler(subscriptionUCs, sessionMngrs.ChainSessionManager(), bckOff)
 
 	// Create service layer consumer
-	bckOff := backoff.NewConstantBackOff(cfg.RetryInterval) // @TODO Replace by config
 	consumers := make([]messenger.Consumer, cfg.Kafka.NConsumers)
 	for idx := 0; idx < cfg.Kafka.NConsumers; idx++ {
 		var err error
 		consumers[idx], err = service.NewMessageConsumer(cfg.Kafka, []string{cfg.ConsumerTopic},
-			jobUCs.PendingJobUseCase(), jobUCs.FailedJobUseCase(), sessionMngrs.ChainSessionManager(), sessionMngrs.RetryJobSessionManager(), bckOff)
+			jobRouter, subscriptionRouter)
 		if err != nil {
 			return nil, err
 		}
@@ -59,7 +70,7 @@ func NewTxListener(cfg *Config,
 		logger:    logger,
 	}
 
-	appli, err := app.New(cfg.App, readinessOpt(apiClient, consumers[0]), app.MetricsOpt(listenerMetrics))
+	appli, err := app.New(cfg.App, readinessOpt(apiClient, consumers[0], kafkaProducer), app.MetricsOpt(listenerMetrics))
 	if err != nil {
 		return nil, err
 	}
@@ -119,10 +130,11 @@ func (s *Service) Close() error {
 	return gerr
 }
 
-func readinessOpt(client sdk.OrchestrateClient, kafkaConsumer messenger.Consumer) app.Option {
+func readinessOpt(client sdk.OrchestrateClient, kafkaConsumer messenger.Consumer, kafkaProducer kafka.Producer) app.Option {
 	return func(ap *app.App) error {
 		ap.AddReadinessCheck("api", client.Checker())
-		ap.AddReadinessCheck("kafka", kafkaConsumer.Checker)
+		ap.AddReadinessCheck("kafka.consumer", kafkaConsumer.Checker)
+		ap.AddReadinessCheck("kafka.producer", kafkaProducer.Checker)
 		return nil
 	}
 }

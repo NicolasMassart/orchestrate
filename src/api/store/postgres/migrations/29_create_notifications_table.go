@@ -14,7 +14,7 @@ CREATE TABLE notifications (
     uuid UUID NOT NULL,
     source_uuid UUID NOT NULL,
     source_type TEXT NOT NULL,
-    type TEXT NOT NULL,
+    type TEXT,
     status TEXT NOT NULL,
     api_version TEXT NOT NULL,
 	error TEXT,

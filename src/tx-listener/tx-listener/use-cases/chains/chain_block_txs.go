@@ -10,7 +10,7 @@ import (
 	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
-const chainBlockTxsUseCaseComponent = "tx-listener.use-case.new-chain-block"
+const chainBlockTxsUseCaseComponent = "tx-listener.use-case.chain-block-txs"
 
 type chainBlockTxsUC struct {
 	pendingJobState store.PendingJob
@@ -18,20 +18,20 @@ type chainBlockTxsUC struct {
 	logger          *log.Logger
 }
 
-func NewChainBlockUseCase(notifyMinedJob usecases.MinedJob,
+func NewChainBlockTxsUseCase(minedJob usecases.MinedJob,
 	pendingJobState store.PendingJob,
 	logger *log.Logger,
-) usecases.ChainBlock {
+) usecases.ChainBlockTxs {
 	return &chainBlockTxsUC{
 		pendingJobState: pendingJobState,
-		minedJob:        notifyMinedJob,
+		minedJob:        minedJob,
 		logger:          logger.SetComponent(chainBlockTxsUseCaseComponent),
 	}
 }
 
 func (uc *chainBlockTxsUC) Execute(ctx context.Context, chainUUID string, blockNumber uint64, txHashes []*ethcommon.Hash) error {
-	logger := uc.logger.WithField("block", blockNumber)
-	logger.WithField("txs", len(txHashes)).Debug("processing block")
+	logger := uc.logger.WithField("block", blockNumber).WithField("chain", chainUUID)
+	logger.WithField("txs", len(txHashes)).Debug("processing block transactions")
 
 	// @TODO Run in parallel
 	for _, txHash := range txHashes {
@@ -56,12 +56,6 @@ func (uc *chainBlockTxsUC) handlePendingJob(ctx context.Context, chainUUID strin
 	if minedJob != nil {
 		err = uc.minedJob.Execute(ctx, minedJob)
 		if err != nil {
-			return err
-		}
-
-		err = uc.pendingJobState.Remove(ctx, minedJob.UUID)
-		if err != nil {
-			logger.WithError(err).Error("failed to remove pending job")
 			return err
 		}
 	}

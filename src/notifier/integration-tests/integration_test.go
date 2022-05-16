@@ -30,7 +30,7 @@ func (s *apiTestSuite) SetupSuite() {
 	require.NoError(s.T(), err)
 
 	s.messenger = messenger.NewProducerClient(&messenger.Config{
-		TopicTxNotifier: s.env.cfg.ConsumerTopic,
+		TopicNotifier: s.env.cfg.ConsumerTopic,
 	}, kafkaProducer)
 
 	s.env.logger.Info("setup test suite has completed")

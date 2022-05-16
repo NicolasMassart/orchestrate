@@ -8,10 +8,15 @@ import (
 
 //go:generate mockgen -source=chains.go -destination=mocks/chains.go -package=mocks
 
-type ChainBlock interface {
+type ChainBlockTxs interface {
 	Execute(ctx context.Context, chainUUID string, blockNumber uint64, txHashes []*ethcommon.Hash) error
 }
 
+type ChainBlockEvents interface {
+	Execute(ctx context.Context, chainUUID string, blockNumber uint64) error
+}
+
 type ChainUseCases interface {
-	ChainBlockUseCase() ChainBlock
+	ChainBlockTxsUseCase() ChainBlockTxs
+	ChainBlockEventsUseCase() ChainBlockEvents
 }

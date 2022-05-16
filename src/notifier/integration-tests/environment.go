@@ -3,9 +3,10 @@ package integrationtests
 import (
 	"context"
 	"fmt"
-	"github.com/consensys/orchestrate/pkg/sdk/messenger"
 	"strconv"
 	"time"
+
+	"github.com/consensys/orchestrate/pkg/sdk/messenger"
 
 	"github.com/consensys/orchestrate/src/infra/kafka/sarama"
 	"github.com/consensys/orchestrate/src/notifier"
@@ -133,7 +134,7 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 	}
 
 	// Start internal kafka consumer
-	env.messengerConsumerTracker, err = trackers.NewMessengerConsumerTracker(*env.cfg.Kafka, []string{env.cfg.TopicAPI})
+	env.messengerConsumerTracker, err = trackers.NewMessengerConsumerTracker(*env.cfg.Kafka, []string{env.cfg.Messenger.TopicAPI})
 	if err != nil {
 		env.logger.WithError(err).Error("could initialize kafka internal Consumer")
 		return err
@@ -207,8 +208,8 @@ func newNotifier(cfg *notifier.Config) (app.Daemon, error) {
 	}
 
 	messengerClient := messenger.NewProducerClient(&messenger.Config{
-		TopicAPI:        cfg.TopicAPI,
-		TopicTxNotifier: cfg.ConsumerTopic,
+		TopicAPI:      cfg.Messenger.TopicAPI,
+		TopicNotifier: cfg.ConsumerTopic,
 	}, kafkaProducer)
 
 	interceptedHTTPClient := httputils.NewClient(httputils.NewDefaultConfig())

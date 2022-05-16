@@ -10,7 +10,6 @@ import (
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/sdk/mock"
-	api "github.com/consensys/orchestrate/src/api/service/types"
 	testdata2 "github.com/consensys/orchestrate/src/api/service/types/testdata"
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/entities/testdata"
@@ -27,11 +26,11 @@ func TestSendGoQuorumPrivate_Execute(t *testing.T) {
 
 	ec := mock2.NewMockQuorumTransactionSender(ctrl)
 	crafter :=  mocks.NewMockCraftTransactionUseCase(ctrl)
-	jobClient := mock.NewMockJobClient(ctrl)
+	msgAPI := mock.NewMockMessengerAPI(ctrl)
 	chainRegistryURL := "chainRegistryURL:8081"
 	ctx := context.Background()
 
-	usecase := NewSendGoQuorumPrivateTxUseCase(ec, crafter, jobClient, chainRegistryURL)
+	usecase := NewSendGoQuorumPrivateTxUseCase(ec, crafter, msgAPI, chainRegistryURL)
 
 	t.Run("should execute use case successfully", func(t *testing.T) {
 		job := testdata.FakeJob()
@@ -44,12 +43,8 @@ func TestSendGoQuorumPrivate_Execute(t *testing.T) {
 		crafter.EXPECT().Execute(gomock.Any(), job)
 		ec.EXPECT().StoreRaw(gomock.Any(), proxyURL, job.Transaction.Data, job.Transaction.PrivateFrom).Return(enclaveKey, nil)
 
-		jobClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, gomock.Any()).DoAndReturn(func(ctx context.Context, jobUUID string, request *api.UpdateJobRequest) (*api.JobResponse, error) {
-			assert.Equal(t, request.Status, entities.StatusStored)
-			assert.Equal(t, request.Transaction.Data, job.Transaction.Data)
-			assert.Equal(t, request.Transaction.EnclaveKey, job.Transaction.EnclaveKey)
-			return testdata2.FakeJobResponse(), nil
-		})
+		msgAPI.EXPECT().JobUpdateMessage(gomock.Any(), 
+			testdata2.SentJobMessageRequestMatcher(job.UUID, entities.StatusStored, nil), gomock.Any()).Return(nil)
 
 		err := usecase.Execute(ctx, job)
 		assert.NoError(t, err)

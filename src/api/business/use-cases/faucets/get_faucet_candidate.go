@@ -57,7 +57,6 @@ func (uc *faucetCandidate) Execute(ctx context.Context, account ethcommon.Addres
 
 	if len(faucets) == 0 {
 		errMessage := "no faucet candidate found"
-		logger.Debug(errMessage)
 		return nil, errors.NotFoundError(errMessage).ExtendComponent(getFaucetCandidateComponent)
 	}
 

@@ -45,7 +45,7 @@ func (m *MockTransactionSender) EXPECT() *MockTransactionSenderMockRecorder {
 // SendTransaction mocks base method
 func (m *MockTransactionSender) SendTransaction(ctx context.Context, url string, args *types.SendTxArgs) (common.Hash, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendNotificationResponse", ctx, url, args)
+	ret := m.ctrl.Call(m, "SendTransaction", ctx, url, args)
 	ret0, _ := ret[0].(common.Hash)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -54,7 +54,7 @@ func (m *MockTransactionSender) SendTransaction(ctx context.Context, url string,
 // SendTransaction indicates an expected call of SendTransaction
 func (mr *MockTransactionSenderMockRecorder) SendTransaction(ctx, url, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendNotificationResponse", reflect.TypeOf((*MockTransactionSender)(nil).SendTransaction), ctx, url, args)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendTransaction", reflect.TypeOf((*MockTransactionSender)(nil).SendTransaction), ctx, url, args)
 }
 
 // SendRawTransaction mocks base method
@@ -518,6 +518,21 @@ func (mr *MockChainStateReaderMockRecorder) PendingNonceAt(ctx, url, account int
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PendingNonceAt", reflect.TypeOf((*MockChainStateReader)(nil).PendingNonceAt), ctx, url, account)
 }
 
+// FilterLogs mocks base method
+func (m *MockChainStateReader) FilterLogs(ctx context.Context, url string, addresses []common.Address, FromBlock, toBlock *big.Int) ([]types0.Log, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FilterLogs", ctx, url, addresses, FromBlock, toBlock)
+	ret0, _ := ret[0].([]types0.Log)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FilterLogs indicates an expected call of FilterLogs
+func (mr *MockChainStateReaderMockRecorder) FilterLogs(ctx, url, addresses, FromBlock, toBlock interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FilterLogs", reflect.TypeOf((*MockChainStateReader)(nil).FilterLogs), ctx, url, addresses, FromBlock, toBlock)
+}
+
 // MockEEAChainStateReader is a mock of EEAChainStateReader interface
 type MockEEAChainStateReader struct {
 	ctrl     *gomock.Controller
@@ -862,7 +877,7 @@ func (m *MockMultiClient) EXPECT() *MockMultiClientMockRecorder {
 // SendTransaction mocks base method
 func (m *MockMultiClient) SendTransaction(ctx context.Context, url string, args *types.SendTxArgs) (common.Hash, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendNotificationResponse", ctx, url, args)
+	ret := m.ctrl.Call(m, "SendTransaction", ctx, url, args)
 	ret0, _ := ret[0].(common.Hash)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -871,7 +886,7 @@ func (m *MockMultiClient) SendTransaction(ctx context.Context, url string, args 
 // SendTransaction indicates an expected call of SendTransaction
 func (mr *MockMultiClientMockRecorder) SendTransaction(ctx, url, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendNotificationResponse", reflect.TypeOf((*MockMultiClient)(nil).SendTransaction), ctx, url, args)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendTransaction", reflect.TypeOf((*MockMultiClient)(nil).SendTransaction), ctx, url, args)
 }
 
 // SendRawTransaction mocks base method
@@ -1128,6 +1143,21 @@ func (m *MockMultiClient) PendingNonceAt(ctx context.Context, url string, accoun
 func (mr *MockMultiClientMockRecorder) PendingNonceAt(ctx, url, account interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PendingNonceAt", reflect.TypeOf((*MockMultiClient)(nil).PendingNonceAt), ctx, url, account)
+}
+
+// FilterLogs mocks base method
+func (m *MockMultiClient) FilterLogs(ctx context.Context, url string, addresses []common.Address, FromBlock, toBlock *big.Int) ([]types0.Log, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FilterLogs", ctx, url, addresses, FromBlock, toBlock)
+	ret0, _ := ret[0].([]types0.Log)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FilterLogs indicates an expected call of FilterLogs
+func (mr *MockMultiClientMockRecorder) FilterLogs(ctx, url, addresses, FromBlock, toBlock interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FilterLogs", reflect.TypeOf((*MockMultiClient)(nil).FilterLogs), ctx, url, addresses, FromBlock, toBlock)
 }
 
 // CallContract mocks base method
@@ -1445,7 +1475,7 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 // SendTransaction mocks base method
 func (m *MockClient) SendTransaction(ctx context.Context, url string, args *types.SendTxArgs) (common.Hash, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendNotificationResponse", ctx, url, args)
+	ret := m.ctrl.Call(m, "SendTransaction", ctx, url, args)
 	ret0, _ := ret[0].(common.Hash)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -1454,7 +1484,7 @@ func (m *MockClient) SendTransaction(ctx context.Context, url string, args *type
 // SendTransaction indicates an expected call of SendTransaction
 func (mr *MockClientMockRecorder) SendTransaction(ctx, url, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendNotificationResponse", reflect.TypeOf((*MockClient)(nil).SendTransaction), ctx, url, args)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendTransaction", reflect.TypeOf((*MockClient)(nil).SendTransaction), ctx, url, args)
 }
 
 // SendRawTransaction mocks base method
@@ -1711,6 +1741,21 @@ func (m *MockClient) PendingNonceAt(ctx context.Context, url string, account com
 func (mr *MockClientMockRecorder) PendingNonceAt(ctx, url, account interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PendingNonceAt", reflect.TypeOf((*MockClient)(nil).PendingNonceAt), ctx, url, account)
+}
+
+// FilterLogs mocks base method
+func (m *MockClient) FilterLogs(ctx context.Context, url string, addresses []common.Address, FromBlock, toBlock *big.Int) ([]types0.Log, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FilterLogs", ctx, url, addresses, FromBlock, toBlock)
+	ret0, _ := ret[0].([]types0.Log)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FilterLogs indicates an expected call of FilterLogs
+func (mr *MockClientMockRecorder) FilterLogs(ctx, url, addresses, FromBlock, toBlock interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FilterLogs", reflect.TypeOf((*MockClient)(nil).FilterLogs), ctx, url, addresses, FromBlock, toBlock)
 }
 
 // CallContract mocks base method

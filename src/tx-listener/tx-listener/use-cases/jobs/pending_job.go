@@ -16,27 +16,30 @@ const pendingJobUseCaseComponent = "tx-listener.use-case.pending-job"
 type pendingJobMsg struct {
 	ethClient       ethclient.Client
 	pendingJobState store.PendingJob
-	apiClient       sdk.OrchestrateClient
+	messengerState  store.Message
+	proxyClient     sdk.ChainProxyClient
 	minedJob        usecases.MinedJob
 	logger          *log.Logger
 }
 
-func PendingJob(apiClient sdk.OrchestrateClient,
+func PendingJob(proxyClient sdk.ChainProxyClient,
 	ethClient ethclient.Client,
 	minedJob usecases.MinedJob,
 	pendingJobState store.PendingJob,
+	messengerState store.Message,
 	logger *log.Logger,
 ) usecases.PendingJob {
 	return &pendingJobMsg{
 		ethClient:       ethClient,
-		pendingJobState: pendingJobState,
-		apiClient:       apiClient,
+		proxyClient:     proxyClient,
 		minedJob:        minedJob,
+		pendingJobState: pendingJobState,
+		messengerState:  messengerState,
 		logger:          logger.SetComponent(pendingJobUseCaseComponent),
 	}
 }
 
-func (uc *pendingJobMsg) Execute(ctx context.Context, job *entities.Job) error {
+func (uc *pendingJobMsg) Execute(ctx context.Context, job *entities.Job, msg *entities.Message) error {
 	logger := uc.logger.WithField("job", job.UUID).
 		WithField("chain", job.ChainUUID).
 		WithField("txHash", job.Transaction.Hash.String()).
@@ -44,35 +47,43 @@ func (uc *pendingJobMsg) Execute(ctx context.Context, job *entities.Job) error {
 
 	logger.Debug("handling new pending job")
 
-	jobHasBeenUpdated := false
+	isNewPendingJob := true
 	if curJob, _ := uc.pendingJobState.GetJobUUID(ctx, job.UUID); curJob != nil {
 		if curJob.Transaction.Hash.String() == job.Transaction.Hash.String() {
 			logger.Warn("skipping already known job")
 			return nil
 		}
 		logger.Warn("duplicated job with different transaction hash")
-		jobHasBeenUpdated = true
+
+		err := uc.pendingJobState.Update(ctx, job)
+		if err != nil {
+			logger.WithError(err).Error("failed to update job")
+			return err
+		}
+
+		logger.Debug("pending job updated successfully")
+		isNewPendingJob = false
 	}
 
-	proxyURL := uc.apiClient.ChainProxyURL(job.ChainUUID)
+	proxyURL := uc.proxyClient.ChainProxyURL(job.ChainUUID)
 	receipt, err := uc.ethClient.TransactionReceipt(ctx, proxyURL, *job.Transaction.Hash)
 	if err == nil && receipt != nil {
 		err2 := uc.minedJob.Execute(ctx, job)
 		if err2 != nil {
 			return err2
 		}
+
 		return nil
 	}
 
-	if jobHasBeenUpdated {
-		err = uc.pendingJobState.Update(ctx, job)
+	if isNewPendingJob {
+		err = uc.messengerState.AddJobMessage(ctx, job.UUID, msg)
 		if err != nil {
-			logger.WithError(err).Error("failed to update job")
+			logger.WithError(err).Error("failed to add job message")
 			return err
 		}
-		logger.Debug("pending job updated successfully")
-	} else {
-		err = uc.pendingJobState.Add(ctx, job)
+
+		err := uc.pendingJobState.Add(ctx, job)
 		if err != nil {
 			logger.WithError(err).Error("failed to persist job")
 			return err

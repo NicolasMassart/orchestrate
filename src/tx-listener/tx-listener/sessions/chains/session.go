@@ -21,35 +21,41 @@ const listenBlocksSessionComponent = "tx-listener.chains.session"
 const waitForNEmptyBlocks = 3
 
 type ChainListenerSession struct {
-	ethClient         ethclient.Client
-	apiClient         sdk.OrchestrateClient
-	chainBlockTxsUC   usecases.ChainBlock
-	logger            *log.Logger
-	chain             *entities.Chain
-	cancelCtx         context.CancelFunc
-	curBlockNumber    uint64
-	pendingJobState   store.PendingJob
-	blockTimeDuration time.Duration
-	ticker            *time.Ticker
-	cerr              chan error
+	ethClient          ethclient.Client
+	proxyClient        sdk.ChainProxyClient
+	chainBlockTxsUC    usecases.ChainBlockTxs
+	chainBlockEventsUC usecases.ChainBlockEvents
+	chain              *entities.Chain
+	curBlockNumber     uint64
+	pendingJobState    store.PendingJob
+	subscriptionsState store.Subscriptions
+	blockTimeDuration  time.Duration
+	ticker             *time.Ticker
+	logger             *log.Logger
+	cancelCtx          context.CancelFunc
+	cerr               chan error
 }
 
-func NewChainListenerSession(apiClient sdk.OrchestrateClient,
+func NewChainListenerSession(proxyClient sdk.ChainProxyClient,
 	ethClient ethclient.Client,
-	chainBlockTxsUC usecases.ChainBlock,
+	chainBlockTxsUC usecases.ChainBlockTxs,
+	chainBlockEventsUC usecases.ChainBlockEvents,
 	chain *entities.Chain,
 	pendingJobState store.PendingJob,
+	subscriptionsState store.Subscriptions,
 	logger *log.Logger,
 ) *ChainListenerSession {
 	return &ChainListenerSession{
-		ethClient:         ethClient,
-		apiClient:         apiClient,
-		chain:             chain,
-		pendingJobState:   pendingJobState,
-		chainBlockTxsUC:   chainBlockTxsUC,
-		logger:            logger.WithField("chain", chain.UUID).SetComponent(listenBlocksSessionComponent),
-		blockTimeDuration: chain.ListenerBlockTimeDuration,
-		cerr:              make(chan error, 1),
+		ethClient:          ethClient,
+		proxyClient:        proxyClient,
+		chain:              chain,
+		pendingJobState:    pendingJobState,
+		subscriptionsState: subscriptionsState,
+		chainBlockTxsUC:    chainBlockTxsUC,
+		chainBlockEventsUC: chainBlockEventsUC,
+		logger:             logger.WithField("chain", chain.UUID).SetComponent(listenBlocksSessionComponent),
+		blockTimeDuration:  chain.ListenerBlockTimeDuration,
+		cerr:               make(chan error, 1),
 	}
 }
 
@@ -57,14 +63,14 @@ func (s *ChainListenerSession) Start(ctx context.Context) error {
 	s.logger.WithField("block_time", s.blockTimeDuration.String()).Info("chain block listener started")
 	ctx, s.cancelCtx = context.WithCancel(ctx)
 
-	proxyChainURL := s.apiClient.ChainProxyURL(s.chain.UUID)
+	proxyChainURL := s.proxyClient.ChainProxyURL(s.chain.UUID)
 	err := s.runIt(ctx, s.curBlockNumber, proxyChainURL)
 	if err != nil {
 		return err
 	}
 
 	go func() {
-		nBlockWithoutPendingJobs := 0
+		nBlockWithNoPendingWork := 0
 		s.ticker = time.NewTicker(s.blockTimeDuration)
 		defer s.ticker.Stop()
 		for {
@@ -85,16 +91,24 @@ func (s *ChainListenerSession) Start(ctx context.Context) error {
 				return
 			}
 
-			if len(pendingJobs) == 0 {
-				if nBlockWithoutPendingJobs >= waitForNEmptyBlocks {
-					s.logger.Debug("no pending jobs. Stopping session...")
+			subscriptions, err := s.subscriptionsState.ListPerChainUUID(ctx, s.chain.UUID)
+			if err != nil {
+				if ctx.Err() == nil { // Context is not done
+					s.cerr <- err
+				}
+				return
+			}
+
+			if len(pendingJobs) == 0 && len(subscriptions) == 0 {
+				if nBlockWithNoPendingWork >= waitForNEmptyBlocks {
+					s.logger.Debug("no pending listening work. Stopping session...")
 					s.Stop()
 					return
 				}
 
-				nBlockWithoutPendingJobs++
+				nBlockWithNoPendingWork++
 			} else {
-				nBlockWithoutPendingJobs = 0
+				nBlockWithNoPendingWork = 0
 			}
 		}
 	}()
@@ -123,6 +137,9 @@ func (s *ChainListenerSession) runIt(ctx context.Context, curBlockNumber uint64,
 	// @TODO Can I run it in parallel ???
 	for _, event := range blockEvents {
 		if err := s.chainBlockTxsUC.Execute(ctx, s.chain.UUID, event.Number, event.TxHashes); err != nil {
+			return err
+		}
+		if err := s.chainBlockEventsUC.Execute(ctx, s.chain.UUID, event.Number); err != nil {
 			return err
 		}
 	}

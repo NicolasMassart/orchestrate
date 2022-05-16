@@ -39,11 +39,12 @@ func TestProcessEthError(t *testing.T) {
 
 	// Nonce too low
 	err := ec.processEthError(&utils.JSONError{Message: "json-rpc: nonce too low"})
-	assert.Equal(t, "BE100", errors.FromError(err).Hex(), "Error code should be correst")
+	assert.Equal(t, "BE100", errors.FromError(err).Hex(), "Error code should be correct")
+	assert.True(t, errors.IsNonceTooLowError(err))
 
 	// Default
 	err = ec.processEthError(&utils.JSONError{Message: "json-rpc: failed"})
-	assert.Equal(t, "BE000", errors.FromError(err).Hex(), "Error code should be correst")
+	assert.Equal(t, "BE000", errors.FromError(err).Hex(), "Error code should be correct")
 }
 
 func TestDo(t *testing.T) {

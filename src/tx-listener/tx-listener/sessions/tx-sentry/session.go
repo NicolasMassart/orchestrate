@@ -7,6 +7,7 @@ import (
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
+	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"github.com/consensys/orchestrate/src/api/service/formatters"
 	"github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities"
@@ -18,7 +19,8 @@ const retryJobSessionComponent = "tx-listener.retry-job.session"
 
 type RetryJobSession struct {
 	sendRetryJobUseCase usecases.RetryJob
-	client              sdk.OrchestrateClient
+	client              sdk.JobClient
+	messenger           sdk.MessengerAPI
 	pendingJobState     store.PendingJob
 	logger              *log.Logger
 	job                 *entities.Job
@@ -33,10 +35,12 @@ type sessionData struct {
 	lastChildJobUUID string
 }
 
-func NewRetryJobSession(client sdk.OrchestrateClient, sendRetryJobUseCase usecases.RetryJob, pendingJobState store.PendingJob, job *entities.Job, logger *log.Logger) *RetryJobSession {
+func NewRetryJobSession(messenger sdk.MessengerAPI, client sdk.JobClient, sendRetryJobUseCase usecases.RetryJob,
+	pendingJobState store.PendingJob, job *entities.Job, logger *log.Logger) *RetryJobSession {
 	return &RetryJobSession{
 		sendRetryJobUseCase: sendRetryJobUseCase,
 		client:              client,
+		messenger:           messenger,
 		job:                 job,
 		pendingJobState:     pendingJobState,
 		logger:              logger.WithField("job", job.UUID).SetComponent(retryJobSessionComponent),
@@ -129,11 +133,11 @@ func (uc *RetryJobSession) runSession(ctx context.Context, sess *sessionData) er
 }
 
 func (uc *RetryJobSession) updateJobAnnotations() error {
-	annotations := formatters.FormatInternalDataToAnnotations(uc.job.InternalData)
-	annotations.HasBeenRetried = true
-	_, err := uc.client.UpdateJob(context.Background(), uc.job.UUID, &types.UpdateJobRequest{
-		Annotations: &annotations,
-	})
+	uc.job.InternalData.HasBeenRetried = true
+	err := uc.messenger.JobUpdateMessage(context.Background(), &types.JobUpdateMessageRequest{
+		JobUUID:      uc.job.UUID,
+		InternalData: uc.job.InternalData,
+	}, multitenancy.NewInternalAdminUser())
 	if err != nil {
 		uc.logger.WithError(err).Error("failed to update job labels")
 		return err

@@ -31,6 +31,7 @@ import (
 	ganacheDocker "github.com/consensys/orchestrate/tests/pkg/docker/container/ganache"
 	kafkaDocker "github.com/consensys/orchestrate/tests/pkg/docker/container/kafka"
 	"github.com/consensys/orchestrate/tests/pkg/docker/container/zookeeper"
+	"github.com/consensys/orchestrate/tests/pkg/trackers"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
@@ -52,19 +53,20 @@ var envGanacheHostPort string
 var envKafkaHostPort string
 
 type IntegrationEnvironment struct {
-	ctx               context.Context
-	cancel            context.CancelFunc
-	T                 *testing.T
-	logger            *log.Logger
-	app               *app.App
-	messengerClient   sdk.MessengerTxListener
-	ethClient         ethclient2.MultiClient
-	client            *docker.Client
-	cfg               *txlistener.Config
-	chain             *entities.Chain
-	blockchainNodeURL string
-	proxyURL          string
-	err               error
+	ctx                      context.Context
+	cancel                   context.CancelFunc
+	T                        *testing.T
+	logger                   *log.Logger
+	app                      *app.App
+	messengerClient          sdk.MessengerTxListener
+	messengerConsumerTracker *trackers.MessengerConsumerTracker
+	ethClient                ethclient2.MultiClient
+	client                   *docker.Client
+	cfg                      *txlistener.Config
+	chain                    *entities.Chain
+	blockchainNodeURL        string
+	proxyURL                 string
+	err                      error
 }
 
 func NewIntegrationEnvironment(ctx context.Context, cancel context.CancelFunc, t *testing.T) (*IntegrationEnvironment, error) {
@@ -165,16 +167,27 @@ func (env *IntegrationEnvironment) Start(ctx context.Context) error {
 		return err
 	}
 
-	// Create app
-	env.app, err = txlistener.NewTxListener(env.cfg, apiClient, env.ethClient, listenermetrics.NewListenerNopMetrics())
-
-	env.chain = newChain(env.blockchainNodeURL)
-
 	kafkaProd, err := kafka.NewProducer(env.cfg.Kafka)
 	if err != nil {
 		env.logger.WithError(err).Error("could not initialize kafka producer")
 		return err
 	}
+	
+	// Start internal kafka consumer
+	env.messengerConsumerTracker, err = trackers.NewMessengerConsumerTracker(*env.cfg.Kafka, []string{env.cfg.Messenger.TopicAPI})
+	if err != nil {
+		env.logger.WithError(err).Error("could initialize kafka internal Consumer")
+		return err
+	}
+	
+	go func() {
+		_ = env.messengerConsumerTracker.Consume(ctx)
+	}()
+
+	// Create app
+	env.app, err = txlistener.NewTxListener(env.cfg, kafkaProd, apiClient, env.ethClient, listenermetrics.NewListenerNopMetrics())
+
+	env.chain = newChain(env.blockchainNodeURL)
 
 	env.messengerClient = messenger.NewProducerClient(&messenger.Config{TopicTxListener: env.cfg.ConsumerTopic}, kafkaProd)
 

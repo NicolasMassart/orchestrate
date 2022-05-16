@@ -157,6 +157,9 @@ func toBlockNumArg(number *big.Int) string {
 	if number == nil {
 		return "latest"
 	}
+	if number.Uint64() == 0 {
+		return "earliest"
+	}
 	return hexutil.EncodeBig(number)
 }
 
@@ -353,6 +356,25 @@ func (ec *Client) SuggestGasPrice(ctx context.Context, endpoint string) (*big.In
 	}
 
 	return hex.ToInt(), nil
+}
+
+type FilterQuery struct {
+	FromBlock string              // beginning of the queried range, nil means genesis block
+	ToBlock   string              // end of the range, nil means latest block
+	Addresses []ethcommon.Address // restricts matches to events created by specific contracts
+}
+
+func (ec *Client) FilterLogs(ctx context.Context, endpoint string, addresses []ethcommon.Address, fromBlock, toBlock *big.Int) ([]ethtypes.Log, error) {
+	var logs []ethtypes.Log
+	if err := ec.Call(ctx, endpoint, utils.ProcessResult(&logs), "eth_getLogs", &FilterQuery{
+		Addresses: addresses,
+		FromBlock: toBlockNumArg(fromBlock),
+		ToBlock:   toBlockNumArg(toBlock),
+	}); err != nil {
+		return nil, errors.FromError(err).ExtendComponent(component)
+	}
+
+	return logs, nil
 }
 
 type FeeHistory struct {

@@ -20,14 +20,14 @@ const sendETHRawTxComponent = "use-cases.send-eth-raw-tx"
 type sendETHRawTxUseCase struct {
 	ec               ethclient.TransactionSender
 	chainRegistryURL string
-	jobClient        sdk.JobClient
+	messengerAPI     sdk.MessengerAPI
 	logger           *log.Logger
 }
 
-func NewSendETHRawTxUseCase(ec ethclient.TransactionSender, jobClient sdk.JobClient,
+func NewSendETHRawTxUseCase(ec ethclient.TransactionSender, messengerAPI sdk.MessengerAPI,
 	chainRegistryURL string) usecases.SendETHRawTxUseCase {
 	return &sendETHRawTxUseCase{
-		jobClient:        jobClient,
+		messengerAPI:     messengerAPI,
 		chainRegistryURL: chainRegistryURL,
 		ec:               ec,
 		logger:           log.NewLogger().SetComponent(sendETHRawTxComponent),
@@ -47,9 +47,9 @@ func (uc *sendETHRawTxUseCase) Execute(ctx context.Context, job *entities.Job) e
 
 	var err error
 	if job.InternalData.ParentJobUUID == job.UUID || job.Status == entities.StatusPending || job.Status == entities.StatusResending {
-		err = utils2.UpdateJobStatus(ctx, uc.jobClient, job, entities.StatusResending, "", nil)
+		err = utils2.UpdateJobStatus(ctx, uc.messengerAPI, job, entities.StatusResending, "", nil)
 	} else {
-		err = utils2.UpdateJobStatus(ctx, uc.jobClient, job, entities.StatusPending, "", nil)
+		err = utils2.UpdateJobStatus(ctx, uc.messengerAPI, job, entities.StatusPending, "", nil)
 	}
 
 	if err != nil {
@@ -64,7 +64,7 @@ func (uc *sendETHRawTxUseCase) Execute(ctx context.Context, job *entities.Job) e
 	if txHash.String() != job.Transaction.Hash.String() {
 		warnMessage := fmt.Sprintf("expected transaction hash %s, but got %s. Overriding", job.Transaction.Hash.String(), txHash.String())
 		job.Transaction.Hash = txHash
-		err = utils2.UpdateJobStatus(ctx, uc.jobClient, job, entities.StatusWarning, warnMessage, job.Transaction)
+		err = utils2.UpdateJobStatus(ctx, uc.messengerAPI, job, entities.StatusWarning, warnMessage, job.Transaction)
 		if err != nil {
 			return errors.FromError(err).ExtendComponent(sendETHRawTxComponent)
 		}

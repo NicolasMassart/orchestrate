@@ -6,6 +6,7 @@ import (
 	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
+// @TODO Support subscription topics (ABI methods)
 type Subscription struct {
 	UUID            string
 	ContractAddress ethcommon.Address

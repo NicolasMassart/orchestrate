@@ -9,7 +9,6 @@ import (
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/sdk/mock"
-	api "github.com/consensys/orchestrate/src/api/service/types"
 	testdata2 "github.com/consensys/orchestrate/src/api/service/types/testdata"
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/entities/testdata"
@@ -30,12 +29,12 @@ func TestSendGoQuorumMarking_Execute(t *testing.T) {
 	signTx := mocks.NewMockSignETHTransactionUseCase(ctrl)
 	ec := mock2.NewMockQuorumTransactionSender(ctrl)
 	crafter := mocks.NewMockCraftTransactionUseCase(ctrl)
-	jobClient := mock.NewMockJobClient(ctrl)
+	msgAPI := mock.NewMockMessengerAPI(ctrl)
 	nonceChecker := mocks2.NewMockManager(ctrl)
 	chainRegistryURL := "chainRegistryURL:8081"
 	ctx := context.Background()
 
-	usecase := NewSendGoQuorumMarkingTxUseCase(signTx, crafter, ec, jobClient, chainRegistryURL, nonceChecker)
+	usecase := NewSendGoQuorumMarkingTxUseCase(signTx, crafter, ec, msgAPI, chainRegistryURL, nonceChecker)
 	raw := hexutil.MustDecode("0x1234")
 	txHash := ethcommon.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000abc")
 
@@ -52,12 +51,8 @@ func TestSendGoQuorumMarking_Execute(t *testing.T) {
 		ec.EXPECT().SendQuorumRawPrivateTransaction(gomock.Any(), proxyURL, job.Transaction.Raw, job.Transaction.PrivateFor, nil, 0).
 			Return(txHash, nil)
 		nonceChecker.EXPECT().IncrementNonce(gomock.Any(), job).Return(nil)
-		jobClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, gomock.Any()).DoAndReturn(func(ctx context.Context, jobUUID string, request *api.UpdateJobRequest) (*api.JobResponse, error) {
-			assert.Equal(t, request.Status, entities.StatusPending)
-			assert.Equal(t, request.Transaction.Hash, job.Transaction.Hash)
-			assert.Equal(t, request.Transaction.Raw, job.Transaction.Raw)
-			return testdata2.FakeJobResponse(), nil
-		})
+		msgAPI.EXPECT().JobUpdateMessage(gomock.Any(), 
+			testdata2.SentJobMessageRequestMatcher(job.UUID, entities.StatusPending, &txHash), gomock.Any()).Return(nil)
 
 		err := usecase.Execute(ctx, job)
 		assert.NoError(t, err)
@@ -77,12 +72,9 @@ func TestSendGoQuorumMarking_Execute(t *testing.T) {
 		ec.EXPECT().SendQuorumRawPrivateTransaction(gomock.Any(), proxyURL, job.Transaction.Raw, job.Transaction.PrivateFor, nil, 0).
 			Return(txHash, nil)
 		nonceChecker.EXPECT().IncrementNonce(gomock.Any(), job).Return(nil)
-		jobClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, gomock.Any()).DoAndReturn(func(ctx context.Context, jobUUID string, request *api.UpdateJobRequest) (*api.JobResponse, error) {
-			assert.Equal(t, request.Status, entities.StatusResending)
-			assert.Equal(t, request.Transaction.Hash, job.Transaction.Hash)
-			assert.Equal(t, request.Transaction.Raw, job.Transaction.Raw)
-			return testdata2.FakeJobResponse(), nil
-		})
+		msgAPI.EXPECT().JobUpdateMessage(gomock.Any(), 
+			testdata2.SentJobMessageRequestMatcher(job.UUID, entities.StatusResending, &txHash), gomock.Any()).Return(nil)
+
 
 		err := usecase.Execute(ctx, job)
 		assert.NoError(t, err)
@@ -102,14 +94,12 @@ func TestSendGoQuorumMarking_Execute(t *testing.T) {
 		ec.EXPECT().SendQuorumRawPrivateTransaction(gomock.Any(), proxyURL, job.Transaction.Raw, job.Transaction.PrivateFor, nil, 0).
 			Return(txHash2, nil)
 		nonceChecker.EXPECT().IncrementNonce(gomock.Any(), job).Return(nil)
-		jobClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, gomock.Any()).DoAndReturn(func(ctx context.Context, jobUUID string, request *api.UpdateJobRequest) (*api.JobResponse, error) {
-			assert.Equal(t, request.Status, entities.StatusPending)
-			assert.Equal(t, request.Transaction.Hash, job.Transaction.Hash)
-			assert.Equal(t, request.Transaction.Raw, job.Transaction.Raw)
-			return testdata2.FakeJobResponse(), nil
-		})
+		msgAPI.EXPECT().JobUpdateMessage(gomock.Any(), 
+			testdata2.SentJobMessageRequestMatcher(job.UUID, entities.StatusPending, &txHash), gomock.Any()).Return(nil)
 
-		jobClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, gomock.Any())
+		msgAPI.EXPECT().JobUpdateMessage(gomock.Any(), 
+			testdata2.SentJobMessageRequestMatcher(job.UUID, entities.StatusWarning, nil), gomock.Any()).Return(nil)
+
 
 		err := usecase.Execute(ctx, job)
 		assert.NoError(t, err)
@@ -147,12 +137,8 @@ func TestSendGoQuorumMarking_Execute(t *testing.T) {
 		job.Transaction.Hash = &txHash
 
 		expectedErr := errors.InternalError("internal error")
-		jobClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, gomock.Any()).DoAndReturn(func(ctx context.Context, jobUUID string, request *api.UpdateJobRequest) (*api.JobResponse, error) {
-			assert.Equal(t, request.Status, entities.StatusPending)
-			assert.Equal(t, request.Transaction.Hash, job.Transaction.Hash)
-			assert.Equal(t, request.Transaction.Raw, job.Transaction.Raw)
-			return nil, expectedErr
-		})
+		msgAPI.EXPECT().JobUpdateMessage(gomock.Any(), 
+			testdata2.SentJobMessageRequestMatcher(job.UUID, entities.StatusPending, &txHash), gomock.Any()).Return(expectedErr)
 
 		err := usecase.Execute(ctx, job)
 		assert.Equal(t, err, expectedErr)
@@ -168,12 +154,9 @@ func TestSendGoQuorumMarking_Execute(t *testing.T) {
 
 		expectedErr := errors.InternalError("internal error")
 		proxyURL := client.GetProxyURL(chainRegistryURL, job.ChainUUID)
-		jobClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, gomock.Any()).DoAndReturn(func(ctx context.Context, jobUUID string, request *api.UpdateJobRequest) (*api.JobResponse, error) {
-			assert.Equal(t, request.Status, entities.StatusPending)
-			assert.Equal(t, request.Transaction.Hash, job.Transaction.Hash)
-			assert.Equal(t, request.Transaction.Raw, job.Transaction.Raw)
-			return testdata2.FakeJobResponse(), nil
-		})
+		msgAPI.EXPECT().JobUpdateMessage(gomock.Any(), 
+			testdata2.SentJobMessageRequestMatcher(job.UUID, entities.StatusPending, &txHash), gomock.Any()).Return(nil)
+
 		ec.EXPECT().SendQuorumRawPrivateTransaction(gomock.Any(), proxyURL, job.Transaction.Raw, job.Transaction.PrivateFor, nil, 0).
 			Return(txHash, expectedErr)
 		nonceChecker.EXPECT().CleanNonce(gomock.Any(), job, expectedErr).Return(nil)

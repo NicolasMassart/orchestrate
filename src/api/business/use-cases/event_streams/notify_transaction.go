@@ -96,7 +96,7 @@ func (uc *notifyTransactionUseCase) Execute(ctx context.Context, job *entities.J
 	if eventStream.Status == entities.EventStreamStatusLive {
 		err = uc.txNotifierMessenger.TransactionNotificationMessage(ctx, eventStream, notif, userInfo)
 		if err != nil {
-			errMsg := "failed to send notification to notifier service"
+			errMsg := "failed to send transaction notification"
 			uc.logger.WithError(err).Error(errMsg)
 			return errors.DependencyFailureError(errMsg).ExtendComponent(notifyTransactionComponent)
 		}

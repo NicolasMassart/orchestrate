@@ -14,7 +14,6 @@ import (
 	api "github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/entities/testdata"
-	infra "github.com/consensys/orchestrate/src/infra/api"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/stretchr/testify/assert"
@@ -55,23 +54,16 @@ func (s *txListenerJobTestSuite) TestPendingJob() {
 			Get("/chains/" + ganacheChainUUID).
 			Reply(http2.StatusOK).JSON(formatters.FormatChainResponse(s.env.chain))
 
-		isCallOutput := make(chan error, 1)
-		gock.New(apiURL).
-			Patch(fmt.Sprintf("/jobs/%s", job.UUID)).
-			AddMatcher(statusJobUpdateMatcher(isCallOutput, respWaitingTime, func(req *api.UpdateJobRequest) error {
-				assert.Equal(t, entities.StatusMined, req.Status)
-				assert.Equal(t, accOneTxHashOne, req.Receipt.TxHash)
-				return nil
-			})).
-			Reply(http2.StatusOK).JSON(&api.JobResponse{})
-
 		err := s.sendJobMessage(job)
 		require.NoError(s.T(), err)
 
 		hash, err := s.env.ethClient.SendRawTransaction(s.env.ctx, s.env.blockchainNodeURL, hexutil.MustDecode(accOneRawTxOne))
 		require.NoError(t, err)
 		assert.Equal(t, hash.String(), job.Transaction.Hash.String())
-		assert.NoError(t, <-isCallOutput)
+		
+		updateMsg, err := s.env.messengerConsumerTracker.WaitForUpdateJobMessage(s.env.ctx, job.UUID, entities.StatusMined, respWaitingTime)
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), accOneTxHashOne, updateMsg.Receipt.TxHash)
 	})
 
 	s.T().Run("should get pending job and fetch available receipt right away successfully", func(t *testing.T) {
@@ -83,15 +75,6 @@ func (s *txListenerJobTestSuite) TestPendingJob() {
 		gock.New(apiURL).
 			Get("/chains/" + ganacheChainUUID).
 			Reply(http2.StatusOK).JSON(formatters.FormatChainResponse(s.env.chain))
-		isCallOutput := make(chan error, 1)
-		gock.New(apiURL).
-			Patch(fmt.Sprintf("/jobs/%s", job.UUID)).
-			AddMatcher(statusJobUpdateMatcher(isCallOutput, respWaitingTime, func(req *api.UpdateJobRequest) error {
-				assert.Equal(t, entities.StatusMined, req.Status)
-				assert.Equal(t, accOneTxHashTwo, req.Receipt.TxHash)
-				return nil
-			})).
-			Reply(http2.StatusOK).JSON(&api.JobResponse{})
 
 		hash, err := s.env.ethClient.SendRawTransaction(s.env.ctx, s.env.blockchainNodeURL, hexutil.MustDecode(accOneRawTxTwo))
 		require.NoError(t, err)
@@ -99,7 +82,10 @@ func (s *txListenerJobTestSuite) TestPendingJob() {
 
 		err = s.sendJobMessage(job)
 		require.NoError(s.T(), err)
-		assert.NoError(t, <-isCallOutput)
+		
+		updateMsg, err := s.env.messengerConsumerTracker.WaitForUpdateJobMessage(s.env.ctx, job.UUID, entities.StatusMined, respWaitingTime)
+		require.NoError(s.T(), err)
+		assert.Equal(s.T(), accOneTxHashTwo, updateMsg.Receipt.TxHash)
 	})
 }
 
@@ -178,17 +164,13 @@ func (s *txListenerJobTestSuite) TestRetryJob() {
 			AddMatcher(waitTimeoutMatcher(isResendCalled, job.InternalData.RetryInterval+extendedWaitingTime)).
 			Reply(http2.StatusAccepted)
 
-		isUpdatedCalled := make(chan bool, 1)
-		gock.New(apiURL).
-			Patch("/jobs/" + job.UUID).
-			AddMatcher(waitTimeoutMatcher(isUpdatedCalled, job.InternalData.RetryInterval+extendedWaitingTime)).
-			Reply(http2.StatusOK).JSON(formatters.FormatJobResponse(job))
-
 		err := s.sendJobMessage(job)
 
 		require.NoError(t, err)
 		assert.True(t, <-isResendCalled, "missing resend job call")
-		assert.True(t, <-isUpdatedCalled, "missing update job call")
+		
+		_, err = s.env.messengerConsumerTracker.WaitForUpdateJobMessage(s.env.ctx, job.UUID, entities.StatusMined, job.InternalData.RetryInterval+extendedWaitingTime)
+		require.NoError(s.T(), err)
 	})
 
 	s.T().Run("should send new child job of pending job successfully", func(t *testing.T) {
@@ -258,25 +240,5 @@ func waitTimeoutMatcher(c chan bool, duration time.Duration) gock.MatchFunc {
 	return func(rw *http2.Request, _ *gock.Request) (bool, error) {
 		c <- true
 		return true, nil
-	}
-}
-
-func statusJobUpdateMatcher(c chan error, waiting time.Duration, cb func(req *api.UpdateJobRequest) error) gock.MatchFunc {
-	go func() {
-		time.Sleep(waiting)
-		c <- nil
-	}()
-
-	return func(rw *http2.Request, req *gock.Request) (bool, error) {
-		jobRequest := &api.UpdateJobRequest{}
-		err := infra.UnmarshalBody(rw.Body, jobRequest)
-		if err != nil {
-			c <- err
-			return false, err
-		}
-
-		output := cb(jobRequest)
-		c <- output
-		return true, output
 	}
 }

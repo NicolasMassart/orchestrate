@@ -22,7 +22,7 @@ type sendGoQuorumMarkingTxUseCase struct {
 	signTx           usecases.SignETHTransactionUseCase
 	crafter          usecases.CraftTransactionUseCase
 	nonceChecker     nonce.Manager
-	jobClient        sdk.JobClient
+	messengerAPI     sdk.MessengerAPI
 	ec               ethclient.QuorumTransactionSender
 	chainRegistryURL string
 	logger           *log.Logger
@@ -31,7 +31,7 @@ type sendGoQuorumMarkingTxUseCase struct {
 func NewSendGoQuorumMarkingTxUseCase(signTx usecases.SignGoQuorumPrivateTransactionUseCase,
 	crafter usecases.CraftTransactionUseCase,
 	ec ethclient.QuorumTransactionSender,
-	jobClient sdk.JobClient,
+	messengerAPI sdk.MessengerAPI,
 	chainRegistryURL string,
 	nonceChecker nonce.Manager,
 ) usecases.SendGoQuorumMarkingTxUseCase {
@@ -39,7 +39,7 @@ func NewSendGoQuorumMarkingTxUseCase(signTx usecases.SignGoQuorumPrivateTransact
 		signTx:           signTx,
 		nonceChecker:     nonceChecker,
 		ec:               ec,
-		jobClient:        jobClient,
+		messengerAPI:     messengerAPI,
 		chainRegistryURL: chainRegistryURL,
 		crafter:          crafter,
 		logger:           log.NewLogger().SetComponent(sendGoQuorumMarkingTxComponent),
@@ -64,7 +64,7 @@ func (uc *sendGoQuorumMarkingTxUseCase) Execute(ctx context.Context, job *entiti
 
 	// In case of job resending we don't need to sign again
 	if job.InternalData.ParentJobUUID == job.UUID || job.Status == entities.StatusPending || job.Status == entities.StatusResending {
-		err = utils2.UpdateJobStatus(ctx, uc.jobClient, job, entities.StatusResending, "", job.Transaction)
+		err = utils2.UpdateJobStatus(ctx, uc.messengerAPI, job, entities.StatusResending, "", job.Transaction)
 		if err != nil {
 			return errors.FromError(err).ExtendComponent(sendETHTxComponent)
 		}
@@ -74,7 +74,7 @@ func (uc *sendGoQuorumMarkingTxUseCase) Execute(ctx context.Context, job *entiti
 			return errors.FromError(err).ExtendComponent(sendGoQuorumMarkingTxComponent)
 		}
 
-		err = utils2.UpdateJobStatus(ctx, uc.jobClient, job, entities.StatusPending, "", job.Transaction)
+		err = utils2.UpdateJobStatus(ctx, uc.messengerAPI, job, entities.StatusPending, "", job.Transaction)
 		if err != nil {
 			return errors.FromError(err).ExtendComponent(sendGoQuorumMarkingTxComponent)
 		}
@@ -96,7 +96,7 @@ func (uc *sendGoQuorumMarkingTxUseCase) Execute(ctx context.Context, job *entiti
 	if txHash.String() != job.Transaction.Hash.String() {
 		warnMessage := fmt.Sprintf("expected transaction hash %s, but got %s. Overriding", job.Transaction.Hash, txHash)
 		job.Transaction.Hash = txHash
-		err = utils2.UpdateJobStatus(ctx, uc.jobClient, job, entities.StatusWarning, warnMessage, job.Transaction)
+		err = utils2.UpdateJobStatus(ctx, uc.messengerAPI, job, entities.StatusWarning, warnMessage, job.Transaction)
 		if err != nil {
 			return errors.FromError(err).ExtendComponent(sendGoQuorumMarkingTxComponent)
 		}

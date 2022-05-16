@@ -24,17 +24,18 @@ func (b *sessionMngrs) RetryJobSessionManager() sessions.RetryJobSessionManager 
 	return b.retryJobSessionMngr
 }
 
-func NewSessionManagers(apiClient sdk.OrchestrateClient,
+func NewSessionManagers(messengerAPI sdk.MessengerAPI,
+	apiClient sdk.OrchestrateClient,
 	ethClient ethclient.MultiClient,
 	jobUCs usecases.JobUseCases,
 	chainUCs usecases.ChainUseCases,
 	state store.State,
 	logger *log.Logger,
 ) sessions.SessionManagers {
-	retryJobSessionMngr := tx_sentry.NewRetrySessionManager(apiClient, jobUCs.RetryJobUseCase(), state.RetryJobSessionState(),
+	retryJobSessionMngr := tx_sentry.NewRetrySessionManager(messengerAPI, apiClient, jobUCs.RetryJobUseCase(), state.RetryJobSessionState(),
 		state.PendingJobState(), logger)
-	chainSessionMngr := chains.ChainSessionManager(apiClient, ethClient, chainUCs.ChainBlockUseCase(), state.PendingJobState(),
-		state.ChainState(), logger)
+	chainSessionMngr := chains.ChainSessionManager(apiClient, ethClient, chainUCs, state.PendingJobState(),
+		state.SubscriptionState(), state.ChainState(), logger)
 
 	return &sessionMngrs{
 		chainSessionMngr:    chainSessionMngr,

@@ -5,6 +5,8 @@ import (
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"github.com/consensys/orchestrate/src/entities"
+	ethcommon "github.com/ethereum/go-ethereum/common"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 )
 
 //go:generate mockgen -source=event_streams.go -destination=mocks/event_streams.go -package=mocks
@@ -15,6 +17,7 @@ type EventStreamsUseCases interface {
 	Update() UpdateEventStreamUseCase
 	Search() SearchEventStreamsUseCase
 	NotifyTransaction() NotifyTransactionUseCase
+	NotifyContractEvents() NotifyContractEventsUseCase
 	Delete() DeleteEventStreamUseCase
 }
 
@@ -36,6 +39,10 @@ type SearchEventStreamsUseCase interface {
 
 type NotifyTransactionUseCase interface {
 	Execute(ctx context.Context, job *entities.Job, errStr string, userInfo *multitenancy.UserInfo) error
+}
+
+type NotifyContractEventsUseCase interface {
+	Execute(ctx context.Context, chainUUID string, address ethcommon.Address, eventLogs []ethtypes.Log, userInfo *multitenancy.UserInfo) error
 }
 
 type DeleteEventStreamUseCase interface {

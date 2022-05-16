@@ -19,6 +19,7 @@ type CreateJobRequest struct {
 	ParentJobUUID string                `json:"parentJobUUID" validate:"omitempty,uuid4" example:"b4374e6f-b28a-4bad-b4fe-bda36eaf849c"` // UUID of the parent job.
 }
 
+// @TODO Deprecated
 type UpdateJobRequest struct {
 	Labels      map[string]string      `json:"labels,omitempty"` // List of custom labels.
 	Annotations *Annotations           `json:"annotations,omitempty"`

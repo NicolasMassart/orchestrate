@@ -40,11 +40,13 @@ func New(ctx context.Context, cfg *Config, notifierCfg *notifier.Config) (*Daemo
 	if err != nil {
 		return nil, err
 	}
+
+	// @TODO Decouple initialization of api and notifier to prevent this overhead of merging topics
 	messengerClient := messenger.NewProducerClient(&messenger.Config{
-		TopicAPI:        notifierCfg.TopicAPI,
-		TopicTxListener: cfg.KafkaTopics.Listener,
-		TopicTxSender:   cfg.KafkaTopics.Sender,
-		TopicTxNotifier: cfg.KafkaTopics.Notifier,
+		TopicAPI:        notifierCfg.Messenger.TopicAPI,
+		TopicTxListener: cfg.Messenger.TopicTxListener,
+		TopicTxSender:   cfg.Messenger.TopicTxSender,
+		TopicNotifier:   notifierCfg.ConsumerTopic,
 	}, kafkaProdClient)
 	webhookProducer := webhook.New(http.DefaultClient)
 

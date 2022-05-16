@@ -202,6 +202,10 @@ func (s *jobsTestSuite) TestUpdatePending() {
 		require.NoError(s.T(), err)
 
 		_, err = s.client.UpdateJob(ctx, job.UUID, &api.UpdateJobRequest{
+			Status: entities.StatusStarted,
+		})
+
+		_, err = s.client.UpdateJob(ctx, job.UUID, &api.UpdateJobRequest{
 			Status: entities.StatusPending,
 		})
 		require.NoError(s.T(), err)
@@ -241,6 +245,14 @@ func (s *jobsTestSuite) TestUpdateNotifyWithKafka() {
 		job, err := s.client.CreateJob(ctx, req)
 		require.NoError(s.T(), err)
 
+		_, err = s.client.UpdateJob(ctx, job.UUID, &api.UpdateJobRequest{
+			Status: entities.StatusStarted,
+		})
+
+		_, err = s.client.UpdateJob(ctx, job.UUID, &api.UpdateJobRequest{
+			Status: entities.StatusPending,
+		})
+
 		receipt := testdata2.FakeReceipt()
 		_, err = s.client.UpdateJob(ctx, job.UUID, &api.UpdateJobRequest{
 			Status:  entities.StatusMined,
@@ -265,6 +277,10 @@ func (s *jobsTestSuite) TestUpdateNotifyWithKafka() {
 		req.Transaction.From = nil
 		job, err := s.client.CreateJob(ctx, req)
 		require.NoError(s.T(), err)
+
+		_, err = s.client.UpdateJob(ctx, job.UUID, &api.UpdateJobRequest{
+			Status: entities.StatusStarted,
+		})
 
 		failedErrMsg := "ErrorMsg"
 		_, err = s.client.UpdateJob(ctx, job.UUID, &api.UpdateJobRequest{

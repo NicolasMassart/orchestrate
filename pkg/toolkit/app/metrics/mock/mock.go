@@ -143,13 +143,13 @@ func (m *MockRegistry) EXPECT() *MockRegistryMockRecorder {
 	return m.recorder
 }
 
-// Add mocks base method
+// Append mocks base method
 func (m_2 *MockRegistry) Add(m metrics.Prometheus) {
 	m_2.ctrl.T.Helper()
 	m_2.ctrl.Call(m_2, "Add", m)
 }
 
-// Add indicates an expected call of Add
+// Append indicates an expected call of Append
 func (mr *MockRegistryMockRecorder) Add(m interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockRegistry)(nil).Add), m)

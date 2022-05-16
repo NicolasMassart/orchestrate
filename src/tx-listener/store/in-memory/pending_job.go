@@ -10,23 +10,25 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-type pendingJobInMemory struct {
-	indexedByJobUUID   map[string]*entities.Job
-	indexedByTxHash    map[string]*entities.Job
-	indexedByChainUUID map[string]map[string]bool
-	mux                *sync.RWMutex
+type pendingJobState struct {
+	indexedByJobUUID       map[string]*entities.Job
+	indexedByParentJobUUID map[string][]string
+	indexedByTxHash        map[string]*entities.Job
+	indexedByChainUUID     map[string]map[string]bool
+	mux                    *sync.RWMutex
 }
 
-func NewPendingJobInMemory() store.PendingJob {
-	return &pendingJobInMemory{
-		indexedByJobUUID:   make(map[string]*entities.Job),   // JobUUID => Job
-		indexedByTxHash:    make(map[string]*entities.Job),   // TxHash => Job
-		indexedByChainUUID: make(map[string]map[string]bool), // ChainUUID => JobUUID => bool
-		mux:                &sync.RWMutex{},
+func NewPendingJobState() store.PendingJob {
+	return &pendingJobState{
+		indexedByJobUUID:       make(map[string]*entities.Job),   // JobUUID => Job
+		indexedByParentJobUUID: make(map[string][]string),        // ParentJobUUID => []childrenJobUUID
+		indexedByTxHash:        make(map[string]*entities.Job),   // TxHash => Job
+		indexedByChainUUID:     make(map[string]map[string]bool), // ChainUUID => JobUUID => bool
+		mux:                    &sync.RWMutex{},
 	}
 }
 
-func (m *pendingJobInMemory) Add(_ context.Context, job *entities.Job) error {
+func (m *pendingJobState) Add(_ context.Context, job *entities.Job) error {
 	m.mux.Lock()
 	defer m.mux.Unlock()
 	if _, ok := m.indexedByJobUUID[job.UUID]; ok {
@@ -39,14 +41,23 @@ func (m *pendingJobInMemory) Add(_ context.Context, job *entities.Job) error {
 		m.indexedByChainUUID[job.ChainUUID] = make(map[string]bool)
 	}
 	m.indexedByChainUUID[job.ChainUUID][job.UUID] = true
+
+	if job.InternalData.ParentJobUUID != "" {
+		if _, ok := m.indexedByParentJobUUID[job.InternalData.ParentJobUUID]; !ok {
+			m.indexedByParentJobUUID[job.InternalData.ParentJobUUID] = []string{}
+		}
+
+		m.indexedByParentJobUUID[job.InternalData.ParentJobUUID] = append(m.indexedByParentJobUUID[job.InternalData.ParentJobUUID], job.UUID)
+	}
+
 	return nil
 }
 
-func (m *pendingJobInMemory) Update(_ context.Context, job *entities.Job) error {
+func (m *pendingJobState) Update(_ context.Context, job *entities.Job) error {
 	m.mux.Lock()
 	defer m.mux.Unlock()
 	if _, ok := m.indexedByJobUUID[job.UUID]; !ok {
-		return errors.NotFoundError("job %q is duplicated", job.UUID)
+		return errors.NotFoundError("job %q is not found", job.UUID)
 	}
 
 	previousJob := m.indexedByJobUUID[job.UUID]
@@ -56,12 +67,14 @@ func (m *pendingJobInMemory) Update(_ context.Context, job *entities.Job) error 
 	return nil
 }
 
-func (m *pendingJobInMemory) Remove(_ context.Context, jobUUID string) error {
+func (m *pendingJobState) Remove(ctx context.Context, jobUUID string) error {
+	_, err := m.GetJobUUID(ctx, jobUUID)
+	if err != nil {
+		return err
+	}
+
 	m.mux.Lock()
 	defer m.mux.Unlock()
-	if _, ok := m.indexedByJobUUID[jobUUID]; !ok {
-		return errors.NotFoundError("job %q is not found", jobUUID)
-	}
 
 	job := m.indexedByJobUUID[jobUUID]
 	delete(m.indexedByChainUUID[job.ChainUUID], job.UUID)
@@ -70,7 +83,7 @@ func (m *pendingJobInMemory) Remove(_ context.Context, jobUUID string) error {
 	return nil
 }
 
-func (m *pendingJobInMemory) GetByTxHash(_ context.Context, chainUUID string, txHash *common.Hash) (*entities.Job, error) {
+func (m *pendingJobState) GetByTxHash(_ context.Context, chainUUID string, txHash *common.Hash) (*entities.Job, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 	if job, ok := m.indexedByTxHash[txHash.String()]; ok {
@@ -82,7 +95,17 @@ func (m *pendingJobInMemory) GetByTxHash(_ context.Context, chainUUID string, tx
 	return nil, errors.NotFoundError("job with hash %q is not found", txHash.String())
 }
 
-func (m *pendingJobInMemory) GetJobUUID(_ context.Context, jobUUID string) (*entities.Job, error) {
+func (m *pendingJobState) GetChildrenJobUUIDs(_ context.Context, jobUUID string) []string {
+	m.mux.RLock()
+	defer m.mux.RUnlock()
+	if childrenUUIDs, ok := m.indexedByParentJobUUID[jobUUID]; ok {
+		return childrenUUIDs
+	}
+
+	return []string{}
+}
+
+func (m *pendingJobState) GetJobUUID(_ context.Context, jobUUID string) (*entities.Job, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 	if _, ok := m.indexedByJobUUID[jobUUID]; !ok {
@@ -91,7 +114,7 @@ func (m *pendingJobInMemory) GetJobUUID(_ context.Context, jobUUID string) (*ent
 	return m.indexedByJobUUID[jobUUID], nil
 }
 
-func (m *pendingJobInMemory) ListPerChainUUID(_ context.Context, chainUUID string) ([]*entities.Job, error) {
+func (m *pendingJobState) ListPerChainUUID(_ context.Context, chainUUID string) ([]*entities.Job, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 	jobs := []*entities.Job{}
@@ -106,7 +129,7 @@ func (m *pendingJobInMemory) ListPerChainUUID(_ context.Context, chainUUID strin
 	return jobs, nil
 }
 
-func (m *pendingJobInMemory) ListChainUUID(_ context.Context, chainUUID string) ([]string, error) {
+func (m *pendingJobState) ListChainUUID(_ context.Context, chainUUID string) ([]string, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 	chainUUIDs := []string{}
@@ -117,7 +140,7 @@ func (m *pendingJobInMemory) ListChainUUID(_ context.Context, chainUUID string) 
 	return chainUUIDs, nil
 }
 
-func (m *pendingJobInMemory) DeletePerChainUUID(ctx context.Context, chainUUID string) error {
+func (m *pendingJobState) DeletePerChainUUID(ctx context.Context, chainUUID string) error {
 	// @TODO Mutex
 	if _, ok := m.indexedByChainUUID[chainUUID]; !ok {
 		return errors.NotFoundError("there is not jobs in chain %q", chainUUID)

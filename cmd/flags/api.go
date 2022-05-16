@@ -38,15 +38,10 @@ func NewAPIFlags(f *pflag.FlagSet) {
 
 func NewAPIConfig(vipr *viper.Viper) *api.Config {
 	return &api.Config{
-		App:      app.NewConfig(vipr),
-		Postgres: NewPGConfig(vipr),
-		Kafka:    NewKafkaConfig(vipr),
-		KafkaTopics: &api.TopicConfig{
-			API:      viper.GetString(APITopicViperKey),
-			Sender:   viper.GetString(TxSenderViperKey),
-			Listener: viper.GetString(TxListenerViperKey),
-			Notifier: viper.GetString(NotifierTopicViperKey),
-		},
+		App:          app.NewConfig(vipr),
+		Postgres:     NewPGConfig(vipr),
+		Kafka:        NewKafkaConfig(vipr),
+		Messenger:    NewConsumerConfig(vipr),
 		Multitenancy: vipr.GetBool(multitenancy.EnabledViperKey),
 		Proxy:        proxy.NewConfig(),
 		QKM:          NewQKMConfig(vipr),

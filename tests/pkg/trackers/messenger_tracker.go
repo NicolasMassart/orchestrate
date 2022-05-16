@@ -3,13 +3,18 @@ package trackers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"time"
+
 	"github.com/consensys/orchestrate/src/api/service/listener"
 	"github.com/consensys/orchestrate/src/api/service/types"
-	"time"
 
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/pkg/utils"
+	api "github.com/consensys/orchestrate/src/api/service/listener"
+	apiTypes "github.com/consensys/orchestrate/src/api/service/types"
+	"github.com/consensys/orchestrate/src/entities"
 	kafka "github.com/consensys/orchestrate/src/infra/kafka/sarama"
 	"github.com/consensys/orchestrate/src/infra/messenger"
 	messengerkafka "github.com/consensys/orchestrate/src/infra/messenger/kafka"
@@ -64,16 +69,20 @@ func NewMessengerConsumerTracker(cfg kafka.Config, topics []string) (*MessengerC
 	msg.trackMessageType(listener.AckNotificationMessageType, &types.AckNotificationRequestMessage{}, func(req interface{}) string {
 		return req.(*types.AckNotificationRequestMessage).UUID
 	})
+	msg.trackMessageType(api.UpdateJobMessageType, &apiTypes.JobUpdateMessageRequest{}, func(req interface{}) string {
+		dReq := req.(*apiTypes.JobUpdateMessageRequest)
+		return fmt.Sprintf("%s-%s", dReq.JobUUID, dReq.Status) 
+	})
 
 	return msg, nil
 }
 
-func (m *MessengerConsumerTracker) trackMessageType(msgType messenger.ConsumerRequestMessageType, req interface{}, keyGenFunc KeyGenFunc) {
+func (m *MessengerConsumerTracker) trackMessageType(msgType entities.RequestMessageType, req interface{}, keyGenFunc KeyGenFunc) {
 	m.consumer.AppendHandler(msgType, m.trackMessageHandle(req, msgType, keyGenFunc))
 }
 
-func (m *MessengerConsumerTracker) WaitForStartedJobMessage(ctx context.Context, msgId string, timeout time.Duration) (*txsenderTypes.StartedJobReq, error) {
-	msg, err := m.tracker.WaitForMessage(ctx, keyGenOf(msgId, string(txsender.StartedJobMessageType)), timeout)
+func (m *MessengerConsumerTracker) WaitForStartedJobMessage(ctx context.Context, jobUUID string, timeout time.Duration) (*txsenderTypes.StartedJobReq, error) {
+	msg, err := m.tracker.WaitForMessage(ctx, keyGenOf(jobUUID, string(txsender.StartedJobMessageType)), timeout)
 	if err != nil {
 		return nil, err
 	}
@@ -84,8 +93,8 @@ func (m *MessengerConsumerTracker) WaitForStartedJobMessage(ctx context.Context,
 	return req, nil
 }
 
-func (m *MessengerConsumerTracker) WaitForPendingJobMessage(ctx context.Context, msgId string, timeout time.Duration) (*txlistenerTypes.PendingJobMessageRequest, error) {
-	msg, err := m.tracker.WaitForMessage(ctx, keyGenOf(msgId, string(txlistener.PendingJobMessageType)), timeout)
+func (m *MessengerConsumerTracker) WaitForPendingJobMessage(ctx context.Context, jobUUID string, timeout time.Duration) (*txlistenerTypes.PendingJobMessageRequest, error) {
+	msg, err := m.tracker.WaitForMessage(ctx, keyGenOf(jobUUID, string(txlistener.PendingJobMessageType)), timeout)
 	if err != nil {
 		return nil, err
 	}
@@ -96,8 +105,20 @@ func (m *MessengerConsumerTracker) WaitForPendingJobMessage(ctx context.Context,
 	return req, nil
 }
 
-func (m *MessengerConsumerTracker) WaitForTransactionNotificationMessage(ctx context.Context, msgId string, timeout time.Duration) (*notifierTypes.TransactionMessageRequest, error) {
-	msg, err := m.tracker.WaitForMessage(ctx, keyGenOf(msgId, string(notifier2.TransactionMessageType)), timeout)
+func (m *MessengerConsumerTracker) WaitForUpdateJobMessage(ctx context.Context, jobUUID string, status entities.JobStatus, timeout time.Duration) (*apiTypes.JobUpdateMessageRequest, error) {
+	msg, err := m.tracker.WaitForMessage(ctx, keyGenOf(fmt.Sprintf("%s-%s", jobUUID, status) , string(api.UpdateJobMessageType)), timeout)
+	if err != nil {
+		return nil, err
+	}
+	req, ok := msg.(*apiTypes.JobUpdateMessageRequest)
+	if !ok {
+		return nil, errors.EncodingError(invalidTypeErr)
+	}
+	return req, nil
+}
+
+func (m *MessengerConsumerTracker) WaitForTransactionNotificationMessage(ctx context.Context, jobUUID string, timeout time.Duration) (*notifierTypes.TransactionMessageRequest, error) {
+	msg, err := m.tracker.WaitForMessage(ctx, keyGenOf(jobUUID, string(notifier2.TransactionMessageType)), timeout)
 	if err != nil {
 		return nil, err
 	}
@@ -144,9 +165,9 @@ func (m *MessengerConsumerTracker) Close() error {
 	return m.consumer.Close()
 }
 
-func (m *MessengerConsumerTracker) trackMessageHandle(req interface{}, msgType messenger.ConsumerRequestMessageType, keyGenFunc KeyGenFunc) messenger.MessageHandler {
-	return func(_ context.Context, rawReq []byte) error {
-		err := json.Unmarshal(rawReq, req)
+func (m *MessengerConsumerTracker) trackMessageHandle(req interface{}, msgType entities.RequestMessageType, keyGenFunc KeyGenFunc) messenger.MessageHandler {
+	return func(_ context.Context, msg *entities.Message) error {
+		err := json.Unmarshal(msg.Body, req)
 
 		msgId := keyGenOf(keyGenFunc(req), string(msgType))
 		if !m.chanRegistry.HasChan(msgId) {

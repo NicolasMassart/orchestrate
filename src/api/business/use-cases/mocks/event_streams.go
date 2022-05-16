@@ -9,6 +9,8 @@ import (
 	multitenancy "github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	usecases "github.com/consensys/orchestrate/src/api/business/use-cases"
 	entities "github.com/consensys/orchestrate/src/entities"
+	common "github.com/ethereum/go-ethereum/common"
+	types "github.com/ethereum/go-ethereum/core/types"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -104,6 +106,20 @@ func (m *MockEventStreamsUseCases) NotifyTransaction() usecases.NotifyTransactio
 func (mr *MockEventStreamsUseCasesMockRecorder) NotifyTransaction() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyTransaction", reflect.TypeOf((*MockEventStreamsUseCases)(nil).NotifyTransaction))
+}
+
+// NotifyContractEvents mocks base method
+func (m *MockEventStreamsUseCases) NotifyContractEvents() usecases.NotifyContractEventsUseCase {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NotifyContractEvents")
+	ret0, _ := ret[0].(usecases.NotifyContractEventsUseCase)
+	return ret0
+}
+
+// NotifyContractEvents indicates an expected call of NotifyContractEvents
+func (mr *MockEventStreamsUseCasesMockRecorder) NotifyContractEvents() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyContractEvents", reflect.TypeOf((*MockEventStreamsUseCases)(nil).NotifyContractEvents))
 }
 
 // Delete mocks base method
@@ -307,6 +323,43 @@ func (m *MockNotifyTransactionUseCase) Execute(ctx context.Context, job *entitie
 func (mr *MockNotifyTransactionUseCaseMockRecorder) Execute(ctx, job, errStr, userInfo interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockNotifyTransactionUseCase)(nil).Execute), ctx, job, errStr, userInfo)
+}
+
+// MockNotifyContractEventsUseCase is a mock of NotifyContractEventsUseCase interface
+type MockNotifyContractEventsUseCase struct {
+	ctrl     *gomock.Controller
+	recorder *MockNotifyContractEventsUseCaseMockRecorder
+}
+
+// MockNotifyContractEventsUseCaseMockRecorder is the mock recorder for MockNotifyContractEventsUseCase
+type MockNotifyContractEventsUseCaseMockRecorder struct {
+	mock *MockNotifyContractEventsUseCase
+}
+
+// NewMockNotifyContractEventsUseCase creates a new mock instance
+func NewMockNotifyContractEventsUseCase(ctrl *gomock.Controller) *MockNotifyContractEventsUseCase {
+	mock := &MockNotifyContractEventsUseCase{ctrl: ctrl}
+	mock.recorder = &MockNotifyContractEventsUseCaseMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockNotifyContractEventsUseCase) EXPECT() *MockNotifyContractEventsUseCaseMockRecorder {
+	return m.recorder
+}
+
+// Execute mocks base method
+func (m *MockNotifyContractEventsUseCase) Execute(ctx context.Context, chainUUID string, address common.Address, eventLogs []types.Log, userInfo *multitenancy.UserInfo) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Execute", ctx, chainUUID, address, eventLogs, userInfo)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Execute indicates an expected call of Execute
+func (mr *MockNotifyContractEventsUseCaseMockRecorder) Execute(ctx, chainUUID, address, eventLogs, userInfo interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockNotifyContractEventsUseCase)(nil).Execute), ctx, chainUUID, address, eventLogs, userInfo)
 }
 
 // MockDeleteEventStreamUseCase is a mock of DeleteEventStreamUseCase interface

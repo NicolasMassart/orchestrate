@@ -16,21 +16,24 @@ const retryJobSessionMngrComponent = "tx-listener.use-case.tx-sentry.session-man
 
 type RetryJobSessionMngr struct {
 	sendRetryJobUseCase usecases.RetryJob
-	client              sdk.OrchestrateClient
+	messengerAPI        sdk.MessengerAPI
+	jobClient           sdk.JobClient
 	retrySessionState   store.RetryJobSession
 	pendingJobState     store.PendingJob
 	logger              *log.Logger
 }
 
-func NewRetrySessionManager(client sdk.OrchestrateClient,
+func NewRetrySessionManager(messengerAPI sdk.MessengerAPI,
+	jobClient sdk.JobClient,
 	sendRetryJobUseCase usecases.RetryJob,
 	retrySessionState store.RetryJobSession,
 	pendingJobState store.PendingJob,
 	logger *log.Logger,
 ) sessions.RetryJobSessionManager {
 	return &RetryJobSessionMngr{
+		messengerAPI:        messengerAPI,
 		sendRetryJobUseCase: sendRetryJobUseCase,
-		client:              client,
+		jobClient:           jobClient,
 		retrySessionState:   retrySessionState,
 		pendingJobState:     pendingJobState,
 		logger:              logger.SetComponent(retryJobSessionMngrComponent),
@@ -48,7 +51,7 @@ func (mngr *RetryJobSessionMngr) StartSession(ctx context.Context, job *entities
 		return errors.AlreadyExistsError(errMsg)
 	}
 
-	sess := NewRetryJobSession(mngr.client, mngr.sendRetryJobUseCase, mngr.pendingJobState, job, logger)
+	sess := NewRetryJobSession(mngr.messengerAPI, mngr.jobClient, mngr.sendRetryJobUseCase, mngr.pendingJobState, job, logger)
 
 	err := mngr.retrySessionState.Add(ctx, job)
 	if err != nil {

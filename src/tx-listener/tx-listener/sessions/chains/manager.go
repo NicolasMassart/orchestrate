@@ -2,7 +2,9 @@ package chains
 
 import (
 	"context"
+	"time"
 
+	"github.com/cenkalti/backoff/v4"
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
@@ -15,28 +17,31 @@ import (
 const listenBlocksComponent = "tx-listener.chains.session-manager"
 
 type ChainSessionMngr struct {
-	ethClient       ethclient.Client
-	apiClient       sdk.OrchestrateClient
-	chainBlockTxsUC usecases.ChainBlock
-	logger          *log.Logger
-	pendingJobState store.PendingJob
-	chainState      store.Chain
+	ethClient          ethclient.Client
+	apiClient          sdk.OrchestrateClient
+	chainUCs           usecases.ChainUseCases
+	logger             *log.Logger
+	pendingJobState    store.PendingJob
+	subscriptionsState store.Subscriptions
+	chainState         store.Chain
 }
 
 func ChainSessionManager(apiClient sdk.OrchestrateClient,
 	ethClient ethclient.Client,
-	chainBlockTxsUC usecases.ChainBlock,
+	chainUCs usecases.ChainUseCases,
 	pendingJobState store.PendingJob,
+	subscriptionsState store.Subscriptions,
 	chainState store.Chain,
 	logger *log.Logger,
 ) *ChainSessionMngr {
 	return &ChainSessionMngr{
-		ethClient:       ethClient,
-		apiClient:       apiClient,
-		chainBlockTxsUC: chainBlockTxsUC,
-		pendingJobState: pendingJobState,
-		chainState:      chainState,
-		logger:          logger.SetComponent(listenBlocksComponent),
+		ethClient:          ethClient,
+		apiClient:          apiClient,
+		chainUCs:           chainUCs,
+		pendingJobState:    pendingJobState,
+		subscriptionsState: subscriptionsState,
+		chainState:         chainState,
+		logger:             logger.SetComponent(listenBlocksComponent),
 	}
 }
 
@@ -44,7 +49,7 @@ func (l *ChainSessionMngr) StartSession(ctx context.Context, chainUUID string) e
 	logger := l.logger.WithField("chain", chainUUID)
 
 	chain, err := l.chainState.Get(ctx, chainUUID)
-	if err != nil {
+	if err != nil && !errors.IsNotFoundError(err) {
 		return err
 	}
 
@@ -69,21 +74,40 @@ func (l *ChainSessionMngr) StartSession(ctx context.Context, chainUUID string) e
 		return err
 	}
 
-	sess := NewChainListenerSession(l.apiClient, l.ethClient, l.chainBlockTxsUC, chain, l.pendingJobState, l.logger)
+	sess := NewChainListenerSession(l.apiClient, l.ethClient, l.chainUCs.ChainBlockTxsUseCase(), l.chainUCs.ChainBlockEventsUseCase(),
+		chain, l.pendingJobState, l.subscriptionsState, l.logger)
 
 	go func(s *ChainListenerSession) {
-		// @TODO How to propagate error ???
-		err := s.Start(ctx)
+		err = backoff.RetryNotify(func() error {
+			err2 := s.Start(ctx)
+			switch {
+			case err2 == nil:
+				return nil
+			case err2 == context.DeadlineExceeded || err2 == context.Canceled:
+				return nil
+			case ctx.Err() != nil:
+				return nil
+			default:
+				return err
+			}
+		}, backoff.NewConstantBackOff(time.Second*2), func(e error, duration time.Duration) {
+			log.FromContext(ctx).
+				WithError(e).
+				Warnf("failed to run chain listener, restarting session in %v...", duration)
+		})
+
 		if err != nil {
-			errMsg := "failed to run chain listening session"
-			logger.WithError(err).Error(errMsg)
+			logger.WithError(err).Error("chain listener session has exited with errors")
+			return
 		}
 
 		err = l.removeSession(ctx, chainUUID)
 		if err != nil {
-			errMsg := "failed to removing chain listening session"
+			errMsg := "failed to removing chain listener session"
 			logger.WithError(err).Error(errMsg)
 		}
+
+		logger.Info("chain listener session has exited gracefully")
 	}(sess)
 
 	return nil

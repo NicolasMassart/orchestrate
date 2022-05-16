@@ -3,6 +3,7 @@ package flags
 import (
 	"fmt"
 
+	"github.com/consensys/orchestrate/pkg/sdk/messenger"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
@@ -74,4 +75,13 @@ func KafkaTopicAPI(f *pflag.FlagSet) {
 Environment variable: %q`, apiTopicEnv)
 	f.String(apiTopicFlag, apiTopicDefault, desc)
 	_ = viper.BindPFlag(APITopicViperKey, f.Lookup(apiTopicFlag))
+}
+
+func NewConsumerConfig(vipr *viper.Viper) *messenger.Config {
+	return &messenger.Config{
+		TopicAPI:        vipr.GetString(APITopicViperKey),
+		TopicTxSender:   vipr.GetString(TxSenderViperKey),
+		TopicTxListener: vipr.GetString(TxListenerViperKey),
+		TopicNotifier:   vipr.GetString(NotifierTopicViperKey),
+	}
 }

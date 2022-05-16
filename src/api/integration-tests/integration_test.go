@@ -44,7 +44,7 @@ func (s *apiTestSuite) SetupSuite() {
 	require.NoError(s.T(), err)
 
 	s.messenger = messenger.NewProducerClient(&messenger.Config{
-		TopicAPI: s.env.apiCfg.KafkaTopics.API,
+		TopicAPI: s.env.apiCfg.Messenger.TopicAPI,
 	}, kafkaProducer)
 
 	// @TODO Remove this hidden dependency

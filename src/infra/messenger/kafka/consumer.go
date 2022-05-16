@@ -1,30 +1,31 @@
 package kafka
 
 import (
-	"bytes"
 	"context"
 	encoding "encoding/json"
 	"fmt"
 
+	"github.com/Shopify/sarama"
 	"github.com/consensys/orchestrate/pkg/errors"
 	authutils "github.com/consensys/orchestrate/pkg/toolkit/app/auth/utils"
+	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
-	infra "github.com/consensys/orchestrate/src/infra/api"
+	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/infra/kafka"
 	kafkasarama "github.com/consensys/orchestrate/src/infra/kafka/sarama"
-
-	"github.com/Shopify/sarama"
-	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
 	"github.com/consensys/orchestrate/src/infra/messenger"
 )
 
+const consumerComponent = "messenger.kafka.consumer"
+
 type Consumer struct {
-	consumerGroup kafka.ConsumerGroup
-	handler       map[messenger.ConsumerRequestMessageType]messenger.MessageHandler
-	topics        []string
-	cancel        context.CancelFunc
-	logger        *log.Logger
-	err           error
+	consumerGroup       kafka.ConsumerGroup
+	handler             map[entities.RequestMessageType]messenger.MessageHandler
+	topics              []string
+	cancel              context.CancelFunc
+	logger              *log.Logger
+	disableCommitOnRead bool
+	err                 error
 }
 
 var _ messenger.Consumer = &Consumer{}
@@ -35,12 +36,15 @@ func NewMessageConsumer(id string, cfg *kafkasarama.Config, topics []string) (*C
 		return nil, err
 	}
 
-	return &Consumer{
-		consumerGroup: consumerGroup,
-		topics:        topics,
-		logger:        log.NewLogger().SetComponent(id),
-		handler:       map[messenger.ConsumerRequestMessageType]messenger.MessageHandler{},
-	}, nil
+	consumer := &Consumer{
+		consumerGroup:       consumerGroup,
+		topics:              topics,
+		disableCommitOnRead: cfg.DisableCommitOnRead,
+		logger:              log.NewLogger().SetComponent(consumerComponent + "." + id),
+		handler:             map[entities.RequestMessageType]messenger.MessageHandler{},
+	}
+
+	return consumer, nil
 }
 
 func (cl *Consumer) Consume(ctx context.Context) error {
@@ -84,7 +88,7 @@ func (cl *Consumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim sara
 	return cl.err
 }
 
-func (cl *Consumer) AppendHandler(msgType messenger.ConsumerRequestMessageType, msgHandler messenger.MessageHandler) {
+func (cl *Consumer) AppendHandler(msgType entities.RequestMessageType, msgHandler messenger.MessageHandler) {
 	cl.handler[msgType] = msgHandler
 }
 
@@ -107,18 +111,17 @@ func (cl *Consumer) consumeClaimLoop(ctx context.Context, session sarama.Consume
 
 			logger.WithField("timestamp", msg.Timestamp).Trace("message consumed")
 
-			req := &ConsumerRequestMessage{}
-			err := infra.UnmarshalBody(bytes.NewReader(msg.Value), req)
+			reqMsg, err := NewMessage(msg, session)
 			if err != nil {
-				errMessage := "failed to decode notification request"
+				errMessage := "failed to decode message request"
 				logger.WithError(err).Error(errMessage)
 				session.MarkMessage(msg, "")
 				continue
 			}
 
-			handlerFunc, ok := cl.handler[req.Type]
+			handlerFunc, ok := cl.handler[reqMsg.Type]
 			if !ok {
-				errMessage := fmt.Sprintf("missing handler for request type %s", req.Type)
+				errMessage := fmt.Sprintf("missing handler for request type %s", reqMsg.Type)
 				logger.Error(errMessage)
 				session.MarkMessage(msg, "")
 				continue
@@ -132,7 +135,7 @@ func (cl *Consumer) consumeClaimLoop(ctx context.Context, session sarama.Consume
 				}
 			}
 
-			err = handlerFunc(ctx, req.Body)
+			err = handlerFunc(ctx, reqMsg)
 			if err != nil {
 				logger.WithError(err).Error("message has been processed with errors")
 				// Invalid req format do not exit loop
@@ -143,8 +146,11 @@ func (cl *Consumer) consumeClaimLoop(ctx context.Context, session sarama.Consume
 				logger.Debug("message has been processed successfully")
 			}
 
-			session.MarkMessage(msg, "")
-			session.Commit()
+			if !cl.disableCommitOnRead {
+				session.MarkMessage(msg, "")
+				session.Commit()
+				cl.logger.WithField("offset", msg.Offset+1).Debug("message has been auto committed")
+			}
 		}
 	}
 }

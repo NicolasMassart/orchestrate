@@ -51,13 +51,13 @@ func (mr *MockCounterMockRecorder) With(labelValues ...interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "With", reflect.TypeOf((*MockCounter)(nil).With), labelValues...)
 }
 
-// Add mocks base method
+// Append mocks base method
 func (m *MockCounter) Add(delta float64) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "Add", delta)
 }
 
-// Add indicates an expected call of Add
+// Append indicates an expected call of Append
 func (mr *MockCounterMockRecorder) Add(delta interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockCounter)(nil).Add), delta)
@@ -116,13 +116,13 @@ func (mr *MockGaugeMockRecorder) Set(value interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockGauge)(nil).Set), value)
 }
 
-// Add mocks base method
+// Append mocks base method
 func (m *MockGauge) Add(delta float64) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "Add", delta)
 }
 
-// Add indicates an expected call of Add
+// Append indicates an expected call of Append
 func (mr *MockGaugeMockRecorder) Add(delta interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockGauge)(nil).Add), delta)

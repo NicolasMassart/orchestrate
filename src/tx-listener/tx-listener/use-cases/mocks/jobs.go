@@ -36,17 +36,17 @@ func (m *MockPendingJob) EXPECT() *MockPendingJobMockRecorder {
 }
 
 // Execute mocks base method
-func (m *MockPendingJob) Execute(ctx context.Context, job *entities.Job) error {
+func (m *MockPendingJob) Execute(ctx context.Context, job *entities.Job, msg *entities.Message) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Execute", ctx, job)
+	ret := m.ctrl.Call(m, "Execute", ctx, job, msg)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Execute indicates an expected call of Execute
-func (mr *MockPendingJobMockRecorder) Execute(ctx, job interface{}) *gomock.Call {
+func (mr *MockPendingJobMockRecorder) Execute(ctx, job, msg interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockPendingJob)(nil).Execute), ctx, job)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockPendingJob)(nil).Execute), ctx, job, msg)
 }
 
 // MockFailedJob is a mock of FailedJob interface
@@ -121,6 +121,43 @@ func (m *MockMinedJob) Execute(ctx context.Context, job *entities.Job) error {
 func (mr *MockMinedJobMockRecorder) Execute(ctx, job interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockMinedJob)(nil).Execute), ctx, job)
+}
+
+// MockCompletedJob is a mock of CompletedJob interface
+type MockCompletedJob struct {
+	ctrl     *gomock.Controller
+	recorder *MockCompletedJobMockRecorder
+}
+
+// MockCompletedJobMockRecorder is the mock recorder for MockCompletedJob
+type MockCompletedJobMockRecorder struct {
+	mock *MockCompletedJob
+}
+
+// NewMockCompletedJob creates a new mock instance
+func NewMockCompletedJob(ctrl *gomock.Controller) *MockCompletedJob {
+	mock := &MockCompletedJob{ctrl: ctrl}
+	mock.recorder = &MockCompletedJobMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockCompletedJob) EXPECT() *MockCompletedJobMockRecorder {
+	return m.recorder
+}
+
+// Execute mocks base method
+func (m *MockCompletedJob) Execute(ctx context.Context, job *entities.Job) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Execute", ctx, job)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Execute indicates an expected call of Execute
+func (mr *MockCompletedJobMockRecorder) Execute(ctx, job interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockCompletedJob)(nil).Execute), ctx, job)
 }
 
 // MockRetryJob is a mock of RetryJob interface

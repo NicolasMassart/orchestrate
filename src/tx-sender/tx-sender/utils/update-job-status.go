@@ -5,31 +5,32 @@ import (
 
 	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
-	"github.com/consensys/orchestrate/src/api/service/formatters"
+	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	api "github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities"
 )
 
-func UpdateJobStatus(ctx context.Context, apiClient sdk.JobClient, job *entities.Job, status entities.JobStatus,
+func UpdateJobStatus(ctx context.Context, messenger sdk.MessengerAPI, job *entities.Job, status entities.JobStatus,
 	msg string, transaction *entities.ETHTransaction) error {
-	logger := log.FromContext(ctx).WithField("status", status)
+	logger := log.FromContext(ctx).WithField("job", job.UUID).WithField("status", status)
 
-	txUpdateReq := &api.UpdateJobRequest{
+	txUpdateReq := &api.JobUpdateMessageRequest{
+		JobUUID: job.UUID,
 		Status:  status,
 		Message: msg,
 	}
 
 	if transaction != nil {
-		txUpdateReq.Transaction = formatters.ETHTransactionRequestToEntity(transaction)
+		txUpdateReq.Transaction = transaction
 	}
 
-	_, err := apiClient.UpdateJob(ctx, job.UUID, txUpdateReq)
+	err := messenger.JobUpdateMessage(ctx, txUpdateReq, multitenancy.NewInternalAdminUser())
 	if err != nil {
 		logger.WithError(err).Error("failed to update job status")
 		return err
 	}
 
 	job.Status = status
-	logger.Debug("job status was updated successfully")
+	logger.Info("job status update was sent successfully")
 	return nil
 }

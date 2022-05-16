@@ -45,6 +45,7 @@ func KafkaConsumerFlags(f *pflag.FlagSet) {
 	kafkaNumberConsumers(f)
 }
 
+// @TODO use different group per service
 // Kafka Consumer group environment variables
 const (
 	consumerGroupNameFlag     = "consumer-group-name"

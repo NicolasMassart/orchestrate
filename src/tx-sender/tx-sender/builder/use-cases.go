@@ -19,7 +19,7 @@ type useCases struct {
 	sendGoQuorumMarkingTx usecases.SendGoQuorumMarkingTxUseCase
 }
 
-func NewUseCases(jobClient sdk.JobClient,
+func NewUseCases(messengerAPI sdk.MessengerAPI,
 	keyManagerClient keymanager.KeyManagerClient,
 	ec ethclient.MultiClient,
 	nonceManager nonce.Manager,
@@ -32,11 +32,11 @@ func NewUseCases(jobClient sdk.JobClient,
 	crafterUC := crafter.NewCraftTransactionUseCase(ec, chainRegistryURL, nonceManager)
 
 	return &useCases{
-		sendETHTx:             sender.NewSendEthTxUseCase(signETHTransactionUC, crafterUC, ec, jobClient, chainRegistryURL, nonceManager),
-		sendETHRawTx:          sender.NewSendETHRawTxUseCase(ec, jobClient, chainRegistryURL),
-		sendEEAPrivateTx:      sender.NewSendEEAPrivateTxUseCase(signEEATransactionUC, crafterUC, ec, jobClient, chainRegistryURL, nonceManager),
-		sendGoQuorumPrivateTx: sender.NewSendGoQuorumPrivateTxUseCase(ec, crafterUC, jobClient, chainRegistryURL),
-		sendGoQuorumMarkingTx: sender.NewSendGoQuorumMarkingTxUseCase(signQuorumTransactionUC, crafterUC, ec, jobClient, chainRegistryURL, nonceManager),
+		sendETHTx:             sender.NewSendEthTxUseCase(signETHTransactionUC, crafterUC, ec, messengerAPI, chainRegistryURL, nonceManager),
+		sendETHRawTx:          sender.NewSendETHRawTxUseCase(ec, messengerAPI, chainRegistryURL),
+		sendEEAPrivateTx:      sender.NewSendEEAPrivateTxUseCase(signEEATransactionUC, crafterUC, ec, messengerAPI, chainRegistryURL, nonceManager),
+		sendGoQuorumPrivateTx: sender.NewSendGoQuorumPrivateTxUseCase(ec, crafterUC, messengerAPI, chainRegistryURL),
+		sendGoQuorumMarkingTx: sender.NewSendGoQuorumMarkingTxUseCase(signQuorumTransactionUC, crafterUC, ec, messengerAPI, chainRegistryURL, nonceManager),
 	}
 }
 

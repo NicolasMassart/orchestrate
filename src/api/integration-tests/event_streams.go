@@ -7,6 +7,7 @@ import (
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
@@ -250,6 +251,9 @@ func (s *eventStreamsTestSuite) TestSuspend() {
 
 		err = s.messenger.EventStreamSuspendMessage(ctx, esWebhook.UUID, multitenancy.NewInternalAdminUser())
 		require.NoError(t, err)
+		
+		// Gives time to api consumer to read the message
+		time.Sleep(time.Second * 3)
 
 		esRetrieved, err := s.client.GetEventStream(ctx, esWebhook.UUID)
 		assert.NoError(s.T(), err)

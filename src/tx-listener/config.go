@@ -3,6 +3,7 @@ package txlistener
 import (
 	"time"
 
+	"github.com/consensys/orchestrate/pkg/sdk/messenger"
 	kafka "github.com/consensys/orchestrate/src/infra/kafka/sarama"
 
 	orchestrateclient "github.com/consensys/orchestrate/pkg/sdk/client"
@@ -17,5 +18,6 @@ type Config struct {
 	API                   *orchestrateclient.Config
 	RetryInterval         time.Duration
 	ConsumerTopic         string
+	Messenger             *messenger.Config
 	Kafka                 *kafka.Config
 }

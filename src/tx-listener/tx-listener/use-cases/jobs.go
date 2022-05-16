@@ -9,7 +9,7 @@ import (
 //go:generate mockgen -source=jobs.go -destination=mocks/jobs.go -package=mocks
 
 type PendingJob interface {
-	Execute(ctx context.Context, job *entities.Job) error
+	Execute(ctx context.Context, job *entities.Job, msg *entities.Message) error
 }
 
 type FailedJob interface {
@@ -17,6 +17,10 @@ type FailedJob interface {
 }
 
 type MinedJob interface {
+	Execute(ctx context.Context, job *entities.Job) error
+}
+
+type CompletedJob interface {
 	Execute(ctx context.Context, job *entities.Job) error
 }
 

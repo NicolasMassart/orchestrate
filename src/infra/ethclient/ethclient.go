@@ -109,6 +109,8 @@ type ChainStateReader interface {
 
 	// PendingNonceAt returns account nonce of the given account in the pending state.
 	PendingNonceAt(ctx context.Context, url string, account ethcommon.Address) (uint64, error)
+
+	FilterLogs(ctx context.Context, url string, addresses []ethcommon.Address, FromBlock *big.Int, toBlock *big.Int) ([]ethtypes.Log, error)
 }
 
 type EEAChainStateReader interface {

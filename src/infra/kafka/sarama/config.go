@@ -40,7 +40,9 @@ type Config struct {
 	ReturnErrors      bool
 	ReturnSuccesses   bool
 	AutoCommit        bool
-	NConsumers        int
+	// @TODO Move to messager config
+	DisableCommitOnRead bool
+	NConsumers          int
 }
 
 func (cfg *Config) ToSaramaConfig() (*sarama.Config, error) {

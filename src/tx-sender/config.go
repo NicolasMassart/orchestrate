@@ -3,6 +3,7 @@ package txsender
 import (
 	"time"
 
+	"github.com/consensys/orchestrate/pkg/sdk/messenger"
 	kafka "github.com/consensys/orchestrate/src/infra/kafka/sarama"
 
 	quorumkeymanager "github.com/consensys/orchestrate/src/infra/quorum-key-manager/http"
@@ -22,6 +23,7 @@ type Config struct {
 	App                    *app.Config
 	Kafka                  *kafka.Config
 	ConsumerTopic          string
+	Messenger              *messenger.Config
 	ProxyURL               string
 	BckOff                 backoff.BackOff
 	NonceMaxRecovery       uint64

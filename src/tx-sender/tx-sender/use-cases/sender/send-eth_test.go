@@ -9,7 +9,6 @@ import (
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/sdk/client"
 	"github.com/consensys/orchestrate/pkg/sdk/mock"
-	apitypes "github.com/consensys/orchestrate/src/api/service/types"
 	testdata2 "github.com/consensys/orchestrate/src/api/service/types/testdata"
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/entities/testdata"
@@ -30,12 +29,12 @@ func TestSendEth_Execute(t *testing.T) {
 	signTx := mocks.NewMockSignETHTransactionUseCase(ctrl)
 	ec := mock2.NewMockTransactionSender(ctrl)
 	crafter := mocks.NewMockCraftTransactionUseCase(ctrl)
-	jobClient := mock.NewMockJobClient(ctrl)
+	msgAPI := mock.NewMockMessengerAPI(ctrl)
 	nonceManager := mocks2.NewMockManager(ctrl)
 	chainRegistryURL := "chainRegistryURL:8081"
 	ctx := context.Background()
 
-	usecase := NewSendEthTxUseCase(signTx, crafter, ec, jobClient, chainRegistryURL, nonceManager)
+	usecase := NewSendEthTxUseCase(signTx, crafter, ec, msgAPI, chainRegistryURL, nonceManager)
 	raw := hexutil.MustDecode("0x1234")
 	txHash := ethcommon.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000abc")
 
@@ -50,12 +49,9 @@ func TestSendEth_Execute(t *testing.T) {
 		proxyURL := client.GetProxyURL(chainRegistryURL, job.ChainUUID)
 		ec.EXPECT().SendRawTransaction(gomock.Any(), proxyURL, job.Transaction.Raw).Return(txHash, nil)
 		nonceManager.EXPECT().IncrementNonce(gomock.Any(), job).Return(nil)
-		jobClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, gomock.Any()).DoAndReturn(func(ctx context.Context, jobUUID string, request *apitypes.UpdateJobRequest) (*apitypes.JobResponse, error) {
-			assert.Equal(t, request.Status, entities.StatusPending)
-			assert.Equal(t, request.Transaction.Hash, job.Transaction.Hash)
-			assert.Equal(t, request.Transaction.Raw, job.Transaction.Raw)
-			return testdata2.FakeJobResponse(), nil
-		})
+		
+		msgAPI.EXPECT().JobUpdateMessage(gomock.Any(), 
+			testdata2.SentJobMessageRequestMatcher(job.UUID, entities.StatusPending, &txHash), gomock.Any()).Return(nil)
 
 		err := usecase.Execute(ctx, job)
 		assert.NoError(t, err)
@@ -72,12 +68,8 @@ func TestSendEth_Execute(t *testing.T) {
 		proxyURL := client.GetProxyURL(chainRegistryURL, job.ChainUUID)
 		ec.EXPECT().SendRawTransaction(gomock.Any(), proxyURL, job.Transaction.Raw).Return(txHash, nil)
 		nonceManager.EXPECT().IncrementNonce(gomock.Any(), job).Return(nil)
-		jobClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, gomock.Any()).DoAndReturn(func(ctx context.Context, jobUUID string, request *apitypes.UpdateJobRequest) (*apitypes.JobResponse, error) {
-			assert.Equal(t, request.Status, entities.StatusResending)
-			assert.Equal(t, request.Transaction.Hash, job.Transaction.Hash)
-			assert.Equal(t, request.Transaction.Raw, job.Transaction.Raw)
-			return testdata2.FakeJobResponse(), nil
-		})
+		msgAPI.EXPECT().JobUpdateMessage(gomock.Any(), 
+			testdata2.SentJobMessageRequestMatcher(job.UUID, entities.StatusResending, &txHash), gomock.Any()).Return(nil)
 
 		err := usecase.Execute(ctx, job)
 		assert.NoError(t, err)
@@ -95,12 +87,8 @@ func TestSendEth_Execute(t *testing.T) {
 		proxyURL := client.GetProxyURL(chainRegistryURL, job.ChainUUID)
 		ec.EXPECT().SendRawTransaction(gomock.Any(), proxyURL, job.Transaction.Raw).Return(txHash, nil)
 		nonceManager.EXPECT().IncrementNonce(gomock.Any(), job).Return(nil)
-		jobClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, gomock.Any()).DoAndReturn(func(ctx context.Context, jobUUID string, request *apitypes.UpdateJobRequest) (*apitypes.JobResponse, error) {
-			assert.Equal(t, request.Status, entities.StatusResending)
-			assert.Equal(t, request.Transaction.Hash, job.Transaction.Hash)
-			assert.Equal(t, request.Transaction.Raw, job.Transaction.Raw)
-			return testdata2.FakeJobResponse(), nil
-		})
+		msgAPI.EXPECT().JobUpdateMessage(gomock.Any(), 
+			testdata2.SentJobMessageRequestMatcher(job.UUID, entities.StatusResending, &txHash), gomock.Any()).Return(nil)
 
 		err := usecase.Execute(ctx, job)
 		assert.NoError(t, err)
@@ -119,12 +107,8 @@ func TestSendEth_Execute(t *testing.T) {
 		proxyURL := client.GetProxyURL(chainRegistryURL, job.ChainUUID)
 		ec.EXPECT().SendRawTransaction(gomock.Any(), proxyURL, job.Transaction.Raw).Return(txHash, nil)
 		nonceManager.EXPECT().IncrementNonce(gomock.Any(), job).Return(nil)
-		jobClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, gomock.Any()).DoAndReturn(func(ctx context.Context, jobUUID string, request *apitypes.UpdateJobRequest) (*apitypes.JobResponse, error) {
-			assert.Equal(t, request.Status, entities.StatusResending)
-			assert.Equal(t, request.Transaction.Hash, job.Transaction.Hash)
-			assert.Equal(t, request.Transaction.Raw, job.Transaction.Raw)
-			return testdata2.FakeJobResponse(), nil
-		})
+		msgAPI.EXPECT().JobUpdateMessage(gomock.Any(), 
+			testdata2.SentJobMessageRequestMatcher(job.UUID, entities.StatusResending, &txHash), gomock.Any()).Return(nil)
 
 		err := usecase.Execute(ctx, job)
 		assert.NoError(t, err)
@@ -162,12 +146,8 @@ func TestSendEth_Execute(t *testing.T) {
 		job.Transaction.Hash = &txHash
 
 		expectedErr := errors.InternalError("internal error")
-		jobClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, gomock.Any()).DoAndReturn(func(ctx context.Context, jobUUID string, request *apitypes.UpdateJobRequest) (*apitypes.JobResponse, error) {
-			assert.Equal(t, request.Status, entities.StatusPending)
-			assert.Equal(t, request.Transaction.Hash, job.Transaction.Hash)
-			assert.Equal(t, request.Transaction.Raw, job.Transaction.Raw)
-			return nil, expectedErr
-		})
+		msgAPI.EXPECT().JobUpdateMessage(gomock.Any(), 
+			testdata2.SentJobMessageRequestMatcher(job.UUID, entities.StatusPending, &txHash), gomock.Any()).Return(expectedErr)
 
 		err := usecase.Execute(ctx, job)
 		assert.Equal(t, err, expectedErr)
@@ -183,12 +163,8 @@ func TestSendEth_Execute(t *testing.T) {
 
 		expectedErr := errors.InternalError("internal error")
 		proxyURL := client.GetProxyURL(chainRegistryURL, job.ChainUUID)
-		jobClient.EXPECT().UpdateJob(gomock.Any(), job.UUID, gomock.Any()).DoAndReturn(func(ctx context.Context, jobUUID string, request *apitypes.UpdateJobRequest) (*apitypes.JobResponse, error) {
-			assert.Equal(t, request.Status, entities.StatusPending)
-			assert.Equal(t, request.Transaction.Hash, job.Transaction.Hash)
-			assert.Equal(t, request.Transaction.Raw, job.Transaction.Raw)
-			return testdata2.FakeJobResponse(), nil
-		})
+		msgAPI.EXPECT().JobUpdateMessage(gomock.Any(), 
+			testdata2.SentJobMessageRequestMatcher(job.UUID, entities.StatusPending, &txHash), gomock.Any()).Return(nil)
 		ec.EXPECT().SendRawTransaction(gomock.Any(), proxyURL, job.Transaction.Raw).Return(ethcommon.HexToHash(""), expectedErr)
 		nonceManager.EXPECT().CleanNonce(gomock.Any(), job, expectedErr).Return(nil)
 

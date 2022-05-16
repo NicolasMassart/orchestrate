@@ -55,7 +55,7 @@ func (agent *PGSubscription) Search(ctx context.Context, filters *entities.Subsc
 		for _, addr := range filters.Addresses {
 			addrs = append(addrs, addr.String())
 		}
-		q = q.Where("address in (?)", pg.In(addrs))
+		q = q.Where("contract_address in (?)", pg.In(addrs))
 	}
 	if filters.TenantID != "" {
 		q = q.Where("tenant_id = ?", filters.TenantID)
@@ -81,7 +81,7 @@ func (agent *PGSubscription) FindOneByAddressAndTenant(ctx context.Context, addr
 	err := agent.client.
 		ModelContext(ctx, subscription).
 		Where("tenant_id = ?", tenantID).
-		Where("address = ?", address.String()).
+		Where("contract_address = ?", address.String()).
 		WhereAllowedTenants("", tenants).
 		WhereAllowedOwner("", ownerID).
 		SelectOne()

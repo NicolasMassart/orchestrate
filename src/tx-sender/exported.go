@@ -3,6 +3,7 @@ package txsender
 import (
 	"context"
 
+	kafka "github.com/consensys/orchestrate/src/infra/kafka/sarama"
 	qkmhttp "github.com/consensys/orchestrate/src/infra/quorum-key-manager/http"
 	nonclient "github.com/consensys/orchestrate/src/infra/quorum-key-manager/non-client"
 	"github.com/consensys/orchestrate/src/infra/redis"
@@ -27,13 +28,18 @@ func New(ctx context.Context, cfg *Config) (*app.App, error) {
 		return nil, err
 	}
 
+	kafkaProdClient, err := kafka.NewProducer(cfg.Kafka)
+	if err != nil {
+		return nil, err
+	}
+
 	orchestrateClient.Init()
 	ethclient.Init(ctx)
 
 	return NewTxSender(
 		cfg,
 		qkmClient,
-		orchestrateClient.GlobalClient(),
+		kafkaProdClient,
 		ethclient.GlobalClient(),
 		redisClient,
 	)

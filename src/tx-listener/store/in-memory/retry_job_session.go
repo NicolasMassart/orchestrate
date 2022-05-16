@@ -10,15 +10,15 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-type retryJobSessionInMemory struct {
+type retryJobSessionState struct {
 	indexByJobUUID        map[string]*entities.Job   // jobUUID => Job
 	indexByTxHash         map[string]string          // TxHash => jobUUID
 	aggregatedByChainUUID map[string]map[string]bool // ChainUUID => jobUUID => Bool
 	mux                   *sync.RWMutex
 }
 
-func NewRetryJobSessionInMemory() store.RetryJobSession {
-	return &retryJobSessionInMemory{
+func NewRetryJobSessionState() store.RetryJobSession {
+	return &retryJobSessionState{
 		indexByJobUUID:        make(map[string]*entities.Job),
 		indexByTxHash:         make(map[string]string),
 		aggregatedByChainUUID: make(map[string]map[string]bool),
@@ -26,7 +26,7 @@ func NewRetryJobSessionInMemory() store.RetryJobSession {
 	}
 }
 
-func (m *retryJobSessionInMemory) Add(_ context.Context, job *entities.Job) error {
+func (m *retryJobSessionState) Add(_ context.Context, job *entities.Job) error {
 	m.mux.Lock()
 	defer m.mux.Unlock()
 	if _, ok := m.indexByJobUUID[job.UUID]; ok {
@@ -42,7 +42,7 @@ func (m *retryJobSessionInMemory) Add(_ context.Context, job *entities.Job) erro
 	return nil
 }
 
-func (m *retryJobSessionInMemory) Remove(_ context.Context, jobUUID string) error {
+func (m *retryJobSessionState) Remove(_ context.Context, jobUUID string) error {
 	m.mux.Lock()
 	defer m.mux.Unlock()
 	if _, ok := m.indexByJobUUID[jobUUID]; !ok {
@@ -56,7 +56,7 @@ func (m *retryJobSessionInMemory) Remove(_ context.Context, jobUUID string) erro
 	return nil
 }
 
-func (m *retryJobSessionInMemory) Has(_ context.Context, jobUUID string) bool {
+func (m *retryJobSessionState) Has(_ context.Context, jobUUID string) bool {
 	m.mux.Lock()
 	defer m.mux.Unlock()
 	if _, ok := m.indexByJobUUID[jobUUID]; !ok {
@@ -66,7 +66,7 @@ func (m *retryJobSessionInMemory) Has(_ context.Context, jobUUID string) bool {
 	return true
 }
 
-func (m *retryJobSessionInMemory) GetByTxHash(_ context.Context, chainUUID string, txHash *common.Hash) (string, error) {
+func (m *retryJobSessionState) GetByTxHash(_ context.Context, chainUUID string, txHash *common.Hash) (string, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 	if jobUUID, ok := m.indexByTxHash[txHash.String()]; ok {
@@ -79,7 +79,7 @@ func (m *retryJobSessionInMemory) GetByTxHash(_ context.Context, chainUUID strin
 	return "", errors.NotFoundError("retry session with hash %q is not found", txHash.String())
 }
 
-func (m *retryJobSessionInMemory) ListByChainUUID(_ context.Context, chainUUID string) ([]string, error) {
+func (m *retryJobSessionState) ListByChainUUID(_ context.Context, chainUUID string) ([]string, error) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 	jobUUIDs := []string{}
@@ -96,7 +96,7 @@ func (m *retryJobSessionInMemory) ListByChainUUID(_ context.Context, chainUUID s
 	return jobUUIDs, nil
 }
 
-func (m *retryJobSessionInMemory) DeletePerChainUUID(ctx context.Context, chainUUID string) error {
+func (m *retryJobSessionState) DeletePerChainUUID(ctx context.Context, chainUUID string) error {
 	if _, ok := m.aggregatedByChainUUID[chainUUID]; !ok {
 		return errors.NotFoundError("there is not retry sessions in chain %q", chainUUID)
 	}

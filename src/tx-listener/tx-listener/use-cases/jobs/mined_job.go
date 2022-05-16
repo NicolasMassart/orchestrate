@@ -10,34 +10,45 @@ import (
 	"github.com/consensys/orchestrate/pkg/errors"
 	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/log"
+	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"github.com/consensys/orchestrate/pkg/types/ethereum"
 	"github.com/consensys/orchestrate/pkg/utils"
 	"github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/infra/ethclient"
+	"github.com/consensys/orchestrate/src/tx-listener/store"
 	usecases "github.com/consensys/orchestrate/src/tx-listener/tx-listener/use-cases"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
-const minedJobUseCaseComponent = "tx-listener.use-case.tx-listener.mined-job"
+const minedJobUseCaseComponent = "tx-listener.use-case.mined-job"
 
 type minedJobUC struct {
-	client                   sdk.OrchestrateClient
+	completedJob             usecases.CompletedJob
+	proxyClient              sdk.ChainProxyClient
+	messenger                sdk.MessengerAPI
 	ethClient                ethclient.MultiClient
 	registerDeployedContract usecases.RegisterDeployedContract
+	pendingJobState          store.PendingJob
 	logger                   *log.Logger
 }
 
-func MinedJobUseCase(client sdk.OrchestrateClient,
+func MinedJobUseCase(messengerCli sdk.MessengerAPI,
+	proxyClient sdk.ChainProxyClient,
 	ethClient ethclient.MultiClient,
+	completedJob usecases.CompletedJob,
 	registerDeployedContract usecases.RegisterDeployedContract,
+	pendingJobState store.PendingJob,
 	logger *log.Logger,
 ) usecases.MinedJob {
 	return &minedJobUC{
-		client:                   client,
+		completedJob:             completedJob,
+		messenger:                messengerCli,
+		proxyClient:              proxyClient,
 		ethClient:                ethClient,
 		registerDeployedContract: registerDeployedContract,
+		pendingJobState:          pendingJobState,
 		logger:                   logger.SetComponent(minedJobUseCaseComponent),
 	}
 }
@@ -66,12 +77,19 @@ func (uc *minedJobUC) Execute(ctx context.Context, job *entities.Job) error {
 
 	// If contract has been deployed
 	if job.Receipt.ContractAddress != "" && job.Receipt.ContractAddress != utils.ZeroAddressString {
-		if err := uc.registerDeployedContract.Execute(ctx, job); err != nil {
+		err = uc.registerDeployedContract.Execute(ctx, job)
+		if err != nil {
 			return err
 		}
 	}
 
-	if err := uc.updateJobStatus(ctx, job, logger); err != nil {
+	err = uc.updateJobStatus(ctx, job, logger)
+	if err != nil {
+		return err
+	}
+
+	err = uc.completedJob.Execute(ctx, job)
+	if err != nil {
 		return err
 	}
 
@@ -79,7 +97,8 @@ func (uc *minedJobUC) Execute(ctx context.Context, job *entities.Job) error {
 }
 
 func (uc *minedJobUC) updateJobStatus(ctx context.Context, job *entities.Job, logger *log.Logger) error {
-	updateTxReq := &types.UpdateJobRequest{
+	updateTxReq := &types.JobUpdateMessageRequest{
+		JobUUID: job.UUID,
 		Status:  entities.StatusMined,
 		Message: fmt.Sprintf("transaction mined in block %v", job.Receipt.BlockNumber),
 		Receipt: job.Receipt,
@@ -87,25 +106,25 @@ func (uc *minedJobUC) updateJobStatus(ctx context.Context, job *entities.Job, lo
 
 	if job.Transaction.TransactionType == entities.DynamicFeeTxType {
 		effectiveGas, _ := hexutil.DecodeBig(job.Receipt.EffectiveGasPrice)
-		updateTxReq.Transaction = &types.ETHTransactionRequest{
+		updateTxReq.Transaction = &entities.ETHTransaction{
 			GasPrice: (*hexutil.Big)(effectiveGas),
 		}
 	}
 
-	_, err := uc.client.UpdateJob(ctx, job.UUID, updateTxReq)
+	err := uc.messenger.JobUpdateMessage(ctx, updateTxReq, multitenancy.NewInternalAdminUser())
 	if err != nil {
 		errMsg := "failed to update job to MINED"
 		logger.WithError(err).Error(errMsg)
 		return errors.DependencyFailureError(errMsg)
 	}
 
-	logger.Info("job was updated to mined successfully")
+	logger.Info("job was notified as mined successfully")
 	return nil
 }
 
 func (uc *minedJobUC) getTxReceipt(ctx context.Context, job *entities.Job, logger *log.Logger) (*ethereum.Receipt, error) {
 	logger.Debug("fetching transaction receipt")
-	chainURL := uc.client.ChainProxyURL(job.ChainUUID)
+	chainURL := uc.proxyClient.ChainProxyURL(job.ChainUUID)
 
 	var err error
 	var receipt *ethereum.Receipt

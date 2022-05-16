@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
-	"github.com/consensys/orchestrate/pkg/types/ethereum"
+	"github.com/consensys/orchestrate/src/api/service/types"
 	"github.com/consensys/orchestrate/src/entities"
 )
 
@@ -17,18 +17,17 @@ type OrchestrateMessenger interface {
 	MessengerTxSender
 }
 
-// @TODO Use MessageRequest types as input for methods, same than Orchestrate HTTP client
-
+// @TODO Use MessageRequest types as input for methods, same than Orchestrate HTT client
 type MessengerAPI interface {
-	ContractEventLogsMessage(ctx context.Context, chainUUID string, logs []*ethereum.Log, userInfo *multitenancy.UserInfo) error
-	JobUpdateMessage(ctx context.Context, jobUUID string, status entities.JobStatus, msg string, userInfo *multitenancy.UserInfo) error
+	ContractEventLogsMessage(ctx context.Context, req *types.EventLogsMessageRequest, userInfo *multitenancy.UserInfo) error
+	JobUpdateMessage(ctx context.Context, req *types.JobUpdateMessageRequest, userInfo *multitenancy.UserInfo) error
 	EventStreamSuspendMessage(ctx context.Context, eventStreamUUID string, userInfo *multitenancy.UserInfo) error
 	NotificationAckMessage(ctx context.Context, notifUUID string, userInfo *multitenancy.UserInfo) error
 }
 
 type MessengerNotifier interface {
 	TransactionNotificationMessage(ctx context.Context, eventStream *entities.EventStream, notif *entities.Notification, userInfo *multitenancy.UserInfo) error
-	ContractEventNotificationMessage(ctx context.Context, eventStream *entities.EventStream, subscriptionUUID string, eventLogs []*ethereum.Log, userInfo *multitenancy.UserInfo) error
+	ContractEventNotificationMessage(ctx context.Context, eventStream *entities.EventStream, notif *entities.Notification, userInfo *multitenancy.UserInfo) error
 }
 
 type MessengerTxListener interface {

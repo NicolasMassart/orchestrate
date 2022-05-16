@@ -6,6 +6,8 @@ package mocks
 
 import (
 	context "context"
+	entities "github.com/consensys/orchestrate/src/entities"
+	messenger "github.com/consensys/orchestrate/src/infra/messenger"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -45,6 +47,18 @@ func (m *MockConsumer) Consume(ctx context.Context) error {
 func (mr *MockConsumerMockRecorder) Consume(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Consume", reflect.TypeOf((*MockConsumer)(nil).Consume), ctx)
+}
+
+// AppendHandler mocks base method
+func (m *MockConsumer) AppendHandler(msgType entities.RequestMessageType, msgHandler messenger.MessageHandler) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "AppendHandler", msgType, msgHandler)
+}
+
+// AppendHandler indicates an expected call of AppendHandler
+func (mr *MockConsumerMockRecorder) AppendHandler(msgType, msgHandler interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AppendHandler", reflect.TypeOf((*MockConsumer)(nil).AppendHandler), msgType, msgHandler)
 }
 
 // Checker mocks base method

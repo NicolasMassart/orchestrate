@@ -7,9 +7,8 @@ import (
 	"github.com/consensys/orchestrate/pkg/sdk"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/auth/utils"
 	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
+	"github.com/consensys/orchestrate/src/entities"
 	"github.com/consensys/orchestrate/src/infra/kafka"
-	"github.com/consensys/orchestrate/src/infra/messenger"
-	types "github.com/consensys/orchestrate/src/infra/messenger/kafka"
 )
 
 type ProducerClient struct {
@@ -26,7 +25,7 @@ func NewProducerClient(cfg *Config, client kafka.Producer) *ProducerClient {
 	}
 }
 
-func (c *ProducerClient) sendMessage(topic string, msgType messenger.ConsumerRequestMessageType, msgBody interface{}, partitionKey string, userInfo *multitenancy.UserInfo) error {
+func (c *ProducerClient) sendMessage(topic string, msgType entities.RequestMessageType, msgBody interface{}, partitionKey string, userInfo *multitenancy.UserInfo) error {
 	if topic == "" {
 		return errors.InvalidParameterError("topic not defined")
 	}
@@ -41,7 +40,7 @@ func (c *ProducerClient) sendMessage(topic string, msgType messenger.ConsumerReq
 		headers[utils.UserInfoHeader] = userInfo
 	}
 
-	err = c.client.Send(&types.ConsumerRequestMessage{
+	err = c.client.Send(&entities.Message{
 		Type: msgType,
 		Body: bBody,
 	}, topic, partitionKey, headers)

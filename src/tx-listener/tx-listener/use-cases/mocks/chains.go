@@ -12,31 +12,31 @@ import (
 	reflect "reflect"
 )
 
-// MockChainBlock is a mock of ChainBlock interface
-type MockChainBlock struct {
+// MockChainBlockTxs is a mock of ChainBlockTxs interface
+type MockChainBlockTxs struct {
 	ctrl     *gomock.Controller
-	recorder *MockChainBlockMockRecorder
+	recorder *MockChainBlockTxsMockRecorder
 }
 
-// MockChainBlockMockRecorder is the mock recorder for MockChainBlock
-type MockChainBlockMockRecorder struct {
-	mock *MockChainBlock
+// MockChainBlockTxsMockRecorder is the mock recorder for MockChainBlockTxs
+type MockChainBlockTxsMockRecorder struct {
+	mock *MockChainBlockTxs
 }
 
-// NewMockChainBlock creates a new mock instance
-func NewMockChainBlock(ctrl *gomock.Controller) *MockChainBlock {
-	mock := &MockChainBlock{ctrl: ctrl}
-	mock.recorder = &MockChainBlockMockRecorder{mock}
+// NewMockChainBlockTxs creates a new mock instance
+func NewMockChainBlockTxs(ctrl *gomock.Controller) *MockChainBlockTxs {
+	mock := &MockChainBlockTxs{ctrl: ctrl}
+	mock.recorder = &MockChainBlockTxsMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockChainBlock) EXPECT() *MockChainBlockMockRecorder {
+func (m *MockChainBlockTxs) EXPECT() *MockChainBlockTxsMockRecorder {
 	return m.recorder
 }
 
 // Execute mocks base method
-func (m *MockChainBlock) Execute(ctx context.Context, chainUUID string, blockNumber uint64, txHashes []*common.Hash) error {
+func (m *MockChainBlockTxs) Execute(ctx context.Context, chainUUID string, blockNumber uint64, txHashes []*common.Hash) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Execute", ctx, chainUUID, blockNumber, txHashes)
 	ret0, _ := ret[0].(error)
@@ -44,9 +44,46 @@ func (m *MockChainBlock) Execute(ctx context.Context, chainUUID string, blockNum
 }
 
 // Execute indicates an expected call of Execute
-func (mr *MockChainBlockMockRecorder) Execute(ctx, chainUUID, blockNumber, txHashes interface{}) *gomock.Call {
+func (mr *MockChainBlockTxsMockRecorder) Execute(ctx, chainUUID, blockNumber, txHashes interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockChainBlock)(nil).Execute), ctx, chainUUID, blockNumber, txHashes)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockChainBlockTxs)(nil).Execute), ctx, chainUUID, blockNumber, txHashes)
+}
+
+// MockChainBlockEvents is a mock of ChainBlockEvents interface
+type MockChainBlockEvents struct {
+	ctrl     *gomock.Controller
+	recorder *MockChainBlockEventsMockRecorder
+}
+
+// MockChainBlockEventsMockRecorder is the mock recorder for MockChainBlockEvents
+type MockChainBlockEventsMockRecorder struct {
+	mock *MockChainBlockEvents
+}
+
+// NewMockChainBlockEvents creates a new mock instance
+func NewMockChainBlockEvents(ctrl *gomock.Controller) *MockChainBlockEvents {
+	mock := &MockChainBlockEvents{ctrl: ctrl}
+	mock.recorder = &MockChainBlockEventsMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockChainBlockEvents) EXPECT() *MockChainBlockEventsMockRecorder {
+	return m.recorder
+}
+
+// Execute mocks base method
+func (m *MockChainBlockEvents) Execute(ctx context.Context, chainUUID string, blockNumber uint64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Execute", ctx, chainUUID, blockNumber)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Execute indicates an expected call of Execute
+func (mr *MockChainBlockEventsMockRecorder) Execute(ctx, chainUUID, blockNumber interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockChainBlockEvents)(nil).Execute), ctx, chainUUID, blockNumber)
 }
 
 // MockChainUseCases is a mock of ChainUseCases interface
@@ -72,16 +109,30 @@ func (m *MockChainUseCases) EXPECT() *MockChainUseCasesMockRecorder {
 	return m.recorder
 }
 
-// ChainBlockUseCase mocks base method
-func (m *MockChainUseCases) ChainBlockUseCase() usecases.ChainBlock {
+// ChainBlockTxsUseCase mocks base method
+func (m *MockChainUseCases) ChainBlockTxsUseCase() usecases.ChainBlockTxs {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ChainBlockUseCase")
-	ret0, _ := ret[0].(usecases.ChainBlock)
+	ret := m.ctrl.Call(m, "ChainBlockTxsUseCase")
+	ret0, _ := ret[0].(usecases.ChainBlockTxs)
 	return ret0
 }
 
-// ChainBlockUseCase indicates an expected call of ChainBlockUseCase
-func (mr *MockChainUseCasesMockRecorder) ChainBlockUseCase() *gomock.Call {
+// ChainBlockTxsUseCase indicates an expected call of ChainBlockTxsUseCase
+func (mr *MockChainUseCasesMockRecorder) ChainBlockTxsUseCase() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChainBlockUseCase", reflect.TypeOf((*MockChainUseCases)(nil).ChainBlockUseCase))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChainBlockTxsUseCase", reflect.TypeOf((*MockChainUseCases)(nil).ChainBlockTxsUseCase))
+}
+
+// ChainBlockEventsUseCase mocks base method
+func (m *MockChainUseCases) ChainBlockEventsUseCase() usecases.ChainBlockEvents {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ChainBlockEventsUseCase")
+	ret0, _ := ret[0].(usecases.ChainBlockEvents)
+	return ret0
+}
+
+// ChainBlockEventsUseCase indicates an expected call of ChainBlockEventsUseCase
+func (mr *MockChainUseCasesMockRecorder) ChainBlockEventsUseCase() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChainBlockEventsUseCase", reflect.TypeOf((*MockChainUseCases)(nil).ChainBlockEventsUseCase))
 }

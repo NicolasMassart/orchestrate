@@ -20,17 +20,17 @@ const sendGoQuorumPrivateTxComponent = "use-cases.send-go-quorum-private-tx"
 type sendGoQuorumPrivateTxUseCase struct {
 	ec               ethclient.QuorumTransactionSender
 	chainRegistryURL string
-	jobClient        sdk.JobClient
+	messengerAPI     sdk.MessengerAPI
 	crafter          usecases.CraftTransactionUseCase
 	logger           *log.Logger
 }
 
 func NewSendGoQuorumPrivateTxUseCase(ec ethclient.QuorumTransactionSender, crafter usecases.CraftTransactionUseCase,
-	jobClient sdk.JobClient, chainRegistryURL string) usecases.SendGoQuorumPrivateTxUseCase {
+	messengerAPI sdk.MessengerAPI, chainRegistryURL string) usecases.SendGoQuorumPrivateTxUseCase {
 	return &sendGoQuorumPrivateTxUseCase{
 		ec:               ec,
 		chainRegistryURL: chainRegistryURL,
-		jobClient:        jobClient,
+		messengerAPI:     messengerAPI,
 		crafter:          crafter,
 		logger:           log.NewLogger().SetComponent(sendGoQuorumPrivateTxComponent),
 	}
@@ -56,7 +56,7 @@ func (uc *sendGoQuorumPrivateTxUseCase) Execute(ctx context.Context, job *entiti
 		return errors.FromError(err).ExtendComponent(sendGoQuorumPrivateTxComponent)
 	}
 
-	err = utils2.UpdateJobStatus(ctx, uc.jobClient, job, entities.StatusStored, "", job.Transaction)
+	err = utils2.UpdateJobStatus(ctx, uc.messengerAPI, job, entities.StatusStored, "", job.Transaction)
 	if err != nil {
 		return errors.FromError(err).ExtendComponent(sendGoQuorumPrivateTxComponent)
 	}

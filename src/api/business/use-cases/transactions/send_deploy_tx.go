@@ -38,7 +38,7 @@ func (uc *sendDeployTxUsecase) Execute(ctx context.Context, txRequest *entities.
 	logger.Debug("creating new deployment transaction")
 
 	contract, err := uc.getContractUseCase.Execute(ctx, txRequest.Params.ContractName, txRequest.Params.ContractTag)
-	if errors.IsNotFoundError(err) {
+	if contract == nil {
 		return nil, errors.InvalidParameterError("contract not found")
 	}
 	if err != nil {
