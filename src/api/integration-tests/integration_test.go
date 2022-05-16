@@ -5,6 +5,8 @@ package integrationtests
 
 import (
 	"context"
+	"github.com/consensys/orchestrate/pkg/sdk/messenger"
+	"github.com/consensys/orchestrate/src/infra/kafka/sarama"
 	"os"
 	"testing"
 	"time"
@@ -22,8 +24,9 @@ import (
 
 type apiTestSuite struct {
 	suite.Suite
-	env    *IntegrationEnvironment
-	client sdk.OrchestrateClient
+	env       *IntegrationEnvironment
+	client    sdk.OrchestrateClient
+	messenger sdk.MessengerAPI
 }
 
 func (s *apiTestSuite) SetupSuite() {
@@ -36,6 +39,13 @@ func (s *apiTestSuite) SetupSuite() {
 	conf := client.NewConfig(s.env.baseURL, "", nil)
 	conf.MetricsURL = s.env.metricsURL
 	s.client = client.NewHTTPClient(http.NewClient(http.NewDefaultConfig()), conf)
+
+	kafkaProducer, err := sarama.NewProducer(s.env.apiCfg.Kafka)
+	require.NoError(s.T(), err)
+
+	s.messenger = messenger.NewProducerClient(&messenger.Config{
+		TopicAPI: s.env.apiCfg.KafkaTopics.API,
+	}, kafkaProducer)
 
 	// @TODO Remove this hidden dependency
 	// We use this chain in the API_Transactions tests
@@ -126,6 +136,7 @@ func (s *apiTestSuite) TestAPI_EventStreams() {
 	testSuite := new(eventStreamsTestSuite)
 	testSuite.env = s.env
 	testSuite.client = s.client
+	testSuite.messenger = s.messenger
 	suite.Run(s.T(), testSuite)
 }
 

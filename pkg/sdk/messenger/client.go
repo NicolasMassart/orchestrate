@@ -37,7 +37,7 @@ func (c *ProducerClient) sendMessage(topic string, msgType messenger.ConsumerReq
 	}
 
 	headers := map[string]interface{}{}
-	if userInfo.AuthMode == multitenancy.AuthMethodJWT {
+	if userInfo.AuthMode == multitenancy.AuthMethodJWT || userInfo.AuthMode == multitenancy.AuthMethodAPIKey {
 		headers[utils.UserInfoHeader] = userInfo
 	}
 

@@ -15,6 +15,11 @@ ifeq ($(UNAME_S),Darwin)
 	OPEN = open
 endif
 
+ifneq (,$(wildcard ./.env))
+    include .env
+    export
+endif
+
 .PHONY: all run-coverage coverage fmt fmt-check vet lint misspell-check misspell race tools help
 
 networks:

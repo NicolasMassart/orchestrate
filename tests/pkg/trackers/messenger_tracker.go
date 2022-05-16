@@ -3,6 +3,8 @@ package trackers
 import (
 	"context"
 	"encoding/json"
+	"github.com/consensys/orchestrate/src/api/service/listener"
+	"github.com/consensys/orchestrate/src/api/service/types"
 	"time"
 
 	"github.com/consensys/orchestrate/pkg/errors"
@@ -56,6 +58,12 @@ func NewMessengerConsumerTracker(cfg kafka.Config, topics []string) (*MessengerC
 	msg.trackMessageType(notifier2.TransactionMessageType, &notifierTypes.TransactionMessageRequest{}, func(req interface{}) string {
 		return req.(*notifierTypes.TransactionMessageRequest).Notification.Job.UUID
 	})
+	msg.trackMessageType(listener.SuspendEventStreamMessageType, &types.SuspendEventStreamRequestMessage{}, func(req interface{}) string {
+		return req.(*types.SuspendEventStreamRequestMessage).UUID
+	})
+	msg.trackMessageType(listener.AckNotificationMessageType, &types.AckNotificationRequestMessage{}, func(req interface{}) string {
+		return req.(*types.AckNotificationRequestMessage).UUID
+	})
 
 	return msg, nil
 }
@@ -97,6 +105,34 @@ func (m *MessengerConsumerTracker) WaitForTransactionNotificationMessage(ctx con
 	if !ok {
 		return nil, errors.EncodingError(invalidTypeErr)
 	}
+	return req, nil
+}
+
+func (m *MessengerConsumerTracker) WaitForSuspendEventStream(ctx context.Context, msgId string, timeout time.Duration) (*types.SuspendEventStreamRequestMessage, error) {
+	msg, err := m.tracker.WaitForMessage(ctx, keyGenOf(msgId, listener.SuspendEventStreamMessageType), timeout)
+	if err != nil {
+		return nil, err
+	}
+
+	req, ok := msg.(*types.SuspendEventStreamRequestMessage)
+	if !ok {
+		return nil, errors.EncodingError(invalidTypeErr)
+	}
+
+	return req, nil
+}
+
+func (m *MessengerConsumerTracker) WaitForAckNotif(ctx context.Context, msgId string, timeout time.Duration) (*types.AckNotificationRequestMessage, error) {
+	msg, err := m.tracker.WaitForMessage(ctx, keyGenOf(msgId, listener.AckNotificationMessageType), timeout)
+	if err != nil {
+		return nil, err
+	}
+
+	req, ok := msg.(*types.AckNotificationRequestMessage)
+	if !ok {
+		return nil, errors.EncodingError(invalidTypeErr)
+	}
+
 	return req, nil
 }
 

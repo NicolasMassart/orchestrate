@@ -4,6 +4,7 @@
 package integrationtests
 
 import (
+	"github.com/consensys/orchestrate/pkg/toolkit/app/multitenancy"
 	"net/http"
 	"testing"
 
@@ -20,9 +21,10 @@ import (
 
 type eventStreamsTestSuite struct {
 	suite.Suite
-	client sdk.OrchestrateClient
-	env    *IntegrationEnvironment
-	chain  *types.ChainResponse
+	client    sdk.OrchestrateClient
+	messenger sdk.MessengerAPI
+	env       *IntegrationEnvironment
+	chain     *types.ChainResponse
 }
 
 func (s *eventStreamsTestSuite) SetupSuite() {
@@ -229,5 +231,28 @@ func (s *eventStreamsTestSuite) TestUpdate() {
 
 		err = s.client.DeleteEventStream(ctx, esKafka.UUID)
 		assert.NoError(s.T(), err)
+	})
+}
+
+func (s *eventStreamsTestSuite) TestSuspend() {
+	ctx := s.env.ctx
+
+	s.T().Run("should suspend event stream successfully: Kafka", func(t *testing.T) {
+		req := testdata.FakeCreateWebhookEventStreamRequest()
+		req.Chain = s.chain.Name
+		esWebhook, err := s.client.CreateEventStream(ctx, req)
+		require.NoError(s.T(), err)
+
+		defer func() {
+			err := s.client.DeleteEventStream(ctx, esWebhook.UUID)
+			assert.NoError(s.T(), err)
+		}()
+
+		err = s.messenger.EventStreamSuspendMessage(ctx, esWebhook.UUID, multitenancy.NewInternalAdminUser())
+		require.NoError(t, err)
+
+		esRetrieved, err := s.client.GetEventStream(ctx, esWebhook.UUID)
+		assert.NoError(s.T(), err)
+		assert.Equal(t, string(entities.EventStreamStatusSuspend), esRetrieved.Status)
 	})
 }
