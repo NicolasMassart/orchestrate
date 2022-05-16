@@ -250,7 +250,7 @@ jobs:
           seconds-between-retries: 3
           timeout: 30
           description: "deployment readiness"
-          sh-command: nc -z qa.orchestrate.ops.consensys.net 443
+          sh-command: nc -z ${READINESS_URL} 443
       - run:
           name: Running e2e
           environment:
@@ -415,9 +415,6 @@ workflows:
             tags:
               ignore:
                 - /^v.*/
-            branches:
-              ignore:
-                - main
       - gobuild:
           requires:
             - lint
