@@ -69,8 +69,8 @@ lint-ci: ## Check linting
 run-e2e:
 	go test -v -tags e2e ./tests/e2e
 
-run-stress: gobuild-e2e
-	@docker-compose -f docker-compose.e2e.yml up -V stress
+run-stress: gobuild-stress
+	@./build/bin/test stress
 
 e2e: run-e2e
 	@docker-compose -f docker-compose.e2e.yml up --build report
@@ -162,6 +162,9 @@ bootstrap-deps: bootstrap ## Wait for dependencies to be ready
 
 gobuild-e2e: ## Build Orchestrate e2e Docker image
 	@CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./build/bin/test ./tests/cmd
+
+gobuild-stress: ## Build Orchestrate stress binary
+	@CGO_ENABLED=0 go build -o ./build/bin/test ./tests/stress/cmd
 
 orchestrate: gobuild ## Start Orchestrate
 	@docker-compose -f docker-compose.dev.yml up --force-recreate --build -d $(ORCH_SERVICES)

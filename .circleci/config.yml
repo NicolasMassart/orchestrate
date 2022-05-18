@@ -289,7 +289,7 @@ jobs:
           seconds-between-retries: 3
           timeout: 30
           description: "deployment readiness"
-          sh-command: nc -z staging.orchestrate.ops.consensys.net 443
+          sh-command: nc -z ${READINESS_URL} 443
       - run:
           name: Running stress
           environment:
@@ -298,7 +298,17 @@ jobs:
             STRESS_ITERATIONS: <<parameters.stress_iteration>>
             STRESS_TIMEOUT: <<parameters.stress_timeout>>
             KAFKA_CONSUMER_GROUP_NAME: "stress"
-          command: ./build/bin/test stress
+            KAFKA_SASL_ENABLED: true
+            KAFKA_SASL_MECHANISM: PLAIN
+            KAFKA_TLS_ENABLED: true
+            KAFKA_TLS_INSECURE_SKIP_VERIFY: true
+            MULTI_TENANCY_ENABLED: true
+          command: |
+            export KAFKA_URL=${KAFKA_URL}
+            export KAFKA_SASL_PASSWORD=${KAFKA_SASL_PASSWORD}
+            export AUTH_API_KEY=${AUTH_API_KEY}
+            export TEST_GLOBAL_DATA=${TEST_GLOBAL_DATA}
+            make run-stress
 
   deploy:
     docker:
@@ -512,6 +522,17 @@ workflows:
             - tanuki-orchestrate-staging
           requires:
             - deploy-staging
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+      - run-stress:
+          name: run-staging-stress
+          context:
+            - tanuki-orchestrate-staging
+          requires:
+            - run-staging-e2e
           filters:
             tags:
               only: /^v.*/
