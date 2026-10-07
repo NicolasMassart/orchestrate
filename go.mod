@@ -11,7 +11,7 @@ require (
 	github.com/cenkalti/backoff/v4 v4.1.2
 	github.com/consensys/quorum v2.7.0+incompatible
 	github.com/consensys/quorum-key-manager v0.0.0-20211216092116-3e1719d4b69d
-	github.com/dgraph-io/ristretto v0.1.0
+	github.com/dgraph-io/ristretto v0.2.0
 	github.com/docker/docker v20.10.7+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/eapache/channels v1.1.0
@@ -42,7 +42,7 @@ require (
 	github.com/spf13/cobra v1.2.1
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.8.1
-	github.com/stretchr/testify v1.7.1
+	github.com/stretchr/testify v1.8.4
 	github.com/traefik/paerser v0.1.5
 	github.com/traefik/traefik/v2 v2.5.5
 	github.com/umbracle/go-web3 v0.0.0-20220214174057-1d971ac3be78
