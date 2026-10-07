@@ -46,7 +46,7 @@ require (
 	github.com/traefik/paerser v0.1.5
 	github.com/traefik/traefik/v2 v2.5.5
 	github.com/umbracle/go-web3 v0.0.0-20220214174057-1d971ac3be78
-	github.com/unrolled/secure v1.10.0
+	github.com/unrolled/secure v1.17.0
 	github.com/vulcand/oxy v1.3.0
 	github.com/yuin/gopher-lua v0.0.0-20191220021717-ab39c6098bdb // indirect
 	golang.org/x/crypto v0.0.0-20220315160706-3147a52a75dd
